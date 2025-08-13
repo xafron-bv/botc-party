@@ -219,9 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
           };
       });
       
-      // Use a longer delay to ensure DOM is fully rendered
-      setTimeout(repositionPlayers, 100);
-      updateGrimoire();
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+          repositionPlayers();
+          updateGrimoire();
+      });
   }
 
   function repositionPlayers() {
@@ -366,22 +368,39 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
   characterSearch.oninput = populateCharacterGrid;
   
-  // Handle window resize to reposition players
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
+  // Handle container resize to reposition players
+  let resizeObserver;
+  if ('ResizeObserver' in window) {
+    resizeObserver = new ResizeObserver((entries) => {
       if (players.length > 0) {
-        console.log('Window resized, repositioning players...');
-        repositionPlayers();
+        console.log('Container resized, repositioning players...');
+        requestAnimationFrame(repositionPlayers);
       }
-    }, 250);
-  });
+    });
+    
+    // Observe the player circle container for size changes
+    const playerCircle = document.getElementById('player-circle');
+    if (playerCircle) {
+      resizeObserver.observe(playerCircle);
+    }
+  } else {
+    // Fallback to window resize for older browsers
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (players.length > 0) {
+          console.log('Window resized, repositioning players...');
+          requestAnimationFrame(repositionPlayers);
+        }
+      }, 250);
+    });
+  }
   
   // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && players.length > 0) {
-      setTimeout(repositionPlayers, 100);
+      requestAnimationFrame(repositionPlayers);
     }
   });
   
@@ -440,11 +459,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Auto-load default tokens on page load
-  window.addEventListener('load', () => {
-    console.log('Page loaded, auto-loading tokens in 1 second...');
-    setTimeout(() => {
+  // Auto-load default tokens when the page is ready
+  function autoLoadTokens() {
+    // Check if service worker is ready
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      console.log('Service worker ready, auto-loading tokens...');
       loadDefaultTokensBtn.click();
-    }, 1000);
-  });
+    } else {
+      // Wait for service worker to be ready
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Service worker controller changed, auto-loading tokens...');
+        loadDefaultTokensBtn.click();
+      });
+      
+      // Fallback: if no service worker after a reasonable time, load anyway
+      const fallbackTimer = setTimeout(() => {
+        if (!navigator.serviceWorker.controller) {
+          console.log('Service worker not ready, loading tokens anyway...');
+          loadDefaultTokensBtn.click();
+        }
+      }, 2000);
+      
+      // Clear fallback if service worker becomes ready
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        clearTimeout(fallbackTimer);
+      });
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoLoadTokens);
+  } else {
+    autoLoadTokens();
+  }
 });
