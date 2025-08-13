@@ -182,8 +182,9 @@ body {
     background: #000;
     opacity: 0.12;
     transition: opacity .15s ease;
-    cursor: pointer;
+    cursor: default;
     z-index: 5;
+    pointer-events: none; /* allow clicks to pass through to token except ribbon */
 }
 
 .player-token .death-ribbon {
@@ -195,14 +196,14 @@ body {
     height: auto;
     opacity: 0;
     transition: opacity .15s ease;
-    pointer-events: none;
+    pointer-events: none; /* enabled on hover/is-dead below */
     z-index: 6;
 }
 
 .player-token:hover .death-overlay { opacity: 0.2; }
-.player-token:hover .death-ribbon { opacity: 1; }
+.player-token:hover .death-ribbon { opacity: 1; pointer-events: auto; cursor: pointer; }
 .player-token.is-dead .death-overlay { opacity: 0.35; }
-.player-token.is-dead .death-ribbon { opacity: 1; }
+.player-token.is-dead .death-ribbon { opacity: 1; pointer-events: auto; }
 
 .icon-reminder-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
 .icon-reminder-text {

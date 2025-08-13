@@ -204,7 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
           playerCircle.appendChild(listItem);
 
-          listItem.querySelector('.player-token').onclick = () => openCharacterModal(i);
+          // Only the main token area opens the character modal; ribbon handles dead toggle
+          listItem.querySelector('.player-token').onclick = (e) => {
+              const target = e.target;
+              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                  return; // handled by ribbon click
+              }
+              openCharacterModal(i);
+          };
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);
@@ -319,15 +326,16 @@ document.addEventListener('DOMContentLoaded', () => {
           const overlay = document.createElement('div');
           overlay.className = 'death-overlay';
           overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
-          overlay.onclick = (e) => {
-              e.stopPropagation();
-              players[i].dead = !players[i].dead;
-              updateGrimoire();
-          };
+          // overlay is visual only; click is on ribbon
           tokenDiv.appendChild(overlay);
 
           const ribbon = createDeathRibbonSvg();
           ribbon.classList.add('death-ribbon');
+          ribbon.addEventListener('click', (e) => {
+              e.stopPropagation();
+              players[i].dead = !players[i].dead;
+              updateGrimoire();
+          });
           tokenDiv.appendChild(ribbon);
 
           if (player.dead) {
