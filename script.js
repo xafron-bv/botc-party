@@ -295,16 +295,19 @@ document.addEventListener('DOMContentLoaded', () => {
           const baseX = -Math.cos(angle) * inwardDistance;
           const baseY = -Math.sin(angle) * inwardDistance;
           
-          const smallRadius = tokenRadiusPx * 0.5; // radius of the small reminder fan
+          // Stack reminders in rows under the token, overlapping slightly
+          const maxPerRow = 3;
           const count = player.reminders.length;
-          const visible = Math.min(count, 6);
-          const step = (Math.PI) / Math.max(visible, 1); // half-circle fan facing centre
-          const start = -Math.PI / 2 - (step * (visible - 1)) / 2;
+          const gap = tokenRadiusPx * 0.08; // horizontal overlap
+          const rowHeight = tokenRadiusPx * 0.42; // row spacing and size base
           
           player.reminders.forEach((reminder, idx) => {
-              const theta = start + idx * step;
-              const rx = baseX + smallRadius * Math.cos(theta);
-              const ry = baseY + smallRadius * Math.sin(theta);
+              const row = Math.floor(idx / maxPerRow);
+              const col = idx % maxPerRow;
+              const startX = baseX + tokenRadiusPx * 0.15; // shift to bottom-right quadrant
+              const startY = baseY + tokenRadiusPx * 0.40;
+              const rx = startX + col * (rowHeight - gap);
+              const ry = startY + row * (rowHeight - gap);
               
                if (reminder.type === 'icon') {
                 const iconEl = document.createElement('div');
@@ -313,13 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
                 iconEl.style.backgroundImage = `url('${reminder.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
-                iconEl.title = reminder.label || '';
+                iconEl.title = (reminder.label || '');
 
                 if (reminder.label) {
-                  const labelEl = document.createElement('div');
-                  labelEl.className = 'icon-reminder-label';
-                  labelEl.textContent = reminder.label;
-                  iconEl.appendChild(labelEl);
+                  const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+                  iconEl.appendChild(svg);
                 }
 
                 const delBtn = document.createElement('div');
@@ -432,6 +433,45 @@ document.addEventListener('DOMContentLoaded', () => {
   closeReminderTokenModalBtn && (closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none');
   reminderTokenSearch && (reminderTokenSearch.oninput = populateReminderTokenGrid);
 
+  function createCurvedLabelSvg(uniqueId, labelText) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 100 100');
+      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+      svg.classList.add('icon-reminder-svg');
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('id', uniqueId);
+      // Widen and raise arc so full string fits and stays inside the rim
+      path.setAttribute('d','M16,72 A34,34 0 0,0 84,72');
+      defs.appendChild(path);
+      svg.appendChild(defs);
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('class','icon-reminder-text');
+      text.setAttribute('text-anchor','middle');
+      const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
+      textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
+      textPath.setAttribute('startOffset','50%');
+      // Truncate display on token to avoid overcrowding, but keep tooltip full
+      const full = String(labelText || '');
+      const maxChars = 14;
+      const display = full.length > maxChars ? full.slice(0, maxChars - 1) + '…' : full;
+      const len = display.length;
+      // Dynamic font size based on length
+      let fontSize = 12;
+      if (len > 12 && len <= 16) fontSize = 11.5;
+      else if (len > 16) fontSize = 11;
+      text.style.fontSize = `${fontSize}px`;
+      text.style.letterSpacing = '0.1px';
+      text.setAttribute('lengthAdjust','spacingAndGlyphs');
+      // Force the displayed text to fit exactly along the arc
+      const targetLength = 92; // tweakable to the visual arc length
+      textPath.setAttribute('textLength', String(targetLength));
+      textPath.textContent = display;
+      text.appendChild(textPath);
+      svg.appendChild(text);
+      return svg;
+  }
+
   function openReminderTokenModal(playerIndex) {
       selectedPlayerIndex = playerIndex;
       if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = players[playerIndex].name;
@@ -460,23 +500,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
         const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
-        (filtered.length ? filtered : reminderTokens).forEach(token => {
+        (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
             tokenEl.style.backgroundImage = `url('${token.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
             tokenEl.style.backgroundSize = 'cover, cover';
-            tokenEl.title = token.label;
+            tokenEl.style.position = 'relative';
+            tokenEl.style.overflow = 'visible';
+            tokenEl.style.zIndex = '1';
+            tokenEl.title = token.label || '';
             tokenEl.onclick = () => {
                 let label = token.label;
                 if ((label || '').toLowerCase().includes('custom')) {
-                  const input = prompt('Enter short reminder text (max 10 chars):', '');
+                  const input = prompt('Enter reminder text:', '');
                   if (input === null) return;
-                  label = input.slice(0, 10);
+                  label = input; // no hard truncation; SVG arc will scale to fit
                 }
                 players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
                 updateGrimoire();
                 reminderTokenModal.style.display = 'none';
             };
+
+            // Add curved bottom text to preview
+            if (token.label) {
+              const svg = createCurvedLabelSvg(`picker-arc-${idx}`, token.label);
+              tokenEl.appendChild(svg);
+            }
             reminderTokenGrid.appendChild(tokenEl);
         });
       } catch (e) {
