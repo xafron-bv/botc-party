@@ -389,9 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const tokenEl = document.createElement('div');
           tokenEl.className = 'token';
           tokenEl.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
-          tokenEl.style.backgroundSize = 'cover, cover';
+          tokenEl.style.backgroundSize = '68% 68%, cover';
+          tokenEl.style.position = 'relative';
+          tokenEl.style.overflow = 'visible';
           tokenEl.title = role.name;
           tokenEl.onclick = () => assignCharacter(role.id);
+          // Add curved bottom text on the token preview
+          const svg = createCurvedLabelSvg(`picker-role-arc-${role.id}` , role.name);
+          tokenEl.appendChild(svg);
           characterGrid.appendChild(tokenEl);
       });
   }
