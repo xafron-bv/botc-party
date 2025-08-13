@@ -41,34 +41,27 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       loadStatus.textContent = 'Loading default tokens...';
       loadStatus.className = 'status';
-      
-      console.log('Attempting to load tokens.json...');
+      // default behavior: build sheet from tokens.json (library), not a script
       const response = await fetch('./tokens.json');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const tokens = await response.json();
-      console.log('Tokens loaded successfully:', tokens);
-      console.log('Number of teams:', Object.keys(tokens).length);
-      
-      await processScriptData(Object.keys(allRoles).length ? Object.keys(allRoles) : ['_meta']);
-      
+
+      // Build a role lookup and expose entire library in character sheet
+      allRoles = {};
+      Object.entries(tokens).forEach(([teamName, teamArray]) => {
+        if (Array.isArray(teamArray)) {
+          teamArray.forEach(role => {
+            allRoles[role.id] = { ...role, team: teamName };
+          });
+        }
+      });
+      renderCharacterSheet();
       loadStatus.textContent = 'Default tokens loaded successfully!';
       loadStatus.className = 'status';
     } catch (error) {
       console.error('Error loading default tokens:', error);
       loadStatus.textContent = `Error loading default tokens: ${error.message}`;
       loadStatus.className = 'error';
-      
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        loadStatus.textContent = 'Network error: Check if the server is running and tokens.json is accessible';
-      } else if (error.name === 'SyntaxError') {
-        loadStatus.textContent = 'JSON parsing error: tokens.json may be corrupted';
-      }
     }
   });
 
@@ -118,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       console.log('Total roles processed:', Object.keys(allRoles).length);
-      displayScript(data);
+      renderCharacterSheet();
   }
 
   async function processScriptCharacters(characterIds) {
@@ -278,18 +271,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
+          remindersDiv.style.zIndex = '3';
           
-          // Position reminders on a smaller circle in front (towards center) of the player
           const angle = parseFloat(li.dataset.angle || '0');
           const tokenRadiusPx = li.offsetWidth / 2;
-          const inwardDistance = tokenRadiusPx * 0.9; // distance from token center towards circle center
+          const inwardDistance = tokenRadiusPx * 0.9;
           const baseX = -Math.cos(angle) * inwardDistance;
           const baseY = -Math.sin(angle) * inwardDistance;
           
-          const smallRadius = tokenRadiusPx * 0.45; // radius of the small reminder circle
+          const smallRadius = tokenRadiusPx * 0.5;
           const count = player.reminders.length;
-          const step = (2 * Math.PI) / Math.max(count, 1);
-          const start = -Math.PI / 2; // start at top of small circle
+          const spread = Math.min(count, 5);
+          const step = (Math.PI) / Math.max(spread, 1); // half circle fan
+          const start = -Math.PI / 2 - (step * (spread - 1)) / 2; // centered fan
           
           player.reminders.forEach((reminder, idx) => {
               const theta = start + idx * step;
@@ -298,11 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
               
               const reminderEl = document.createElement('div');
               reminderEl.className = 'text-reminder';
-              reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
+              reminderEl.textContent = (reminder.value || '').toString().slice(0, 2);
               reminderEl.style.position = 'absolute';
               reminderEl.style.left = `calc(50% + ${rx}px)`;
               reminderEl.style.top = `calc(50% + ${ry}px)`;
               reminderEl.style.transform = 'translate(-50%, -50%)';
+              reminderEl.style.zIndex = '3';
               reminderEl.onclick = (e) => {
                   e.stopPropagation();
                   openTextReminderModal(i, idx, reminder.value);
@@ -416,59 +411,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  function displayScript(data) {
-    console.log('Displaying script with', data.length, 'characters');
-    characterSheet.innerHTML = '';
-    
-    // Group characters by team if we have resolved role data
-    const teamGroups = {};
+  function renderCharacterSheet() {
+    const container = characterSheet;
+    container.innerHTML = '';
+    const grouped = {};
     Object.values(allRoles).forEach(role => {
-        if (!teamGroups[role.team]) {
-            teamGroups[role.team] = [];
-        }
-        teamGroups[role.team].push(role);
+      const team = role.team || 'unknown';
+      if (!grouped[team]) grouped[team] = [];
+      grouped[team].push(role);
     });
-    
-    // Display grouped by team if we have team information
-    if (Object.keys(teamGroups).length > 0) {
-        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
-        teamOrder.forEach(team => {
-            if (teamGroups[team] && teamGroups[team].length > 0) {
-                const teamHeader = document.createElement('h3');
-                teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
-                teamHeader.className = `team-${team}`;
-                characterSheet.appendChild(teamHeader);
-                
-                teamGroups[team].forEach(role => {
-                    const roleEl = document.createElement('div');
-                    roleEl.className = 'role';
-                    roleEl.innerHTML = `
-                        <span class="icon" style="background-image: url('${role.image}')"></span>
-                        <span class="name">${role.name}</span>
-                    `;
-                    characterSheet.appendChild(roleEl);
-                });
-            }
-        });
-    } else {
-        // Fallback: show all characters in a single list
-        const header = document.createElement('h3');
-        header.textContent = 'Characters';
-        header.className = 'team-townsfolk';
-        characterSheet.appendChild(header);
-        
-        data.forEach((characterId, index) => {
-            if (typeof characterId === 'string' && characterId !== '_meta') {
-                const roleEl = document.createElement('div');
-                roleEl.className = 'role';
-                roleEl.innerHTML = `
-                    <span class="icon" style="background-image: url('https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp')"></span>
-                    <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
-                `;
-                characterSheet.appendChild(roleEl);
-            }
-        });
-    }
+    const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled', 'unknown'];
+    teamOrder.forEach(team => {
+      const roles = grouped[team];
+      if (!roles || roles.length === 0) return;
+      const header = document.createElement('h3');
+      header.textContent = team.charAt(0).toUpperCase() + team.slice(1);
+      header.className = `team-${team}`;
+      container.appendChild(header);
+      roles.forEach(role => {
+        const roleEl = document.createElement('div');
+        roleEl.className = 'role';
+        roleEl.innerHTML = `
+          <span class="icon" style="background-image: url('${role.image}')"></span>
+          <span class="name">${role.name}</span>
+        `;
+        container.appendChild(roleEl);
+      });
+    });
   }
 
   // Auto-load default tokens when the page is ready

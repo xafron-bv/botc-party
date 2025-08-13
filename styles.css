@@ -399,3 +399,19 @@ label {
   margin: 5px 0;
   display: block;
 }
+
+#player-circle .player-token {
+  width: var(--token-size);
+  height: var(--token-size);
+  aspect-ratio: 1 / 1;
+}
+
+#player-circle li {
+  width: var(--token-size);
+  height: var(--token-size);
+}
+
+/* empty seat border should be circular too */
+#player-circle .player-token:not(.has-character) {
+  background-size: 80%;
+}
