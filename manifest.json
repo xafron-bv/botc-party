@@ -1,20 +1,28 @@
 {
   "name": "Blood on the Clocktower - Offline Grimoire",
   "short_name": "BOTC Offline",
+  "description": "Offline PWA version of Blood on the Clocktower Grimoire for managing game sessions",
   "icons": [
     {
       "src": "https://botc.app/static/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "https://botc.app/static/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
-  "theme_color": "#583286"
+  "theme_color": "#583286",
+  "orientation": "landscape",
+  "scope": "/",
+  "lang": "en-GB",
+  "categories": ["games", "entertainment"],
+  "prefer_related_applications": false
 }

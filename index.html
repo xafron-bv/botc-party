@@ -101,98 +101,205 @@
         border-radius: 5px;
         font-size: 1.5vmin;
         cursor: pointer;
-        max-width: 10vmin;
+        pointer-events: auto;
+        max-width: 8vmin;
         text-align: center;
-        pointer-events: all;
+        word-wrap: break-word;
     }
     .reminder-placeholder {
         position: absolute;
-        top: 50%;
+        bottom: -4.5vmin;
         left: 50%;
-        transform: translate(-150%, -50%); /* Position to the inner-left */
-        width: var(--reminder-size);
-        height: var(--reminder-size);
-        border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.1);
-        border: 2px dashed rgba(255, 255, 255, 0.4);
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 2.5vmin;
+        transform: translateX(-50%);
+        background: rgba(160, 140, 91, 0.7);
         color: white;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: all;
-    }
-    .circle li:hover .reminder-placeholder {
-        opacity: 1;
+        width: 2vmin;
+        height: 2vmin;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.5vmin;
+        font-weight: bold;
     }
     #sidebar {
-      width: 350px;
-      background: #111;
+      width: 300px;
+      background-color: #2a2a2a;
       padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
       overflow-y: auto;
-      border-left: 2px solid #583286;
+      border-right: 2px solid #583286;
     }
-    #sidebar h2 { margin-top: 0; }
-    .role { display: flex; align-items: center; margin-bottom: 10px; cursor: default; }
-    .role .icon { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; margin-right: 10px; }
-    .role .name { font-weight: bold; }
-    .team-townsfolk { color: #87ceeb; }
-    .team-outsider { color: #add8e6; }
-    .team-minion { color: #ff8c00; }
-    .team-demon { color: #dc143c; }
-    .team-fabled { color: #f0e68c; }
-    .team-travellers { color: #9acd32; }
+    .button {
+      background-color: #583286;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .button:hover {
+      background-color: #7a4ba8;
+    }
+    .button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+    input[type="number"] {
+      background-color: #3a3a3a;
+      color: white;
+      border: 1px solid #583286;
+      padding: 8px;
+      border-radius: 3px;
+      margin: 5px;
+      width: 80px;
+    }
+    input[type="file"] {
+      background-color: #3a3a3a;
+      color: white;
+      border: 1px solid #583286;
+      padding: 8px;
+      border-radius: 3px;
+      margin: 5px;
+    }
+    .section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #333;
+      border-radius: 5px;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #a08c5b;
+    }
+    #character-sheet {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .role {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+      padding: 5px;
+      background-color: #444;
+      border-radius: 3px;
+    }
+    .role .icon {
+      width: 30px;
+      height: 30px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .role .name {
+      color: #fff;
+    }
+    .team-townsfolk { color: #4CAF50; }
+    .team-outsider { color: #FF9800; }
+    .team-minion { color: #F44336; }
+    .team-demon { color: #9C27B0; }
+    .team-travellers { color: #2196F3; }
+    .team-fabled { color: #FFC107; }
     .modal {
-      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center;
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
     }
     .modal-content {
-      background-color: #2c2c2c; padding: 20px; border: 1px solid #888;
-      width: 90%; max-width: 800px; border-radius: 10px;
+      background-color: #2a2a2a;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 80%;
+      max-height: 80%;
+      overflow-y: auto;
     }
-    .character-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-        gap: 15px; max-height: 60vh; overflow-y: auto; margin-top: 15px; padding: 5px;
+    #character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+      max-height: 300px;
+      overflow-y: auto;
     }
-    .character-grid .token {
-        width: 80px; height: 80px; background-size: cover; border-radius: 50%;
-        cursor: pointer; position: relative; border: 3px solid transparent;
-        transition: border-color 0.2s;
+    .token {
+      width: 60px;
+      height: 60px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
     }
-    .character-grid .token:hover { border-color: #fff; }
-    #character-search { width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 10px; }
-    .button {
-        background-color: #583286; color: white; padding: 10px 15px; border: none;
-        border-radius: 5px; cursor: pointer; margin-top: 10px;
+    .token:hover {
+      border-color: #a08c5b;
     }
-    .button:hover { background-color: #6a429a; }
+    #character-search {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      background-color: #3a3a3a;
+      color: white;
+      border: 1px solid #583286;
+      border-radius: 3px;
+    }
+    .status {
+      color: #4CAF50;
+      font-size: 12px;
+      margin: 5px 0;
+    }
+    .error {
+      color: #F44336;
+      font-size: 12px;
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
   <div id="app">
+    <div id="sidebar">
+      <div class="section">
+        <h3>Game Setup</h3>
+        <div>
+          <label for="player-count">Player Count:</label>
+          <input type="number" id="player-count" min="5" max="20" value="7">
+        </div>
+        <button class="button" id="start-game">Start Game</button>
+      </div>
+
+      <div class="section">
+        <h3>Script Management</h3>
+        <div>
+          <button class="button" id="load-default-tokens">Load Default Tokens</button>
+          <div class="status" id="load-status"></div>
+        </div>
+        <div style="margin-top: 10px;">
+          <label for="script-file">Or Upload Custom Script:</label>
+          <input type="file" id="script-file" accept=".json">
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Character Sheet</h3>
+        <div id="character-sheet">
+          <p>Load a script to see available characters.</p>
+        </div>
+      </div>
+    </div>
+
     <div id="grimoire">
       <div id="center">
         <ul id="player-circle" class="circle"></ul>
       </div>
-    </div>
-    <div id="sidebar">
-      <h2>Grimoire Setup</h2>
-      <form id="setup-form">
-        <label for="player-count">Players:</label>
-        <input type="number" id="player-count" value="12" min="5" max="20">
-        <label for="script-file">Load Script (tokens.json):</label>
-        <input type="file" id="script-file" accept=".json">
-        <button type="button" class="button" id="start-game">Setup Grimoire</button>
-      </form>
-      <hr>
-      <h2>Character Sheet</h2>
-      <div id="character-sheet"><p>Load a script to see characters.</p></div>
     </div>
   </div>
 
@@ -221,10 +328,12 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       const startGameBtn = document.getElementById('start-game');
+      const loadDefaultTokensBtn = document.getElementById('load-default-tokens');
       const scriptFileInput = document.getElementById('script-file');
       const playerCountInput = document.getElementById('player-count');
       const playerCircle = document.getElementById('player-circle');
       const characterSheet = document.getElementById('character-sheet');
+      const loadStatus = document.getElementById('load-status');
       
       const characterModal = document.getElementById('character-modal');
       const closeCharacterModalBtn = document.getElementById('close-character-modal');
@@ -243,6 +352,61 @@
       let selectedPlayerIndex = -1;
       let editingReminder = { playerIndex: -1, reminderIndex: -1 };
 
+      // Load default tokens from local JSON file
+      loadDefaultTokensBtn.addEventListener('click', async () => {
+        try {
+          loadStatus.textContent = 'Loading default tokens...';
+          loadStatus.className = 'status';
+          
+          const response = await fetch('./tokens.json');
+          if (!response.ok) {
+            throw new Error('Failed to load tokens.json');
+          }
+          
+          const tokens = await response.json();
+          processScriptData(tokens);
+          
+          loadStatus.textContent = 'Default tokens loaded successfully!';
+          loadStatus.className = 'status';
+          
+          // Preload token images for offline use
+          preloadTokenImages(tokens);
+        } catch (error) {
+          console.error('Error loading default tokens:', error);
+          loadStatus.textContent = 'Error loading default tokens: ' + error.message;
+          loadStatus.className = 'error';
+        }
+      });
+
+      // Preload token images to cache them for offline use
+      function preloadTokenImages(tokens) {
+        const imageUrls = [];
+        Object.values(tokens).forEach(team => {
+          if (Array.isArray(team)) {
+            team.forEach(role => {
+              if (role.image) {
+                imageUrls.push(role.image);
+              }
+            });
+          }
+        });
+
+        // Cache images in service worker
+        if ('caches' in window) {
+          caches.open('botc-offline-grimoire-v1').then(cache => {
+            imageUrls.forEach(url => {
+              fetch(url).then(response => {
+                if (response.ok) {
+                  cache.put(url, response.clone());
+                }
+              }).catch(() => {
+                // Ignore failed image loads
+              });
+            });
+          });
+        }
+      }
+
       scriptFileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -251,7 +415,12 @@
           try {
             const json = JSON.parse(e.target.result);
             processScriptData(json);
-          } catch (error) { alert("Invalid JSON file."); }
+            loadStatus.textContent = 'Custom script loaded successfully!';
+            loadStatus.className = 'status';
+          } catch (error) { 
+            loadStatus.textContent = 'Invalid JSON file.';
+            loadStatus.className = 'error';
+          }
         };
         reader.readAsText(file);
       });
@@ -455,6 +624,13 @@
             }
         });
       }
+
+      // Auto-load default tokens on page load
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          loadDefaultTokensBtn.click();
+        }, 1000);
+      });
     });
   </script>
 </body>
