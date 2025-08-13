@@ -70,7 +70,7 @@ body {
     position: relative;
     background-color: rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    background-image: url('/assets/img/token-BqDQdWeO.webp');
+    background-image: url('assets/img/token-BqDQdWeO.webp');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -129,7 +129,7 @@ body {
 }
 
 .text-reminder {
-    background-image: url('/assets/img/token-BqDQdWeO.webp');
+    background-image: url('assets/img/token-BqDQdWeO.webp');
     background-size: cover;
     border: 2px solid #D4AF37;
     color: white;
@@ -164,7 +164,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url('/assets/img/token-BqDQdWeO.webp');
+    background-image: url('assets/img/token-BqDQdWeO.webp');
     overflow: visible; /* allow SVG text to overdraw border */
     z-index: 4; /* ensure above nearby elements */
 }
@@ -431,7 +431,7 @@ input[type="file"] {
   height: 35px;
   min-width: 35px;
   min-height: 35px;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('assets/img/token-BqDQdWeO.webp');
   background-size: cover;
   background-position: center;
   border-radius: 50%;

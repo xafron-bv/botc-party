@@ -1,6 +1,6 @@
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
         console.log('Service worker registered successfully:', registration);
       })
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
             if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
-            tokenDiv.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+             tokenDiv.style.backgroundImage = `url('${role.image}'), url('assets/img/token-BqDQdWeO.webp')`;
               tokenDiv.style.backgroundSize = '68% 68%, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
               tokenDiv.appendChild(svg);
           } else {
-            tokenDiv.style.backgroundImage = `url('/assets/img/token-BqDQdWeO.webp')`;
+            tokenDiv.style.backgroundImage = `url('assets/img/token-BqDQdWeO.webp')`;
             tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.style.left = `calc(50% + ${rx}px)`;
                 iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                iconEl.style.backgroundImage = `url('${reminder.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+                 iconEl.style.backgroundImage = `url('${reminder.image}'), url('assets/img/token-BqDQdWeO.webp')`;
                 iconEl.title = (reminder.label || '');
 
                 if (reminder.label) {
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
-            tokenEl.style.backgroundImage = `url('${token.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+             tokenEl.style.backgroundImage = `url('${token.image}'), url('assets/img/token-BqDQdWeO.webp')`;
             tokenEl.style.backgroundSize = 'cover, cover';
             tokenEl.style.position = 'relative';
             tokenEl.style.overflow = 'visible';
