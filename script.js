@@ -220,6 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 openReminderTokenModal(i);
               }
           };
+
+          // Hover expand/collapse for reminder stack positioning
+          listItem.dataset.expanded = '0';
+          listItem.addEventListener('mouseenter', () => {
+              listItem.dataset.expanded = '1';
+              positionRadialStack(listItem, players[i].reminders.length);
+          });
+          listItem.addEventListener('mouseleave', () => {
+              listItem.dataset.expanded = '0';
+              positionRadialStack(listItem, players[i].reminders.length);
+          });
       });
       
       // Use requestAnimationFrame to ensure DOM is fully rendered
@@ -257,6 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.style.top = `${y}px`;
           listItem.style.transform = 'translate(-50%, -50%)';
           listItem.dataset.angle = String(angle);
+
+          // Reposition the player's reminder stack and plus button to match new angle
+          const count = (players[i] && players[i].reminders) ? players[i].reminders.length : 0;
+          positionRadialStack(listItem, count);
       });
 
       console.log('Player positioning completed');
@@ -297,34 +312,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
           
-          // Position reminders on a smaller circle in front (towards center) of the player
-          const angle = parseFloat(li.dataset.angle || '0');
-          const tokenRadiusPx = li.offsetWidth / 2;
-          const inwardDistance = tokenRadiusPx * 0.9; // distance from token center towards circle center
-          const baseX = -Math.cos(angle) * inwardDistance;
-          const baseY = -Math.sin(angle) * inwardDistance;
-          
-          // Stack reminders in rows under the token, overlapping slightly
-          const maxPerRow = 3;
-          const count = player.reminders.length;
-          const gap = tokenRadiusPx * 0.08; // horizontal overlap
-          const rowHeight = tokenRadiusPx * 0.42; // row spacing and size base
-          
+          // Create reminder elements; positions are handled by positionRadialStack()
           player.reminders.forEach((reminder, idx) => {
-              const row = Math.floor(idx / maxPerRow);
-              const col = idx % maxPerRow;
-              const startX = baseX + tokenRadiusPx * 0.15; // shift to bottom-right quadrant
-              const startY = baseY + tokenRadiusPx * 0.40;
-              const rx = startX + col * (rowHeight - gap);
-              const ry = startY + row * (rowHeight - gap);
-              
-               if (reminder.type === 'icon') {
+              if (reminder.type === 'icon') {
                 const iconEl = document.createElement('div');
                 iconEl.className = 'icon-reminder';
-                iconEl.style.left = `calc(50% + ${rx}px)`;
-                iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                 iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+                iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
                 iconEl.title = (reminder.label || '');
 
                 if (reminder.label) {
@@ -348,8 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reminderEl = document.createElement('div');
                 reminderEl.className = 'text-reminder';
                 reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
-                reminderEl.style.left = `calc(50% + ${rx}px)`;
-                reminderEl.style.top = `calc(50% + ${ry}px)`;
                 reminderEl.style.transform = 'translate(-50%, -50%)';
                 reminderEl.onclick = (e) => {
                   e.stopPropagation();
@@ -368,7 +360,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 remindersDiv.appendChild(reminderEl);
               }
           });
+
+          // After rendering, position all reminders and the plus button in a radial stack
+          positionRadialStack(li, player.reminders.length);
       });
+  }
+
+  // Arrange reminders and the plus button along the line from token center toward circle center
+  function positionRadialStack(li, count) {
+      const angle = parseFloat(li.dataset.angle || '0');
+      const tokenRadiusPx = li.offsetWidth / 2;
+      const dirX = -Math.cos(angle);
+      const dirY = -Math.sin(angle);
+      // base distance from token center to first item
+      const baseDist = tokenRadiusPx * 0.65;
+      const spacingCollapsed = Math.max(18, tokenRadiusPx * 0.28);
+      const spacingExpanded = Math.max(26, tokenRadiusPx * 0.42);
+      const isExpanded = li.dataset.expanded === '1';
+      const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
+
+      const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
+      reminderEls.forEach((el, idx) => {
+          const dist = baseDist + idx * spacing;
+          const rx = dirX * dist;
+          const ry = dirY * dist;
+          el.style.left = `calc(50% + ${rx}px)`;
+          el.style.top = `calc(50% + ${ry}px)`;
+      });
+
+      const plus = li.querySelector('.reminder-placeholder');
+      if (plus) {
+          const distP = baseDist + count * spacing;
+          const px = dirX * distP;
+          const py = dirY * distP;
+          plus.style.left = `calc(50% + ${px}px)`;
+          plus.style.top = `calc(50% + ${py}px)`;
+      }
   }
   
   function openCharacterModal(playerIndex) {
