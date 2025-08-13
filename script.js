@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const reminderTextInput = document.getElementById('reminder-text-input');
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
+  const sidebarResizer = document.getElementById('sidebar-resizer');
+  const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -663,4 +665,42 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     autoLoadTokens();
   }
+
+  // Sidebar resizer: drag to adjust width
+  (function initSidebarResize() {
+    if (!sidebarResizer || !sidebarEl) return;
+    // Load persisted width
+    const saved = localStorage.getItem('sidebarWidthPx');
+    if (saved) {
+      document.documentElement.style.setProperty('--sidebar-width', `${Math.max(220, Math.min(parseInt(saved,10), 600))}px`);
+    }
+    let isDragging = false;
+    let startX = 0;
+    let startWidth = 0;
+    const minW = 220;
+    const maxW = 800;
+    const onMove = (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const newW = Math.max(minW, Math.min(startWidth + dx, maxW));
+      document.documentElement.style.setProperty('--sidebar-width', `${newW}px`);
+    };
+    const onUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.classList.remove('resizing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const val = getComputedStyle(sidebarEl).width;
+      localStorage.setItem('sidebarWidthPx', parseInt(val, 10));
+    };
+    sidebarResizer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      document.body.classList.add('resizing');
+    });
+  })();
 });
