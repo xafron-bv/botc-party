@@ -110,17 +110,70 @@ document.addEventListener('DOMContentLoaded', () => {
       scriptData = data;
       allRoles = {};
       
-      for (const team in data) {
-          if (Array.isArray(data[team])) {
-              console.log(`Processing team ${team}:`, data[team].length, 'roles');
-              data[team].forEach(role => {
-                  allRoles[role.id] = { ...role, team };
-              });
-          }
+      // Handle the standard script format (array of character IDs like tb.json)
+      if (Array.isArray(data)) {
+          console.log('Processing script with', data.length, 'characters');
+          processScriptCharacters(data);
+      } else {
+          console.error('Unexpected script format:', typeof data);
+          return;
       }
       
       console.log('Total roles processed:', Object.keys(allRoles).length);
       displayScript(data);
+  }
+
+  async function processScriptCharacters(characterIds) {
+      try {
+          console.log('Loading tokens.json to resolve character IDs...');
+          const response = await fetch('./tokens.json');
+          if (!response.ok) {
+              throw new Error(`Failed to load tokens.json: ${response.status}`);
+          }
+          
+          const tokens = await response.json();
+          console.log('Tokens.json loaded successfully');
+          
+          // Create a lookup map of all available roles
+          const roleLookup = {};
+          Object.values(tokens).forEach(team => {
+              if (Array.isArray(team)) {
+                  team.forEach(role => {
+                      roleLookup[role.id] = { ...role, team };
+                  });
+              }
+          });
+          
+          console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
+          
+          // Process the character IDs from the script
+          characterIds.forEach((characterId, index) => {
+              if (typeof characterId === 'string' && characterId !== '_meta') {
+                  if (roleLookup[characterId]) {
+                      allRoles[characterId] = roleLookup[characterId];
+                      console.log(`Resolved character ${characterId} (${roleLookup[characterId].name})`);
+                  } else {
+                      console.warn(`Character ID not found: ${characterId}`);
+                  }
+              }
+          });
+          
+          console.log('Script processing completed');
+          
+      } catch (error) {
+          console.error('Error processing script:', error);
+          // Fallback: create basic role objects from the IDs
+          characterIds.forEach((characterId, index) => {
+              if (typeof characterId === 'string' && characterId !== '_meta') {
+                  allRoles[characterId] = {
+                      id: characterId,
+                      name: characterId.charAt(0).toUpperCase() + characterId.slice(1),
+                      image: `https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp`,
+                      team: 'unknown'
+                  };
+              }
+          });
+      }
   }
 
   startGameBtn.addEventListener('click', () => {
@@ -293,28 +346,58 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', repositionPlayers);
   
   function displayScript(data) {
-    console.log('Displaying script with teams:', Object.keys(data));
+    console.log('Displaying script with', data.length, 'characters');
     characterSheet.innerHTML = '';
-    const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
     
-    teamOrder.forEach(team => {
-        if (data[team] && Array.isArray(data[team]) && data[team].length > 0) {
-            const teamHeader = document.createElement('h3');
-            teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
-            teamHeader.className = `team-${team}`;
-            characterSheet.appendChild(teamHeader);
-            
-            data[team].forEach(role => {
+    // Group characters by team if we have resolved role data
+    const teamGroups = {};
+    Object.values(allRoles).forEach(role => {
+        if (!teamGroups[role.team]) {
+            teamGroups[role.team] = [];
+        }
+        teamGroups[role.team].push(role);
+    });
+    
+    // Display grouped by team if we have team information
+    if (Object.keys(teamGroups).length > 0) {
+        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+        teamOrder.forEach(team => {
+            if (teamGroups[team] && teamGroups[team].length > 0) {
+                const teamHeader = document.createElement('h3');
+                teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
+                teamHeader.className = `team-${team}`;
+                characterSheet.appendChild(teamHeader);
+                
+                teamGroups[team].forEach(role => {
+                    const roleEl = document.createElement('div');
+                    roleEl.className = 'role';
+                    roleEl.innerHTML = `
+                        <span class="icon" style="background-image: url('${role.image}')"></span>
+                        <span class="name">${role.name}</span>
+                    `;
+                    characterSheet.appendChild(roleEl);
+                });
+            }
+        });
+    } else {
+        // Fallback: show all characters in a single list
+        const header = document.createElement('h3');
+        header.textContent = 'Characters';
+        header.className = 'team-townsfolk';
+        characterSheet.appendChild(header);
+        
+        data.forEach((characterId, index) => {
+            if (typeof characterId === 'string' && characterId !== '_meta') {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                 roleEl.innerHTML = `
-                    <span class="icon" style="background-image: url('${role.image}')"></span>
-                    <span class="name">${role.name}</span>
+                    <span class="icon" style="background-image: url('https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp')"></span>
+                    <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
                 `;
                 characterSheet.appendChild(roleEl);
-            });
-        }
-    });
+            }
+        });
+    }
   }
 
   // Auto-load default tokens on page load
