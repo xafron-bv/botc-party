@@ -401,38 +401,28 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Arrange reminders and the plus button along the line from token center toward circle center
+  // Arrange reminders and plus button in a consistent radial stack using the stored angle
   function positionRadialStack(li, count) {
       const tokenRadiusPx = li.offsetWidth / 2;
-      // Robust inward direction computed from actual geometry
-      const container = li.parentElement;
-      const cRect = container ? container.getBoundingClientRect() : null;
-      const lRect = li.getBoundingClientRect();
-      let dirX = 0, dirY = 1; // fallback downwards
-      if (cRect) {
-          const centerX = cRect.left + cRect.width / 2;
-          const centerY = cRect.top + cRect.height / 2;
-          const tokenCenterX = lRect.left + lRect.width / 2;
-          const tokenCenterY = lRect.top + lRect.height / 2;
-          const vx = centerX - tokenCenterX;
-          const vy = centerY - tokenCenterY;
-          const vlen = Math.hypot(vx, vy) || 1;
-          dirX = vx / vlen;
-          dirY = vy / vlen;
-      }
-      // Compute reminder diameter from token size (tokenSize/3) with min 56px
+      const angle = parseFloat(li.dataset.angle || '0');
+      const dirX = -Math.cos(angle);
+      const dirY = -Math.sin(angle);
+
       const reminderDiameter = Math.max(56, li.offsetWidth / 3);
-      // base distance from token center to first item (start just outside the token edge)
-      const baseDist = tokenRadiusPx + (reminderDiameter * 0.48);
-      // Use reminder size to control spacing to avoid overlap
-      const spacingCollapsed = reminderDiameter * 0.9;
+      const reminderRadius = reminderDiameter / 2;
+      const plusRadius = (li.offsetWidth / 4) / 2; // from CSS: width: token-size/4
+      const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
+
+      const spacingCollapsed = reminderDiameter * 0.9; // center-to-center
       const spacingExpanded = reminderDiameter * 1.12;
       const isExpanded = li.dataset.expanded === '1';
       const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
 
+      const firstReminderDist = tokenRadiusPx + edgeGap + reminderRadius;
+
       const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
       reminderEls.forEach((el, idx) => {
-          const dist = baseDist + idx * spacing;
+          const dist = firstReminderDist + idx * spacing;
           const rx = dirX * dist;
           const ry = dirY * dist;
           el.style.left = `calc(50% + ${rx}px)`;
@@ -441,7 +431,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
-          const distP = baseDist + count * spacing;
+          const distP = count > 0
+            ? firstReminderDist + (count * spacing) + edgeGap + plusRadius
+            : tokenRadiusPx + edgeGap + plusRadius;
           const px = dirX * distP;
           const py = dirY * distP;
           plus.style.left = `calc(50% + ${px}px)`;
