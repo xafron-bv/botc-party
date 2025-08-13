@@ -409,8 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dirY = -Math.sin(angle);
       // Compute reminder diameter from token size (tokenSize/3) with min 56px
       const reminderDiameter = Math.max(56, li.offsetWidth / 3);
-      // base distance from token center to first item
-      const baseDist = tokenRadiusPx * 0.72;
+      // base distance from token center to first item (start just outside the token edge)
+      const baseDist = tokenRadiusPx + (reminderDiameter * 0.6);
       // Use reminder size to control spacing to avoid overlap
       const spacingCollapsed = reminderDiameter * 0.9;
       const spacingExpanded = reminderDiameter * 1.12;
