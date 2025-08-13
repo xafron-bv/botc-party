@@ -93,19 +93,7 @@ body {
       inset 0 0 15px rgba(0,0,0,0.2);
 }
 
-.character-name {
-    margin-top: 0.6vmin;
-    font-size: 1.8vmin;
-    line-height: 1.2;
-    text-align: center;
-    color: #ffffff;
-    font-weight: 800;
-    -webkit-text-stroke: 2px rgba(0,0,0,0.85);
-    paint-order: stroke fill;
-    text-shadow: 0 0 2px rgba(0,0,0,0.6);
-    white-space: nowrap;
-    pointer-events: none;
-}
+.character-name { display: none; }
 
 .player-name {
     background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(40,40,40,0.9) 100%);

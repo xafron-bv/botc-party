@@ -261,6 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
           li.querySelector('.player-name').textContent = player.name;
           const tokenDiv = li.querySelector('.player-token');
            const charNameDiv = li.querySelector('.character-name');
+            // Remove any previous arc label overlay
+            const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
+            if (existingArc) existingArc.remove();
           
           if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
@@ -269,12 +272,18 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
              if (charNameDiv) charNameDiv.textContent = role.name;
+              // Add curved label on the token
+              const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
+              tokenDiv.appendChild(svg);
           } else {
             tokenDiv.style.backgroundImage = `url('/assets/img/token-BqDQdWeO.webp')`;
             tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
              if (charNameDiv) charNameDiv.textContent = '';
+              // Ensure no leftover arc label remains
+              const arc = tokenDiv.querySelector('.icon-reminder-svg');
+              if (arc) arc.remove();
           }
 
           const remindersDiv = li.querySelector('.reminders');
