@@ -2,13 +2,18 @@ const CACHE_NAME = 'botc-offline-grimoire-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/terms.html',
+  '/LICENSE.md',
   '/styles.css',
   '/script.js',
   '/tokens.json',
   '/manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://botc.app/assets/background4-C7TzDZ7M.webp',
-  'https://botc.app/assets/token-blank-05128509.webp'
+  '/assets/fontawesome/css/all.min.css',
+  '/assets/fontawesome/webfonts/fa-solid-900.woff2',
+  '/assets/fontawesome/webfonts/fa-regular-400.woff2',
+  '/assets/fontawesome/webfonts/fa-brands-400.woff2',
+  '/assets/img/background4-C7TzDZ7M.webp',
+  '/assets/img/token-blank-05128509.webp'
 ];
 
 self.addEventListener('install', event => {
@@ -32,7 +37,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
   // Handle token image requests
-  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/')) {
+  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/') || event.request.url.includes('/assets/token-icons/')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -52,7 +57,7 @@ self.addEventListener('fetch', event => {
             })
             .catch(() => {
               // Return a placeholder image if fetch fails
-              return caches.match('https://botc.app/assets/token-blank-05128509.webp');
+              return caches.match('/assets/img/token-blank-05128509.webp');
             });
         })
     );

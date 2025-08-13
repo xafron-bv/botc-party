@@ -25,7 +25,7 @@ body {
 }
 
 #center {
-  background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');
+  background-image: url('/assets/img/background4-C7TzDZ7M.webp');
   background-size: cover;
   background-position: center;
   height: 100%;
@@ -70,7 +70,7 @@ body {
     position: relative;
     background-color: rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    background-image: url('https://botc.app/assets/token-blank-05128509.webp');
+    background-image: url('/assets/img/token-blank-05128509.webp');
     background-size: 80%;
     background-repeat: no-repeat;
     background-position: center;
@@ -142,6 +142,23 @@ body {
     pointer-events: auto;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     font-weight: bold;
+}
+
+.icon-reminder {
+    width: 3vmin;
+    height: 3vmin;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    pointer-events: auto;
+    border: 2px solid #D4AF37;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.icon-reminder:hover {
+    transform: scale(1.05);
 }
 
 .text-reminder:hover {
@@ -398,4 +415,20 @@ label {
   font-weight: bold;
   margin: 5px 0;
   display: block;
+}
+
+#player-circle .player-token {
+  width: var(--token-size);
+  height: var(--token-size);
+  aspect-ratio: 1 / 1;
+}
+
+#player-circle li {
+  width: var(--token-size);
+  height: var(--token-size);
+}
+
+/* empty seat border should be circular too */
+#player-circle .player-token:not(.has-character) {
+  background-size: 80%;
 }

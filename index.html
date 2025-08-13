@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Blood on the Clocktower - Offline Grimoire</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
@@ -68,6 +68,19 @@
       <button class="button" id="cancel-reminder-btn">Cancel</button>
     </div>
   </div>
+
+  <div id="reminder-token-modal" class="modal">
+    <div class="modal-content">
+      <h3>Select Reminder Token for <span id="reminder-token-modal-player-name"></span></h3>
+      <input type="text" id="reminder-token-search" placeholder="Search reminder tokens...">
+      <div id="reminder-token-grid"></div>
+      <button class="button" id="close-reminder-token-modal">Cancel</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 10px; right: 10px; z-index: 1001;">
+    <a href="/terms.html" style="color: #9a6bc8; text-decoration: none; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid #7a4ba8;">Terms of Use</a>
+  </footer>
 
   <script src="script.js"></script>
 </body>
