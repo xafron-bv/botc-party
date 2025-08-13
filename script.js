@@ -403,10 +403,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Arrange reminders and the plus button along the line from token center toward circle center
   function positionRadialStack(li, count) {
-      const angle = parseFloat(li.dataset.angle || '0');
       const tokenRadiusPx = li.offsetWidth / 2;
-      const dirX = -Math.cos(angle);
-      const dirY = -Math.sin(angle);
+      // Robust inward direction computed from actual geometry
+      const container = li.parentElement;
+      const cRect = container ? container.getBoundingClientRect() : null;
+      const lRect = li.getBoundingClientRect();
+      let dirX = 0, dirY = 1; // fallback downwards
+      if (cRect) {
+          const centerX = cRect.left + cRect.width / 2;
+          const centerY = cRect.top + cRect.height / 2;
+          const tokenCenterX = lRect.left + lRect.width / 2;
+          const tokenCenterY = lRect.top + lRect.height / 2;
+          const vx = centerX - tokenCenterX;
+          const vy = centerY - tokenCenterY;
+          const vlen = Math.hypot(vx, vy) || 1;
+          dirX = vx / vlen;
+          dirY = vy / vlen;
+      }
       // Compute reminder diameter from token size (tokenSize/3) with min 56px
       const reminderDiameter = Math.max(56, li.offsetWidth / 3);
       // base distance from token center to first item (start just outside the token edge)
