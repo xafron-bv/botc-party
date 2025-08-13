@@ -11,15 +11,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#583286">
   <style>
-    /* Base styles from the online version */
-    :root, :host {
-      --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free";
-      --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free";
+    :root {
+      --token-size: 12vmin;
+      --reminder-size: 3.5vmin;
     }
     body {
       background-color: #1a1a1a;
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Verdana', sans-serif;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -34,434 +33,427 @@
       position: relative;
     }
     #center {
+      background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');
       background-size: cover;
       background-position: center;
       height: 100%;
       width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       position: relative;
     }
     .circle {
       list-style: none;
       padding: 0;
       margin: 0;
-      position: relative;
+      position: absolute;
+      top: 50%;
+      left: 50%;
       width: 80vmin;
       height: 80vmin;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
     }
     .circle li {
       position: absolute;
-      width: 14vmin;
-      height: 14vmin;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      width: var(--token-size);
+      height: var(--token-size);
+      /* Positioning is now handled by JS */
     }
     .player-token {
-        width: 10vmin;
-        height: 10vmin;
+        width: 100%;
+        height: 100%;
         background-size: cover;
         background-position: center;
         border-radius: 50%;
-        border: 2px solid #fff;
+        border: 3px solid rgba(160, 140, 91, 0.7);
+        box-shadow: 0 0 10px rgba(0,0,0,0.7);
         cursor: pointer;
         position: relative;
+        background-color: rgba(0,0,0,0.3);
     }
     .player-name {
-        background: rgba(0,0,0,0.7);
-        padding: 2px 8px;
-        border-radius: 10px;
-        margin-top: 5px;
+        background: rgba(0,0,0,0.8);
+        padding: 0.5vmin 1.5vmin;
+        border-radius: 15px;
+        margin-top: 1vmin;
         font-size: 2vmin;
         text-align: center;
         color: white;
+        cursor: pointer;
+        white-space: nowrap;
     }
     .reminders {
         display: flex;
         position: absolute;
-        bottom: -3vmin;
-        gap: 1vmin;
+        bottom: -4.5vmin;
+        gap: 0.5vmin;
+        justify-content: center;
+        width: 100%;
+        pointer-events: none;
     }
-    .reminder {
-        width: 3vmin;
-        height: 3vmin;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
+     .text-reminder {
+        background: rgba(0,0,0,0.8);
+        border: 1px solid #a08c5b;
+        color: white;
+        padding: 0.5vmin;
+        border-radius: 5px;
+        font-size: 1.5vmin;
         cursor: pointer;
+        max-width: 10vmin;
+        text-align: center;
+        pointer-events: all;
+    }
+    .reminder-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-150%, -50%); /* Position to the inner-left */
+        width: var(--reminder-size);
+        height: var(--reminder-size);
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 2px dashed rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5vmin;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: all;
+    }
+    .circle li:hover .reminder-placeholder {
+        opacity: 1;
     }
     #sidebar {
-      width: 300px;
-      background: #2c2c2c;
+      width: 350px;
+      background: #111;
       padding: 20px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      border-left: 2px solid #583286;
     }
-    #sidebar h2 {
-        margin-top: 0;
-    }
-    #character-sheet {
-        flex-grow: 1;
-    }
-    .role {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .role .icon {
-        width: 40px;
-        height: 40px;
-        background-size: contain;
-        background-repeat: no-repeat;
-        margin-right: 10px;
-    }
-    .role .name {
-        font-weight: bold;
-    }
+    #sidebar h2 { margin-top: 0; }
+    .role { display: flex; align-items: center; margin-bottom: 10px; cursor: default; }
+    .role .icon { width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat; margin-right: 10px; }
+    .role .name { font-weight: bold; }
     .team-townsfolk { color: #87ceeb; }
     .team-outsider { color: #add8e6; }
     .team-minion { color: #ff8c00; }
     .team-demon { color: #dc143c; }
+    .team-fabled { color: #f0e68c; }
+    .team-travellers { color: #9acd32; }
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center;
     }
     .modal-content {
-      background-color: #2c2c2c;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 500px;
-      border-radius: 10px;
+      background-color: #2c2c2c; padding: 20px; border: 1px solid #888;
+      width: 90%; max-width: 800px; border-radius: 10px;
     }
-    .reminder-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-        gap: 10px;
+    .character-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 15px; max-height: 60vh; overflow-y: auto; margin-top: 15px; padding: 5px;
     }
-    .reminder-grid img {
-        width: 100%;
-        cursor: pointer;
-        border-radius: 5px;
-        border: 2px solid transparent;
+    .character-grid .token {
+        width: 80px; height: 80px; background-size: cover; border-radius: 50%;
+        cursor: pointer; position: relative; border: 3px solid transparent;
+        transition: border-color 0.2s;
     }
-     .reminder-grid img:hover {
-        border-color: #fff;
-    }
+    .character-grid .token:hover { border-color: #fff; }
+    #character-search { width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 10px; }
     .button {
-        background-color: #583286;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
+        background-color: #583286; color: white; padding: 10px 15px; border: none;
+        border-radius: 5px; cursor: pointer; margin-top: 10px;
     }
-    .button:hover {
-        background-color: #6a429a;
-    }
-    #setup-form {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 20px;
-        background: #2c2c2c;
-        border-radius: 10px;
-    }
+    .button:hover { background-color: #6a429a; }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="grimoire">
-      <div id="center" style="background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');">
-        <div id="initial-setup" class="modal" style="display: flex;">
-            <div class="modal-content">
-                <h2>Grimoire Setup</h2>
-                <form id="setup-form">
-                    <label for="player-count">Number of Players:</label>
-                    <input type="number" id="player-count" name="player-count" min="5" max="20" value="12">
-                    <label for="script-file">Load Script (JSON):</label>
-                    <input type="file" id="script-file" name="script-file" accept=".json">
-                    <button type="button" class="button" id="start-game">Start Game</button>
-                </form>
-            </div>
-        </div>
+      <div id="center">
         <ul id="player-circle" class="circle"></ul>
       </div>
     </div>
     <div id="sidebar">
+      <h2>Grimoire Setup</h2>
+      <form id="setup-form">
+        <label for="player-count">Players:</label>
+        <input type="number" id="player-count" value="12" min="5" max="20">
+        <label for="script-file">Load Script (tokens.json):</label>
+        <input type="file" id="script-file" accept=".json">
+        <button type="button" class="button" id="start-game">Setup Grimoire</button>
+      </form>
+      <hr>
       <h2>Character Sheet</h2>
-      <div id="character-sheet">
-          <p>Load a script to see characters.</p>
-      </div>
+      <div id="character-sheet"><p>Load a script to see characters.</p></div>
     </div>
   </div>
 
-  <div id="reminder-modal" class="modal">
+  <div id="character-modal" class="modal">
     <div class="modal-content">
-      <h3>Add Reminder Token</h3>
-      <div id="reminder-grid" class="reminder-grid"></div>
-      <button class="button" id="close-modal">Close</button>
+      <h3>Select Character for <span id="character-modal-player-name"></span></h3>
+      <input type="text" id="character-search" placeholder="Search characters...">
+      <div id="character-grid"></div>
+      <button class="button" id="close-character-modal">Cancel</button>
+    </div>
+  </div>
+
+  <div id="text-reminder-modal" class="modal">
+    <div class="modal-content">
+      <h3>Add/Edit Reminder</h3>
+      <input type="text" id="reminder-text-input" placeholder="Enter reminder text...">
+      <button class="button" id="save-reminder-btn">Save</button>
+      <button class="button" id="cancel-reminder-btn">Cancel</button>
     </div>
   </div>
 
   <script>
-    // Service Worker Registration
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, err => {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-      });
+      window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js'));
     }
 
-    // Application Logic
     document.addEventListener('DOMContentLoaded', () => {
       const startGameBtn = document.getElementById('start-game');
       const scriptFileInput = document.getElementById('script-file');
       const playerCountInput = document.getElementById('player-count');
-      const initialSetup = document.getElementById('initial-setup');
       const playerCircle = document.getElementById('player-circle');
       const characterSheet = document.getElementById('character-sheet');
-      const reminderModal = document.getElementById('reminder-modal');
-      const closeModalBtn = document.getElementById('close-modal');
-      const reminderGrid = document.getElementById('reminder-grid');
+      
+      const characterModal = document.getElementById('character-modal');
+      const closeCharacterModalBtn = document.getElementById('close-character-modal');
+      const characterGrid = document.getElementById('character-grid');
+      const characterSearch = document.getElementById('character-search');
+      const characterModalPlayerName = document.getElementById('character-modal-player-name');
+
+      const textReminderModal = document.getElementById('text-reminder-modal');
+      const reminderTextInput = document.getElementById('reminder-text-input');
+      const saveReminderBtn = document.getElementById('save-reminder-btn');
+      const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
 
       let scriptData = null;
+      let allRoles = {};
       let players = [];
       let selectedPlayerIndex = -1;
-
-      const reminderTokens = [
-          'https://botc.app/assets/chef_g-C3a3cGeP.webp',
-          'https://botc.app/assets/poisoner_e-Usf7TcoY.webp',
-          'https://botc.app/assets/monk_g-D4wNFA-b.webp',
-          'https://botc.app/assets/imp_e-DNpveOPY.webp',
-          // Add more default token URLs here
-      ];
-
-      // Populate reminder modal
-      reminderTokens.forEach(url => {
-          const img = document.createElement('img');
-          img.src = url;
-          img.dataset.tokenUrl = url;
-          img.onclick = () => addReminderToPlayer(url);
-          reminderGrid.appendChild(img);
-      });
+      let editingReminder = { playerIndex: -1, reminderIndex: -1 };
 
       scriptFileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const json = JSON.parse(e.target.result);
-              scriptData = json;
-              displayScript(json);
-            } catch (error) {
-              console.error("Error parsing script file:", error);
-              alert("Invalid JSON file.");
-            }
-          };
-          reader.readAsText(file);
-        }
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const json = JSON.parse(e.target.result);
+            processScriptData(json);
+          } catch (error) { alert("Invalid JSON file."); }
+        };
+        reader.readAsText(file);
       });
+
+      function processScriptData(data) {
+          scriptData = data;
+          allRoles = {};
+          for (const team in data) {
+              if (Array.isArray(data[team])) {
+                  data[team].forEach(role => {
+                      allRoles[role.id] = { ...role, team };
+                  });
+              }
+          }
+          displayScript(data);
+      }
 
       startGameBtn.addEventListener('click', () => {
         const playerCount = parseInt(playerCountInput.value);
         if (playerCount >= 5 && playerCount <= 20) {
           setupGrimoire(playerCount);
-          initialSetup.style.display = 'none';
         } else {
-          alert('Please enter a player count between 5 and 20.');
+          alert('Player count must be between 5 and 20.');
         }
       });
-      
+
       function setupGrimoire(count) {
           playerCircle.innerHTML = '';
-          players = [];
-          const radius = 40; // in vmin
-          const angleStep = (2 * Math.PI) / count;
-
-          for (let i = 0; i < count; i++) {
-              const angle = i * angleStep - (Math.PI / 2);
-              const x = radius * Math.cos(angle);
-              const y = radius * Math.sin(angle);
-              
-              const player = {
-                  name: `Player ${i + 1}`,
-                  reminders: []
-              };
-              players.push(player);
-
+          players = Array.from({ length: count }, (_, i) => ({
+              name: `Player ${i + 1}`,
+              character: null,
+              reminders: []
+          }));
+          
+          players.forEach((player, i) => {
               const listItem = document.createElement('li');
-              listItem.style.transform = `translate(${x}vmin, ${y}vmin) translate(-50%, -50%)`;
-              
-              const tokenDiv = document.createElement('div');
-              tokenDiv.className = 'player-token';
-              tokenDiv.style.backgroundImage = `url('https://botc.app/assets/avatar${i % 25}-u1LxaXkZ.webp')`;
-              tokenDiv.onclick = () => {
+              listItem.innerHTML = `
+                  <div class="reminders"></div>
+                  <div class="player-token" title="Assign character"></div>
+                  <div class="player-name" title="Edit name">${player.name}</div>
+                  <div class="reminder-placeholder" title="Add text reminder">+</div>
+              `;
+              playerCircle.appendChild(listItem);
+
+              listItem.querySelector('.player-token').onclick = () => openCharacterModal(i);
+              listItem.querySelector('.player-name').onclick = (e) => {
+                  e.stopPropagation();
                   const newName = prompt("Enter player name:", player.name);
                   if (newName) {
-                      player.name = newName;
+                      players[i].name = newName;
                       updateGrimoire();
                   }
               };
-
-              const nameDiv = document.createElement('div');
-              nameDiv.className = 'player-name';
-              nameDiv.textContent = player.name;
-              
-              const remindersDiv = document.createElement('div');
-              remindersDiv.className = 'reminders';
-
-              const addReminderBtn = document.createElement('div');
-              addReminderBtn.className = 'reminder';
-              addReminderBtn.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="white" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>')`;
-              addReminderBtn.onclick = (e) => {
+              listItem.querySelector('.reminder-placeholder').onclick = (e) => {
                   e.stopPropagation();
-                  selectedPlayerIndex = i;
-                  reminderModal.style.display = 'flex';
+                  openTextReminderModal(i);
               };
-              remindersDiv.appendChild(addReminderBtn);
-
-              listItem.appendChild(tokenDiv);
-              listItem.appendChild(nameDiv);
-              listItem.appendChild(remindersDiv);
-              playerCircle.appendChild(listItem);
-          }
+          });
+          
+          setTimeout(repositionPlayers, 0);
           updateGrimoire();
       }
-      
+
+      function repositionPlayers() {
+          const count = players.length;
+          if (count === 0) return;
+          const circle = document.getElementById('player-circle');
+          const radius = circle.offsetWidth / 2.5; 
+          const angleStep = (2 * Math.PI) / count;
+
+          const listItems = circle.querySelectorAll('li');
+          listItems.forEach((listItem, i) => {
+              const angle = i * angleStep - (Math.PI / 2);
+              const x = (circle.offsetWidth / 2) + radius * Math.cos(angle) - (listItem.offsetWidth / 2);
+              const y = (circle.offsetHeight / 2) + radius * Math.sin(angle) - (listItem.offsetHeight / 2);
+              listItem.style.position = 'absolute';
+              listItem.style.left = `${x}px`;
+              listItem.style.top = `${y}px`;
+          });
+      }
+
       function updateGrimoire() {
           const listItems = playerCircle.querySelectorAll('li');
           listItems.forEach((li, i) => {
               const player = players[i];
               li.querySelector('.player-name').textContent = player.name;
-              const remindersDiv = li.querySelector('.reminders');
+              const tokenDiv = li.querySelector('.player-token');
+              const characterImage = player.character && allRoles[player.character] 
+                ? allRoles[player.character].image 
+                : 'https://botc.app/assets/token-blank-05128509.webp';
+              tokenDiv.style.backgroundImage = `url('${characterImage}')`;
               
-              // Clear old reminders, keep the add button
-              while(remindersDiv.children.length > 1) {
-                  remindersDiv.removeChild(remindersDiv.firstChild);
+              if(player.character) {
+                tokenDiv.style.borderColor = '#a08c5b';
+                tokenDiv.style.backgroundColor = 'transparent';
+              } else {
+                tokenDiv.style.borderColor = 'rgba(255,255,255,0.5)';
+                tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.3)';
               }
 
-              player.reminders.forEach((url, reminderIndex) => {
+              const remindersDiv = li.querySelector('.reminders');
+              remindersDiv.innerHTML = '';
+              player.reminders.forEach((reminder, reminderIndex) => {
                   const reminderEl = document.createElement('div');
-                  reminderEl.className = 'reminder';
-                  reminderEl.style.backgroundImage = `url(${url})`;
+                  reminderEl.className = 'text-reminder';
+                  reminderEl.textContent = reminder.value;
                   reminderEl.onclick = (e) => {
                       e.stopPropagation();
-                      if (confirm('Remove this reminder?')) {
-                          player.reminders.splice(reminderIndex, 1);
-                          updateGrimoire();
-                      }
+                      openTextReminderModal(i, reminderIndex, reminder.value);
                   };
-                  remindersDiv.insertBefore(reminderEl, remindersDiv.lastChild);
+                  remindersDiv.appendChild(reminderEl);
               });
           });
       }
+      
+      function openCharacterModal(playerIndex) {
+          if (!scriptData) {
+              alert("Please load a script first.");
+              return;
+          }
+          selectedPlayerIndex = playerIndex;
+          characterModalPlayerName.textContent = players[playerIndex].name;
+          populateCharacterGrid();
+          characterModal.style.display = 'flex';
+          characterSearch.value = '';
+          characterSearch.focus();
+      }
 
-      function addReminderToPlayer(tokenUrl) {
+      function populateCharacterGrid() {
+          characterGrid.innerHTML = '';
+          const filter = characterSearch.value.toLowerCase();
+          
+          Object.values(allRoles)
+              .filter(role => role.name.toLowerCase().includes(filter))
+              .forEach(role => {
+                  const tokenEl = document.createElement('div');
+                  tokenEl.className = 'token';
+                  tokenEl.style.backgroundImage = `url('${role.image}')`;
+                  tokenEl.title = role.name;
+                  tokenEl.onclick = () => assignCharacter(role.id);
+                  characterGrid.appendChild(tokenEl);
+              });
+      }
+
+      function assignCharacter(roleId) {
           if (selectedPlayerIndex > -1) {
-              players[selectedPlayerIndex].reminders.push(tokenUrl);
+              players[selectedPlayerIndex].character = roleId;
               updateGrimoire();
-              reminderModal.style.display = 'none';
-              selectedPlayerIndex = -1;
+              characterModal.style.display = 'none';
           }
       }
-      
-      closeModalBtn.onclick = () => {
-          reminderModal.style.display = 'none';
+
+      function openTextReminderModal(playerIndex, reminderIndex = -1, existingText = '') {
+          editingReminder = { playerIndex, reminderIndex };
+          reminderTextInput.value = existingText;
+          textReminderModal.style.display = 'flex';
+          reminderTextInput.focus();
+      }
+
+      saveReminderBtn.onclick = () => {
+          const text = reminderTextInput.value.trim();
+          const { playerIndex, reminderIndex } = editingReminder;
+          if (text) {
+              if (reminderIndex > -1) {
+                  players[playerIndex].reminders[reminderIndex].value = text;
+              } else {
+                  players[playerIndex].reminders.push({ type: 'text', value: text });
+              }
+          } else if (reminderIndex > -1) {
+              players[playerIndex].reminders.splice(reminderIndex, 1);
+          }
+          updateGrimoire();
+          textReminderModal.style.display = 'none';
       };
 
+      closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
+      cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
+      characterSearch.oninput = populateCharacterGrid;
+      window.addEventListener('resize', repositionPlayers);
+      
       function displayScript(data) {
         characterSheet.innerHTML = '';
-        const roles = data.slice(1); // First element is metadata
-        const roleDataUrl = 'https://raw.githubusercontent.com/bra1n/townsquare/develop/src/roles.json';
+        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
         
-        // This part would ideally fetch role details, but for offline, we'll just list names.
-        // For a true offline experience, this role data should be cached by the service worker.
-        const teams = {townsfolk: [], outsider: [], minion: [], demon: []};
-        
-        // A simplified mapping for demonstration. A real app would need a full role list.
-        const roleTeamMap = {
-            "washerwoman": "townsfolk", "librarian": "townsfolk", "investigator": "townsfolk", "chef": "townsfolk",
-            "empath": "townsfolk", "fortuneteller": "townsfolk", "undertaker": "townsfolk", "monk": "townsfolk",
-            "ravenkeeper": "townsfolk", "virgin": "townsfolk", "slayer": "townsfolk", "soldier": "townsfolk", "mayor": "townsfolk",
-            "butler": "outsider", "drunk": "outsider", "recluse": "outsider", "saint": "outsider",
-            "poisoner": "minion", "spy": "minion", "scarletwoman": "minion", "baron": "minion",
-            "imp": "demon",
-            // From custom script
-            "knight": "townsfolk", "noble": "townsfolk", "pixie": "townsfolk", "balloonist": "townsfolk", "general": "townsfolk",
-            "villageidiot": "townsfolk", "king": "townsfolk", "savant": "townsfolk", "alsaahir": "townsfolk", "huntsman": "townsfolk",
-            "fisherman": "townsfolk", "princess": "townsfolk", "cannibal": "townsfolk",
-            "mutant": "outsider", "politician": "outsider", "damsel": "outsider",
-            "cerenovus": "minion", "marionette": "minion", "goblin": "minion",
-            "leviathan": "demon", "bootlegger": "townsfolk", "djinn": "demon"
-        };
-        
-        roles.forEach(roleId => {
-            const team = roleTeamMap[roleId] || 'townsfolk';
-            if (!teams[team]) teams[team] = [];
-            teams[team].push(roleId);
-        });
-
-        for (const team in teams) {
-            if (teams[team].length > 0) {
+        teamOrder.forEach(team => {
+            if (data[team] && Array.isArray(data[team]) && data[team].length > 0) {
                 const teamHeader = document.createElement('h3');
                 teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
                 teamHeader.className = `team-${team}`;
                 characterSheet.appendChild(teamHeader);
                 
-                teams[team].forEach(roleId => {
+                data[team].forEach(role => {
                     const roleEl = document.createElement('div');
                     roleEl.className = 'role';
-                    
-                    const icon = document.createElement('span');
-                    icon.className = 'icon';
-                    // This uses online assets, which should be cached by the service worker
-                    const iconUrl = `https://botc.app/assets/${roleId}_g-CVnYjPdR.webp`; // Placeholder, names differ
-                    const evilIconUrl = `https://botc.app/assets/${roleId}_e-Usf7TcoY.webp`;
-                    
-                    const img = new Image();
-                    img.src = iconUrl;
-                    img.onload = () => { icon.style.backgroundImage = `url(${iconUrl})`; };
-                    img.onerror = () => { 
-                        const evilImg = new Image();
-                        evilImg.src = evilIconUrl;
-                        evilImg.onload = () => { icon.style.backgroundImage = `url(${evilIconUrl})`; };
-                        evilImg.onerror = () => { /* fallback icon */ };
-                    };
-
-
-                    const name = document.createElement('span');
-                    name.className = 'name';
-                    name.textContent = roleId.charAt(0).toUpperCase() + roleId.slice(1);
-                    
-                    roleEl.appendChild(icon);
-                    roleEl.appendChild(name);
+                    roleEl.innerHTML = `
+                        <span class="icon" style="background-image: url('${role.image}')"></span>
+                        <span class="name">${role.name}</span>
+                    `;
                     characterSheet.appendChild(roleEl);
                 });
             }
-        }
+        });
       }
     });
   </script>
