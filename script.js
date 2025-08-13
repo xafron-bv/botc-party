@@ -429,11 +429,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const isExpanded = li.dataset.expanded === '1';
       const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
 
-      const baseOffset = edgeGap + reminderRadius; // offset measured inward from token edge
+      // Distance from center for first reminder's center
+      const firstReminderRadiusFromCenter = runtimeRadius - (tokenRadiusPx + edgeGap + reminderRadius);
       const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
       reminderEls.forEach((el, idx) => {
-          // Target absolute distance from center for this reminder
-          const targetRadius = runtimeRadius - (baseOffset + idx * spacing);
+          // Target absolute distance from center for this reminder's center
+          const targetRadius = firstReminderRadiusFromCenter - idx * spacing;
           const absX = centerX + (-dirX) * targetRadius; // -dirX points from center to token
           const absY = centerY + (-dirY) * targetRadius;
           const rx = absX - tokenCenterX;
@@ -444,8 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
-          const plusOffset = edgeGap + plusRadius + (count > 0 ? (baseOffset + (count - 1) * spacing + spacingCollapsed - reminderRadius) : 0);
-          const targetRadiusPlus = runtimeRadius - plusOffset;
+          // Offset from token edge for the plus center
+          let offsetFromEdge = edgeGap + plusRadius;
+          if (count > 0) {
+              offsetFromEdge = edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
+          }
+          const targetRadiusPlus = runtimeRadius - (tokenRadiusPx + offsetFromEdge);
           const absPX = centerX + (-dirX) * targetRadiusPlus;
           const absPY = centerY + (-dirY) * targetRadiusPlus;
           const px = absPX - tokenCenterX;
