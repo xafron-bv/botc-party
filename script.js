@@ -189,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
       players = Array.from({ length: count }, (_, i) => ({
           name: `Player ${i + 1}`,
           character: null,
-          reminders: []
+          reminders: [],
+          dead: false
       }));
       
       players.forEach((player, i) => {
@@ -203,7 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
           playerCircle.appendChild(listItem);
 
-          listItem.querySelector('.player-token').onclick = () => openCharacterModal(i);
+          // Only the main token area opens the character modal; ribbon handles dead toggle
+          listItem.querySelector('.player-token').onclick = (e) => {
+              const target = e.target;
+              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                  return; // handled by ribbon click
+              }
+              openCharacterModal(i);
+          };
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);
@@ -220,6 +228,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 openReminderTokenModal(i);
               }
           };
+
+          // Hover expand/collapse for reminder stack positioning
+          listItem.dataset.expanded = '0';
+          listItem.addEventListener('mouseenter', () => {
+              listItem.dataset.expanded = '1';
+              positionRadialStack(listItem, players[i].reminders.length);
+          });
+          listItem.addEventListener('mouseleave', () => {
+              listItem.dataset.expanded = '0';
+              positionRadialStack(listItem, players[i].reminders.length);
+          });
       });
       
       // Use requestAnimationFrame to ensure DOM is fully rendered
@@ -257,6 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.style.top = `${y}px`;
           listItem.style.transform = 'translate(-50%, -50%)';
           listItem.dataset.angle = String(angle);
+
+          // Reposition the player's reminder stack and plus button to match new angle
+          const count = (players[i] && players[i].reminders) ? players[i].reminders.length : 0;
+          positionRadialStack(listItem, count);
       });
 
       console.log('Player positioning completed');
@@ -272,6 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove any previous arc label overlay
             const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
             if (existingArc) existingArc.remove();
+            // Remove any previous death UI
+            const oldCircle = tokenDiv.querySelector('.death-overlay');
+            if (oldCircle) oldCircle.remove();
+            const oldRibbon = tokenDiv.querySelector('.death-ribbon');
+            if (oldRibbon) oldRibbon.remove();
           
             if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
@@ -294,37 +322,38 @@ document.addEventListener('DOMContentLoaded', () => {
               if (arc) arc.remove();
           }
 
+          // Add death overlay circle and ribbon indicator
+          const overlay = document.createElement('div');
+          overlay.className = 'death-overlay';
+          overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+          // overlay is visual only; click is on ribbon
+          tokenDiv.appendChild(overlay);
+
+          const ribbon = createDeathRibbonSvg();
+          ribbon.classList.add('death-ribbon');
+          ribbon.addEventListener('click', (e) => {
+              e.stopPropagation();
+              players[i].dead = !players[i].dead;
+              updateGrimoire();
+          });
+          tokenDiv.appendChild(ribbon);
+
+          if (player.dead) {
+              tokenDiv.classList.add('is-dead');
+          } else {
+              tokenDiv.classList.remove('is-dead');
+          }
+
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
           
-          // Position reminders on a smaller circle in front (towards center) of the player
-          const angle = parseFloat(li.dataset.angle || '0');
-          const tokenRadiusPx = li.offsetWidth / 2;
-          const inwardDistance = tokenRadiusPx * 0.9; // distance from token center towards circle center
-          const baseX = -Math.cos(angle) * inwardDistance;
-          const baseY = -Math.sin(angle) * inwardDistance;
-          
-          // Stack reminders in rows under the token, overlapping slightly
-          const maxPerRow = 3;
-          const count = player.reminders.length;
-          const gap = tokenRadiusPx * 0.08; // horizontal overlap
-          const rowHeight = tokenRadiusPx * 0.42; // row spacing and size base
-          
+          // Create reminder elements; positions are handled by positionRadialStack()
           player.reminders.forEach((reminder, idx) => {
-              const row = Math.floor(idx / maxPerRow);
-              const col = idx % maxPerRow;
-              const startX = baseX + tokenRadiusPx * 0.15; // shift to bottom-right quadrant
-              const startY = baseY + tokenRadiusPx * 0.40;
-              const rx = startX + col * (rowHeight - gap);
-              const ry = startY + row * (rowHeight - gap);
-              
-               if (reminder.type === 'icon') {
+              if (reminder.type === 'icon') {
                 const iconEl = document.createElement('div');
                 iconEl.className = 'icon-reminder';
-                iconEl.style.left = `calc(50% + ${rx}px)`;
-                iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                 iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+                iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
                 iconEl.title = (reminder.label || '');
 
                 if (reminder.label) {
@@ -348,8 +377,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reminderEl = document.createElement('div');
                 reminderEl.className = 'text-reminder';
                 reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
-                reminderEl.style.left = `calc(50% + ${rx}px)`;
-                reminderEl.style.top = `calc(50% + ${ry}px)`;
                 reminderEl.style.transform = 'translate(-50%, -50%)';
                 reminderEl.onclick = (e) => {
                   e.stopPropagation();
@@ -368,7 +395,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 remindersDiv.appendChild(reminderEl);
               }
           });
+
+          // After rendering, position all reminders and the plus button in a radial stack
+          positionRadialStack(li, player.reminders.length);
       });
+  }
+
+  // Arrange reminders and plus button in a consistent radial stack using true concentric geometry
+  function positionRadialStack(li, count) {
+      const tokenRadiusPx = li.offsetWidth / 2;
+      const angle = parseFloat(li.dataset.angle || '0');
+      // Unit vector from token towards center
+      const dirX = -Math.cos(angle);
+      const dirY = -Math.sin(angle);
+
+      // Compute the actual distance from circle center to this token center (runtime radius)
+      const container = li.parentElement;
+      const cRect = container ? container.getBoundingClientRect() : null;
+      const lRect = li.getBoundingClientRect();
+      const centerX = cRect ? (cRect.left + cRect.width / 2) : (lRect.left + lRect.width / 2 - dirX);
+      const centerY = cRect ? (cRect.top + cRect.height / 2) : (lRect.top + lRect.height / 2 - dirY);
+      const tokenCenterX = lRect.left + lRect.width / 2;
+      const tokenCenterY = lRect.top + lRect.height / 2;
+      const runtimeRadius = Math.hypot(tokenCenterX - centerX, tokenCenterY - centerY);
+
+      const reminderDiameter = Math.max(56, li.offsetWidth / 3);
+      const reminderRadius = reminderDiameter / 2;
+      const plusRadius = (li.offsetWidth / 4) / 2; // from CSS: width: token-size/4
+      const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
+
+      const spacingCollapsed = reminderDiameter * 0.9; // center-to-center
+      const spacingExpanded = reminderDiameter * 1.12;
+      const isExpanded = li.dataset.expanded === '1';
+      const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
+
+      // Distance from center for first reminder's center
+      const firstReminderRadiusFromCenter = runtimeRadius - (tokenRadiusPx + edgeGap + reminderRadius);
+      const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
+      reminderEls.forEach((el, idx) => {
+          // Target absolute distance from center for this reminder's center
+          const targetRadius = firstReminderRadiusFromCenter - idx * spacing;
+          const absX = centerX + (-dirX) * targetRadius; // -dirX points from center to token
+          const absY = centerY + (-dirY) * targetRadius;
+          const rx = absX - tokenCenterX;
+          const ry = absY - tokenCenterY;
+          el.style.left = `calc(50% + ${rx}px)`;
+          el.style.top = `calc(50% + ${ry}px)`;
+      });
+
+      const plus = li.querySelector('.reminder-placeholder');
+      if (plus) {
+          const PLUS_SHIFT_PX = 20;
+          // Offset from token edge for the plus center
+          let offsetFromEdge = edgeGap + plusRadius;
+          if (count > 0) {
+              offsetFromEdge = edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
+          }
+          let targetRadiusPlus = runtimeRadius - (tokenRadiusPx + offsetFromEdge);
+          targetRadiusPlus -= PLUS_SHIFT_PX; // move by 20px towards center
+          const absPX = centerX + (-dirX) * targetRadiusPlus;
+          const absPY = centerY + (-dirY) * targetRadiusPlus;
+          const px = absPX - tokenCenterX;
+          const py = absPY - tokenCenterY;
+          plus.style.left = `calc(50% + ${px}px)`;
+          plus.style.top = `calc(50% + ${py}px)`;
+      }
   }
   
   function openCharacterModal(playerIndex) {
@@ -483,6 +574,65 @@ document.addEventListener('DOMContentLoaded', () => {
       textPath.textContent = display;
       text.appendChild(textPath);
       svg.appendChild(text);
+      return svg;
+  }
+
+  // Create a black ribbon SVG similar to the reference image
+  function createDeathRibbonSvg() {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 100 140');
+      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg','pattern');
+      pattern.setAttribute('id','deathPattern');
+      pattern.setAttribute('patternUnits','userSpaceOnUse');
+      pattern.setAttribute('width','12');
+      pattern.setAttribute('height','12');
+      const pbg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      pbg.setAttribute('width','12');
+      pbg.setAttribute('height','12');
+      pbg.setAttribute('fill','#0f0f10');
+      const p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p1.setAttribute('d','M0 12 L12 0 M-3 9 L3 3 M9 15 L15 9');
+      p1.setAttribute('stroke','#1b1b1d');
+      p1.setAttribute('stroke-width','2');
+      defs.appendChild(pattern);
+      pattern.appendChild(pbg);
+      pattern.appendChild(p1);
+      svg.appendChild(defs);
+
+      // Main banner
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x','22');
+      rect.setAttribute('y','0');
+      rect.setAttribute('rx','6');
+      rect.setAttribute('ry','6');
+      rect.setAttribute('width','56');
+      rect.setAttribute('height','88');
+      rect.setAttribute('fill','url(#deathPattern)');
+      rect.setAttribute('stroke','#000');
+      rect.setAttribute('stroke-width','6');
+
+      // Notch
+      const notch = document.createElementNS('http://www.w3.org/2000/svg','path');
+      notch.setAttribute('d','M22 88 L50 120 L78 88 Z');
+      notch.setAttribute('fill','url(#deathPattern)');
+      notch.setAttribute('stroke','#000');
+      notch.setAttribute('stroke-width','6');
+
+      // Subtle inner shadow
+      const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      shadow.setAttribute('x','26');
+      shadow.setAttribute('y','4');
+      shadow.setAttribute('rx','6');
+      shadow.setAttribute('ry','6');
+      shadow.setAttribute('width','48');
+      shadow.setAttribute('height','78');
+      shadow.setAttribute('fill','rgba(255,255,255,0.03)');
+
+      svg.appendChild(rect);
+      svg.appendChild(notch);
+      svg.appendChild(shadow);
       return svg;
   }
 
