@@ -274,8 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
-            tokenDiv.style.backgroundImage = `url('${role.image}')`;
-            tokenDiv.style.backgroundSize = 'cover';
+            tokenDiv.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+            tokenDiv.style.backgroundSize = 'cover, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
           } else {
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.style.left = `calc(50% + ${rx}px)`;
                 iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                iconEl.style.backgroundImage = `url('${reminder.image}')`;
+                iconEl.style.backgroundImage = `url('${reminder.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
                 iconEl.title = reminder.label || '';
 
                 if (reminder.label) {
@@ -322,36 +322,22 @@ document.addEventListener('DOMContentLoaded', () => {
                   iconEl.appendChild(labelEl);
                 }
 
-                const ctrls = document.createElement('div');
-                ctrls.className = 'icon-reminder-controls';
-                const rotateBtn = document.createElement('div');
-                rotateBtn.className = 'icon-reminder-btn';
-                rotateBtn.textContent = '↻';
-                rotateBtn.title = 'Rotate';
-                rotateBtn.onclick = (e) => {
-                  e.stopPropagation();
-                  players[i].reminders[idx].rotation = ((players[i].reminders[idx].rotation || 0) + 180) % 360;
-                  updateGrimoire();
-                };
-                const trashBtn = document.createElement('div');
-                trashBtn.className = 'icon-reminder-btn';
-                trashBtn.textContent = '🗑';
-                trashBtn.title = 'Delete';
-                trashBtn.onclick = (e) => {
+                const delBtn = document.createElement('div');
+                delBtn.className = 'reminder-delete-btn';
+                delBtn.title = 'Delete';
+                delBtn.textContent = '🗑';
+                delBtn.onclick = (e) => {
                   e.stopPropagation();
                   players[i].reminders.splice(idx, 1);
                   updateGrimoire();
                 };
-                ctrls.appendChild(rotateBtn);
-                ctrls.appendChild(trashBtn);
-                iconEl.appendChild(ctrls);
+                iconEl.appendChild(delBtn);
 
                 remindersDiv.appendChild(iconEl);
               } else {
                 const reminderEl = document.createElement('div');
                 reminderEl.className = 'text-reminder';
                 reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
-                reminderEl.style.position = 'absolute';
                 reminderEl.style.left = `calc(50% + ${rx}px)`;
                 reminderEl.style.top = `calc(50% + ${ry}px)`;
                 reminderEl.style.transform = 'translate(-50%, -50%)';
@@ -359,6 +345,16 @@ document.addEventListener('DOMContentLoaded', () => {
                   e.stopPropagation();
                   openTextReminderModal(i, idx, reminder.value);
                 };
+                const delBtn2 = document.createElement('div');
+                delBtn2.className = 'reminder-delete-btn';
+                delBtn2.title = 'Delete';
+                delBtn2.textContent = '🗑';
+                delBtn2.onclick = (e) => {
+                  e.stopPropagation();
+                  players[i].reminders.splice(idx, 1);
+                  updateGrimoire();
+                };
+                reminderEl.appendChild(delBtn2);
                 remindersDiv.appendChild(reminderEl);
               }
           });
@@ -390,7 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
       filteredRoles.forEach(role => {
           const tokenEl = document.createElement('div');
           tokenEl.className = 'token';
-          tokenEl.style.backgroundImage = `url('${role.image}')`;
+          tokenEl.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+          tokenEl.style.backgroundSize = 'cover, cover';
           tokenEl.title = role.name;
           tokenEl.onclick = () => assignCharacter(role.id);
           characterGrid.appendChild(tokenEl);
@@ -466,7 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
         (filtered.length ? filtered : reminderTokens).forEach(token => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
-            tokenEl.style.backgroundImage = `url('${token.image}')`;
+            tokenEl.style.backgroundImage = `url('${token.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+            tokenEl.style.backgroundSize = 'cover, cover';
             tokenEl.title = token.label;
             tokenEl.onclick = () => {
                 let label = token.label;
@@ -553,10 +551,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 teamGroups[team].forEach(role => {
                     const roleEl = document.createElement('div');
                     roleEl.className = 'role';
-                    roleEl.innerHTML = `
-                        <span class="icon" style="background-image: url('${role.image}')"></span>
-                        <span class="name">${role.name}</span>
-                    `;
+         roleEl.innerHTML = `
+                         <span class="icon" style="background-image: url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                         <span class="name">${role.name}</span>
+                     `;
                     characterSheet.appendChild(roleEl);
                 });
             }
@@ -572,10 +570,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof characterId === 'string' && characterId !== '_meta') {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
-                roleEl.innerHTML = `
-                    <span class="icon" style="background-image: url('https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp')"></span>
-                    <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
-                `;
+                 roleEl.innerHTML = `
+                     <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
+                     <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
+                 `;
                 characterSheet.appendChild(roleEl);
             }
         });
