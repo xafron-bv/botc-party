@@ -445,12 +445,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
+          const PLUS_SHIFT_PX = 20;
           // Offset from token edge for the plus center
           let offsetFromEdge = edgeGap + plusRadius;
           if (count > 0) {
               offsetFromEdge = edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
           }
-          const targetRadiusPlus = runtimeRadius - (tokenRadiusPx + offsetFromEdge);
+          let targetRadiusPlus = runtimeRadius - (tokenRadiusPx + offsetFromEdge);
+          targetRadiusPlus -= PLUS_SHIFT_PX; // move by 20px towards center
           const absPX = centerX + (-dirX) * targetRadiusPlus;
           const absPY = centerY + (-dirY) * targetRadiusPlus;
           const px = absPX - tokenCenterX;
