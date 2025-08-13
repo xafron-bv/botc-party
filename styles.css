@@ -241,6 +241,7 @@ body {
   height: 70px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
@@ -495,6 +496,7 @@ input[type="file"] {
   background-image: url('/assets/img/token-BqDQdWeO.webp');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
