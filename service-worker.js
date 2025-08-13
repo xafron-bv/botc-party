@@ -1,22 +1,22 @@
 const CACHE_NAME = 'botc-offline-grimoire-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/terms.html',
-  '/LICENSE.md',
-  '/styles.css',
-  '/script.js',
-  '/tokens.json',
-  '/Trouble Brewing.json',
-  '/Bad Moon Rising.json',
-  '/Sects and Violets.json',
-  '/manifest.json',
-  '/assets/fontawesome/css/all.min.css',
-  '/assets/fontawesome/webfonts/fa-solid-900.woff2',
-  '/assets/fontawesome/webfonts/fa-regular-400.woff2',
-  '/assets/fontawesome/webfonts/fa-brands-400.woff2',
-  '/assets/img/background4-C7TzDZ7M.webp',
-  '/assets/img/token-BqDQdWeO.webp'
+  './',
+  './index.html',
+  './terms.html',
+  './LICENSE.md',
+  './styles.css',
+  './script.js',
+  './tokens.json',
+  './Trouble Brewing.json',
+  './Bad Moon Rising.json',
+  './Sects and Violets.json',
+  './manifest.json',
+  './assets/fontawesome/css/all.min.css',
+  './assets/fontawesome/webfonts/fa-solid-900.woff2',
+  './assets/fontawesome/webfonts/fa-regular-400.woff2',
+  './assets/fontawesome/webfonts/fa-brands-400.woff2',
+  './assets/img/background4-C7TzDZ7M.webp',
+  './assets/img/token-BqDQdWeO.webp'
 ];
 
 self.addEventListener('install', event => {
@@ -60,7 +60,7 @@ self.addEventListener('fetch', event => {
             })
             .catch(() => {
               // Return a placeholder image if fetch fails
-              return caches.match('/assets/img/token-BqDQdWeO.webp');
+              return caches.match('./assets/img/token-BqDQdWeO.webp');
             });
         })
     );
@@ -68,7 +68,7 @@ self.addEventListener('fetch', event => {
   }
 
   // Handle tokens.json requests
-  if (event.request.url.includes('/tokens.json')) {
+  if (event.request.url.includes('/tokens.json') || event.request.url.endsWith('tokens.json')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -143,7 +143,7 @@ self.addEventListener('fetch', event => {
           .catch(() => {
             // Return cached response for navigation requests
             if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
+               return caches.match('./index.html');
             }
             return null;
           });
@@ -156,7 +156,7 @@ async function cacheAllTokenImages() {
     const cache = await caches.open(CACHE_NAME);
     
     // Get tokens.json from cache instead of fetching again
-    const cachedResponse = await cache.match('/tokens.json');
+    const cachedResponse = await cache.match('./tokens.json');
     if (!cachedResponse) {
       console.log('tokens.json not found in cache, skipping image caching');
       return;
