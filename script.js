@@ -45,6 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
 
+  function resolveAssetPath(path) {
+      if (!path) return path;
+      if (/^https?:\/\//.test(path)) return path;
+      if (path.startsWith('/')) return `.${path}`;
+      return path;
+  }
+
   async function loadScriptFromFile(path) {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
@@ -130,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
           Object.entries(tokens).forEach(([teamName, teamArray]) => {
               if (Array.isArray(teamArray)) {
                   teamArray.forEach(role => {
-                      roleLookup[role.id] = { ...role, team: teamName };
+                      const image = resolveAssetPath(role.image);
+                      roleLookup[role.id] = { ...role, image, team: teamName };
                   });
               }
           });
@@ -267,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
             if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
-             tokenDiv.style.backgroundImage = `url('${role.image}'), url('assets/img/token-BqDQdWeO.webp')`;
+             tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
               tokenDiv.style.backgroundSize = '68% 68%, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
@@ -276,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
               tokenDiv.appendChild(svg);
           } else {
-            tokenDiv.style.backgroundImage = `url('assets/img/token-BqDQdWeO.webp')`;
+            tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
             tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
@@ -316,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.style.left = `calc(50% + ${rx}px)`;
                 iconEl.style.top = `calc(50% + ${ry}px)`;
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                 iconEl.style.backgroundImage = `url('${reminder.image}'), url('assets/img/token-BqDQdWeO.webp')`;
+                 iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
                 iconEl.title = (reminder.label || '');
 
                 if (reminder.label) {
@@ -490,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!reminderTokenGrid) return;
       reminderTokenGrid.innerHTML = '';
       try {
-        const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
+         const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load tokens.json');
         const json = await res.json();
         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
@@ -505,11 +513,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ];
         }
         const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
-        const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+         // Normalize image paths for gh-pages subpath
+         reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
+         const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
         (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
-             tokenEl.style.backgroundImage = `url('${token.image}'), url('assets/img/token-BqDQdWeO.webp')`;
+            tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
             tokenEl.style.backgroundSize = 'cover, cover';
             tokenEl.style.position = 'relative';
             tokenEl.style.overflow = 'visible';
