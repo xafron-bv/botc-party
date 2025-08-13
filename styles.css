@@ -167,11 +167,43 @@ body {
     background-image: url('assets/img/token-BqDQdWeO.webp');
     overflow: visible; /* allow SVG text to overdraw border */
     z-index: 4; /* ensure above nearby elements */
+    transition: left .18s ease, top .18s ease, transform .18s ease;
 }
 
 .icon-reminder:hover {
     transform: scale(1.06);
 }
+
+/* Death UI elements */
+.player-token .death-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #000;
+    opacity: 0.12;
+    transition: opacity .15s ease;
+    cursor: default;
+    z-index: 5;
+    pointer-events: none; /* allow clicks to pass through to token except ribbon */
+}
+
+.player-token .death-ribbon {
+    position: absolute;
+    left: 50%;
+    top: -6%;
+    transform: translateX(-50%);
+    width: 42%;
+    height: auto;
+    opacity: 0.18; /* visible but subtle by default */
+    transition: opacity .15s ease;
+    pointer-events: auto; /* allow direct hover/click */
+    z-index: 6;
+}
+
+.player-token:hover .death-overlay { opacity: 0.2; }
+.player-token .death-ribbon:hover { opacity: 1; cursor: pointer; }
+.player-token.is-dead .death-overlay { opacity: 0.35; }
+.player-token.is-dead .death-ribbon { opacity: 0.7; }
 
 .icon-reminder-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
 .icon-reminder-text {
@@ -263,11 +295,13 @@ body {
     transform: scale(1.05);
 }
 
+/* Smooth movement for text reminders during expand/collapse */
+.text-reminder { transition: left .18s ease, top .18s ease, transform .18s ease; }
+
 .reminder-placeholder {
     position: absolute;
-    bottom: -6vmin;
-    left: 50%;
-    transform: translateX(-50%);
+    /* left/top set dynamically next to the last reminder */
+    transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
     color: white;
     width: calc(var(--token-size) / 4);
@@ -286,7 +320,7 @@ body {
 }
 
 .reminder-placeholder:hover {
-    transform: translateX(-50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.2);
     box-shadow: 0 4px 12px rgba(0,0,0,0.7);
 }
 
