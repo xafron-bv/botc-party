@@ -13,7 +13,7 @@ const urlsToCache = [
   '/assets/fontawesome/webfonts/fa-regular-400.woff2',
   '/assets/fontawesome/webfonts/fa-brands-400.woff2',
   '/assets/img/background4-C7TzDZ7M.webp',
-  '/assets/img/token-blank-05128509.webp'
+  '/assets/img/token-BqDQdWeO.webp'
 ];
 
 self.addEventListener('install', event => {
@@ -57,7 +57,7 @@ self.addEventListener('fetch', event => {
             })
             .catch(() => {
               // Return a placeholder image if fetch fails
-              return caches.match('/assets/img/token-blank-05128509.webp');
+              return caches.match('/assets/img/token-BqDQdWeO.webp');
             });
         })
     );

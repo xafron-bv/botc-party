@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   allRoles[characterId] = {
                       id: characterId,
                       name: characterId.charAt(0).toUpperCase() + characterId.slice(1),
-                      image: `https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp`,
+                      image: '/assets/img/token-BqDQdWeO.webp',
                       team: 'unknown'
                   };
               }
@@ -279,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
           } else {
-            tokenDiv.style.backgroundImage = `url('https://botc.app/assets/token-blank-05128509.webp')`;
-            tokenDiv.style.backgroundSize = '80%';
+            tokenDiv.style.backgroundImage = `url('/assets/img/token-BqDQdWeO.webp')`;
+            tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
           }
@@ -306,22 +306,46 @@ document.addEventListener('DOMContentLoaded', () => {
               const rx = baseX + smallRadius * Math.cos(theta);
               const ry = baseY + smallRadius * Math.sin(theta);
               
-              if (reminder.type === 'icon') {
+               if (reminder.type === 'icon') {
                 const iconEl = document.createElement('div');
                 iconEl.className = 'icon-reminder';
-                iconEl.style.position = 'absolute';
                 iconEl.style.left = `calc(50% + ${rx}px)`;
                 iconEl.style.top = `calc(50% + ${ry}px)`;
-                iconEl.style.transform = 'translate(-50%, -50%)';
+                iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
                 iconEl.style.backgroundImage = `url('${reminder.image}')`;
                 iconEl.title = reminder.label || '';
-                iconEl.onclick = (e) => {
+
+                if (reminder.label) {
+                  const labelEl = document.createElement('div');
+                  labelEl.className = 'icon-reminder-label';
+                  labelEl.textContent = reminder.label;
+                  iconEl.appendChild(labelEl);
+                }
+
+                const ctrls = document.createElement('div');
+                ctrls.className = 'icon-reminder-controls';
+                const rotateBtn = document.createElement('div');
+                rotateBtn.className = 'icon-reminder-btn';
+                rotateBtn.textContent = '↻';
+                rotateBtn.title = 'Rotate';
+                rotateBtn.onclick = (e) => {
                   e.stopPropagation();
-                  if (confirm('Remove reminder token?')) {
-                    players[i].reminders.splice(idx, 1);
-                    updateGrimoire();
-                  }
+                  players[i].reminders[idx].rotation = ((players[i].reminders[idx].rotation || 0) + 180) % 360;
+                  updateGrimoire();
                 };
+                const trashBtn = document.createElement('div');
+                trashBtn.className = 'icon-reminder-btn';
+                trashBtn.textContent = '🗑';
+                trashBtn.title = 'Delete';
+                trashBtn.onclick = (e) => {
+                  e.stopPropagation();
+                  players[i].reminders.splice(idx, 1);
+                  updateGrimoire();
+                };
+                ctrls.appendChild(rotateBtn);
+                ctrls.appendChild(trashBtn);
+                iconEl.appendChild(ctrls);
+
                 remindersDiv.appendChild(iconEl);
               } else {
                 const reminderEl = document.createElement('div');
@@ -445,7 +469,13 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenEl.style.backgroundImage = `url('${token.image}')`;
             tokenEl.title = token.label;
             tokenEl.onclick = () => {
-                players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label: token.label });
+                let label = token.label;
+                if ((label || '').toLowerCase().includes('custom')) {
+                  const input = prompt('Enter short reminder text (max 10 chars):', '');
+                  if (input === null) return;
+                  label = input.slice(0, 10);
+                }
+                players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
                 updateGrimoire();
                 reminderTokenModal.style.display = 'none';
             };
