@@ -30,11 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
 
+  const reminderTokenModal = document.getElementById('reminder-token-modal');
+  const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
+  const reminderTokenGrid = document.getElementById('reminder-token-grid');
+  const reminderTokenSearch = document.getElementById('reminder-token-search');
+  const reminderTokenModalPlayerName = document.getElementById('reminder-token-modal-player-name');
+
   let scriptData = null;
   let allRoles = {};
   let players = [];
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
+  let reminderTokens = [];
 
   // Load default tokens from local JSON file
   loadDefaultTokensBtn.addEventListener('click', async () => {
@@ -45,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch('./tokens.json');
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const tokens = await response.json();
+      reminderTokens = Array.isArray(tokens.reminderTokens) ? tokens.reminderTokens : [];
 
       // Build a role lookup and expose entire library in character sheet
       allRoles = {};
@@ -122,8 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
               throw new Error(`Failed to load tokens.json: ${response.status}`);
           }
           
-          const tokens = await response.json();
+           const tokens = await response.json();
           console.log('Tokens.json loaded successfully');
+           reminderTokens = Array.isArray(tokens.reminderTokens) ? tokens.reminderTokens : [];
           
           // Create a lookup map of all available roles with correct team names
           const roleLookup = {};
@@ -205,7 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
-              openTextReminderModal(i);
+              if (confirm('Add a text reminder? Click Cancel to add a token reminder.')) {
+                  openTextReminderModal(i);
+              } else {
+                  openReminderTokenModal(i);
+              }
           };
       });
       
@@ -263,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
           } else {
-            tokenDiv.style.backgroundImage = `url('https://botc.app/assets/token-blank-05128509.webp')`;
+            tokenDiv.style.backgroundImage = `url('/assets/img/token-blank-05128509.webp')`;
             tokenDiv.style.backgroundSize = '80%';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
@@ -290,19 +303,39 @@ document.addEventListener('DOMContentLoaded', () => {
               const rx = baseX + smallRadius * Math.cos(theta);
               const ry = baseY + smallRadius * Math.sin(theta);
               
-              const reminderEl = document.createElement('div');
-              reminderEl.className = 'text-reminder';
-              reminderEl.textContent = (reminder.value || '').toString().slice(0, 2);
-              reminderEl.style.position = 'absolute';
-              reminderEl.style.left = `calc(50% + ${rx}px)`;
-              reminderEl.style.top = `calc(50% + ${ry}px)`;
-              reminderEl.style.transform = 'translate(-50%, -50%)';
-              reminderEl.style.zIndex = '3';
-              reminderEl.onclick = (e) => {
-                  e.stopPropagation();
-                  openTextReminderModal(i, idx, reminder.value);
-              };
-              remindersDiv.appendChild(reminderEl);
+              if (reminder.type === 'icon') {
+                  const iconEl = document.createElement('div');
+                  iconEl.className = 'icon-reminder';
+                  iconEl.style.position = 'absolute';
+                  iconEl.style.left = `calc(50% + ${rx}px)`;
+                  iconEl.style.top = `calc(50% + ${ry}px)`;
+                  iconEl.style.transform = 'translate(-50%, -50%)';
+                  iconEl.style.zIndex = '3';
+                  iconEl.style.backgroundImage = `url('${reminder.image}')`;
+                  iconEl.title = reminder.label || '';
+                  iconEl.onclick = (e) => {
+                      e.stopPropagation();
+                      if (confirm('Remove reminder token?')) {
+                        players[i].reminders.splice(idx, 1);
+                        updateGrimoire();
+                      }
+                  };
+                  remindersDiv.appendChild(iconEl);
+              } else {
+                  const reminderEl = document.createElement('div');
+                  reminderEl.className = 'text-reminder';
+                  reminderEl.textContent = (reminder.value || '').toString().slice(0, 2);
+                  reminderEl.style.position = 'absolute';
+                  reminderEl.style.left = `calc(50% + ${rx}px)`;
+                  reminderEl.style.top = `calc(50% + ${ry}px)`;
+                  reminderEl.style.transform = 'translate(-50%, -50%)';
+                  reminderEl.style.zIndex = '3';
+                  reminderEl.onclick = (e) => {
+                      e.stopPropagation();
+                      openTextReminderModal(i, idx, reminder.value);
+                  };
+                  remindersDiv.appendChild(reminderEl);
+              }
           });
       });
   }
@@ -374,6 +407,38 @@ document.addEventListener('DOMContentLoaded', () => {
   closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
   characterSearch.oninput = populateCharacterGrid;
+
+  function openReminderTokenModal(playerIndex) {
+      selectedPlayerIndex = playerIndex;
+      reminderTokenModalPlayerName.textContent = players[playerIndex].name;
+      populateReminderTokenGrid();
+      reminderTokenModal.style.display = 'flex';
+      reminderTokenSearch.value = '';
+      reminderTokenSearch.focus();
+  }
+
+  function populateReminderTokenGrid() {
+      reminderTokenGrid.innerHTML = '';
+      const filter = (reminderTokenSearch.value || '').toLowerCase();
+      const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+      filtered.forEach(token => {
+          const tokenEl = document.createElement('div');
+          tokenEl.className = 'token';
+          tokenEl.style.backgroundImage = `url('${token.image}')`;
+          tokenEl.title = token.label;
+          tokenEl.onclick = () => {
+              if (selectedPlayerIndex > -1) {
+                  players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label: token.label });
+                  updateGrimoire();
+                  reminderTokenModal.style.display = 'none';
+              }
+          };
+          reminderTokenGrid.appendChild(tokenEl);
+      });
+  }
+
+  closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none';
+  reminderTokenSearch.oninput = populateReminderTokenGrid;
   
   // Handle container resize to reposition players
   let resizeObserver;
