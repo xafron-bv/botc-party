@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.innerHTML = `
               <div class="reminders"></div>
               <div class="player-token" title="Assign character"></div>
+               <div class="character-name" aria-live="polite"></div>
               <div class="player-name" title="Edit name">${player.name}</div>
               <div class="reminder-placeholder" title="Add text reminder">+</div>
           `;
@@ -259,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const player = players[i];
           li.querySelector('.player-name').textContent = player.name;
           const tokenDiv = li.querySelector('.player-token');
+           const charNameDiv = li.querySelector('.character-name');
           
           if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
@@ -266,11 +268,13 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenDiv.style.backgroundSize = 'cover, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
+             if (charNameDiv) charNameDiv.textContent = role.name;
           } else {
             tokenDiv.style.backgroundImage = `url('/assets/img/token-BqDQdWeO.webp')`;
             tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
+             if (charNameDiv) charNameDiv.textContent = '';
           }
 
           const remindersDiv = li.querySelector('.reminders');
