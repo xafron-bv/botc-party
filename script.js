@@ -189,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
       players = Array.from({ length: count }, (_, i) => ({
           name: `Player ${i + 1}`,
           character: null,
-          reminders: []
+          reminders: [],
+          dead: false
       }));
       
       players.forEach((player, i) => {
@@ -287,6 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove any previous arc label overlay
             const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
             if (existingArc) existingArc.remove();
+            // Remove any previous death UI
+            const oldCircle = tokenDiv.querySelector('.death-overlay');
+            if (oldCircle) oldCircle.remove();
+            const oldRibbon = tokenDiv.querySelector('.death-ribbon');
+            if (oldRibbon) oldRibbon.remove();
           
             if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
@@ -307,6 +313,27 @@ document.addEventListener('DOMContentLoaded', () => {
               // Ensure no leftover arc label remains
               const arc = tokenDiv.querySelector('.icon-reminder-svg');
               if (arc) arc.remove();
+          }
+
+          // Add death overlay circle and ribbon indicator
+          const overlay = document.createElement('div');
+          overlay.className = 'death-overlay';
+          overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+          overlay.onclick = (e) => {
+              e.stopPropagation();
+              players[i].dead = !players[i].dead;
+              updateGrimoire();
+          };
+          tokenDiv.appendChild(overlay);
+
+          const ribbon = createDeathRibbonSvg();
+          ribbon.classList.add('death-ribbon');
+          tokenDiv.appendChild(ribbon);
+
+          if (player.dead) {
+              tokenDiv.classList.add('is-dead');
+          } else {
+              tokenDiv.classList.remove('is-dead');
           }
 
           const remindersDiv = li.querySelector('.reminders');
@@ -513,6 +540,65 @@ document.addEventListener('DOMContentLoaded', () => {
       textPath.textContent = display;
       text.appendChild(textPath);
       svg.appendChild(text);
+      return svg;
+  }
+
+  // Create a black ribbon SVG similar to the reference image
+  function createDeathRibbonSvg() {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 100 140');
+      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg','pattern');
+      pattern.setAttribute('id','deathPattern');
+      pattern.setAttribute('patternUnits','userSpaceOnUse');
+      pattern.setAttribute('width','12');
+      pattern.setAttribute('height','12');
+      const pbg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      pbg.setAttribute('width','12');
+      pbg.setAttribute('height','12');
+      pbg.setAttribute('fill','#0f0f10');
+      const p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p1.setAttribute('d','M0 12 L12 0 M-3 9 L3 3 M9 15 L15 9');
+      p1.setAttribute('stroke','#1b1b1d');
+      p1.setAttribute('stroke-width','2');
+      defs.appendChild(pattern);
+      pattern.appendChild(pbg);
+      pattern.appendChild(p1);
+      svg.appendChild(defs);
+
+      // Main banner
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x','22');
+      rect.setAttribute('y','0');
+      rect.setAttribute('rx','6');
+      rect.setAttribute('ry','6');
+      rect.setAttribute('width','56');
+      rect.setAttribute('height','88');
+      rect.setAttribute('fill','url(#deathPattern)');
+      rect.setAttribute('stroke','#000');
+      rect.setAttribute('stroke-width','6');
+
+      // Notch
+      const notch = document.createElementNS('http://www.w3.org/2000/svg','path');
+      notch.setAttribute('d','M22 88 L50 120 L78 88 Z');
+      notch.setAttribute('fill','url(#deathPattern)');
+      notch.setAttribute('stroke','#000');
+      notch.setAttribute('stroke-width','6');
+
+      // Subtle inner shadow
+      const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      shadow.setAttribute('x','26');
+      shadow.setAttribute('y','4');
+      shadow.setAttribute('rx','6');
+      shadow.setAttribute('ry','6');
+      shadow.setAttribute('width','48');
+      shadow.setAttribute('height','78');
+      shadow.setAttribute('fill','rgba(255,255,255,0.03)');
+
+      svg.appendChild(rect);
+      svg.appendChild(notch);
+      svg.appendChild(shadow);
       return svg;
   }
 
