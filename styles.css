@@ -53,7 +53,6 @@ body {
   justify-content: center;
   width: var(--token-size);
   height: var(--token-size);
-  transform: translate(-50%, -50%);
 }
 
 .player-token {

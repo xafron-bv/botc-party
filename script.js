@@ -219,26 +219,48 @@ document.addEventListener('DOMContentLoaded', () => {
           };
       });
       
-      setTimeout(repositionPlayers, 0);
+      // Use a longer delay to ensure DOM is fully rendered
+      setTimeout(repositionPlayers, 100);
       updateGrimoire();
   }
 
   function repositionPlayers() {
       const count = players.length;
       if (count === 0) return;
+      
       const circle = document.getElementById('player-circle');
-      const radius = circle.offsetWidth / 2.8; 
+      if (!circle) {
+          console.error('Player circle element not found');
+          return;
+      }
+      
+      console.log('Repositioning players. Circle dimensions:', circle.offsetWidth, 'x', circle.offsetHeight);
+      
+      // Ensure the circle container has proper dimensions
+      const circleWidth = circle.offsetWidth || 800;
+      const circleHeight = circle.offsetHeight || 600;
+      
+      // Calculate radius based on the smaller dimension to ensure all players fit
+      const radius = Math.min(circleWidth, circleHeight) / 3;
       const angleStep = (2 * Math.PI) / count;
+      
+      console.log(`Positioning ${count} players with radius ${radius} and angle step ${angleStep}`);
 
       const listItems = circle.querySelectorAll('li');
       listItems.forEach((listItem, i) => {
-          const angle = i * angleStep - (Math.PI / 2);
-          const x = (circle.offsetWidth / 2) + radius * Math.cos(angle);
-          const y = (circle.offsetHeight / 2) + radius * Math.sin(angle);
+          const angle = i * angleStep - (Math.PI / 2); // Start from top
+          const x = (circleWidth / 2) + radius * Math.cos(angle);
+          const y = (circleHeight / 2) + radius * Math.sin(angle);
+          
+          console.log(`Player ${i}: angle=${angle.toFixed(2)}, x=${x.toFixed(0)}, y=${y.toFixed(0)}`);
+          
           listItem.style.position = 'absolute';
           listItem.style.left = `${x}px`;
           listItem.style.top = `${y}px`;
+          listItem.style.transform = 'translate(-50%, -50%)'; // Center the player on the calculated position
       });
+      
+      console.log('Player positioning completed');
   }
 
   function updateGrimoire() {
@@ -343,7 +365,25 @@ document.addEventListener('DOMContentLoaded', () => {
   closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
   characterSearch.oninput = populateCharacterGrid;
-  window.addEventListener('resize', repositionPlayers);
+  
+  // Handle window resize to reposition players
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      if (players.length > 0) {
+        console.log('Window resized, repositioning players...');
+        repositionPlayers();
+      }
+    }, 250);
+  });
+  
+  // Also reposition players when the page becomes visible (in case of tab switching)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && players.length > 0) {
+      setTimeout(repositionPlayers, 100);
+    }
+  });
   
   function displayScript(data) {
     console.log('Displaying script with', data.length, 'characters');
