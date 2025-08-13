@@ -287,16 +287,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
-          player.reminders.forEach((reminder, reminderIndex) => {
-              const reminderEl = document.createElement('div');
-              reminderEl.className = 'text-reminder';
-              reminderEl.textContent = reminder.value;
-              reminderEl.onclick = (e) => {
-                  e.stopPropagation();
-                  openTextReminderModal(i, reminderIndex, reminder.value);
-              };
-              remindersDiv.appendChild(reminderEl);
-          });
+          
+          // Position reminders in a smaller circle in front of the player
+          if (player.reminders.length > 0) {
+              const reminderRadius = 4; // Smaller radius for reminders
+              const reminderAngleStep = (2 * Math.PI) / Math.max(player.reminders.length, 1);
+              
+              player.reminders.forEach((reminder, reminderIndex) => {
+                  const reminderEl = document.createElement('div');
+                  reminderEl.className = 'text-reminder';
+                  reminderEl.textContent = reminder.value;
+                  
+                  // Calculate position for each reminder
+                  const reminderAngle = reminderIndex * reminderAngleStep;
+                  const reminderX = reminderRadius * Math.cos(reminderAngle);
+                  const reminderY = reminderRadius * Math.sin(reminderAngle);
+                  
+                  reminderEl.style.position = 'absolute';
+                  reminderEl.style.left = `calc(50% + ${reminderX}vmin)`;
+                  reminderEl.style.top = `calc(50% + ${reminderY}vmin)`;
+                  reminderEl.style.transform = 'translate(-50%, -50%)';
+                  
+                  reminderEl.onclick = (e) => {
+                      e.stopPropagation();
+                      openTextReminderModal(i, reminderIndex, reminder.value);
+                  };
+                  remindersDiv.appendChild(reminderEl);
+              });
+          }
       });
   }
   
