@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const reminderTextInput = document.getElementById('reminder-text-input');
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
-
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -41,35 +40,40 @@ document.addEventListener('DOMContentLoaded', () => {
   let players = [];
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
-  let reminderTokens = [];
 
   // Load default tokens from local JSON file
   loadDefaultTokensBtn.addEventListener('click', async () => {
     try {
       loadStatus.textContent = 'Loading default tokens...';
       loadStatus.className = 'status';
-      // default behavior: build sheet from tokens.json (library), not a script
+      
+      console.log('Attempting to load tokens.json...');
       const response = await fetch('./tokens.json');
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const tokens = await response.json();
-      reminderTokens = Array.isArray(tokens.reminderTokens) ? tokens.reminderTokens : [];
-
-      // Build a role lookup and expose entire library in character sheet
-      allRoles = {};
-      Object.entries(tokens).forEach(([teamName, teamArray]) => {
-        if (Array.isArray(teamArray)) {
-          teamArray.forEach(role => {
-            allRoles[role.id] = { ...role, team: teamName };
-          });
-        }
-      });
-      renderCharacterSheet();
+      console.log('Tokens loaded successfully:', tokens);
+      console.log('Number of teams:', Object.keys(tokens).length);
+      
+      await processScriptData(Object.keys(allRoles).length ? Object.keys(allRoles) : ['_meta']);
+      
       loadStatus.textContent = 'Default tokens loaded successfully!';
       loadStatus.className = 'status';
     } catch (error) {
       console.error('Error loading default tokens:', error);
       loadStatus.textContent = `Error loading default tokens: ${error.message}`;
       loadStatus.className = 'error';
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        loadStatus.textContent = 'Network error: Check if the server is running and tokens.json is accessible';
+      } else if (error.name === 'SyntaxError') {
+        loadStatus.textContent = 'JSON parsing error: tokens.json may be corrupted';
+      }
     }
   });
 
@@ -119,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       console.log('Total roles processed:', Object.keys(allRoles).length);
-      renderCharacterSheet();
+      displayScript(data);
   }
 
   async function processScriptCharacters(characterIds) {
@@ -130,9 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
               throw new Error(`Failed to load tokens.json: ${response.status}`);
           }
           
-           const tokens = await response.json();
+          const tokens = await response.json();
           console.log('Tokens.json loaded successfully');
-           reminderTokens = Array.isArray(tokens.reminderTokens) ? tokens.reminderTokens : [];
           
           // Create a lookup map of all available roles with correct team names
           const roleLookup = {};
@@ -214,10 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
-              if (confirm('Add a text reminder? Click Cancel to add a token reminder.')) {
-                  openTextReminderModal(i);
+              if (e.altKey) {
+                openTextReminderModal(i);
               } else {
-                  openReminderTokenModal(i);
+                openReminderTokenModal(i);
               }
           };
       });
@@ -276,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
           } else {
-            tokenDiv.style.backgroundImage = `url('/assets/img/token-blank-05128509.webp')`;
+            tokenDiv.style.backgroundImage = `url('https://botc.app/assets/token-blank-05128509.webp')`;
             tokenDiv.style.backgroundSize = '80%';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
@@ -284,19 +287,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
-          remindersDiv.style.zIndex = '3';
           
+          // Position reminders on a smaller circle in front (towards center) of the player
           const angle = parseFloat(li.dataset.angle || '0');
           const tokenRadiusPx = li.offsetWidth / 2;
-          const inwardDistance = tokenRadiusPx * 0.9;
+          const inwardDistance = tokenRadiusPx * 0.9; // distance from token center towards circle center
           const baseX = -Math.cos(angle) * inwardDistance;
           const baseY = -Math.sin(angle) * inwardDistance;
           
-          const smallRadius = tokenRadiusPx * 0.5;
+          const smallRadius = tokenRadiusPx * 0.5; // radius of the small reminder fan
           const count = player.reminders.length;
-          const spread = Math.min(count, 5);
-          const step = (Math.PI) / Math.max(spread, 1); // half circle fan
-          const start = -Math.PI / 2 - (step * (spread - 1)) / 2; // centered fan
+          const visible = Math.min(count, 6);
+          const step = (Math.PI) / Math.max(visible, 1); // half-circle fan facing centre
+          const start = -Math.PI / 2 - (step * (visible - 1)) / 2;
           
           player.reminders.forEach((reminder, idx) => {
               const theta = start + idx * step;
@@ -304,37 +307,35 @@ document.addEventListener('DOMContentLoaded', () => {
               const ry = baseY + smallRadius * Math.sin(theta);
               
               if (reminder.type === 'icon') {
-                  const iconEl = document.createElement('div');
-                  iconEl.className = 'icon-reminder';
-                  iconEl.style.position = 'absolute';
-                  iconEl.style.left = `calc(50% + ${rx}px)`;
-                  iconEl.style.top = `calc(50% + ${ry}px)`;
-                  iconEl.style.transform = 'translate(-50%, -50%)';
-                  iconEl.style.zIndex = '3';
-                  iconEl.style.backgroundImage = `url('${reminder.image}')`;
-                  iconEl.title = reminder.label || '';
-                  iconEl.onclick = (e) => {
-                      e.stopPropagation();
-                      if (confirm('Remove reminder token?')) {
-                        players[i].reminders.splice(idx, 1);
-                        updateGrimoire();
-                      }
-                  };
-                  remindersDiv.appendChild(iconEl);
+                const iconEl = document.createElement('div');
+                iconEl.className = 'icon-reminder';
+                iconEl.style.position = 'absolute';
+                iconEl.style.left = `calc(50% + ${rx}px)`;
+                iconEl.style.top = `calc(50% + ${ry}px)`;
+                iconEl.style.transform = 'translate(-50%, -50%)';
+                iconEl.style.backgroundImage = `url('${reminder.image}')`;
+                iconEl.title = reminder.label || '';
+                iconEl.onclick = (e) => {
+                  e.stopPropagation();
+                  if (confirm('Remove reminder token?')) {
+                    players[i].reminders.splice(idx, 1);
+                    updateGrimoire();
+                  }
+                };
+                remindersDiv.appendChild(iconEl);
               } else {
-                  const reminderEl = document.createElement('div');
-                  reminderEl.className = 'text-reminder';
-                  reminderEl.textContent = (reminder.value || '').toString().slice(0, 2);
-                  reminderEl.style.position = 'absolute';
-                  reminderEl.style.left = `calc(50% + ${rx}px)`;
-                  reminderEl.style.top = `calc(50% + ${ry}px)`;
-                  reminderEl.style.transform = 'translate(-50%, -50%)';
-                  reminderEl.style.zIndex = '3';
-                  reminderEl.onclick = (e) => {
-                      e.stopPropagation();
-                      openTextReminderModal(i, idx, reminder.value);
-                  };
-                  remindersDiv.appendChild(reminderEl);
+                const reminderEl = document.createElement('div');
+                reminderEl.className = 'text-reminder';
+                reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
+                reminderEl.style.position = 'absolute';
+                reminderEl.style.left = `calc(50% + ${rx}px)`;
+                reminderEl.style.top = `calc(50% + ${ry}px)`;
+                reminderEl.style.transform = 'translate(-50%, -50%)';
+                reminderEl.onclick = (e) => {
+                  e.stopPropagation();
+                  openTextReminderModal(i, idx, reminder.value);
+                };
+                remindersDiv.appendChild(reminderEl);
               }
           });
       });
@@ -407,38 +408,58 @@ document.addEventListener('DOMContentLoaded', () => {
   closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
   characterSearch.oninput = populateCharacterGrid;
+  closeReminderTokenModalBtn && (closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none');
+  reminderTokenSearch && (reminderTokenSearch.oninput = populateReminderTokenGrid);
 
   function openReminderTokenModal(playerIndex) {
       selectedPlayerIndex = playerIndex;
-      reminderTokenModalPlayerName.textContent = players[playerIndex].name;
-      populateReminderTokenGrid();
+      if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = players[playerIndex].name;
       reminderTokenModal.style.display = 'flex';
-      reminderTokenSearch.value = '';
-      reminderTokenSearch.focus();
+      if (reminderTokenSearch) reminderTokenSearch.value = '';
+      populateReminderTokenGrid();
   }
 
-  function populateReminderTokenGrid() {
+  async function populateReminderTokenGrid() {
+      if (!reminderTokenGrid) return;
       reminderTokenGrid.innerHTML = '';
-      const filter = (reminderTokenSearch.value || '').toLowerCase();
-      const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
-      filtered.forEach(token => {
-          const tokenEl = document.createElement('div');
-          tokenEl.className = 'token';
-          tokenEl.style.backgroundImage = `url('${token.image}')`;
-          tokenEl.title = token.label;
-          tokenEl.onclick = () => {
-              if (selectedPlayerIndex > -1) {
-                  players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label: token.label });
-                  updateGrimoire();
-                  reminderTokenModal.style.display = 'none';
-              }
-          };
-          reminderTokenGrid.appendChild(tokenEl);
-      });
+      try {
+        const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load tokens.json');
+        const json = await res.json();
+        let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
+        if (reminderTokens.length === 0) {
+          // Fallback set if tokens.json has no reminderTokens
+          reminderTokens = [
+            { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
+            { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
+            { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
+            { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
+            { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
+          ];
+        }
+        const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
+        const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+        (filtered.length ? filtered : reminderTokens).forEach(token => {
+            const tokenEl = document.createElement('div');
+            tokenEl.className = 'token';
+            tokenEl.style.backgroundImage = `url('${token.image}')`;
+            tokenEl.title = token.label;
+            tokenEl.onclick = () => {
+                players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label: token.label });
+                updateGrimoire();
+                reminderTokenModal.style.display = 'none';
+            };
+            reminderTokenGrid.appendChild(tokenEl);
+        });
+      } catch (e) {
+        console.error(e);
+        // As a last resort, show a simple message
+        const msg = document.createElement('div');
+        msg.style.color = '#ccc';
+        msg.textContent = 'No reminder tokens available.';
+        reminderTokenGrid.appendChild(msg);
+      }
   }
-
-  closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none';
-  reminderTokenSearch.oninput = populateReminderTokenGrid;
   
   // Handle container resize to reposition players
   let resizeObserver;
@@ -476,33 +497,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  function renderCharacterSheet() {
-    const container = characterSheet;
-    container.innerHTML = '';
-    const grouped = {};
+  function displayScript(data) {
+    console.log('Displaying script with', data.length, 'characters');
+    characterSheet.innerHTML = '';
+    
+    // Group characters by team if we have resolved role data
+    const teamGroups = {};
     Object.values(allRoles).forEach(role => {
-      const team = role.team || 'unknown';
-      if (!grouped[team]) grouped[team] = [];
-      grouped[team].push(role);
+        if (!teamGroups[role.team]) {
+            teamGroups[role.team] = [];
+        }
+        teamGroups[role.team].push(role);
     });
-    const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled', 'unknown'];
-    teamOrder.forEach(team => {
-      const roles = grouped[team];
-      if (!roles || roles.length === 0) return;
-      const header = document.createElement('h3');
-      header.textContent = team.charAt(0).toUpperCase() + team.slice(1);
-      header.className = `team-${team}`;
-      container.appendChild(header);
-      roles.forEach(role => {
-        const roleEl = document.createElement('div');
-        roleEl.className = 'role';
-        roleEl.innerHTML = `
-          <span class="icon" style="background-image: url('${role.image}')"></span>
-          <span class="name">${role.name}</span>
-        `;
-        container.appendChild(roleEl);
-      });
-    });
+    
+    // Display grouped by team if we have team information
+    if (Object.keys(teamGroups).length > 0) {
+        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+        teamOrder.forEach(team => {
+            if (teamGroups[team] && teamGroups[team].length > 0) {
+                const teamHeader = document.createElement('h3');
+                teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
+                teamHeader.className = `team-${team}`;
+                characterSheet.appendChild(teamHeader);
+                
+                teamGroups[team].forEach(role => {
+                    const roleEl = document.createElement('div');
+                    roleEl.className = 'role';
+                    roleEl.innerHTML = `
+                        <span class="icon" style="background-image: url('${role.image}')"></span>
+                        <span class="name">${role.name}</span>
+                    `;
+                    characterSheet.appendChild(roleEl);
+                });
+            }
+        });
+    } else {
+        // Fallback: show all characters in a single list
+        const header = document.createElement('h3');
+        header.textContent = 'Characters';
+        header.className = 'team-townsfolk';
+        characterSheet.appendChild(header);
+        
+        data.forEach((characterId, index) => {
+            if (typeof characterId === 'string' && characterId !== '_meta') {
+                const roleEl = document.createElement('div');
+                roleEl.className = 'role';
+                roleEl.innerHTML = `
+                    <span class="icon" style="background-image: url('https://script.bloodontheclocktower.com/images/icon/1%20-%20Trouble%20Brewing/townsfolk/${characterId}_icon.webp')"></span>
+                    <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
+                `;
+                characterSheet.appendChild(roleEl);
+            }
+        });
+    }
   }
 
   // Auto-load default tokens when the page is ready
