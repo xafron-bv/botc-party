@@ -16,10 +16,63 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
+        // First cache the basic files
         return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        // Then fetch and cache all token images
+        return cacheAllTokenImages();
       })
   );
 });
+
+async function cacheAllTokenImages() {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    
+    // Fetch tokens.json to get all image URLs
+    const response = await fetch('/tokens.json');
+    if (!response.ok) {
+      console.log('Failed to fetch tokens.json for image caching');
+      return;
+    }
+    
+    const tokens = await response.json();
+    const imageUrls = [];
+    
+    // Extract all image URLs from the tokens
+    Object.values(tokens).forEach(team => {
+      if (Array.isArray(team)) {
+        team.forEach(role => {
+          if (role.image) {
+            imageUrls.push(role.image);
+          }
+        });
+      }
+    });
+    
+    console.log(`Found ${imageUrls.length} token images to cache`);
+    
+    // Cache all token images
+    const cachePromises = imageUrls.map(async (imageUrl) => {
+      try {
+        const imageResponse = await fetch(imageUrl);
+        if (imageResponse.ok) {
+          await cache.put(imageUrl, imageResponse.clone());
+          console.log(`Cached: ${imageUrl}`);
+        }
+      } catch (error) {
+        console.log(`Failed to cache image: ${imageUrl}`, error);
+      }
+    });
+    
+    await Promise.allSettled(cachePromises);
+    console.log('Token image caching completed');
+    
+  } catch (error) {
+    console.error('Error caching token images:', error);
+  }
+}
 
 self.addEventListener('fetch', event => {
   // Handle token image requests

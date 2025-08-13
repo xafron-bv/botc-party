@@ -44,44 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       loadStatus.textContent = 'Default tokens loaded successfully!';
       loadStatus.className = 'status';
-      
-      // Preload token images for offline use
-      preloadTokenImages(tokens);
     } catch (error) {
       console.error('Error loading default tokens:', error);
       loadStatus.textContent = 'Error loading default tokens: ' + error.message;
       loadStatus.className = 'error';
     }
   });
-
-  // Preload token images to cache them for offline use
-  function preloadTokenImages(tokens) {
-    const imageUrls = [];
-    Object.values(tokens).forEach(team => {
-      if (Array.isArray(team)) {
-        team.forEach(role => {
-          if (role.image) {
-            imageUrls.push(role.image);
-          }
-        });
-      }
-    });
-
-    // Cache images in service worker
-    if ('caches' in window) {
-      caches.open('botc-offline-grimoire-v1').then(cache => {
-        imageUrls.forEach(url => {
-          fetch(url).then(response => {
-            if (response.ok) {
-              cache.put(url, response.clone());
-            }
-          }).catch(() => {
-            // Ignore failed image loads
-          });
-        });
-      });
-    }
-  }
 
   scriptFileInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
