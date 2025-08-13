@@ -20,8 +20,108 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
       .then(() => {
-        // Then fetch and cache all token images
-        return cacheAllTokenImages();
+        console.log('Basic files cached successfully');
+        // Don't cache token images during install to avoid circular dependency
+        // They will be cached on first fetch
+      })
+      .catch(error => {
+        console.error('Service worker installation failed:', error);
+      })
+  );
+});
+
+self.addEventListener('fetch', event => {
+  // Handle token image requests
+  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/')) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request)
+            .then(response => {
+              if (response.ok) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseClone);
+                  console.log(`Cached token image: ${event.request.url}`);
+                });
+              }
+              return response;
+            })
+            .catch(() => {
+              // Return a placeholder image if fetch fails
+              return caches.match('https://botc.app/assets/token-blank-05128509.webp');
+            });
+        })
+    );
+    return;
+  }
+
+  // Handle tokens.json requests
+  if (event.request.url.includes('/tokens.json')) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request)
+            .then(response => {
+              if (response.ok) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseClone);
+                  // Cache all token images after successfully caching tokens.json
+                  cacheAllTokenImages();
+                });
+              }
+              return response;
+            })
+            .catch(error => {
+              console.error('Failed to fetch tokens.json:', error);
+              // Return a basic fallback if tokens.json fails
+              return new Response(JSON.stringify({
+                townsfolk: [],
+                outsider: [],
+                minion: [],
+                demon: [],
+                travellers: [],
+                fabled: []
+              }), {
+                headers: { 'Content-Type': 'application/json' }
+              });
+            });
+        })
+    );
+    return;
+  }
+
+  // Handle other requests
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request)
+          .then(response => {
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            // Return cached response for navigation requests
+            if (event.request.mode === 'navigate') {
+              return caches.match('/index.html');
+            }
+            return null;
+          });
       })
   );
 });
@@ -30,14 +130,14 @@ async function cacheAllTokenImages() {
   try {
     const cache = await caches.open(CACHE_NAME);
     
-    // Fetch tokens.json to get all image URLs
-    const response = await fetch('/tokens.json');
-    if (!response.ok) {
-      console.log('Failed to fetch tokens.json for image caching');
+    // Get tokens.json from cache instead of fetching again
+    const cachedResponse = await cache.match('/tokens.json');
+    if (!cachedResponse) {
+      console.log('tokens.json not found in cache, skipping image caching');
       return;
     }
     
-    const tokens = await response.json();
+    const tokens = await cachedResponse.json();
     const imageUrls = [];
     
     // Extract all image URLs from the tokens
@@ -73,62 +173,6 @@ async function cacheAllTokenImages() {
     console.error('Error caching token images:', error);
   }
 }
-
-self.addEventListener('fetch', event => {
-  // Handle token image requests
-  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/')) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          return fetch(event.request)
-            .then(response => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, responseClone);
-                });
-              }
-              return response;
-            })
-            .catch(() => {
-              // Return a placeholder image if fetch fails
-              return caches.match('https://botc.app/assets/token-blank-05128509.webp');
-            });
-        })
-    );
-    return;
-  }
-
-  // Handle other requests
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request)
-          .then(response => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseClone);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            // Return cached response for navigation requests
-            if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
-            }
-            return null;
-          });
-      })
-  );
-});
 
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];

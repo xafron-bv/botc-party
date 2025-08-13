@@ -1,5 +1,13 @@
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js'));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service worker registered successfully:', registration);
+      })
+      .catch(error => {
+        console.error('Service worker registration failed:', error);
+      });
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,51 +42,84 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.textContent = 'Loading default tokens...';
       loadStatus.className = 'status';
       
+      console.log('Attempting to load tokens.json...');
       const response = await fetch('./tokens.json');
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
       if (!response.ok) {
-        throw new Error('Failed to load tokens.json');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const tokens = await response.json();
+      console.log('Tokens loaded successfully:', tokens);
+      console.log('Number of teams:', Object.keys(tokens).length);
+      
       processScriptData(tokens);
       
       loadStatus.textContent = 'Default tokens loaded successfully!';
       loadStatus.className = 'status';
     } catch (error) {
       console.error('Error loading default tokens:', error);
-      loadStatus.textContent = 'Error loading default tokens: ' + error.message;
+      loadStatus.textContent = `Error loading default tokens: ${error.message}`;
       loadStatus.className = 'error';
+      
+      // Try to provide more helpful error information
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        loadStatus.textContent = 'Network error: Check if the server is running and tokens.json is accessible';
+      } else if (error.name === 'SyntaxError') {
+        loadStatus.textContent = 'JSON parsing error: tokens.json may be corrupted';
+      }
     }
   });
 
   scriptFileInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    
+    console.log('File selected:', file.name, 'Size:', file.size);
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
+        console.log('Parsing uploaded file...');
         const json = JSON.parse(e.target.result);
+        console.log('Uploaded script parsed successfully:', json);
+        
         processScriptData(json);
         loadStatus.textContent = 'Custom script loaded successfully!';
         loadStatus.className = 'status';
       } catch (error) { 
-        loadStatus.textContent = 'Invalid JSON file.';
+        console.error('Error parsing uploaded file:', error);
+        loadStatus.textContent = `Invalid JSON file: ${error.message}`;
         loadStatus.className = 'error';
       }
     };
+    
+    reader.onerror = (error) => {
+      console.error('File reading error:', error);
+      loadStatus.textContent = 'Error reading file';
+      loadStatus.className = 'error';
+    };
+    
     reader.readAsText(file);
   });
 
   function processScriptData(data) {
+      console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
+      
       for (const team in data) {
           if (Array.isArray(data[team])) {
+              console.log(`Processing team ${team}:`, data[team].length, 'roles');
               data[team].forEach(role => {
                   allRoles[role.id] = { ...role, team };
               });
           }
       }
+      
+      console.log('Total roles processed:', Object.keys(allRoles).length);
       displayScript(data);
   }
 
@@ -92,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupGrimoire(count) {
+      console.log('Setting up grimoire with', count, 'players');
       playerCircle.innerHTML = '';
       players = Array.from({ length: count }, (_, i) => ({
           name: `Player ${i + 1}`,
@@ -198,21 +240,25 @@ document.addEventListener('DOMContentLoaded', () => {
       characterGrid.innerHTML = '';
       const filter = characterSearch.value.toLowerCase();
       
-      Object.values(allRoles)
-          .filter(role => role.name.toLowerCase().includes(filter))
-          .forEach(role => {
-              const tokenEl = document.createElement('div');
-              tokenEl.className = 'token';
-              tokenEl.style.backgroundImage = `url('${role.image}')`;
-              tokenEl.title = role.name;
-              tokenEl.onclick = () => assignCharacter(role.id);
-              characterGrid.appendChild(tokenEl);
-          });
+      const filteredRoles = Object.values(allRoles)
+          .filter(role => role.name.toLowerCase().includes(filter));
+      
+      console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
+      
+      filteredRoles.forEach(role => {
+          const tokenEl = document.createElement('div');
+          tokenEl.className = 'token';
+          tokenEl.style.backgroundImage = `url('${role.image}')`;
+          tokenEl.title = role.name;
+          tokenEl.onclick = () => assignCharacter(role.id);
+          characterGrid.appendChild(tokenEl);
+      });
   }
 
   function assignCharacter(roleId) {
       if (selectedPlayerIndex > -1) {
           players[selectedPlayerIndex].character = roleId;
+          console.log(`Assigned character ${roleId} to player ${selectedPlayerIndex}`);
           updateGrimoire();
           characterModal.style.display = 'none';
       }
@@ -247,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', repositionPlayers);
   
   function displayScript(data) {
+    console.log('Displaying script with teams:', Object.keys(data));
     characterSheet.innerHTML = '';
     const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
     
@@ -272,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Auto-load default tokens on page load
   window.addEventListener('load', () => {
+    console.log('Page loaded, auto-loading tokens in 1 second...');
     setTimeout(() => {
       loadDefaultTokensBtn.click();
     }, 1000);
