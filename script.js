@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.innerHTML = `
               <div class="reminders"></div>
               <div class="player-token" title="Assign character"></div>
+               <div class="character-name" aria-live="polite"></div>
               <div class="player-name" title="Edit name">${player.name}</div>
               <div class="reminder-placeholder" title="Add text reminder">+</div>
           `;
@@ -259,18 +260,30 @@ document.addEventListener('DOMContentLoaded', () => {
           const player = players[i];
           li.querySelector('.player-name').textContent = player.name;
           const tokenDiv = li.querySelector('.player-token');
+           const charNameDiv = li.querySelector('.character-name');
+            // Remove any previous arc label overlay
+            const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
+            if (existingArc) existingArc.remove();
           
-          if (player.character && allRoles[player.character]) {
+            if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
             tokenDiv.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
-            tokenDiv.style.backgroundSize = 'cover, cover';
+              tokenDiv.style.backgroundSize = '68% 68%, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
+             if (charNameDiv) charNameDiv.textContent = role.name;
+              // Add curved label on the token
+              const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
+              tokenDiv.appendChild(svg);
           } else {
             tokenDiv.style.backgroundImage = `url('/assets/img/token-BqDQdWeO.webp')`;
             tokenDiv.style.backgroundSize = 'cover';
             tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
             tokenDiv.classList.remove('has-character');
+             if (charNameDiv) charNameDiv.textContent = '';
+              // Ensure no leftover arc label remains
+              const arc = tokenDiv.querySelector('.icon-reminder-svg');
+              if (arc) arc.remove();
           }
 
           const remindersDiv = li.querySelector('.reminders');
@@ -376,9 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const tokenEl = document.createElement('div');
           tokenEl.className = 'token';
           tokenEl.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
-          tokenEl.style.backgroundSize = 'cover, cover';
+          tokenEl.style.backgroundSize = '68% 68%, cover';
+          tokenEl.style.position = 'relative';
+          tokenEl.style.overflow = 'visible';
           tokenEl.title = role.name;
           tokenEl.onclick = () => assignCharacter(role.id);
+          // Add curved bottom text on the token preview
+          const svg = createCurvedLabelSvg(`picker-role-arc-${role.id}` , role.name);
+          tokenEl.appendChild(svg);
           characterGrid.appendChild(tokenEl);
       });
   }
