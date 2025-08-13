@@ -2,6 +2,8 @@ const CACHE_NAME = 'botc-offline-grimoire-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/styles.css',
+  '/script.js',
   '/tokens.json',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
