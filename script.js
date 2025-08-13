@@ -401,12 +401,23 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Arrange reminders and plus button in a consistent radial stack using the stored angle
+  // Arrange reminders and plus button in a consistent radial stack using true concentric geometry
   function positionRadialStack(li, count) {
       const tokenRadiusPx = li.offsetWidth / 2;
       const angle = parseFloat(li.dataset.angle || '0');
+      // Unit vector from token towards center
       const dirX = -Math.cos(angle);
       const dirY = -Math.sin(angle);
+
+      // Compute the actual distance from circle center to this token center (runtime radius)
+      const container = li.parentElement;
+      const cRect = container ? container.getBoundingClientRect() : null;
+      const lRect = li.getBoundingClientRect();
+      const centerX = cRect ? (cRect.left + cRect.width / 2) : (lRect.left + lRect.width / 2 - dirX);
+      const centerY = cRect ? (cRect.top + cRect.height / 2) : (lRect.top + lRect.height / 2 - dirY);
+      const tokenCenterX = lRect.left + lRect.width / 2;
+      const tokenCenterY = lRect.top + lRect.height / 2;
+      const runtimeRadius = Math.hypot(tokenCenterX - centerX, tokenCenterY - centerY);
 
       const reminderDiameter = Math.max(56, li.offsetWidth / 3);
       const reminderRadius = reminderDiameter / 2;
@@ -418,24 +429,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const isExpanded = li.dataset.expanded === '1';
       const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
 
-      const firstReminderDist = tokenRadiusPx + edgeGap + reminderRadius;
-
+      const baseOffset = edgeGap + reminderRadius; // offset measured inward from token edge
       const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
       reminderEls.forEach((el, idx) => {
-          const dist = firstReminderDist + idx * spacing;
-          const rx = dirX * dist;
-          const ry = dirY * dist;
+          // Target absolute distance from center for this reminder
+          const targetRadius = runtimeRadius - (baseOffset + idx * spacing);
+          const absX = centerX + (-dirX) * targetRadius; // -dirX points from center to token
+          const absY = centerY + (-dirY) * targetRadius;
+          const rx = absX - tokenCenterX;
+          const ry = absY - tokenCenterY;
           el.style.left = `calc(50% + ${rx}px)`;
           el.style.top = `calc(50% + ${ry}px)`;
       });
 
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
-          const distP = count > 0
-            ? firstReminderDist + (count * spacing) + edgeGap + plusRadius
-            : tokenRadiusPx + edgeGap + plusRadius;
-          const px = dirX * distP;
-          const py = dirY * distP;
+          const plusOffset = edgeGap + plusRadius + (count > 0 ? (baseOffset + (count - 1) * spacing + spacingCollapsed - reminderRadius) : 0);
+          const targetRadiusPlus = runtimeRadius - plusOffset;
+          const absPX = centerX + (-dirX) * targetRadiusPlus;
+          const absPY = centerY + (-dirY) * targetRadiusPlus;
+          const px = absPX - tokenCenterX;
+          const py = absPY - tokenCenterY;
           plus.style.left = `calc(50% + ${px}px)`;
           plus.style.top = `calc(50% + ${py}px)`;
       }
