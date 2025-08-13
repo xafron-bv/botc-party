@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-offline-grimoire-v1';
+const CACHE_NAME = 'botc-offline-grimoire-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,6 +7,9 @@ const urlsToCache = [
   '/styles.css',
   '/script.js',
   '/tokens.json',
+  '/Trouble Brewing.json',
+  '/Bad Moon Rising.json',
+  '/Sects and Violets.json',
   '/manifest.json',
   '/assets/fontawesome/css/all.min.css',
   '/assets/fontawesome/webfonts/fa-solid-900.woff2',
@@ -99,6 +102,23 @@ self.addEventListener('fetch', event => {
               });
             });
         })
+    );
+    return;
+  }
+
+  // Cache base script JSON files on fetch as well
+  if (event.request.url.endsWith('Trouble%20Brewing.json') || event.request.url.endsWith('Bad%20Moon%20Rising.json') || event.request.url.endsWith('Sects%20and%20Violets.json')) {
+    event.respondWith(
+      caches.match(event.request).then(response => {
+        if (response) return response;
+        return fetch(event.request).then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return res;
+        });
+      })
     );
     return;
   }
