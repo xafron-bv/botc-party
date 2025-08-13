@@ -25,7 +25,7 @@ body {
 }
 
 #center {
-  background-image: url('/assets/img/background4-C7TzDZ7M.webp');
+  background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');
   background-size: cover;
   background-position: center;
   height: 100%;
@@ -70,7 +70,7 @@ body {
     position: relative;
     background-color: rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    background-image: url('/assets/img/token-blank-05128509.webp');
+    background-image: url('https://botc.app/assets/token-blank-05128509.webp');
     background-size: 80%;
     background-repeat: no-repeat;
     background-position: center;
@@ -144,21 +144,69 @@ body {
     font-weight: bold;
 }
 
+/* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: 3vmin;
-    height: 3vmin;
-    min-width: 28px;
-    min-height: 28px;
+    width: 4.2vmin;
+    height: 4.2vmin;
+    min-width: 32px;
+    min-height: 32px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
+    border: 3px solid #D4AF37;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
     pointer-events: auto;
-    border: 2px solid #D4AF37;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .icon-reminder:hover {
-    transform: scale(1.05);
+    transform: scale(1.06);
+}
+
+/* purple placeholder circle on hover around plus button area */
+.reminder-placeholder::after {
+    content: '';
+    position: absolute;
+    width: 3.4vmin;
+    height: 3.4vmin;
+    border-radius: 50%;
+    background: rgba(88, 50, 134, 0.35);
+    border: 2px solid rgba(154, 107, 200, 0.7);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.reminder-placeholder:hover::after {
+    opacity: 1;
+}
+
+#reminder-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 15px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+#reminder-token-grid .token {
+  width: 70px;
+  height: 70px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+#reminder-token-grid .token:hover {
+  border-color: #D4AF37;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6);
 }
 
 .text-reminder:hover {
@@ -415,20 +463,4 @@ label {
   font-weight: bold;
   margin: 5px 0;
   display: block;
-}
-
-#player-circle .player-token {
-  width: var(--token-size);
-  height: var(--token-size);
-  aspect-ratio: 1 / 1;
-}
-
-#player-circle li {
-  width: var(--token-size);
-  height: var(--token-size);
-}
-
-/* empty seat border should be circular too */
-#player-circle .player-token:not(.has-character) {
-  background-size: 80%;
 }
