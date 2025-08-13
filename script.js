@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Tokens loaded successfully:', tokens);
       console.log('Number of teams:', Object.keys(tokens).length);
       
-      processScriptData(tokens);
+      await processScriptData(Object.keys(allRoles).length ? Object.keys(allRoles) : ['_meta']);
       
       loadStatus.textContent = 'Default tokens loaded successfully!';
       loadStatus.className = 'status';
@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.textContent = `Error loading default tokens: ${error.message}`;
       loadStatus.className = 'error';
       
-      // Try to provide more helpful error information
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         loadStatus.textContent = 'Network error: Check if the server is running and tokens.json is accessible';
       } else if (error.name === 'SyntaxError') {
@@ -73,20 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  scriptFileInput.addEventListener('change', (event) => {
+  scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (!file) return;
     
     console.log('File selected:', file.name, 'Size:', file.size);
     
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         console.log('Parsing uploaded file...');
         const json = JSON.parse(e.target.result);
         console.log('Uploaded script parsed successfully:', json);
         
-        processScriptData(json);
+        await processScriptData(json);
         loadStatus.textContent = 'Custom script loaded successfully!';
         loadStatus.className = 'status';
       } catch (error) { 
@@ -105,15 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   });
 
-  function processScriptData(data) {
+  async function processScriptData(data) {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
       
-      // Handle the standard script format (array of character IDs like tb.json)
       if (Array.isArray(data)) {
           console.log('Processing script with', data.length, 'characters');
-          processScriptCharacters(data);
+          await processScriptCharacters(data);
       } else {
           console.error('Unexpected script format:', typeof data);
           return;
@@ -134,12 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const tokens = await response.json();
           console.log('Tokens.json loaded successfully');
           
-          // Create a lookup map of all available roles
+          // Create a lookup map of all available roles with correct team names
           const roleLookup = {};
-          Object.values(tokens).forEach(team => {
-              if (Array.isArray(team)) {
-                  team.forEach(role => {
-                      roleLookup[role.id] = { ...role, team };
+          Object.entries(tokens).forEach(([teamName, teamArray]) => {
+              if (Array.isArray(teamArray)) {
+                  teamArray.forEach(role => {
+                      roleLookup[role.id] = { ...role, team: teamName };
                   });
               }
           });
@@ -147,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
           // Process the character IDs from the script
-          characterIds.forEach((characterId, index) => {
+          characterIds.forEach((characterId) => {
               if (typeof characterId === 'string' && characterId !== '_meta') {
                   if (roleLookup[characterId]) {
                       allRoles[characterId] = roleLookup[characterId];
@@ -162,8 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
       } catch (error) {
           console.error('Error processing script:', error);
-          // Fallback: create basic role objects from the IDs
-          characterIds.forEach((characterId, index) => {
+          characterIds.forEach((characterId) => {
               if (typeof characterId === 'string' && characterId !== '_meta') {
                   allRoles[characterId] = {
                       id: characterId,
@@ -238,30 +235,24 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('Repositioning players. Circle dimensions:', circle.offsetWidth, 'x', circle.offsetHeight);
       
-      // Ensure the circle container has proper dimensions
       const circleWidth = circle.offsetWidth || 800;
       const circleHeight = circle.offsetHeight || 600;
-      
-      // Calculate radius based on the smaller dimension to ensure all players fit
       const radius = Math.min(circleWidth, circleHeight) / 3;
       const angleStep = (2 * Math.PI) / count;
-      
-      console.log(`Positioning ${count} players with radius ${radius} and angle step ${angleStep}`);
 
       const listItems = circle.querySelectorAll('li');
       listItems.forEach((listItem, i) => {
-          const angle = i * angleStep - (Math.PI / 2); // Start from top
+          const angle = i * angleStep - (Math.PI / 2);
           const x = (circleWidth / 2) + radius * Math.cos(angle);
           const y = (circleHeight / 2) + radius * Math.sin(angle);
-          
-          console.log(`Player ${i}: angle=${angle.toFixed(2)}, x=${x.toFixed(0)}, y=${y.toFixed(0)}`);
           
           listItem.style.position = 'absolute';
           listItem.style.left = `${x}px`;
           listItem.style.top = `${y}px`;
-          listItem.style.transform = 'translate(-50%, -50%)'; // Center the player on the calculated position
+          listItem.style.transform = 'translate(-50%, -50%)';
+          listItem.dataset.angle = String(angle);
       });
-      
+
       console.log('Player positioning completed');
   }
 
@@ -288,33 +279,36 @@ document.addEventListener('DOMContentLoaded', () => {
           const remindersDiv = li.querySelector('.reminders');
           remindersDiv.innerHTML = '';
           
-          // Position reminders in a smaller circle in front of the player
-          if (player.reminders.length > 0) {
-              const reminderRadius = 4; // Smaller radius for reminders
-              const reminderAngleStep = (2 * Math.PI) / Math.max(player.reminders.length, 1);
+          // Position reminders on a smaller circle in front (towards center) of the player
+          const angle = parseFloat(li.dataset.angle || '0');
+          const tokenRadiusPx = li.offsetWidth / 2;
+          const inwardDistance = tokenRadiusPx * 0.9; // distance from token center towards circle center
+          const baseX = -Math.cos(angle) * inwardDistance;
+          const baseY = -Math.sin(angle) * inwardDistance;
+          
+          const smallRadius = tokenRadiusPx * 0.45; // radius of the small reminder circle
+          const count = player.reminders.length;
+          const step = (2 * Math.PI) / Math.max(count, 1);
+          const start = -Math.PI / 2; // start at top of small circle
+          
+          player.reminders.forEach((reminder, idx) => {
+              const theta = start + idx * step;
+              const rx = baseX + smallRadius * Math.cos(theta);
+              const ry = baseY + smallRadius * Math.sin(theta);
               
-              player.reminders.forEach((reminder, reminderIndex) => {
-                  const reminderEl = document.createElement('div');
-                  reminderEl.className = 'text-reminder';
-                  reminderEl.textContent = reminder.value;
-                  
-                  // Calculate position for each reminder
-                  const reminderAngle = reminderIndex * reminderAngleStep;
-                  const reminderX = reminderRadius * Math.cos(reminderAngle);
-                  const reminderY = reminderRadius * Math.sin(reminderAngle);
-                  
-                  reminderEl.style.position = 'absolute';
-                  reminderEl.style.left = `calc(50% + ${reminderX}vmin)`;
-                  reminderEl.style.top = `calc(50% + ${reminderY}vmin)`;
-                  reminderEl.style.transform = 'translate(-50%, -50%)';
-                  
-                  reminderEl.onclick = (e) => {
-                      e.stopPropagation();
-                      openTextReminderModal(i, reminderIndex, reminder.value);
-                  };
-                  remindersDiv.appendChild(reminderEl);
-              });
-          }
+              const reminderEl = document.createElement('div');
+              reminderEl.className = 'text-reminder';
+              reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
+              reminderEl.style.position = 'absolute';
+              reminderEl.style.left = `calc(50% + ${rx}px)`;
+              reminderEl.style.top = `calc(50% + ${ry}px)`;
+              reminderEl.style.transform = 'translate(-50%, -50%)';
+              reminderEl.onclick = (e) => {
+                  e.stopPropagation();
+                  openTextReminderModal(i, idx, reminder.value);
+              };
+              remindersDiv.appendChild(reminderEl);
+          });
       });
   }
   
