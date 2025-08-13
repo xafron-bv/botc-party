@@ -26,10 +26,12 @@
 
       <div class="section">
         <h3>Script Management</h3>
-        <div>
-          <button class="button" id="load-default-tokens">Load Default Tokens</button>
-          <div class="status" id="load-status"></div>
+        <div class="script-buttons">
+          <button class="button" id="load-tb">Trouble Brewing</button>
+          <button class="button" id="load-bmr">Bad Moon Rising</button>
+          <button class="button" id="load-sav">Sects &amp; Violets</button>
         </div>
+        <div id="load-status" aria-live="polite"></div>
         <div style="margin-top: 15px;">
           <label for="script-file">Or Upload Custom Script:</label>
           <input type="file" id="script-file" accept=".json">

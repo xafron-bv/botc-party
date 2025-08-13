@@ -12,7 +12,9 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
-  const loadDefaultTokensBtn = document.getElementById('load-default-tokens');
+  const loadTbBtn = document.getElementById('load-tb');
+  const loadBmrBtn = document.getElementById('load-bmr');
+  const loadSavBtn = document.getElementById('load-sav');
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
@@ -43,41 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
 
-  // Load default tokens from local JSON file
-  loadDefaultTokensBtn.addEventListener('click', async () => {
+  async function loadScriptFromFile(path) {
     try {
-      loadStatus.textContent = 'Loading default tokens...';
+      loadStatus.textContent = `Loading script from ${path}...`;
       loadStatus.className = 'status';
-      
-      console.log('Attempting to load tokens.json...');
-      const response = await fetch('./tokens.json');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const tokens = await response.json();
-      console.log('Tokens loaded successfully:', tokens);
-      console.log('Number of teams:', Object.keys(tokens).length);
-      
-      await processScriptData(Object.keys(allRoles).length ? Object.keys(allRoles) : ['_meta']);
-      
-      loadStatus.textContent = 'Default tokens loaded successfully!';
+      const res = await fetch(path, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      await processScriptData(json);
+      loadStatus.textContent = 'Script loaded successfully!';
       loadStatus.className = 'status';
-    } catch (error) {
-      console.error('Error loading default tokens:', error);
-      loadStatus.textContent = `Error loading default tokens: ${error.message}`;
+    } catch (e) {
+      console.error('Failed to load script:', e);
+      loadStatus.textContent = `Failed to load ${path}: ${e.message}`;
       loadStatus.className = 'error';
-      
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        loadStatus.textContent = 'Network error: Check if the server is running and tokens.json is accessible';
-      } else if (error.name === 'SyntaxError') {
-        loadStatus.textContent = 'JSON parsing error: tokens.json may be corrupted';
-      }
     }
-  });
+  }
+  loadTbBtn && loadTbBtn.addEventListener('click', () => loadScriptFromFile('./Trouble Brewing.json'));
+  loadBmrBtn && loadBmrBtn.addEventListener('click', () => loadScriptFromFile('./Bad Moon Rising.json'));
+  loadSavBtn && loadSavBtn.addEventListener('click', () => loadScriptFromFile('./Sects and Violets.json'));
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -635,20 +621,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function autoLoadTokens() {
     // Check if service worker is ready
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      console.log('Service worker ready, auto-loading tokens...');
-      loadDefaultTokensBtn.click();
+      console.log('Service worker ready');
     } else {
       // Wait for service worker to be ready
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('Service worker controller changed, auto-loading tokens...');
-        loadDefaultTokensBtn.click();
+        console.log('Service worker controller changed');
       });
       
       // Fallback: if no service worker after a reasonable time, load anyway
       const fallbackTimer = setTimeout(() => {
         if (!navigator.serviceWorker.controller) {
-          console.log('Service worker not ready, loading tokens anyway...');
-          loadDefaultTokensBtn.click();
+          console.log('Service worker not ready');
         }
       }, 2000);
       

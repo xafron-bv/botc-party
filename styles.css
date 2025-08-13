@@ -319,11 +319,11 @@ body.resizing {
   background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 10px 16px;
   margin: 8px 5px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
@@ -390,6 +390,19 @@ input[type="file"] {
   padding: 10px;
   background: rgba(0,0,0,0.2);
   border-radius: 8px;
+}
+
+.script-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.script-buttons .button {
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 12px;
 }
 
 .role {
@@ -514,6 +527,11 @@ input[type="file"] {
   border-radius: 6px;
   border-left: 4px solid #4CAF50;
 }
+
+/* Hide message containers when empty */
+#load-status:empty,
+.status:empty,
+.error:empty { display: none; }
 
 .error {
   color: #F44336;
