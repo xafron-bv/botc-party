@@ -93,6 +93,8 @@ body {
       inset 0 0 15px rgba(0,0,0,0.2);
 }
 
+.character-name { display: none; }
+
 .player-name {
     background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(40,40,40,0.9) 100%);
     padding: 0.8vmin 2vmin;
@@ -239,6 +241,7 @@ body {
   height: 70px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
@@ -493,6 +496,7 @@ input[type="file"] {
   background-image: url('/assets/img/token-BqDQdWeO.webp');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
