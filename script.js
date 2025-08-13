@@ -265,10 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
             if (existingArc) existingArc.remove();
           
-          if (player.character && allRoles[player.character]) {
+            if (player.character && allRoles[player.character]) {
             const role = allRoles[player.character];
             tokenDiv.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
-            tokenDiv.style.backgroundSize = 'cover, cover';
+              tokenDiv.style.backgroundSize = '68% 68%, cover';
             tokenDiv.style.backgroundColor = 'transparent';
             tokenDiv.classList.add('has-character');
              if (charNameDiv) charNameDiv.textContent = role.name;
