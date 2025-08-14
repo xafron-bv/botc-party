@@ -282,6 +282,9 @@ document.addEventListener('DOMContentLoaded', () => {
           positionRadialStack(listItem, count);
       });
 
+      // Draw guide lines from each token to the center after positioning
+      drawRadialGuides();
+
       console.log('Player positioning completed');
   }
 
@@ -401,65 +404,149 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Arrange reminders and plus button in a consistent radial stack using true concentric geometry
+  // Arrange reminders and plus button along the line from token center to circle center
   function positionRadialStack(li, count) {
-      const tokenRadiusPx = li.offsetWidth / 2;
-      const angle = parseFloat(li.dataset.angle || '0');
-      // Unit vector from token towards center
-      const dirX = -Math.cos(angle);
-      const dirY = -Math.sin(angle);
+    const container = li.parentElement;
+    if (!container) return;
 
-      // Compute the actual distance from circle center to this token center (runtime radius)
-      const container = li.parentElement;
-      const cRect = container ? container.getBoundingClientRect() : null;
-      const lRect = li.getBoundingClientRect();
-      const centerX = cRect ? (cRect.left + cRect.width / 2) : (lRect.left + lRect.width / 2 - dirX);
-      const centerY = cRect ? (cRect.top + cRect.height / 2) : (lRect.top + lRect.height / 2 - dirY);
-      const tokenCenterX = lRect.left + lRect.width / 2;
-      const tokenCenterY = lRect.top + lRect.height / 2;
-      const runtimeRadius = Math.hypot(tokenCenterX - centerX, tokenCenterY - centerY);
+    const cRect = container.getBoundingClientRect();
+    const lRect = li.getBoundingClientRect();
+    const tokenEl = li.querySelector('.player-token');
+    const tokenRect = tokenEl ? tokenEl.getBoundingClientRect() : lRect;
 
-      const reminderDiameter = Math.max(56, li.offsetWidth / 3);
-      const reminderRadius = reminderDiameter / 2;
-      const plusRadius = (li.offsetWidth / 4) / 2; // from CSS: width: token-size/4
-      const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
+    // Centers
+    const centerX = cRect.left + cRect.width / 2;
+    const centerY = cRect.top + cRect.height / 2;
+    const tokenCenterX = tokenRect.left + tokenRect.width / 2;
+    const tokenCenterY = tokenRect.top + tokenRect.height / 2;
 
-      const spacingCollapsed = reminderDiameter * 0.9; // center-to-center
-      const spacingExpanded = reminderDiameter * 1.12;
-      const isExpanded = li.dataset.expanded === '1';
-      const spacing = isExpanded ? spacingExpanded : spacingCollapsed;
+    // Unit vector from token center towards circle center
+    const dx = centerX - tokenCenterX;
+    const dy = centerY - tokenCenterY;
+    const dist = Math.hypot(dx, dy) || 1;
+    const ux = dx / dist;
+    const uy = dy / dist;
 
-      // Distance from center for first reminder's center
-      const firstReminderRadiusFromCenter = runtimeRadius - (tokenRadiusPx + edgeGap + reminderRadius);
-      const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
-      reminderEls.forEach((el, idx) => {
-          // Target absolute distance from center for this reminder's center
-          const targetRadius = firstReminderRadiusFromCenter - idx * spacing;
-          const absX = centerX + (-dirX) * targetRadius; // -dirX points from center to token
-          const absY = centerY + (-dirY) * targetRadius;
-          const rx = absX - tokenCenterX;
-          const ry = absY - tokenCenterY;
-          el.style.left = `calc(50% + ${rx}px)`;
-          el.style.top = `calc(50% + ${ry}px)`;
-      });
+    // Sizes
+    const tokenRadius = tokenRect.width / 2;
+    const reminderDiameter = Math.max(56, tokenRect.width / 3);
+    const reminderRadius = reminderDiameter / 2;
+    const plusDiameter = tokenRect.width / 4;
+    const plusRadius = plusDiameter / 2;
 
-      const plus = li.querySelector('.reminder-placeholder');
-      if (plus) {
-          const PLUS_SHIFT_PX = 20;
-          // Offset from token edge for the plus center
-          let offsetFromEdge = edgeGap + plusRadius;
-          if (count > 0) {
-              offsetFromEdge = edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
-          }
-          let targetRadiusPlus = runtimeRadius - (tokenRadiusPx + offsetFromEdge);
-          targetRadiusPlus -= PLUS_SHIFT_PX; // move by 20px towards center
-          const absPX = centerX + (-dirX) * targetRadiusPlus;
-          const absPY = centerY + (-dirY) * targetRadiusPlus;
-          const px = absPX - tokenCenterX;
-          const py = absPY - tokenCenterY;
-          plus.style.left = `calc(50% + ${px}px)`;
-          plus.style.top = `calc(50% + ${py}px)`;
+    // Gaps (px)
+    const gapFromToken = 10;
+    const gapBetweenReminders = 10;
+
+    // Position reminders along the radial line inwards from the token edge
+    const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
+    reminderEls.forEach((el, idx) => {
+      const offset = tokenRadius + gapFromToken + reminderRadius + idx * (reminderDiameter + gapBetweenReminders);
+      const absX = tokenCenterX + ux * offset;
+      const absY = tokenCenterY + uy * offset;
+      // position relative to the li center (50%), so subtract li center
+      const liCenterX = lRect.left + lRect.width / 2;
+      const liCenterY = lRect.top + lRect.height / 2;
+      const rx = absX - liCenterX;
+      const ry = absY - liCenterY;
+      el.style.left = `calc(50% + ${rx}px)`;
+      el.style.top = `calc(50% + ${ry}px)`;
+    });
+
+    // Place plus button 10px from token circumference along the same line
+    const plus = li.querySelector('.reminder-placeholder');
+    if (plus) {
+      const offsetPlus = tokenRadius + gapFromToken + plusRadius;
+      const absPX = tokenCenterX + ux * offsetPlus;
+      const absPY = tokenCenterY + uy * offsetPlus;
+      const liCenterX = lRect.left + lRect.width / 2;
+      const liCenterY = lRect.top + lRect.height / 2;
+      const px = absPX - liCenterX;
+      const py = absPY - liCenterY;
+      plus.style.left = `calc(50% + ${px}px)`;
+      plus.style.top = `calc(50% + ${py}px)`;
+    }
+  }
+
+  // Ensure an SVG layer exists to render radial guide lines and the center marker
+  function ensureGuidesSvg() {
+    const circleEl = document.getElementById('player-circle');
+    if (!circleEl) return null;
+    let svg = circleEl.querySelector('#radial-guides');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('id', 'radial-guides');
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.position = 'absolute';
+      svg.style.left = '0';
+      svg.style.top = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '-1';
+      // Insert behind token <li> elements
+      if (circleEl.firstChild) {
+        circleEl.insertBefore(svg, circleEl.firstChild);
+      } else {
+        circleEl.appendChild(svg);
       }
+    }
+    return svg;
+  }
+
+  // Draw lines from each token center to the center of the big circle and a visible center mark
+  function drawRadialGuides() {
+    const circleEl = document.getElementById('player-circle');
+    if (!circleEl) return;
+    const svg = ensureGuidesSvg();
+    if (!svg) return;
+
+    const width = circleEl.offsetWidth || 0;
+    const height = circleEl.offsetHeight || 0;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    // Clear previous
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // Center point
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // Add subtle center mark
+    const centerOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    centerOuter.setAttribute('cx', String(cx));
+    centerOuter.setAttribute('cy', String(cy));
+    centerOuter.setAttribute('r', '10');
+    centerOuter.setAttribute('fill', 'rgba(0,0,0,0.35)');
+    centerOuter.setAttribute('stroke', '#D4AF37');
+    centerOuter.setAttribute('stroke-width', '2');
+    svg.appendChild(centerOuter);
+
+    const centerInner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    centerInner.setAttribute('cx', String(cx));
+    centerInner.setAttribute('cy', String(cy));
+    centerInner.setAttribute('r', '3');
+    centerInner.setAttribute('fill', '#D4AF37');
+    svg.appendChild(centerInner);
+
+    // Lines to each token
+    const containerRect = circleEl.getBoundingClientRect();
+    const lis = circleEl.querySelectorAll('li');
+    lis.forEach(li => {
+      const token = li.querySelector('.player-token');
+      const rect = token ? token.getBoundingClientRect() : li.getBoundingClientRect();
+      const tx = (rect.left - containerRect.left) + rect.width / 2;
+      const ty = (rect.top - containerRect.top) + rect.height / 2;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(cx));
+      line.setAttribute('y1', String(cy));
+      line.setAttribute('x2', String(tx));
+      line.setAttribute('y2', String(ty));
+      line.setAttribute('stroke', 'rgba(255,255,255,0.25)');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('shape-rendering', 'geometricPrecision');
+      svg.appendChild(line);
+    });
   }
   
   function openCharacterModal(playerIndex) {
