@@ -411,12 +411,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cRect = container.getBoundingClientRect();
     const lRect = li.getBoundingClientRect();
+    const tokenEl = li.querySelector('.player-token');
+    const tokenRect = tokenEl ? tokenEl.getBoundingClientRect() : lRect;
 
     // Centers
     const centerX = cRect.left + cRect.width / 2;
     const centerY = cRect.top + cRect.height / 2;
-    const tokenCenterX = lRect.left + lRect.width / 2;
-    const tokenCenterY = lRect.top + lRect.height / 2;
+    const tokenCenterX = tokenRect.left + tokenRect.width / 2;
+    const tokenCenterY = tokenRect.top + tokenRect.height / 2;
 
     // Unit vector from token center towards circle center
     const dx = centerX - tokenCenterX;
@@ -426,10 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const uy = dy / dist;
 
     // Sizes
-    const tokenRadius = li.offsetWidth / 2;
-    const reminderDiameter = Math.max(56, li.offsetWidth / 3);
+    const tokenRadius = tokenRect.width / 2;
+    const reminderDiameter = Math.max(56, tokenRect.width / 3);
     const reminderRadius = reminderDiameter / 2;
-    const plusDiameter = li.offsetWidth / 4;
+    const plusDiameter = tokenRect.width / 4;
     const plusRadius = plusDiameter / 2;
 
     // Gaps (px)
@@ -442,8 +444,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const offset = tokenRadius + gapFromToken + reminderRadius + idx * (reminderDiameter + gapBetweenReminders);
       const absX = tokenCenterX + ux * offset;
       const absY = tokenCenterY + uy * offset;
-      const rx = absX - tokenCenterX;
-      const ry = absY - tokenCenterY;
+      // position relative to the li center (50%), so subtract li center
+      const liCenterX = lRect.left + lRect.width / 2;
+      const liCenterY = lRect.top + lRect.height / 2;
+      const rx = absX - liCenterX;
+      const ry = absY - liCenterY;
       el.style.left = `calc(50% + ${rx}px)`;
       el.style.top = `calc(50% + ${ry}px)`;
     });
@@ -454,8 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const offsetPlus = tokenRadius + gapFromToken + plusRadius;
       const absPX = tokenCenterX + ux * offsetPlus;
       const absPY = tokenCenterY + uy * offsetPlus;
-      const px = absPX - tokenCenterX;
-      const py = absPY - tokenCenterY;
+      const liCenterX = lRect.left + lRect.width / 2;
+      const liCenterY = lRect.top + lRect.height / 2;
+      const px = absPX - liCenterX;
+      const py = absPY - liCenterY;
       plus.style.left = `calc(50% + ${px}px)`;
       plus.style.top = `calc(50% + ${py}px)`;
     }
@@ -526,7 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const containerRect = circleEl.getBoundingClientRect();
     const lis = circleEl.querySelectorAll('li');
     lis.forEach(li => {
-      const rect = li.getBoundingClientRect();
+      const token = li.querySelector('.player-token');
+      const rect = token ? token.getBoundingClientRect() : li.getBoundingClientRect();
       const tx = (rect.left - containerRect.left) + rect.width / 2;
       const ty = (rect.top - containerRect.top) + rect.height / 2;
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
