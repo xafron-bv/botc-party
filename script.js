@@ -162,9 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = lookupCountsForPlayers(count);
     const scriptName = scriptMetaName || '';
     if (!row && !scriptName) { setupInfoEl.textContent = ''; return; }
-    const nameHtml = scriptName ? `<span class="script-name">${scriptName}</span>` : '';
-    const countsHtml = row ? `<span class="counts">${count} players · Townsfolk ${row.townsfolk} · Outsiders ${row.outsiders} · Minions ${row.minions} · Demons ${row.demons}</span>` : '';
-    setupInfoEl.innerHTML = nameHtml + countsHtml;
+    const parts = [];
+    if (scriptName) parts.push(scriptName);
+    if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
+    setupInfoEl.textContent = parts.join(' ');
   }
 
   async function processScriptData(data) {

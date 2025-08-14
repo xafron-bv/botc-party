@@ -80,16 +80,8 @@ body {
   font-weight: bold;
 }
 
-#setup-info .script-name {
-  color: #D4AF37;
-  font-size: 16px;
-  display: block;
-  margin-bottom: 6px;
-}
-
-#setup-info .counts {
-  font-size: 14px;
-}
+/* Simple single-line display */
+#setup-info { font-size: 16px; }
 
 .circle {
   list-style: none;
