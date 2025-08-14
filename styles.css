@@ -62,6 +62,35 @@ body {
   justify-content: center;
 }
 
+/* Center overlay with script name and role counts */
+#setup-info {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  padding: 12px 16px;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.45);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  z-index: 0; /* tokens sit above */
+  pointer-events: none; /* non-interactive overlay */
+  font-weight: bold;
+}
+
+#setup-info .script-name {
+  color: #D4AF37;
+  font-size: 16px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+#setup-info .counts {
+  font-size: 14px;
+}
+
 .circle {
   list-style: none;
   padding: 0;

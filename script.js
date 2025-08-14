@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
+  const setupInfoEl = document.getElementById('setup-info');
   const characterSheet = document.getElementById('character-sheet');
   const loadStatus = document.getElementById('load-status');
   
@@ -42,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarCloseBtn = document.getElementById('sidebar-close');
 
   let scriptData = null;
+  let scriptMetaName = '';
+  let playerSetupTable = [];
   let allRoles = {};
   let players = [];
   let selectedPlayerIndex = -1;
@@ -134,10 +137,45 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   });
 
+  // Load player setup JSON once
+  (async function loadPlayerSetupTable() {
+    try {
+      const res = await fetch('./player-setup.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
+      renderSetupInfo();
+    } catch (e) {
+      console.error('Failed to load player-setup.json', e);
+    }
+  })();
+
+  function lookupCountsForPlayers(count) {
+    if (!Array.isArray(playerSetupTable)) return null;
+    const row = playerSetupTable.find(r => Number(r.players) === Number(count));
+    return row || null;
+  }
+
+  function renderSetupInfo() {
+    if (!setupInfoEl) return;
+    const count = players.length;
+    const row = lookupCountsForPlayers(count);
+    const scriptName = scriptMetaName || '';
+    if (!row && !scriptName) { setupInfoEl.textContent = ''; return; }
+    const nameHtml = scriptName ? `<span class="script-name">${scriptName}</span>` : '';
+    const countsHtml = row ? `<span class="counts">${count} players · Townsfolk ${row.townsfolk} · Outsiders ${row.outsiders} · Minions ${row.minions} · Demons ${row.demons}</span>` : '';
+    setupInfoEl.innerHTML = nameHtml + countsHtml;
+  }
+
   async function processScriptData(data) {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
+      // Extract metadata name if present
+      try {
+        const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
+        scriptMetaName = meta && meta.name ? String(meta.name) : '';
+      } catch (_) { scriptMetaName = ''; }
       
       if (Array.isArray(data)) {
           console.log('Processing script with', data.length, 'characters');
@@ -150,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Total roles processed:', Object.keys(allRoles).length);
       displayScript(data);
        saveAppState();
+       renderSetupInfo();
   }
 
   async function processScriptCharacters(characterIds) {
@@ -338,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
           repositionPlayers();
           updateGrimoire();
           saveAppState();
+          renderSetupInfo();
       });
   }
 
