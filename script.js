@@ -101,9 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.className = 'error';
     }
   }
-  loadTbBtn && loadTbBtn.addEventListener('click', () => loadScriptFromFile('./Trouble Brewing.json'));
-  loadBmrBtn && loadBmrBtn.addEventListener('click', () => loadScriptFromFile('./Bad Moon Rising.json'));
-  loadSavBtn && loadSavBtn.addEventListener('click', () => loadScriptFromFile('./Sects and Violets.json'));
+  loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
+  loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
+  loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -160,7 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!setupInfoEl) return;
     const count = players.length;
     const row = lookupCountsForPlayers(count);
-    const scriptName = scriptMetaName || '';
+    // Prefer parsed meta name; otherwise keep any existing hint
+    let scriptName = scriptMetaName || '';
+    if (!scriptName && Array.isArray(scriptData)) {
+      const meta = scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
+      if (meta && meta.name) scriptName = String(meta.name);
+    }
     if (!row && !scriptName) { setupInfoEl.textContent = ''; return; }
     const parts = [];
     if (scriptName) parts.push(scriptName);
