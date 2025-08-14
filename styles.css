@@ -202,10 +202,6 @@ body {
     background: transparent;
     pointer-events: auto;
     z-index: 1;
-    /* Debug: make hover zone very visible */
-    background: rgba(255, 0, 0, 0.4);
-    border: 2px solid rgba(255, 0, 0, 0.8);
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
 
 .text-reminder {
