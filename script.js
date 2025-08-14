@@ -50,6 +50,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
 
+  function saveAppState() {
+    try {
+      const state = { scriptData, players };
+      localStorage.setItem('botcAppStateV1', JSON.stringify(state));
+    } catch (_) {}
+  }
+
+  async function loadAppState() {
+    try {
+      const raw = localStorage.getItem('botcAppStateV1');
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
+        await processScriptData(saved.scriptData);
+      }
+      if (saved && Array.isArray(saved.players) && saved.players.length) {
+        setupGrimoire(saved.players.length);
+        players = saved.players;
+        updateGrimoire();
+        repositionPlayers();
+      }
+    } catch (_) {}
+  }
+
   function resolveAssetPath(path) {
       if (!path) return path;
       if (/^https?:\/\//.test(path)) return path;
@@ -124,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       console.log('Total roles processed:', Object.keys(allRoles).length);
       displayScript(data);
+       saveAppState();
   }
 
   async function processScriptCharacters(characterIds) {
@@ -223,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (newName) {
                   players[i].name = newName;
                   updateGrimoire();
+                  saveAppState();
               }
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
@@ -310,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => {
           repositionPlayers();
           updateGrimoire();
+          saveAppState();
       });
   }
 
@@ -418,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
               e.stopPropagation();
               players[i].dead = !players[i].dead;
               updateGrimoire();
+              saveAppState();
           };
           // Attach to painted shapes only to avoid transparent hit areas
           try {
@@ -488,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                   players[i].reminders.splice(idx, 1);
                   updateGrimoire();
+                  saveAppState();
                 };
                 delBtn.addEventListener('click', onDeleteIcon);
                 delBtn.addEventListener('touchend', onDeleteIcon, { passive: false });
@@ -539,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                   players[i].reminders.splice(idx, 1);
                   updateGrimoire();
+                  saveAppState();
                 };
                 delBtn2.addEventListener('click', onDeleteText);
                 delBtn2.addEventListener('touchend', onDeleteText, { passive: false });
@@ -854,6 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log(`Assigned character ${roleId} to player ${selectedPlayerIndex}`);
           updateGrimoire();
           characterModal.style.display = 'none';
+          saveAppState();
       }
   }
 
@@ -877,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
           players[playerIndex].reminders.splice(reminderIndex, 1);
       }
       updateGrimoire();
+      saveAppState();
       textReminderModal.style.display = 'none';
   };
 
@@ -1043,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
                 updateGrimoire();
+                saveAppState();
                 reminderTokenModal.style.display = 'none';
             };
             tokenEl.addEventListener('click', handleSelect);
@@ -1279,4 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
       applyCollapsed(collapsed);
     });
   })();
+
+  // Restore previous session (script and grimoire)
+  loadAppState();
 });
