@@ -745,8 +745,15 @@ document.addEventListener('DOMContentLoaded', () => {
               plus.style.transform = 'translate(-50%, -50%)';
               plus.style.zIndex = '6';
           } else {
-              // Collapsed state: position plus button close to the token
-              const collapsedOffset = tokenRadiusPx + edgeGap + plusRadius;
+              // Collapsed state: position plus button at the back of the collapsed stack
+              const collapsedSpacing = reminderRadius * 0.3; // must match collapsed stack spacing above
+              const smallGap = Math.max(2, edgeGap * 0.25);
+              let collapsedOffset = tokenRadiusPx + edgeGap + plusRadius;
+              if (count > 0) {
+                  const firstCenter = tokenRadiusPx + edgeGap + reminderRadius;
+                  const lastCenter = firstCenter + ((count - 1) * collapsedSpacing);
+                  collapsedOffset = lastCenter + reminderRadius + smallGap + plusRadius;
+              }
               const absPX = tokenCenterX + ux * collapsedOffset;
               const absPY = tokenCenterY + uy * collapsedOffset;
               const px = absPX - liRect.left;
