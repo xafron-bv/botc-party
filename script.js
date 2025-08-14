@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveAppState() {
     try {
-      const state = { scriptData, players };
+      const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     } catch (_) {}
   }
@@ -68,12 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const saved = JSON.parse(raw);
       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
         await processScriptData(saved.scriptData);
+        if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
       }
       if (saved && Array.isArray(saved.players) && saved.players.length) {
         setupGrimoire(saved.players.length);
         players = saved.players;
         updateGrimoire();
         repositionPlayers();
+        renderSetupInfo();
       }
     } catch (_) {}
   }
@@ -89,6 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
       loadStatus.className = 'status';
+      // Pre-set a best-effort name from the filename so UI updates immediately
+      try {
+        const match = String(path).match(/([^/]+)\.json$/i);
+        if (match) {
+          const base = match[1].replace(/\s*&\s*/g, ' & ');
+          scriptMetaName = base;
+          renderSetupInfo();
+        }
+      } catch (_) {}
       const res = await fetch(path, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
