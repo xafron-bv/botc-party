@@ -555,13 +555,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
           if (isExpanded) {
-              // Expanded state: position plus button at the end of the radial stack
-              const PLUS_SHIFT_PX = 20;
+              // Expanded state: place plus button just beyond the last reminder with a small gap
+              const smallGap = Math.max(4, edgeGap * 0.25);
               let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
               if (count > 0) {
-                  offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
+                  // From token edge -> last reminder center -> last reminder edge -> small gap -> plus center
+                  offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + ((count - 1) * spacing) + reminderRadius + smallGap + plusRadius;
               }
-              let targetOffset = offsetFromEdge + PLUS_SHIFT_PX;
+              const targetOffset = offsetFromEdge;
               const absPX = tokenCenterX + ux * targetOffset;
               const absPY = tokenCenterY + uy * targetOffset;
               const px = absPX - liRect.left;
