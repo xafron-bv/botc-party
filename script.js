@@ -926,6 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
       svg.setAttribute('viewBox','0 0 100 140');
       svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+      svg.style.pointerEvents = 'none';
       const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
       const pattern = document.createElementNS('http://www.w3.org/2000/svg','pattern');
       pattern.setAttribute('id','deathPattern');
@@ -956,6 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
       rect.setAttribute('fill','url(#deathPattern)');
       rect.setAttribute('stroke','#000');
       rect.setAttribute('stroke-width','6');
+      rect.setAttribute('pointer-events','visiblePainted');
 
       // Notch
       const notch = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -963,6 +965,7 @@ document.addEventListener('DOMContentLoaded', () => {
       notch.setAttribute('fill','url(#deathPattern)');
       notch.setAttribute('stroke','#000');
       notch.setAttribute('stroke-width','6');
+      notch.setAttribute('pointer-events','visiblePainted');
 
       // Subtle inner shadow
       const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
@@ -973,6 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
       shadow.setAttribute('width','48');
       shadow.setAttribute('height','78');
       shadow.setAttribute('fill','rgba(255,255,255,0.03)');
+      shadow.setAttribute('pointer-events','none');
 
       svg.appendChild(rect);
       svg.appendChild(notch);
