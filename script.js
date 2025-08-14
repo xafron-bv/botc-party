@@ -414,11 +414,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const ribbon = createDeathRibbonSvg();
           ribbon.classList.add('death-ribbon');
-          ribbon.addEventListener('click', (e) => {
+          const handleRibbonToggle = (e) => {
               e.stopPropagation();
               players[i].dead = !players[i].dead;
               updateGrimoire();
-          });
+          };
+          // Attach to painted shapes only to avoid transparent hit areas
+          try {
+              ribbon.querySelectorAll('rect, path').forEach((shape) => {
+                  shape.addEventListener('click', handleRibbonToggle);
+              });
+          } catch (_) {
+              // Fallback: still attach on svg
+              ribbon.addEventListener('click', handleRibbonToggle);
+          }
           tokenDiv.appendChild(ribbon);
 
           if (player.dead) {
