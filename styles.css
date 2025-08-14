@@ -321,8 +321,8 @@ body {
 .reminder-delete-btn {
   position: absolute;
   left: 50%;
-  top: 10%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  transform: translate(-50%, -110%);
   width: calc(var(--token-size) * 0.0625);
   height: calc(var(--token-size) * 0.0625);
   min-width: 12px;
@@ -344,6 +344,10 @@ body {
 
 .icon-reminder:hover .reminder-delete-btn,
 .text-reminder:hover .reminder-delete-btn { opacity: 1; }
+
+/* Keep delete button clickable even if reminder is not expanded */
+.icon-reminder .reminder-delete-btn,
+.text-reminder .reminder-delete-btn { pointer-events: auto; }
 
 @media (hover: none) and (pointer: coarse) {
   .reminder-delete-btn { opacity: 1; }
