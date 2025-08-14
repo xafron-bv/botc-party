@@ -38,12 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
   const reminderTokenSearch = document.getElementById('reminder-token-search');
   const reminderTokenModalPlayerName = document.getElementById('reminder-token-modal-player-name');
+  const sidebarToggleBtn = document.getElementById('sidebar-toggle');
 
   let scriptData = null;
   let allRoles = {};
   let players = [];
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
+  const isTouchDevice = (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const TOUCH_EXPAND_SUPPRESS_MS = 350;
+  const CLICK_EXPAND_SUPPRESS_MS = 250;
+  let outsideCollapseHandlerInstalled = false;
 
   function resolveAssetPath(path) {
       if (!path) return path;
@@ -222,23 +227,83 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
-              if (e.altKey) {
-                openTextReminderModal(i);
+              if (isTouchDevice) {
+                  openReminderTokenModal(i);
+              } else if (e.altKey) {
+                  openTextReminderModal(i);
               } else {
-                openReminderTokenModal(i);
+                  openReminderTokenModal(i);
               }
           };
 
           // Hover expand/collapse for reminder stack positioning
           listItem.dataset.expanded = '0';
-          listItem.addEventListener('mouseenter', () => {
-              listItem.dataset.expanded = '1';
+          const expand = () => {
+            const wasExpanded = listItem.dataset.expanded === '1';
+            const allLis = document.querySelectorAll('#player-circle li');
+            allLis.forEach(el => {
+              if (el !== listItem && el.dataset.expanded === '1') {
+                el.dataset.expanded = '0';
+                const idx = Array.from(allLis).indexOf(el);
+                positionRadialStack(el, (players[idx]?.reminders || []).length);
+              }
+            });
+            listItem.dataset.expanded = '1';
+            // Only set suppression on touch, and only when changing from collapsed -> expanded
+            if (isTouchDevice && !wasExpanded) {
+              listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            }
+            positionRadialStack(listItem, players[i].reminders.length);
+          };
+          const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
+          if (!isTouchDevice) {
+            listItem.addEventListener('mouseenter', expand);
+            listItem.addEventListener('mouseleave', collapse);
+            // Pointer events for broader device support
+            listItem.addEventListener('pointerenter', expand);
+            listItem.addEventListener('pointerleave', collapse);
+          }
+          // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
+          listItem.addEventListener('touchstart', (e) => {
+              const target = e.target;
+              const tappedReminders = !!(target && target.closest('.reminders'));
+              if (tappedReminders) {
+                  try { e.preventDefault(); } catch(_) {}
+                  listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+              }
+              expand();
               positionRadialStack(listItem, players[i].reminders.length);
-          });
-          listItem.addEventListener('mouseleave', () => {
-              listItem.dataset.expanded = '0';
-              positionRadialStack(listItem, players[i].reminders.length);
-          });
+          }, { passive: false });
+
+          // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
+
+          // Install one-time outside click/tap collapse for touch devices
+          if (isTouchDevice && !outsideCollapseHandlerInstalled) {
+            outsideCollapseHandlerInstalled = true;
+            const maybeCollapseOnOutside = (ev) => {
+              const target = ev.target;
+              // Do nothing if target is inside any expanded list item
+              const allLis = document.querySelectorAll('#player-circle li');
+              let clickedInsideExpanded = false;
+              allLis.forEach(el => {
+                if (el.dataset.expanded === '1' && el.contains(target)) {
+                  clickedInsideExpanded = true;
+                }
+              });
+              if (clickedInsideExpanded) return;
+              // Collapse all expanded items
+              allLis.forEach(el => {
+                if (el.dataset.expanded === '1') {
+                  el.dataset.expanded = '0';
+                  positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+                }
+              });
+            };
+            document.addEventListener('click', maybeCollapseOnOutside, true);
+            document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
+          }
+
+          // No capture intercepts; rely on pointer-events gating and the touchstart handler above
       });
       
       // Use requestAnimationFrame to ensure DOM is fully rendered
@@ -373,6 +438,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
                 iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
                 iconEl.title = (reminder.label || '');
+                iconEl.addEventListener('click', (e) => {
+                  const parentLi = iconEl.closest('li');
+                  const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+                  if (isCollapsed) {
+                    e.stopPropagation();
+                    try { e.preventDefault(); } catch(_) {}
+                    parentLi.dataset.expanded = '1';
+                    parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                    positionRadialStack(parentLi, players[i].reminders.length);
+                  }
+                }, true);
 
                 if (reminder.label) {
                   const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
@@ -383,11 +459,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 delBtn.className = 'reminder-delete-btn';
                 delBtn.title = 'Delete';
                 delBtn.textContent = '🗑';
-                delBtn.onclick = (e) => {
+                const onDeleteIcon = (e) => {
                   e.stopPropagation();
+                  try { e.preventDefault(); } catch(_) {}
+                  const parentLi = delBtn.closest('li');
+                  // Block action if not expanded or if within suppression window
+                  if (parentLi) {
+                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                    if (parentLi.dataset.expanded !== '1') {
+                      // Expand instead
+                      parentLi.dataset.expanded = '1';
+                      if (isTouchDevice) parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                      positionRadialStack(parentLi, players[i].reminders.length);
+                      return;
+                    }
+                    if (Date.now() < suppressUntil && isTouchDevice) {
+                      return;
+                    }
+                  }
                   players[i].reminders.splice(idx, 1);
                   updateGrimoire();
                 };
+                delBtn.addEventListener('click', onDeleteIcon);
+                delBtn.addEventListener('touchend', onDeleteIcon, { passive: false });
                 iconEl.appendChild(delBtn);
 
                 remindersDiv.appendChild(iconEl);
@@ -398,17 +492,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 reminderEl.style.transform = 'translate(-50%, -50%)';
                 reminderEl.onclick = (e) => {
                   e.stopPropagation();
+                  const parentLi = reminderEl.closest('li');
+                  if (parentLi) {
+                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                    if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                      // If collapsed, expand instead of acting
+                      if (parentLi.dataset.expanded !== '1') {
+                        parentLi.dataset.expanded = '1';
+                        parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                        positionRadialStack(parentLi, players[i].reminders.length);
+                      }
+                      return;
+                    }
+                  }
                   openTextReminderModal(i, idx, reminder.value);
                 };
                 const delBtn2 = document.createElement('div');
                 delBtn2.className = 'reminder-delete-btn';
                 delBtn2.title = 'Delete';
                 delBtn2.textContent = '🗑';
-                delBtn2.onclick = (e) => {
+                const onDeleteText = (e) => {
                   e.stopPropagation();
+                  try { e.preventDefault(); } catch(_) {}
+                  const parentLi = delBtn2.closest('li');
+                  // Block action if not expanded or if within suppression window
+                  if (parentLi) {
+                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                    if (parentLi.dataset.expanded !== '1') {
+                      parentLi.dataset.expanded = '1';
+                      if (isTouchDevice) parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                      positionRadialStack(parentLi, players[i].reminders.length);
+                      return;
+                    }
+                    if (Date.now() < suppressUntil && isTouchDevice) {
+                      return;
+                    }
+                  }
                   players[i].reminders.splice(idx, 1);
                   updateGrimoire();
                 };
+                delBtn2.addEventListener('click', onDeleteText);
+                delBtn2.addEventListener('touchend', onDeleteText, { passive: false });
                 reminderEl.appendChild(delBtn2);
                 remindersDiv.appendChild(reminderEl);
               }
@@ -426,6 +550,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const tokenRadiusPx = tokenEl.offsetWidth / 2;
       const angle = parseFloat(li.dataset.angle || '0');
       const isExpanded = li.dataset.expanded === '1';
+      const remindersContainer = li.querySelector('.reminders');
+      if (remindersContainer) {
+          const touchUntil = parseInt(li.dataset.touchSuppressUntil || '0', 10);
+          const actionUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
+          const suppressUntil = Math.max(touchUntil, actionUntil);
+          const inSuppressWindow = Date.now() < suppressUntil;
+          // Allow pointer events for reminders only when expanded. During suppression window,
+          // keep them disabled to avoid immediate action on first click/tap.
+          remindersContainer.style.pointerEvents = isExpanded ? (inSuppressWindow ? 'none' : 'auto') : 'none';
+      }
       
       // Compute the actual distance from circle center to this token center (runtime radius)
       const container = li.parentElement;
@@ -743,6 +877,11 @@ document.addEventListener('DOMContentLoaded', () => {
   closeReminderTokenModalBtn && (closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none');
   reminderTokenSearch && (reminderTokenSearch.oninput = populateReminderTokenGrid);
 
+  // Close modals by tapping outside content
+  characterModal.addEventListener('click', (e) => { if (e.target === characterModal) characterModal.style.display = 'none'; });
+  textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
+  reminderTokenModal && reminderTokenModal.addEventListener('click', (e) => { if (e.target === reminderTokenModal) reminderTokenModal.style.display = 'none'; });
+
   function createCurvedLabelSvg(uniqueId, labelText) {
       const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
       svg.setAttribute('viewBox','0 0 100 100');
@@ -880,17 +1019,21 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenEl.style.overflow = 'visible';
             tokenEl.style.zIndex = '1';
             tokenEl.title = token.label || '';
-            tokenEl.onclick = () => {
+            const handleSelect = (ev) => {
+                try { ev.preventDefault(); } catch(_) {}
+                ev.stopPropagation();
                 let label = token.label;
                 if ((label || '').toLowerCase().includes('custom')) {
                   const input = prompt('Enter reminder text:', '');
                   if (input === null) return;
-                  label = input; // no hard truncation; SVG arc will scale to fit
+                  label = input;
                 }
                 players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
                 updateGrimoire();
                 reminderTokenModal.style.display = 'none';
             };
+            tokenEl.addEventListener('click', handleSelect);
+            tokenEl.addEventListener('touchend', handleSelect, { passive: false });
 
             // Add curved bottom text to preview
             if (token.label) {
@@ -1067,6 +1210,60 @@ document.addEventListener('DOMContentLoaded', () => {
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
       document.body.classList.add('resizing');
+    });
+
+    // Touch support for resizing
+    const onTouchMove = (e) => {
+      if (!isDragging) return;
+      if (e.touches && e.touches.length) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - startX;
+        const newW = Math.max(minW, Math.min(startWidth + dx, maxW));
+        document.documentElement.style.setProperty('--sidebar-width', `${newW}px`);
+      }
+    };
+    const onTouchEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.classList.remove('resizing');
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      const val = getComputedStyle(sidebarEl).width;
+      localStorage.setItem('sidebarWidthPx', parseInt(val, 10));
+    };
+    sidebarResizer.addEventListener('touchstart', (e) => {
+      if (!e.touches || !e.touches.length) return;
+      isDragging = true;
+      startX = e.touches[0].clientX;
+      startWidth = sidebarEl.getBoundingClientRect().width;
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onTouchEnd);
+      document.body.classList.add('resizing');
+    }, { passive: true });
+  })();
+
+  // Sidebar open/close toggle with persistence
+  (function initSidebarToggle() {
+    if (!sidebarToggleBtn || !sidebarEl) return;
+    const COLLAPSE_KEY = 'sidebarCollapsed';
+    const applyCollapsed = (collapsed) => {
+      document.body.classList.toggle('sidebar-collapsed', collapsed);
+      // Update button label and aria
+      sidebarToggleBtn.textContent = collapsed ? 'Open Sidebar' : 'Close Sidebar';
+      sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
+      // Save state
+      localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+      // Trigger layout recalculation
+      requestAnimationFrame(() => repositionPlayers());
+    };
+    // Initialize from stored state
+    const stored = localStorage.getItem(COLLAPSE_KEY);
+    const startCollapsed = stored === '1';
+    applyCollapsed(startCollapsed);
+    // Toggle handler
+    sidebarToggleBtn.addEventListener('click', () => {
+      const collapsed = !document.body.classList.contains('sidebar-collapsed');
+      applyCollapsed(collapsed);
     });
   })();
 });
