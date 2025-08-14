@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const reminderTokenSearch = document.getElementById('reminder-token-search');
   const reminderTokenModalPlayerName = document.getElementById('reminder-token-modal-player-name');
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+  const sidebarCloseBtn = document.getElementById('sidebar-close');
 
   let scriptData = null;
   let allRoles = {};
@@ -615,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ux = vx / (runtimeRadius || 1);
       const uy = vy / (runtimeRadius || 1);
 
-      const reminderDiameter = Math.max(56, tokenEl.offsetWidth / 3);
+      const reminderDiameter = Math.max(28, tokenEl.offsetWidth * 0.25);
       const reminderRadius = reminderDiameter / 2;
       const plusRadius = (tokenEl.offsetWidth / 4) / 2; // from CSS: width: token-size/4
       const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
@@ -1058,9 +1059,12 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
           ];
         }
-        const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
+         const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
          // Normalize image paths for gh-pages subpath
          reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
+         // Put custom option at the top
+         const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
+         reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
          const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
         (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
@@ -1301,8 +1305,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const COLLAPSE_KEY = 'sidebarCollapsed';
     const applyCollapsed = (collapsed) => {
       document.body.classList.toggle('sidebar-collapsed', collapsed);
-      // Update button label and aria
-      sidebarToggleBtn.textContent = collapsed ? 'Open Sidebar' : 'Close Sidebar';
+      // Show open button only when collapsed
+      sidebarToggleBtn.textContent = 'Open Sidebar';
+      sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
       sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
       // Save state
       localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
@@ -1313,11 +1318,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const stored = localStorage.getItem(COLLAPSE_KEY);
     const startCollapsed = stored === '1';
     applyCollapsed(startCollapsed);
-    // Toggle handler
+    // Open button (in grimoire)
     sidebarToggleBtn.addEventListener('click', () => {
-      const collapsed = !document.body.classList.contains('sidebar-collapsed');
-      applyCollapsed(collapsed);
+      applyCollapsed(false);
     });
+    // Close button (in sidebar)
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.addEventListener('click', () => {
+        applyCollapsed(true);
+      });
+    }
   })();
 
   // Restore previous session (script and grimoire)
