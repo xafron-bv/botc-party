@@ -425,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tokenEl = li.querySelector('.player-token') || li;
       const tokenRadiusPx = tokenEl.offsetWidth / 2;
       const angle = parseFloat(li.dataset.angle || '0');
+      const isExpanded = li.dataset.expanded === '1';
       
       // Compute the actual distance from circle center to this token center (runtime radius)
       const container = li.parentElement;
@@ -447,35 +448,141 @@ document.addEventListener('DOMContentLoaded', () => {
       const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
       const spacing = reminderDiameter + edgeGap;
 
-      // Distance from token center to first reminder center
-      const firstReminderOffsetFromToken = tokenRadiusPx + edgeGap + reminderRadius;
       const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
-      reminderEls.forEach((el, idx) => {
-          // Target absolute point along the true vector from token center towards circle center
-          const offset = firstReminderOffsetFromToken + idx * spacing;
-          const absX = tokenCenterX + ux * offset;
-          const absY = tokenCenterY + uy * offset;
-          const cx = absX - liRect.left; // center within li
-          const cy = absY - liRect.top;
-          el.style.left = `${cx}px`;
-          el.style.top = `${cy}px`;
-      });
+      
+      // Create or update hover zone to prevent janking
+      let hoverZone = li.querySelector('.reminder-hover-zone');
+      if (!hoverZone) {
+          hoverZone = document.createElement('div');
+          hoverZone.className = 'reminder-hover-zone';
+          li.querySelector('.reminders').appendChild(hoverZone);
+      }
+      
+      if (isExpanded) {
+          // Expanded state: position reminders in radial stack
+          const firstReminderOffsetFromToken = tokenRadiusPx + edgeGap + reminderRadius;
+          reminderEls.forEach((el, idx) => {
+              // Target absolute point along the true vector from token center towards circle center
+              const offset = firstReminderOffsetFromToken + idx * spacing;
+              const absX = tokenCenterX + ux * offset;
+              const absY = tokenCenterY + uy * offset;
+              const cx = absX - liRect.left; // center within li
+              const cy = absY - liRect.top;
+              el.style.left = `${cx}px`;
+              el.style.top = `${cy}px`;
+              el.style.transform = 'translate(-50%, -50%)';
+              el.style.zIndex = '5';
+          });
+          
+          // Position hover zone as a rectangle along the radial line
+          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
+          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+          
+          // Calculate the center of the hover zone along the radial line
+          const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
+          const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
+          const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
+          
+          // Calculate the rotation angle for the hover zone
+          const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
+          
+          // Position the hover zone
+          const hx = hoverZoneCenterX - liRect.left;
+          const hy = hoverZoneCenterY - liRect.top;
+          
+          hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
+          hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
+          hoverZone.style.width = `${hoverZoneWidth}px`;
+          hoverZone.style.height = `${hoverZoneHeight}px`;
+          hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
+          hoverZone.style.transformOrigin = 'center center';
+          
+          // Debug logging
+          console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
+              left: hoverZone.style.left,
+              top: hoverZone.style.top,
+              width: hoverZone.style.width,
+              height: hoverZone.style.height,
+              rotation: rotationAngle,
+              isExpanded: isExpanded
+          });
+      } else {
+          // Collapsed state: stack reminders tightly behind the token
+          const collapsedOffset = tokenRadiusPx + edgeGap + reminderRadius;
+          const collapsedSpacing = reminderRadius * 0.3; // Very tight spacing when collapsed
+          
+          reminderEls.forEach((el, idx) => {
+              // Position reminders in a tight stack behind the token
+              const offset = collapsedOffset + (idx * collapsedSpacing);
+              const absX = tokenCenterX + ux * offset;
+              const absY = tokenCenterY + uy * offset;
+              const cx = absX - liRect.left;
+              const cy = absY - liRect.top;
+              el.style.left = `${cx}px`;
+              el.style.top = `${cy}px`;
+              el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+              el.style.zIndex = '2';
+          });
+          
+          // Position hover zone as a rectangle along the radial line (same as expanded state)
+          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
+          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+          
+          // Calculate the center of the hover zone along the radial line
+          const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
+          const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
+          const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
+          
+          // Calculate the rotation angle for the hover zone
+          const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
+          
+          // Position the hover zone
+          const hx = hoverZoneCenterX - liRect.left;
+          const hy = hoverZoneCenterY - liRect.top;
+          
+          hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
+          hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
+          hoverZone.style.width = `${hoverZoneWidth}px`;
+          hoverZone.style.height = `${hoverZoneHeight}px`;
+          hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
+          hoverZone.style.transformOrigin = 'center center';
+      }
 
       const plus = li.querySelector('.reminder-placeholder');
       if (plus) {
-          const PLUS_SHIFT_PX = 20;
-          // Offset from token edge for the plus center measured from token center
-          let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
-          if (count > 0) {
-              offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + (count * spacing) + edgeGap + plusRadius;
+          if (isExpanded) {
+              // Expanded state: place plus button just beyond the last reminder with a small gap
+              const smallGap = Math.max(4, edgeGap * 0.25);
+              let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
+              if (count > 0) {
+                  // From token edge -> last reminder center -> last reminder edge -> small gap -> plus center
+                  offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + ((count - 1) * spacing) + reminderRadius + smallGap + plusRadius;
+              }
+              const targetOffset = offsetFromEdge;
+              const absPX = tokenCenterX + ux * targetOffset;
+              const absPY = tokenCenterY + uy * targetOffset;
+              const px = absPX - liRect.left;
+              const py = absPY - liRect.top;
+              plus.style.left = `${px}px`;
+              plus.style.top = `${py}px`;
+              plus.style.transform = 'translate(-50%, -50%)';
+              plus.style.zIndex = '6';
+          } else {
+              // Collapsed state: position plus button close to the token
+              const collapsedOffset = tokenRadiusPx + edgeGap + plusRadius;
+              const absPX = tokenCenterX + ux * collapsedOffset;
+              const absPY = tokenCenterY + uy * collapsedOffset;
+              const px = absPX - liRect.left;
+              const py = absPY - liRect.top;
+              plus.style.left = `${px}px`;
+              plus.style.top = `${py}px`;
+              plus.style.transform = 'translate(-50%, -50%) scale(0.9)';
+              plus.style.zIndex = '6';
           }
-          let targetOffset = offsetFromEdge + PLUS_SHIFT_PX; // nudge towards center
-          const absPX = tokenCenterX + ux * targetOffset;
-          const absPY = tokenCenterY + uy * targetOffset;
-          const px = absPX - liRect.left;
-          const py = absPY - liRect.top;
-          plus.style.left = `${px}px`;
-          plus.style.top = `${py}px`;
       }
   }
 
