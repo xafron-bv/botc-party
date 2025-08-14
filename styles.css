@@ -34,6 +34,15 @@ body {
   font-size: 14px;
 }
 
+/* Close button inside sidebar header */
+#sidebar .sidebar-close {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 5;
+  margin: 0 0 10px 0;
+}
+
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
     padding: 14px 16px;
@@ -226,10 +235,10 @@ body {
     background-size: cover;
     border: 2px solid #D4AF37;
     color: white;
-    width: calc(var(--token-size) / 3);
-    height: calc(var(--token-size) / 3);
-    min-width: 56px;
-    min-height: 56px;
+    width: calc(var(--token-size) * 0.25);
+    height: calc(var(--token-size) * 0.25);
+    min-width: 28px;
+    min-height: 28px;
     border-radius: 50%; /* circular reminder */
     font-size: 1.5vmin;
     display: flex;
@@ -243,10 +252,10 @@ body {
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: calc(var(--token-size) / 3);
-    height: calc(var(--token-size) / 3);
-    min-width: 56px;
-    min-height: 56px;
+    width: calc(var(--token-size) * 0.25);
+    height: calc(var(--token-size) * 0.25);
+    min-width: 28px;
+    min-height: 28px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -312,10 +321,12 @@ body {
 .reminder-delete-btn {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
+  top: 0;
+  transform: translate(-50%, -110%);
+  width: calc(var(--token-size) * 0.0625);
+  height: calc(var(--token-size) * 0.0625);
+  min-width: 12px;
+  min-height: 12px;
   border-radius: 50%;
   background: rgba(0,0,0,0.85);
   color: #fff;
@@ -323,14 +334,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
+  line-height: 1;
   opacity: 0;
   transition: opacity .15s ease;
   cursor: pointer;
+  z-index: 7;
 }
 
 .icon-reminder:hover .reminder-delete-btn,
 .text-reminder:hover .reminder-delete-btn { opacity: 1; }
+
+/* Keep delete button clickable even if reminder is not expanded */
+.icon-reminder .reminder-delete-btn,
+.text-reminder .reminder-delete-btn { pointer-events: auto; }
 
 @media (hover: none) and (pointer: coarse) {
   .reminder-delete-btn { opacity: 1; }
