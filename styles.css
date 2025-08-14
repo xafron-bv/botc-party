@@ -196,17 +196,7 @@ body {
     z-index: 3; /* above plus button */
 }
 
-/* Radial hover zone for reminders - positioned dynamically via JavaScript */
-.reminder-hover-zone {
-    position: absolute;
-    background: transparent;
-    pointer-events: auto;
-    z-index: 1;
-    /* Debug: make hover zone very visible */
-    background: rgba(255, 0, 0, 0.4);
-    border: 2px solid rgba(255, 0, 0, 0.8);
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-}
+
 
 .text-reminder {
     background-image: url('assets/img/token-BqDQdWeO.webp');
@@ -246,7 +236,7 @@ body {
     justify-content: center;
     background-image: url('assets/img/token-BqDQdWeO.webp');
     overflow: visible; /* allow SVG text to overdraw border */
-    z-index: 5; /* ensure above hover zone and nearby elements */
+    z-index: 5; /* ensure above nearby elements */
     transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, z-index 0.3s ease;
 }
 

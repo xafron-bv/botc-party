@@ -450,14 +450,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder');
       
-      // Create or update hover zone to prevent janking
-      let hoverZone = li.querySelector('.reminder-hover-zone');
-      if (!hoverZone) {
-          hoverZone = document.createElement('div');
-          hoverZone.className = 'reminder-hover-zone';
-          li.querySelector('.reminders').appendChild(hoverZone);
-      }
-      
       if (isExpanded) {
           // Expanded state: position reminders in radial stack
           const firstReminderOffsetFromToken = tokenRadiusPx + edgeGap + reminderRadius;
@@ -472,41 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.top = `${cy}px`;
               el.style.transform = 'translate(-50%, -50%)';
               el.style.zIndex = '5';
-          });
-          
-          // Position hover zone as a rectangle along the radial line
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
-          
-          // Calculate the center of the hover zone along the radial line
-          const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
-          const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
-          const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
-          
-          // Calculate the rotation angle for the hover zone
-          const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
-          
-          // Position the hover zone
-          const hx = hoverZoneCenterX - liRect.left;
-          const hy = hoverZoneCenterY - liRect.top;
-          
-          hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
-          hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
-          hoverZone.style.width = `${hoverZoneWidth}px`;
-          hoverZone.style.height = `${hoverZoneHeight}px`;
-          hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
-          hoverZone.style.transformOrigin = 'center center';
-          
-          // Debug logging
-          console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
-              left: hoverZone.style.left,
-              top: hoverZone.style.top,
-              width: hoverZone.style.width,
-              height: hoverZone.style.height,
-              rotation: rotationAngle,
-              isExpanded: isExpanded
           });
       } else {
           // Collapsed state: stack reminders tightly behind the token
@@ -526,30 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.zIndex = '2';
           });
           
-          // Position hover zone as a rectangle along the radial line (same as expanded state)
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
-          
-          // Calculate the center of the hover zone along the radial line
-          const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
-          const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
-          const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
-          
-          // Calculate the rotation angle for the hover zone
-          const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
-          
-          // Position the hover zone
-          const hx = hoverZoneCenterX - liRect.left;
-          const hy = hoverZoneCenterY - liRect.top;
-          
-          hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
-          hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
-          hoverZone.style.width = `${hoverZoneWidth}px`;
-          hoverZone.style.height = `${hoverZoneHeight}px`;
-          hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
-          hoverZone.style.transformOrigin = 'center center';
+
       }
 
       const plus = li.querySelector('.reminder-placeholder');
