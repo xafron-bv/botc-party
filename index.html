@@ -16,6 +16,7 @@
 <body>
   <div id="app">
     <div id="sidebar">
+      <button class="button sidebar-close" id="sidebar-close" aria-label="Close sidebar">Close Sidebar</button>
       <div class="section">
         <h3>Game Setup</h3>
         <div>
@@ -44,6 +45,9 @@
         <div id="character-sheet">
           <p>Load a script to see available characters.</p>
         </div>
+      </div>
+      <div class="section">
+        <a class="button" href="terms.html">Terms of Use</a>
       </div>
     </div>
     <div id="sidebar-resizer" aria-label="Resize sidebar" role="separator"></div>
@@ -92,9 +96,7 @@
     </div>
   </div>
 
-  <footer style="position: fixed; bottom: 10px; right: 10px; z-index: 1001;">
-    <a href="terms.html" style="color: #9a6bc8; text-decoration: none; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid #7a4ba8;">Terms of Use</a>
-  </footer>
+  
 
   <script src="script.js"></script>
 </body>
