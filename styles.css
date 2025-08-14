@@ -289,7 +289,7 @@ body {
     height: auto;
     opacity: 0.18; /* visible but subtle by default */
     transition: opacity .15s ease;
-    pointer-events: auto; /* allow direct hover/click */
+    pointer-events: visiblePainted; /* only painted parts of the SVG are interactive */
     z-index: 6;
 }
 
