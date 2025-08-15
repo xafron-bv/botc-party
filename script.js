@@ -841,11 +841,13 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.zIndex = '5';
           });
           
-          // Position hover zone as a rectangle along the radial line
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+                  // Position hover zone as a rectangle along the radial line
+        const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+        // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
+        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
+        const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+        const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
@@ -866,15 +868,18 @@ document.addEventListener('DOMContentLoaded', () => {
           hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
           hoverZone.style.transformOrigin = 'center center';
           
-          // Debug logging
-          console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
-              left: hoverZone.style.left,
-              top: hoverZone.style.top,
-              width: hoverZone.style.width,
-              height: hoverZone.style.height,
-              rotation: rotationAngle,
-              isExpanded: isExpanded
-          });
+                  // Debug logging
+        console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
+            left: hoverZone.style.left,
+            top: hoverZone.style.top,
+            width: hoverZone.style.width,
+            height: hoverZone.style.height,
+            rotation: rotationAngle,
+            isExpanded: isExpanded,
+            runtimeRadius: runtimeRadius,
+            hoverZoneEnd: hoverZoneEnd,
+            maxAllowed: runtimeRadius - 10
+        });
       } else {
           // Collapsed state: stack reminders tightly behind the token
           const collapsedOffset = tokenRadiusPx + edgeGap + reminderRadius;
@@ -893,11 +898,13 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.zIndex = '2';
           });
           
-          // Position hover zone as a rectangle along the radial line (same as expanded state)
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+                  // Position hover zone as a rectangle along the radial line (same as expanded state)
+        const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+        // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
+        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
+        const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+        const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
