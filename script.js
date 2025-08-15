@@ -1593,15 +1593,6 @@ function showTouchAbilityPopup(targetElement, ability) {
     if (top < 10) {
         // Position below instead
         top = rect.bottom + 20;
-        // Adjust the arrow
-        popup.style.setProperty('--arrow-top', '-10px');
-        popup.style.setProperty('--arrow-bottom', 'auto');
-        popup.style.setProperty('--arrow-border-color', 'transparent transparent #D4AF37 transparent');
-    } else {
-        // Reset arrow to bottom
-        popup.style.setProperty('--arrow-top', 'auto');
-        popup.style.setProperty('--arrow-bottom', '-10px');
-        popup.style.setProperty('--arrow-border-color', '#D4AF37 transparent transparent transparent');
     }
     
     if (left < 10) {
