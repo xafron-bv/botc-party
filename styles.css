@@ -32,6 +32,8 @@ body {
   z-index: 1000;
   padding: 10px 12px;
   font-size: 14px;
+  width: auto !important; /* Override the 100% width from .button class */
+  text-align: left !important; /* Override center alignment from .button class */
 }
 
 /* Close button inside sidebar header */
@@ -47,11 +49,12 @@ body {
   .sidebar-toggle {
     padding: 14px 16px;
     font-size: 16px;
+    width: auto !important; /* Maintain auto width in touch mode */
   }
 }
 
 #center {
-  background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');
+  background-image: url('../assets/img/background4.webp');
   background-size: cover;
   background-position: center;
   height: 100%;
@@ -75,7 +78,7 @@ body {
   border-radius: 10px;
   background: rgba(0,0,0,0.45);
   box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-  z-index: 2; /* ensure above background guides */
+  z-index: 1; /* Above background, below all game elements */
   pointer-events: none; /* non-interactive overlay */
   font-weight: bold;
 }
@@ -90,6 +93,8 @@ body {
   position: relative;
   width: 90vmin;
   height: 90vmin;
+  z-index: 2; /* Above setup-info */
+  overflow: visible;
 }
 
 .circle li {
@@ -144,6 +149,7 @@ body {
   transform-origin: 50% 0%;
   pointer-events: none;
   z-index: 20; /* ensure above background */
+  display: none; /* Hide debug lines */
 }
 
 /* Global overlay debug lines anchored to #center */
@@ -157,6 +163,7 @@ body {
   transform-origin: 0% 50%;
   pointer-events: none;
   z-index: 25;
+  display: none; /* Hide debug lines */
 }
 
 .center-dot,
@@ -170,6 +177,7 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 26;
+  display: none; /* Hide debug dots */
 }
 
 .player-token:hover {
@@ -204,7 +212,7 @@ body {
     text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
     position: absolute;
     left: 50%;
-    top: 50%;
+    top: calc(50% + var(--token-size) * 0.8);
     transform: translate(-50%, -50%);
     z-index: 1;
     transition: all 0.3s ease;
@@ -215,21 +223,21 @@ body {
 
 .player-name:hover {
     background: linear-gradient(135deg, rgba(40,40,40,0.9) 0%, rgba(60,60,60,0.9) 100%);
-    transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+    transform: translate(-50%, -50%) translateY(-2px);
 }
 
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
     opacity: 1;
-    transform: translate(-50%, calc(-50% + var(--token-size) * 0.6));
-    z-index: 10;
+    z-index: 15; /* Above reminder tokens */
     filter: blur(0px);
 }
 
 /* Ensure the list item has proper positioning for hover effects */
 #player-circle li {
     position: relative;
+    overflow: visible;
 }
 
 .reminders {
@@ -255,28 +263,52 @@ body {
     background-image: url('assets/img/token-BqDQdWeO.webp');
     background-size: cover;
     border: 2px solid #D4AF37;
-    color: white;
-    width: calc(var(--token-size) * 0.25);
-    height: calc(var(--token-size) * 0.25);
-    min-width: 28px;
-    min-height: 28px;
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 50%; /* circular reminder */
-    font-size: 1.5vmin;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: auto;
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    font-weight: bold;
     position: absolute;
+    overflow: hidden;
+    padding: 4px;
+}
+
+/* Text content with dark background */
+.text-reminder-content,
+.icon-reminder-content {
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: clamp(8px, calc(var(--token-size) * 0.08), 14px);
+    font-weight: bold;
+    text-align: center;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.15;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    position: relative;
+    z-index: 10;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4; /* Max 4 lines */
 }
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: calc(var(--token-size) * 0.25);
-    height: calc(var(--token-size) * 0.25);
-    min-width: 28px;
-    min-height: 28px;
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -291,6 +323,7 @@ body {
     overflow: visible; /* allow SVG text to overdraw border */
     z-index: 5; /* ensure above hover zone and nearby elements */
     transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, z-index 0.3s ease;
+    padding: 4px;
 }
 
 .icon-reminder:hover {
@@ -335,7 +368,15 @@ body {
   stroke-width: 2px;
   paint-order: stroke fill;
   font-weight: 800;
-  font-size: 14px;
+  font-size: calc(var(--token-size) * 0.2);
+}
+
+/* Character modal specific text styling */
+#character-grid .icon-reminder-text {
+  fill: #D4AF37;
+  stroke: rgba(0,0,0,0.9);
+  stroke-width: 2.5px;
+  font-size: 12px;
 }
 
 /* centered delete control */
@@ -441,8 +482,8 @@ body {
     transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
     color: white;
-    width: calc(var(--token-size) / 4);
-    height: calc(var(--token-size) / 4);
+    width: calc(var(--token-size) * 0.3);
+    height: calc(var(--token-size) * 0.3);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -465,56 +506,213 @@ body {
   flex: 0 0 var(--sidebar-width, 320px);
   min-width: 220px;
   max-width: 800px;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
+  padding: 0;
   overflow-y: auto;
-  border-right: 3px solid #D4AF37;
-  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  border-right: 2px solid #D4AF37;
+  box-shadow: 6px 0 24px rgba(0,0,0,0.6);
 }
 
-/* Collapsed sidebar state */
-body.sidebar-collapsed #sidebar {
-  flex: 0 0 0 !important;
-  width: 0 !important;
-  min-width: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  overflow: hidden !important;
-}
-body.sidebar-collapsed #sidebar-resizer {
-  display: none !important;
+/* Sidebar sections with better spacing */
+#sidebar .section {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
-#sidebar-resizer {
-  width: 6px;
-  cursor: col-resize;
-  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
-  border-right: 2px solid rgba(212,175,55,0.4);
-  user-select: none;
-  touch-action: none;
-  z-index: 10;
+#sidebar .section:last-child {
+  border-bottom: none;
 }
 
-#sidebar-resizer:hover { background: rgba(212,175,55,0.3); }
+/* Section headers */
+#sidebar h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #D4AF37;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-body.resizing {
-  cursor: col-resize;
-  user-select: none;
+/* Form controls styling */
+#sidebar label {
+  display: block;
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+#sidebar input[type="number"],
+#sidebar input[type="file"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#sidebar input[type="number"]:focus,
+#sidebar input[type="file"]:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Script buttons container */
+.script-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Status message */
+#load-status {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+#load-status.status {
+  background: rgba(88, 50, 134, 0.2);
+  color: #bbb;
+  border: 1px solid rgba(88, 50, 134, 0.3);
+}
+
+#load-status.error {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+/* Character sheet improvements */
+#character-sheet {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#character-sheet::-webkit-scrollbar {
+  width: 8px;
+}
+
+#character-sheet::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.6);
+}
+
+/* Team headers in character sheet */
+#character-sheet h3 {
+  font-size: 16px;
+  margin: 16px 0 12px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+#character-sheet h3.team-townsfolk {
+  background: rgba(58, 123, 213, 0.2);
+  color: #6bb6ff;
+  border-left: 4px solid #3a7bd5;
+}
+
+#character-sheet h3.team-outsider {
+  background: rgba(88, 50, 134, 0.2);
+  color: #b794f6;
+  border-left: 4px solid #583286;
+}
+
+#character-sheet h3.team-minion {
+  background: rgba(202, 60, 60, 0.2);
+  color: #ff8787;
+  border-left: 4px solid #ca3c3c;
+}
+
+#character-sheet h3.team-demon {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border-left: 4px solid #8B0000;
+}
+
+#character-sheet h3.team-travellers {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffd54f;
+  border-left: 4px solid #ffc107;
+}
+
+#character-sheet h3.team-fabled {
+  background: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
+  border-left: 4px solid #9c27b0;
+}
+
+/* Role items */
+#character-sheet .role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#character-sheet .role:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(4px);
+}
+
+#character-sheet .role .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  flex-shrink: 0;
+}
+
+#character-sheet .role .name {
+  font-size: 14px;
+  color: #e0e0e0;
+  flex: 1;
 }
 
 .button {
   background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
   color: white;
-  border: none;
-  padding: 10px 16px;
-  margin: 8px 5px;
-  border-radius: 8px;
+  border: 1px solid #7a4ba8;
+  padding: 12px 20px;
+  margin: 6px 0;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
-  border: 2px solid #7a4ba8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
 }
 
 .button:hover {
@@ -594,7 +792,8 @@ input[type="file"] {
 
 .role {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   margin: 8px 0;
   padding: 10px;
   background: linear-gradient(135deg, #444 0%, #3a3a3a 100%);
@@ -665,13 +864,17 @@ input[type="file"] {
 #character-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 15px;
+  gap: 25px 15px;
   margin: 20px 0;
   max-height: 350px;
   overflow-y: auto;
-  padding: 15px;
+  padding: 15px 15px 25px 15px;
   background: rgba(0,0,0,0.2);
   border-radius: 10px;
+}
+
+#character-grid .token {
+  margin-bottom: 20px; /* Space for the curved text */
 }
 
 .token {
@@ -686,6 +889,8 @@ input[type="file"] {
   border: 3px solid transparent;
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: visible;
 }
 
 .token:hover {
@@ -742,7 +947,152 @@ label {
 @media (hover: none) and (pointer: coarse) {
   #player-circle li .player-name {
     opacity: 1;
-    transform: translate(-50%, calc(-50% + var(--token-size) * 0.6));
     filter: blur(0);
+    z-index: 15; /* Above reminder tokens */
+  }
+}
+
+/* Collapsed sidebar state */
+body.sidebar-collapsed #sidebar {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+body.sidebar-collapsed #sidebar-resizer {
+  display: none !important;
+}
+
+#sidebar-resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
+  border-right: 2px solid rgba(212,175,55,0.4);
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+}
+
+#sidebar-resizer:hover { background: rgba(212,175,55,0.3); }
+
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Hide radial guides SVG */
+#radial-guides {
+  display: none !important;
+}
+
+/* Ability tooltip styles */
+.ability-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #D4AF37;
+  font-size: 13px;
+  max-width: 300px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
+
+.ability-tooltip.show {
+  opacity: 1;
+}
+
+/* Touch mode ability popup */
+.touch-ability-popup {
+  position: absolute;
+  background: rgba(20, 20, 20, 0.98);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 2px solid #D4AF37;
+  font-size: 14px;
+  max-width: 320px;
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  line-height: 1.5;
+  display: none;
+}
+
+.touch-ability-popup.show {
+  display: block;
+}
+
+/* Removed arrow/triangle from tooltip */
+
+/* Character sheet ability display */
+.role .ability {
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 8px;
+  margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
+  font-style: italic;
+  line-height: 1.4;
+  display: none;
+  width: calc(100% - 44px);
+  flex-basis: 100%;
+}
+
+.role.show-ability .ability {
+  display: block;
+}
+
+/* Player token hover for ability tooltip */
+.player-token {
+  position: relative;
+  overflow: visible;
+}
+
+/* Ability info icon for touch mode */
+.ability-info-icon {
+  position: absolute;
+  width: calc(var(--token-size) * 0.25);
+  height: calc(var(--token-size) * 0.25);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  pointer-events: auto;
+  box-sizing: border-box;
+  /* Position will be set dynamically by JavaScript */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ability-info-icon i {
+  color: #D4AF37;
+  font-size: calc(var(--token-size) * 0.18);
+  line-height: 1;
+  display: block;
+  pointer-events: none; /* Ensure clicks pass through to parent */
+}
+
+.ability-info-icon:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Only show info icon on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .ability-info-icon {
+    display: none;
   }
 }
