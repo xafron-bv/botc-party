@@ -261,8 +261,15 @@ body {
 .reminder-hover-zone {
     position: absolute;
     background: transparent;
-    pointer-events: auto;
+    pointer-events: none; /* Disable by default to not block clicks */
     z-index: 501;
+}
+
+/* Enable pointer events only when there are reminders to hover */
+#player-circle li[data-expanded="1"] .reminder-hover-zone,
+#player-circle li:has(.icon-reminder) .reminder-hover-zone,
+#player-circle li:has(.text-reminder) .reminder-hover-zone {
+    pointer-events: auto;
 }
 
 .text-reminder {
@@ -501,6 +508,7 @@ body {
     border: 2px solid #B8860B;
     transition: all 0.3s ease;
     z-index: 525; /* above token (510) and reminders to ensure clickability */
+    pointer-events: auto; /* Always clickable */
 }
 
 .reminder-placeholder:hover {
