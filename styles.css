@@ -1034,7 +1034,7 @@ body.resizing {
   width: calc(var(--token-size) * 0.25);
   height: calc(var(--token-size) * 0.25);
   background: rgba(0, 0, 0, 0.9);
-  border: 2px solid #D4AF37;
+  border: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
