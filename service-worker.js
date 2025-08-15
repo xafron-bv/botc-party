@@ -59,7 +59,7 @@ self.addEventListener('fetch', event => {
   );
 
   // Handle token image requests - cache first
-  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/') || event.request.url.includes('/assets/token-icons/')) {
+  if (event.request.url.includes('/assets/token-icons/')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
