@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
                           name: characterItem.name,
                           team: characterItem.team,
                           ability: characterItem.ability,
-                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
                       };
                       if (characterItem.reminders) customRole.reminders = characterItem.reminders;
                       if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
                    allRoles[characterItem] = {
                        id: characterItem,
                        name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
-                       image: '/assets/img/token-BqDQdWeO.webp',
+                       image: './assets/img/token-BqDQdWeO.webp',
                        team: 'unknown'
                    };
                } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                            name: characterItem.name,
                            team: characterItem.team,
                            ability: characterItem.ability,
-                           image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                           image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
                        };
                    }
                }
@@ -1192,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       filteredRoles.forEach(role => {
           const tokenEl = document.createElement('div');
           tokenEl.className = 'token';
-          tokenEl.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+          tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
           tokenEl.style.backgroundSize = '68% 68%, cover';
           tokenEl.style.position = 'relative';
           tokenEl.style.overflow = 'visible';
@@ -1495,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const roleEl = document.createElement('div');
                     roleEl.className = 'role';
          roleEl.innerHTML = `
-                         <span class="icon" style="background-image: url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                         <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                          <span class="name">${role.name}</span>
                          <div class="ability">${role.ability || 'No ability description available'}</div>
                      `;
@@ -1519,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                  roleEl.innerHTML = `
-                     <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
+                     <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
                      <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
                 characterSheet.appendChild(roleEl);
@@ -1527,7 +1527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Display custom character objects
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
-                const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
+                const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
                 roleEl.innerHTML = `
                     <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                     <span class="name">${characterItem.name || characterItem.id}</span>
