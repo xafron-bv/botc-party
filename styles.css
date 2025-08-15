@@ -632,13 +632,14 @@ body {
 /* Role items */
 #character-sheet .role {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   padding: 8px 12px;
   margin: 4px 0;
   background: rgba(255,255,255,0.05);
   border-radius: 6px;
   transition: all 0.2s ease;
-  cursor: default;
+  cursor: pointer;
 }
 
 #character-sheet .role:hover {
@@ -658,6 +659,7 @@ body {
 #character-sheet .role .name {
   font-size: 14px;
   color: #e0e0e0;
+  flex: 1;
 }
 
 .button {
@@ -755,7 +757,8 @@ input[type="file"] {
 
 .role {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
   margin: 8px 0;
   padding: 10px;
   background: linear-gradient(135deg, #444 0%, #3a3a3a 100%);
@@ -1004,10 +1007,13 @@ body.resizing {
 .role .ability {
   font-size: 12px;
   color: #bbb;
-  margin-top: 4px;
+  margin-top: 8px;
+  margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
   font-style: italic;
-  line-height: 1.3;
+  line-height: 1.4;
   display: none;
+  width: calc(100% - 44px);
+  flex-basis: 100%;
 }
 
 .role.show-ability .ability {
