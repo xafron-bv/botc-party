@@ -264,12 +264,12 @@ body {
     background-size: cover;
     border: 2px solid #D4AF37;
     color: white;
-    width: calc(var(--token-size) * 0.3);
-    height: calc(var(--token-size) * 0.3);
-    min-width: 30px;
-    min-height: 30px;
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 50%; /* circular reminder */
-    font-size: calc(var(--token-size) * 0.2);
+    font-size: calc(var(--token-size) * 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -281,10 +281,10 @@ body {
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: calc(var(--token-size) * 0.3);
-    height: calc(var(--token-size) * 0.3);
-    min-width: 30px;
-    min-height: 30px;
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -343,7 +343,7 @@ body {
   stroke-width: 2px;
   paint-order: stroke fill;
   font-weight: 800;
-  font-size: calc(var(--token-size) * 0.15);
+  font-size: calc(var(--token-size) * 0.2);
 }
 
 /* Character modal specific text styling */
