@@ -935,3 +935,8 @@ body.resizing {
   cursor: col-resize;
   user-select: none;
 }
+
+/* Hide radial guides SVG */
+#radial-guides {
+  display: none !important;
+}

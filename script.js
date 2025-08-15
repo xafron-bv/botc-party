@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Draw guide lines from each token to the center after positioning
-      drawRadialGuides();
+      // drawRadialGuides(); // Commented out to hide radial guides
 
       console.log('Player positioning completed');
   }
