@@ -1642,10 +1642,10 @@ function positionInfoIcons() {
         const li = icon.parentElement;
         const angle = parseFloat(li.dataset.angle || '0');
         
-        // Calculate radius for info icons (add 20px to token radius)
+        // Calculate radius for info icons (add 20% of token radius)
         const tokenEl = li.querySelector('.player-token');
         const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
-        const infoRadius = tokenRadius + 20;
+        const infoRadius = tokenRadius * 1.2;
         
         // Calculate position on the outer circle
         const x = infoRadius * Math.cos(angle);
