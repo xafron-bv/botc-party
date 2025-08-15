@@ -1,6 +1,6 @@
 :root {
-  --token-size: 14vmin;
-  --reminder-size: 4vmin;
+  --token-size: clamp(64px, 14vmin, 140px);
+  --reminder-size: clamp(28px, 4vmin, 48px);
 }
 
 body {
@@ -8,13 +8,14 @@ body {
   color: #fff;
   font-family: 'Verdana', sans-serif;
   margin: 0;
-  padding: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
 }
 
 #app {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 
@@ -44,6 +45,12 @@ body {
   z-index: 5;
   margin: 0 0 10px 0;
 }
+@media (max-width: 900px) {
+  #sidebar .sidebar-close {
+    position: relative;
+    top: auto;
+  }
+}
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
@@ -63,6 +70,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 12px; /* give breathing room on small screens */
+  box-sizing: border-box;
 }
 
 /* Center overlay with script name and role counts */
@@ -84,15 +93,15 @@ body {
 }
 
 /* Simple single-line display */
-#setup-info { font-size: 16px; }
+#setup-info { font-size: clamp(12px, 1.8vmin, 18px); }
 
 .circle {
   list-style: none;
   padding: 0;
   margin: 0;
   position: relative;
-  width: 90vmin;
-  height: 90vmin;
+  width: min(90vmin, calc(100vw - 32px));
+  height: min(90vmin, calc(100vh - 140px));
   z-index: 2; /* Above setup-info */
   overflow: visible;
 }
@@ -201,7 +210,7 @@ body {
     background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(40,40,40,0.9) 100%);
     padding: 0.8vmin 2vmin;
     border-radius: 20px;
-    font-size: 2.2vmin;
+    font-size: clamp(12px, 2.2vmin, 18px);
     text-align: center;
     color: white;
     cursor: pointer;
@@ -243,6 +252,7 @@ body {
 #player-circle li {
     position: relative;
     overflow: visible;
+    max-width: calc(var(--token-size) + 40px);
 }
 
 .reminders {
@@ -353,7 +363,7 @@ body {
     left: 50%;
     top: -6%;
     transform: translateX(-50%);
-    width: 42%;
+    width: clamp(36%, 42%, 48%);
     height: auto;
     opacity: 0.18; /* visible but subtle by default */
     transition: opacity .15s ease;
@@ -442,7 +452,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 15px;
   margin: 20px 0;
-  max-height: 350px;
+  max-height: min(350px, 60vh);
   overflow-y: auto;
   padding: 15px;
   background: rgba(0,0,0,0.2);
@@ -494,7 +504,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 2vmin;
+    font-size: clamp(12px, 2vmin, 18px);
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     border: 2px solid #B8860B;
@@ -516,12 +526,12 @@ body {
   overflow-y: auto;
   border-right: 2px solid #D4AF37;
   box-shadow: 6px 0 24px rgba(0,0,0,0.6);
-  transition: flex 0.3s ease, width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease;
+  transition: flex 0.3s ease, width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease;
 }
 
 /* Sidebar sections with better spacing */
 #sidebar .section {
-  padding: 20px 24px;
+  padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
   border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
@@ -532,7 +542,7 @@ body {
 /* Section headers */
 #sidebar h3 {
   margin: 0 0 16px 0;
-  font-size: 18px;
+  font-size: clamp(16px, 2vmin, 20px);
   font-weight: 600;
   color: #D4AF37;
   text-transform: uppercase;
@@ -601,7 +611,7 @@ body {
 
 /* Character sheet improvements */
 #character-sheet {
-  max-height: 400px;
+  max-height: min(400px, 60vh);
   overflow-y: auto;
   padding-right: 10px;
 }
@@ -698,7 +708,7 @@ body {
 }
 
 #character-sheet .role .name {
-  font-size: 14px;
+  font-size: clamp(13px, 1.6vmin, 16px);
   color: #e0e0e0;
   flex: 1;
 }
@@ -711,7 +721,7 @@ body {
   margin: 6px 0;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: clamp(13px, 1.6vmin, 16px);
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
@@ -742,7 +752,8 @@ input[type="number"] {
   border-radius: 6px;
   margin: 8px 5px;
   width: 100px;
-  font-size: 14px;
+  max-width: 100%;
+  font-size: clamp(13px, 1.6vmin, 16px);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -753,7 +764,7 @@ input[type="file"] {
   padding: 10px;
   border-radius: 6px;
   margin: 8px 5px;
-  font-size: 14px;
+  font-size: clamp(13px, 1.6vmin, 16px);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -776,7 +787,8 @@ input[type="file"] {
 }
 
 #character-sheet {
-  max-height: 400px;
+  /* consolidated in earlier section with responsive max-height */
+  max-height: min(400px, 60vh);
   overflow-y: auto;
   padding: 10px;
   background: rgba(0,0,0,0.2);
@@ -785,7 +797,7 @@ input[type="file"] {
 
 .script-buttons {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -793,7 +805,8 @@ input[type="file"] {
 .script-buttons .button {
   margin: 0;
   padding: 8px 14px;
-  font-size: 12px;
+  font-size: clamp(12px, 1.6vmin, 14px);
+  flex: 1 1 auto;
 }
 
 .role {
@@ -845,7 +858,7 @@ input[type="file"] {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000;
+  z-index: 4000;
   left: 0;
   top: 0;
   width: 100%;
@@ -860,8 +873,8 @@ input[type="file"] {
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   padding: 30px;
   border-radius: 15px;
-  max-width: 85%;
-  max-height: 85%;
+  max-width: min(720px, 90vw);
+  max-height: min(85%, 90vh);
   overflow-y: auto;
   border: 3px solid #D4AF37;
   box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -872,7 +885,7 @@ input[type="file"] {
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 25px 15px;
   margin: 20px 0;
-  max-height: 350px;
+  max-height: min(350px, 60vh);
   overflow-y: auto;
   padding: 15px 15px 25px 15px;
   background: rgba(0,0,0,0.2);
@@ -881,6 +894,12 @@ input[type="file"] {
 
 #character-grid .token {
   margin-bottom: 20px; /* Space for the curved text */
+}
+@media (max-width: 600px) {
+  .token {
+    width: 60px;
+    height: 60px;
+  }
 }
 
 .token {
@@ -913,7 +932,7 @@ input[type="file"] {
   color: white;
   border: 2px solid #D4AF37;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vmin, 18px);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
@@ -1003,7 +1022,7 @@ body.resizing {
   border-radius: 8px;
   border: 2px solid #D4AF37;
   font-size: 13px;
-  max-width: 300px;
+  max-width: min(300px, 90vw);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -1025,7 +1044,7 @@ body.resizing {
   border-radius: 10px;
   border: 2px solid #D4AF37;
   font-size: 14px;
-  max-width: 320px;
+  max-width: min(320px, 90vw);
   z-index: 100;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
   line-height: 1.5;
@@ -1040,7 +1059,7 @@ body.resizing {
 
 /* Character sheet ability display */
 .role .ability {
-  font-size: 12px;
+  font-size: clamp(11px, 1.5vmin, 13px);
   color: #bbb;
   margin-top: 8px;
   margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
@@ -1162,4 +1181,61 @@ body.resizing {
   font-size: 12px;
   opacity: 0.8;
   margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100dvh;
+    max-width: 85vw;
+    width: var(--sidebar-width, 320px);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 2002;
+  }
+  body.sidebar-open #sidebar {
+    transform: translateX(0);
+  }
+  #sidebar-resizer {
+    display: none;
+  }
+  .sidebar-toggle {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 2001;
+  }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    display: none;
+  }
+  body.sidebar-open .sidebar-backdrop { display: block; }
+  body.sidebar-collapsed #sidebar { transform: translateX(-100%) !important; }
+  body.sidebar-collapsed .sidebar-toggle { display: inline-block; }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --token-size: clamp(56px, 16vmin, 120px);
+  }
+  #character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 18px 12px;
+  }
+  .modal-content {
+    padding: 20px;
+    max-width: 92%;
+    max-height: 92%;
+  }
+  #reminder-token-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 12px;
+  }
 }
