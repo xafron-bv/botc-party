@@ -406,10 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
       players.forEach((player, i) => {
           const listItem = document.createElement('li');
           listItem.innerHTML = `
+              <div class="player-name" title="Edit name">${player.name}</div>
               <div class="reminders"></div>
               <div class="player-token" title="Assign character"></div>
                <div class="character-name" aria-live="polite"></div>
-              <div class="player-name" title="Edit name">${player.name}</div>
               <div class="reminder-placeholder" title="Add text reminder">+</div>
           `;
           playerCircle.appendChild(listItem);
