@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
   const loadSavBtn = document.getElementById('load-sav');
+  const loadAllCharsBtn = document.getElementById('load-all-chars');
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
@@ -33,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
   const sidebarResizer = document.getElementById('sidebar-resizer');
+  
+  // Ability tooltip elements
+  const abilityTooltip = document.getElementById('ability-tooltip');
+  const touchAbilityPopup = document.getElementById('touch-ability-popup');
   const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
@@ -87,6 +92,55 @@ document.addEventListener('DOMContentLoaded', () => {
       return path;
   }
 
+  async function loadAllCharacters() {
+    try {
+      loadStatus.textContent = 'Loading all characters...';
+      loadStatus.className = 'status';
+      
+      // Load tokens.json directly
+      const response = await fetch('./tokens.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load tokens.json: ${response.status}`);
+      }
+      
+      const tokens = await response.json();
+      console.log('Loading all characters from tokens.json');
+      
+      // Reset allRoles
+      allRoles = {};
+      
+      // Process all teams including fabled and travellers
+      const allTeams = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+      let characterIds = [];
+      
+      allTeams.forEach(teamName => {
+        if (tokens[teamName] && Array.isArray(tokens[teamName])) {
+          tokens[teamName].forEach(role => {
+            const image = resolveAssetPath(role.image);
+            allRoles[role.id] = { ...role, image, team: teamName };
+            characterIds.push(role.id);
+          });
+        }
+      });
+      
+      console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
+      
+      // Create a pseudo-script data array with all character IDs
+      scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
+      
+      displayScript(scriptData);
+      saveAppState();
+      
+      loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
+      loadStatus.className = 'status';
+      
+    } catch (error) {
+      console.error('Failed to load all characters:', error);
+      loadStatus.textContent = `Failed to load all characters: ${error.message}`;
+      loadStatus.className = 'error';
+    }
+  }
+
   async function loadScriptFromFile(path) {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
@@ -115,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
   loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
   loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
+  loadAllCharsBtn && loadAllCharsBtn.addEventListener('click', () => { scriptMetaName = 'All Characters'; renderSetupInfo(); loadAllCharacters(); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -233,13 +288,38 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
           // Process the character IDs from the script
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  if (roleLookup[characterId]) {
-                      allRoles[characterId] = roleLookup[characterId];
-                      console.log(`Resolved character ${characterId} (${roleLookup[characterId].name})`);
+          characterIds.forEach((characterItem) => {
+              // Handle string character IDs (official characters)
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  if (roleLookup[characterItem]) {
+                      allRoles[characterItem] = roleLookup[characterItem];
+                      console.log(`Resolved character ${characterItem} (${roleLookup[characterItem].name})`);
                   } else {
-                      console.warn(`Character ID not found: ${characterId}`);
+                      console.warn(`Character ID not found: ${characterItem}`);
+                  }
+              } 
+              // Handle full character objects (custom characters)
+              else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Validate required fields according to schema
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      const customRole = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                      
+                      // Add optional fields if present
+                      if (characterItem.reminders) customRole.reminders = characterItem.reminders;
+                      if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
+                      if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
+                      if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
+                      
+                      allRoles[characterItem.id] = customRole;
+                      console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
+                  } else {
+                      console.warn(`Invalid custom character object:`, characterItem);
                   }
               }
           });
@@ -248,14 +328,25 @@ document.addEventListener('DOMContentLoaded', () => {
           
       } catch (error) {
           console.error('Error processing script:', error);
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  allRoles[characterId] = {
-                      id: characterId,
-                      name: characterId.charAt(0).toUpperCase() + characterId.slice(1),
+          characterIds.forEach((characterItem) => {
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  allRoles[characterItem] = {
+                      id: characterItem,
+                      name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
                       image: '/assets/img/token-BqDQdWeO.webp',
                       team: 'unknown'
                   };
+              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Handle custom character objects even in error case
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      allRoles[characterItem.id] = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                  }
               }
           });
       }
@@ -296,6 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
               const target = e.target;
               if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
                   return; // handled by ribbon click
+              }
+              if (target && target.classList.contains('ability-info-icon')) {
+                  return; // handled by info icon
               }
               openCharacterModal(i);
           };
@@ -446,9 +540,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Debug visuals removed
       });
+      
+      // Position info icons on outer circle
+      positionInfoIcons();
 
       // Draw guide lines from each token to the center after positioning
-      drawRadialGuides();
+      // drawRadialGuides(); // Commented out to hide radial guides
 
       console.log('Player positioning completed');
   }
@@ -479,6 +576,40 @@ document.addEventListener('DOMContentLoaded', () => {
               // Add curved label on the token
               const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
               tokenDiv.appendChild(svg);
+              
+              // Add tooltip functionality for non-touch devices
+              if (!('ontouchstart' in window)) {
+                  tokenDiv.addEventListener('mouseenter', (e) => {
+                      if (role.ability) {
+                          abilityTooltip.textContent = role.ability;
+                          abilityTooltip.classList.add('show');
+                          positionTooltip(e.target, abilityTooltip);
+                      }
+                  });
+                  
+                  tokenDiv.addEventListener('mouseleave', () => {
+                      abilityTooltip.classList.remove('show');
+                  });
+              } else if (role.ability) {
+                  // Add info icon for touch mode - will be positioned after circle layout
+                  const infoIcon = document.createElement('div');
+                  infoIcon.className = 'ability-info-icon';
+                  infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+                  infoIcon.dataset.playerIndex = i;
+                                  // Handle both click and touch events
+                const handleInfoClick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    showTouchAbilityPopup(infoIcon, role.ability);
+                };
+                infoIcon.onclick = handleInfoClick;
+                infoIcon.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleInfoClick(e); // Call the click handler on touch
+                });
+                  li.appendChild(infoIcon); // Append to li, not tokenDiv
+              }
           } else {
             tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
             tokenDiv.style.backgroundSize = 'cover';
@@ -546,8 +677,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, true);
 
                 if (reminder.label) {
-                  const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
-                  iconEl.appendChild(svg);
+                  // Check if this is a custom reminder by ID
+                  const isCustom = reminder.id === 'custom-note';
+                  
+                  if (isCustom) {
+                    // For custom reminders, show straight text with dark background
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'icon-reminder-content';
+                    textSpan.textContent = reminder.label;
+                    
+                    // Adjust font size based on text length
+                    const textLength = reminder.label.length;
+                    if (textLength > 40) {
+                      textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+                    } else if (textLength > 20) {
+                      textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+                    }
+                    
+                    iconEl.appendChild(textSpan);
+                  } else {
+                    // For other reminders, show curved text at bottom
+                    const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+                    iconEl.appendChild(svg);
+                  }
                 }
 
                 const delBtn = document.createElement('div');
@@ -584,7 +736,26 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                 const reminderEl = document.createElement('div');
                 reminderEl.className = 'text-reminder';
-                reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
+                
+                // Check if this is actually a text reminder with a label (legacy data)
+                // If so, use the label as the display text
+                const displayText = reminder.label || reminder.value || '';
+                
+                // Create a span for the text with dark background
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-reminder-content';
+                textSpan.textContent = displayText;
+                
+                // Adjust font size based on text length
+                const textLength = displayText.length;
+                if (textLength > 40) {
+                  textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+                } else if (textLength > 20) {
+                  textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+                }
+                
+                reminderEl.appendChild(textSpan);
+                
                 reminderEl.style.transform = 'translate(-50%, -50%)';
                 reminderEl.onclick = (e) => {
                   e.stopPropagation();
@@ -601,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       return;
                     }
                   }
-                  openTextReminderModal(i, idx, reminder.value);
+                  openTextReminderModal(i, idx, reminder.label || reminder.value);
                 };
                 const delBtn2 = document.createElement('div');
                 delBtn2.className = 'reminder-delete-btn';
@@ -638,6 +809,11 @@ document.addEventListener('DOMContentLoaded', () => {
           // After rendering, position all reminders and the plus button in a radial stack
           positionRadialStack(li, player.reminders.length);
       });
+      
+      // Position info icons after updating grimoire
+      if ('ontouchstart' in window) {
+          positionInfoIcons();
+      }
   }
 
   // Arrange reminders and plus button along the line from token center to circle center
@@ -673,9 +849,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const ux = vx / (runtimeRadius || 1);
       const uy = vy / (runtimeRadius || 1);
 
-      const reminderDiameter = Math.max(28, tokenEl.offsetWidth * 0.25);
+      const reminderDiameter = Math.max(40, tokenEl.offsetWidth * 0.4);
       const reminderRadius = reminderDiameter / 2;
-      const plusRadius = (tokenEl.offsetWidth / 4) / 2; // from CSS: width: token-size/4
+      const plusRadius = (tokenEl.offsetWidth * 0.3) / 2; // from CSS: width: token-size * 0.3
       const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
       const spacing = reminderDiameter + edgeGap;
 
@@ -705,11 +881,13 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.zIndex = '5';
           });
           
-          // Position hover zone as a rectangle along the radial line
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+                  // Position hover zone as a rectangle along the radial line
+        const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+        // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
+        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
+        const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+        const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
@@ -730,15 +908,18 @@ document.addEventListener('DOMContentLoaded', () => {
           hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
           hoverZone.style.transformOrigin = 'center center';
           
-          // Debug logging
-          console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
-              left: hoverZone.style.left,
-              top: hoverZone.style.top,
-              width: hoverZone.style.width,
-              height: hoverZone.style.height,
-              rotation: rotationAngle,
-              isExpanded: isExpanded
-          });
+                  // Debug logging
+        console.log(`Hover zone for player ${li.querySelector('.player-name')?.textContent || 'unknown'}:`, {
+            left: hoverZone.style.left,
+            top: hoverZone.style.top,
+            width: hoverZone.style.width,
+            height: hoverZone.style.height,
+            rotation: rotationAngle,
+            isExpanded: isExpanded,
+            runtimeRadius: runtimeRadius,
+            hoverZoneEnd: hoverZoneEnd,
+            maxAllowed: runtimeRadius - 10
+        });
       } else {
           // Collapsed state: stack reminders tightly behind the token
           const collapsedOffset = tokenRadiusPx + edgeGap + reminderRadius;
@@ -757,11 +938,13 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.zIndex = '2';
           });
           
-          // Position hover zone as a rectangle along the radial line (same as expanded state)
-          const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
-          const hoverZoneEnd = tokenRadiusPx + 200; // Extend towards circle center (200px max)
-          const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-          const hoverZoneHeight = 100; // Height perpendicular to radial line (increased for visibility)
+                  // Position hover zone as a rectangle along the radial line (same as expanded state)
+        const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
+        // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
+        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
+        const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
+        const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
@@ -965,7 +1148,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const { playerIndex, reminderIndex } = editingReminder;
       if (text) {
           if (reminderIndex > -1) {
+              // Update existing reminder - preserve label if it exists
               players[playerIndex].reminders[reminderIndex].value = text;
+              if (players[playerIndex].reminders[reminderIndex].label !== undefined) {
+                  players[playerIndex].reminders[reminderIndex].label = text;
+              }
           } else {
               players[playerIndex].reminders.push({ type: 'text', value: text });
           }
@@ -1000,12 +1187,12 @@ document.addEventListener('DOMContentLoaded', () => {
       path.setAttribute('d','M16,72 A34,34 0 0,0 84,72');
       defs.appendChild(path);
       svg.appendChild(defs);
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('class','icon-reminder-text');
-      text.setAttribute('text-anchor','middle');
-      const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
-      textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
-      textPath.setAttribute('startOffset','50%');
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('class','icon-reminder-text');
+    text.setAttribute('text-anchor','middle');
+    const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
+    textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
+    textPath.setAttribute('startOffset','50%');
       // Truncate display on token to avoid overcrowding, but keep tooltip full
       const full = String(labelText || '');
       const maxChars = 14;
@@ -1141,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (input === null) return;
                   label = input;
                 }
-                players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
+                players[selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
                 updateGrimoire();
                 saveAppState();
                 reminderTokenModal.style.display = 'none';
@@ -1231,7 +1418,12 @@ document.addEventListener('DOMContentLoaded', () => {
          roleEl.innerHTML = `
                          <span class="icon" style="background-image: url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                          <span class="name">${role.name}</span>
+                         <div class="ability">${role.ability || 'No ability description available'}</div>
                      `;
+                    // Add click handler to toggle ability display
+                    roleEl.addEventListener('click', () => {
+                        roleEl.classList.toggle('show-ability');
+                    });
                     characterSheet.appendChild(roleEl);
                 });
             }
@@ -1243,14 +1435,29 @@ document.addEventListener('DOMContentLoaded', () => {
         header.className = 'team-townsfolk';
         characterSheet.appendChild(header);
         
-        data.forEach((characterId, index) => {
-            if (typeof characterId === 'string' && characterId !== '_meta') {
+        data.forEach((characterItem, index) => {
+            if (typeof characterItem === 'string' && characterItem !== '_meta') {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                  roleEl.innerHTML = `
                      <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
-                     <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
+                     <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
+                characterSheet.appendChild(roleEl);
+            } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                // Display custom character objects
+                const roleEl = document.createElement('div');
+                roleEl.className = 'role';
+                const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
+                roleEl.innerHTML = `
+                    <span class="icon" style="background-image: url('${image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                    <span class="name">${characterItem.name || characterItem.id}</span>
+                    <div class="ability">${characterItem.ability || 'No ability description available'}</div>
+                `;
+                // Add click handler to toggle ability display
+                roleEl.addEventListener('click', () => {
+                    roleEl.classList.toggle('show-ability');
+                });
                 characterSheet.appendChild(roleEl);
             }
         });
@@ -1390,3 +1597,110 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restore previous session (script and grimoire)
   loadAppState();
 });
+
+// Tooltip positioning function
+function positionTooltip(targetElement, tooltip) {
+    const rect = targetElement.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    // Position above the element by default
+    let top = rect.top - tooltipRect.height - 10;
+    let left = rect.left + (rect.width - tooltipRect.width) / 2;
+    
+    // Adjust if tooltip would go off screen
+    if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 10;
+    }
+    
+    if (left < 10) {
+        left = 10;
+    } else if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+    }
+    
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+}
+
+// Touch ability popup functions
+function showTouchAbilityPopup(targetElement, ability) {
+    const popup = document.getElementById('touch-ability-popup');
+    if (!popup) return;
+    popup.textContent = ability;
+    popup.classList.add('show');
+    
+    // If targetElement is the info icon, find the token for better positioning
+    const isInfoIcon = targetElement.classList.contains('ability-info-icon');
+    const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
+    
+    const rect = referenceElement.getBoundingClientRect();
+    const popupRect = popup.getBoundingClientRect();
+    
+    // Position above the token
+    let top = rect.top - popupRect.height - 20;
+    let left = rect.left + (rect.width - popupRect.width) / 2;
+    
+    // Adjust if popup would go off screen
+    if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 20;
+    }
+    
+    if (left < 10) {
+        left = 10;
+    } else if (left + popupRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - popupRect.width - 10;
+    }
+    
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+}
+
+function hideTouchAbilityPopup() {
+    const touchAbilityPopup = document.getElementById('touch-ability-popup');
+    if (touchAbilityPopup) {
+        touchAbilityPopup.classList.remove('show');
+    }
+}
+
+// Hide touch popup when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
+        hideTouchAbilityPopup();
+    }
+});
+
+// Position info icons on a larger circle outside the character tokens
+function positionInfoIcons() {
+    const circle = document.getElementById('player-circle');
+    if (!circle) return;
+    
+    const circleRect = circle.getBoundingClientRect();
+    const circleWidth = circle.offsetWidth;
+    const circleHeight = circle.offsetHeight;
+    const centerX = circleWidth / 2;
+    const centerY = circleHeight / 2;
+    
+    // Get all info icons
+    const infoIcons = circle.querySelectorAll('.ability-info-icon');
+    
+    infoIcons.forEach(icon => {
+        const playerIndex = parseInt(icon.dataset.playerIndex);
+        const li = icon.parentElement;
+        const angle = parseFloat(li.dataset.angle || '0');
+        
+        // Calculate radius for info icons (add 20% of token radius)
+        const tokenEl = li.querySelector('.player-token');
+        const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
+        const infoRadius = tokenRadius * 1.2;
+        
+        // Calculate position on the outer circle
+        const x = infoRadius * Math.cos(angle);
+        const y = infoRadius * Math.sin(angle);
+        
+        // Position the info icon
+        icon.style.left = `calc(50% + ${x}px)`;
+        icon.style.top = `calc(50% + ${y}px)`;
+    });
+}
