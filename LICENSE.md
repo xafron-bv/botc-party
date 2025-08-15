@@ -1,4 +1,4 @@
-BOTC Offline Grimoire (Unofficial) – License
+BOTC Party Grimoire (Unofficial) – License
 
 Copyright (c) 2025. All rights reserved.
 

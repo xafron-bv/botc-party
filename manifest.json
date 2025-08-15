@@ -1,7 +1,7 @@
 {
-  "name": "Blood on the Clocktower - Offline Grimoire",
-  "short_name": "BOTC Offline",
-  "description": "Offline PWA version of Blood on the Clocktower Grimoire for managing game sessions",
+  "name": "Blood on the Clocktower - Party Grimoire",
+  "short_name": "BOTC Party",
+  "description": "Offline PWA version of Blood on the Clocktower Grimoire for managing in-person game sessions",
   "icons": [
     {
       "src": "assets/icons/android-chrome-192x192.png",
