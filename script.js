@@ -685,6 +685,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const textSpan = document.createElement('span');
                     textSpan.className = 'icon-reminder-content';
                     textSpan.textContent = reminder.label;
+                    
+                    // Adjust font size based on text length
+                    const textLength = reminder.label.length;
+                    if (textLength > 40) {
+                      textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+                    } else if (textLength > 20) {
+                      textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+                    }
+                    
                     iconEl.appendChild(textSpan);
                   } else {
                     // For other reminders, show curved text at bottom
@@ -736,6 +745,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textSpan = document.createElement('span');
                 textSpan.className = 'text-reminder-content';
                 textSpan.textContent = displayText;
+                
+                // Adjust font size based on text length
+                const textLength = displayText.length;
+                if (textLength > 40) {
+                  textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+                } else if (textLength > 20) {
+                  textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+                }
+                
                 reminderEl.appendChild(textSpan);
                 
                 reminderEl.style.transform = 'translate(-50%, -50%)';
