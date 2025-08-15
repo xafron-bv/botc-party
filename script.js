@@ -382,51 +382,17 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
           playerCircle.appendChild(listItem);
 
-          // Handle both click and touch for character selection
-          const tokenElement = listItem.querySelector('.player-token');
-          
-          if ('ontouchstart' in window) {
-              // Touch mode: first tap shows ability, second tap opens modal
-              let tapCount = 0;
-              let tapTimer = null;
-              
-              tokenElement.onclick = (e) => {
-                  const target = e.target;
-                  if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-                      return; // handled by ribbon click
-                  }
-                  
-                  tapCount++;
-                  
-                  if (tapCount === 1) {
-                      // First tap: show ability popup if character assigned
-                      const player = players[i];
-                      if (player.characterId && allRoles[player.characterId] && allRoles[player.characterId].ability) {
-                          showTouchAbilityPopup(tokenElement, allRoles[player.characterId].ability);
-                      }
-                      
-                      // Reset tap count after delay
-                      tapTimer = setTimeout(() => {
-                          tapCount = 0;
-                      }, 500);
-                  } else if (tapCount === 2) {
-                      // Second tap: open character modal
-                      clearTimeout(tapTimer);
-                      tapCount = 0;
-                      hideTouchAbilityPopup();
-                      openCharacterModal(i);
-                  }
-              };
-          } else {
-              // Non-touch mode: regular click opens modal
-              tokenElement.onclick = (e) => {
-                  const target = e.target;
-                  if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-                      return; // handled by ribbon click
-                  }
-                  openCharacterModal(i);
-              };
-          }
+          // Only the main token area opens the character modal; ribbon handles dead toggle
+          listItem.querySelector('.player-token').onclick = (e) => {
+              const target = e.target;
+              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                  return; // handled by ribbon click
+              }
+              if (target && target.classList.contains('ability-info-icon')) {
+                  return; // handled by info icon
+              }
+              openCharacterModal(i);
+          };
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);
@@ -621,6 +587,16 @@ document.addEventListener('DOMContentLoaded', () => {
                   tokenDiv.addEventListener('mouseleave', () => {
                       abilityTooltip.classList.remove('show');
                   });
+              } else if (role.ability) {
+                  // Add info icon for touch mode
+                  const infoIcon = document.createElement('div');
+                  infoIcon.className = 'ability-info-icon';
+                  infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+                  infoIcon.onclick = (e) => {
+                      e.stopPropagation();
+                      showTouchAbilityPopup(tokenDiv, role.ability);
+                  };
+                  tokenDiv.appendChild(infoIcon);
               }
           } else {
             tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
@@ -1622,7 +1598,7 @@ function hideTouchAbilityPopup() {
 
 // Hide touch popup when clicking outside
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.player-token') && !e.target.closest('.touch-ability-popup')) {
+    if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
         hideTouchAbilityPopup();
     }
 });

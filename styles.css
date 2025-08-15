@@ -1024,3 +1024,38 @@ body.resizing {
 .player-token {
   position: relative;
 }
+
+/* Ability info icon for touch mode */
+.ability-info-icon {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1.5px solid #D4AF37;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.ability-info-icon i {
+  color: #D4AF37;
+  font-size: 12px;
+}
+
+.ability-info-icon:active {
+  transform: scale(0.95);
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* Only show info icon on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .ability-info-icon {
+    display: none;
+  }
+}
