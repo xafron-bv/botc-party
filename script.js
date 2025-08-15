@@ -2150,10 +2150,24 @@ document.addEventListener('DOMContentLoaded', () => {
         requiresSidebarOpen: true
       },
       {
+        id: 'script-history',
+        title: 'Script History',
+        body: 'Your previously loaded or uploaded scripts appear here. Load, rename, or delete them.',
+        target: () => document.getElementById('script-history-list'),
+        requiresSidebarOpen: true
+      },
+      {
         id: 'character-sheet',
         title: 'Character Sheet',
         body: 'After loading a script, the sheet lists characters. Click a player token to assign one.',
         target: () => document.getElementById('character-sheet'),
+        requiresSidebarOpen: true
+      },
+      {
+        id: 'grimoire-history',
+        title: 'Grimoire History',
+        body: 'Every time you start a new game, the previous grimoire is saved here. Load, rename, or delete snapshots.',
+        target: () => document.getElementById('grimoire-history-list'),
         requiresSidebarOpen: true
       },
       {
