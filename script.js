@@ -1450,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 roleEl.className = 'role';
                 const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
                 roleEl.innerHTML = `
-                    <span class="icon" style="background-image: url('${image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                    <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                     <span class="name">${characterItem.name || characterItem.id}</span>
                     <div class="ability">${characterItem.ability || 'No ability description available'}</div>
                 `;
