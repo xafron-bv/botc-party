@@ -27,6 +27,11 @@
       </div>
 
       <div class="section">
+        <h3>Tutorial</h3>
+        <button class="button" id="start-tutorial"><i class="fas fa-graduation-cap"></i> Start Tutorial</button>
+      </div>
+
+      <div class="section">
         <h3>Script Management</h3>
         <div class="script-buttons">
           <button class="button" id="load-tb">Trouble Brewing</button>
@@ -103,6 +108,34 @@
   
   <!-- Touch ability popup -->
   <div id="touch-ability-popup" class="touch-ability-popup"></div>
+
+  <!-- Tutorial Overlay -->
+  <div id="tutorial-overlay" class="tutorial-overlay">
+    <div class="tutorial-backdrop"></div>
+    <div class="tutorial-content">
+      <div class="tutorial-header">
+        <h2 id="tutorial-title">Welcome to Blood on the Clocktower</h2>
+        <button class="tutorial-close" id="tutorial-close" aria-label="Close tutorial">&times;</button>
+      </div>
+      <div class="tutorial-body">
+        <p id="tutorial-text">Let's take a quick tour of the app features.</p>
+      </div>
+      <div class="tutorial-footer">
+        <div class="tutorial-progress">
+          <span id="tutorial-step-counter">Step 1 of 8</span>
+          <div class="tutorial-progress-bar">
+            <div class="tutorial-progress-fill" id="tutorial-progress-fill"></div>
+          </div>
+        </div>
+        <div class="tutorial-controls">
+          <button class="button tutorial-btn" id="tutorial-prev">Previous</button>
+          <button class="button tutorial-btn" id="tutorial-skip">Skip Tour</button>
+          <button class="button tutorial-btn tutorial-btn-primary" id="tutorial-next">Next</button>
+        </div>
+      </div>
+    </div>
+    <div class="tutorial-highlight" id="tutorial-highlight"></div>
+  </div>
 
   <script src="script.js"></script>
 </body>

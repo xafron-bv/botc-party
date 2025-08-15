@@ -1687,111 +1687,295 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore previous session (script and grimoire)
   loadAppState();
+
+  // Tooltip positioning function
+  function positionTooltip(targetElement, tooltip) {
+      const rect = targetElement.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      
+      // Position above the element by default
+      let top = rect.top - tooltipRect.height - 10;
+      let left = rect.left + (rect.width - tooltipRect.width) / 2;
+      
+      // Adjust if tooltip would go off screen
+      if (top < 10) {
+          // Position below instead
+          top = rect.bottom + 10;
+      }
+      
+      if (left < 10) {
+          left = 10;
+      } else if (left + tooltipRect.width > window.innerWidth - 10) {
+          left = window.innerWidth - tooltipRect.width - 10;
+      }
+      
+      tooltip.style.top = top + 'px';
+      tooltip.style.left = left + 'px';
+  }
+
+  // Touch ability popup functions
+  function showTouchAbilityPopup(targetElement, ability) {
+      const popup = document.getElementById('touch-ability-popup');
+      if (!popup) return;
+      popup.textContent = ability;
+      popup.classList.add('show');
+      
+      // If targetElement is the info icon, find the token for better positioning
+      const isInfoIcon = targetElement.classList.contains('ability-info-icon');
+      const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
+      
+      const rect = referenceElement.getBoundingClientRect();
+      const popupRect = popup.getBoundingClientRect();
+      
+      // Position above the token
+      let top = rect.top - popupRect.height - 20;
+      let left = rect.left + (rect.width - popupRect.width) / 2;
+      
+      // Adjust if popup would go off screen
+      if (top < 10) {
+          // Position below instead
+          top = rect.bottom + 20;
+      }
+      
+      if (left < 10) {
+          left = 10;
+      } else if (left + popupRect.width > window.innerWidth - 10) {
+          left = window.innerWidth - popupRect.width - 10;
+      }
+      
+      popup.style.top = top + 'px';
+      popup.style.left = left + 'px';
+  }
+
+  function hideTouchAbilityPopup() {
+      const touchAbilityPopup = document.getElementById('touch-ability-popup');
+      if (touchAbilityPopup) {
+          touchAbilityPopup.classList.remove('show');
+      }
+  }
+
+  // Hide touch popup when clicking outside
+  document.addEventListener('click', (e) => {
+      if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
+          hideTouchAbilityPopup();
+      }
+  });
+
+  // Position info icons on a larger circle outside the character tokens
+  function positionInfoIcons() {
+      const circle = document.getElementById('player-circle');
+      if (!circle) return;
+      
+      const circleRect = circle.getBoundingClientRect();
+      const circleWidth = circle.offsetWidth;
+      const circleHeight = circle.offsetHeight;
+      const centerX = circleWidth / 2;
+      const centerY = circleHeight / 2;
+      
+      // Get all info icons
+      const infoIcons = circle.querySelectorAll('.ability-info-icon');
+      
+      infoIcons.forEach(icon => {
+          const playerIndex = parseInt(icon.dataset.playerIndex);
+          const li = icon.parentElement;
+          const angle = parseFloat(li.dataset.angle || '0');
+          
+          // Calculate radius for info icons (add 20% of token radius)
+          const tokenEl = li.querySelector('.player-token');
+          const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
+          const infoRadius = tokenRadius * 1.2;
+          
+          // Calculate position on the outer circle
+          const x = infoRadius * Math.cos(angle);
+          const y = infoRadius * Math.sin(angle);
+          
+          // Position the info icon
+          icon.style.left = `calc(50% + ${x}px)`;
+          icon.style.top = `calc(50% + ${y}px)`;
+      });
+  }
+
+  // Tutorial System
+  const tutorialSteps = [
+      {
+          title: "Welcome to Blood on the Clocktower",
+          text: "This app helps you manage your Blood on the Clocktower games. Let's take a quick tour to learn about the main features.",
+          highlight: null
+      },
+      {
+          title: "Loading Scripts",
+          text: "Start by loading a script. You can choose from the three base scripts (Trouble Brewing, Bad Moon Rising, Sects & Violets) or upload a custom script JSON file.",
+          highlight: ".script-buttons"
+      },
+      {
+          title: "Game Setup",
+          text: "After loading a script, set the number of players (5-20) and click 'Start Game' to create the player circle.",
+          highlight: "#start-game"
+      },
+      {
+          title: "Character Tokens",
+          text: "Click on any player token to assign them a character. You'll see all available characters from your loaded script. Characters are color-coded by type: Townsfolk (green), Outsider (orange), Minion (red), Demon (purple), Traveller (blue), and Fabled (yellow).",
+          highlight: null
+      },
+      {
+          title: "Reminder Tokens",
+          text: "After assigning a character, you can add reminder tokens by clicking the reminder button on a player. These help track abilities, statuses, and game states. You can also add custom text reminders.",
+          highlight: null
+      },
+      {
+          title: "Touch & Mobile Support",
+          text: "The app is fully touch-compatible. On mobile devices, tap character/reminder tokens to see their abilities. Use pinch-to-zoom on the grimoire, and drag to move around.",
+          highlight: null
+      },
+      {
+          title: "Additional Features",
+          text: "<ul><li>Click player names to edit them</li><li>Dead players show with a shroud effect</li><li>The vote indicator shows voting status</li><li>All changes auto-save locally</li><li>The sidebar can be resized or hidden</li></ul>",
+          highlight: "#sidebar-toggle"
+      },
+      {
+          title: "Ready to Play!",
+          text: "You're all set! Start by loading a script and setting up your game. Have fun storytelling!",
+          highlight: null
+      }
+  ];
+
+  let currentTutorialStep = 0;
+  let tutorialActive = false;
+
+  // Tutorial elements
+  const tutorialOverlay = document.getElementById('tutorial-overlay');
+  const tutorialTitle = document.getElementById('tutorial-title');
+  const tutorialText = document.getElementById('tutorial-text');
+  const tutorialStepCounter = document.getElementById('tutorial-step-counter');
+  const tutorialProgressFill = document.getElementById('tutorial-progress-fill');
+  const tutorialHighlight = document.getElementById('tutorial-highlight');
+  const tutorialPrevBtn = document.getElementById('tutorial-prev');
+  const tutorialNextBtn = document.getElementById('tutorial-next');
+  const tutorialSkipBtn = document.getElementById('tutorial-skip');
+  const tutorialCloseBtn = document.getElementById('tutorial-close');
+  const startTutorialBtn = document.getElementById('start-tutorial');
+
+  // Initialize tutorial
+  function initTutorial() {
+      startTutorialBtn.addEventListener('click', startTutorial);
+      tutorialPrevBtn.addEventListener('click', previousTutorialStep);
+      tutorialNextBtn.addEventListener('click', nextTutorialStep);
+      tutorialSkipBtn.addEventListener('click', endTutorial);
+      tutorialCloseBtn.addEventListener('click', endTutorial);
+      
+      // Close tutorial on backdrop click
+      tutorialOverlay.addEventListener('click', (e) => {
+          if (e.target === tutorialOverlay || e.target.classList.contains('tutorial-backdrop')) {
+              endTutorial();
+          }
+      });
+      
+      // Handle escape key
+      document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && tutorialActive) {
+              endTutorial();
+          }
+      });
+  }
+
+  function startTutorial() {
+      tutorialActive = true;
+      currentTutorialStep = 0;
+      tutorialOverlay.classList.add('active');
+      
+      // Ensure sidebar is visible for the tutorial
+      if (sidebar.classList.contains('hidden')) {
+          toggleSidebar();
+      }
+      
+      showTutorialStep();
+  }
+
+  function showTutorialStep() {
+      const step = tutorialSteps[currentTutorialStep];
+      
+      // Update content
+      tutorialTitle.textContent = step.title;
+      tutorialText.innerHTML = step.text;
+      
+      // Update progress
+      tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
+      const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
+      tutorialProgressFill.style.width = `${progressPercent}%`;
+      
+      // Update button states
+      tutorialPrevBtn.disabled = currentTutorialStep === 0;
+      tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+      
+      // Handle highlighting
+      if (step.highlight) {
+          highlightElement(step.highlight);
+      } else {
+          tutorialHighlight.classList.remove('active');
+      }
+  }
+
+  function highlightElement(selector) {
+      const element = document.querySelector(selector);
+      if (!element) {
+          tutorialHighlight.classList.remove('active');
+          return;
+      }
+      
+      const rect = element.getBoundingClientRect();
+      const padding = 10;
+      
+      tutorialHighlight.style.left = `${rect.left - padding}px`;
+      tutorialHighlight.style.top = `${rect.top - padding}px`;
+      tutorialHighlight.style.width = `${rect.width + (padding * 2)}px`;
+      tutorialHighlight.style.height = `${rect.height + (padding * 2)}px`;
+      tutorialHighlight.classList.add('active');
+      
+      // Ensure highlighted element is visible
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function nextTutorialStep() {
+      if (currentTutorialStep < tutorialSteps.length - 1) {
+          currentTutorialStep++;
+          showTutorialStep();
+      } else {
+          endTutorial();
+      }
+  }
+
+  function previousTutorialStep() {
+      if (currentTutorialStep > 0) {
+          currentTutorialStep--;
+          showTutorialStep();
+      }
+  }
+
+  function endTutorial() {
+      tutorialActive = false;
+      tutorialOverlay.classList.remove('active');
+      tutorialHighlight.classList.remove('active');
+      
+      // Save that user has seen tutorial
+      try {
+          localStorage.setItem('botcTutorialSeen', 'true');
+      } catch (_) {}
+  }
+
+  // Check if tutorial should be shown on first visit
+  function checkFirstVisit() {
+      try {
+          const hasSeenTutorial = localStorage.getItem('botcTutorialSeen');
+          if (!hasSeenTutorial) {
+              // Delay tutorial start to let page fully load
+              setTimeout(() => {
+                  startTutorial();
+              }, 1000);
+          }
+      } catch (_) {}
+  }
+
+  // Initialize tutorial when page loads
+  initTutorial();
+  checkFirstVisit();
 });
-
-// Tooltip positioning function
-function positionTooltip(targetElement, tooltip) {
-    const rect = targetElement.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    
-    // Position above the element by default
-    let top = rect.top - tooltipRect.height - 10;
-    let left = rect.left + (rect.width - tooltipRect.width) / 2;
-    
-    // Adjust if tooltip would go off screen
-    if (top < 10) {
-        // Position below instead
-        top = rect.bottom + 10;
-    }
-    
-    if (left < 10) {
-        left = 10;
-    } else if (left + tooltipRect.width > window.innerWidth - 10) {
-        left = window.innerWidth - tooltipRect.width - 10;
-    }
-    
-    tooltip.style.top = top + 'px';
-    tooltip.style.left = left + 'px';
-}
-
-// Touch ability popup functions
-function showTouchAbilityPopup(targetElement, ability) {
-    const popup = document.getElementById('touch-ability-popup');
-    if (!popup) return;
-    popup.textContent = ability;
-    popup.classList.add('show');
-    
-    // If targetElement is the info icon, find the token for better positioning
-    const isInfoIcon = targetElement.classList.contains('ability-info-icon');
-    const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
-    
-    const rect = referenceElement.getBoundingClientRect();
-    const popupRect = popup.getBoundingClientRect();
-    
-    // Position above the token
-    let top = rect.top - popupRect.height - 20;
-    let left = rect.left + (rect.width - popupRect.width) / 2;
-    
-    // Adjust if popup would go off screen
-    if (top < 10) {
-        // Position below instead
-        top = rect.bottom + 20;
-    }
-    
-    if (left < 10) {
-        left = 10;
-    } else if (left + popupRect.width > window.innerWidth - 10) {
-        left = window.innerWidth - popupRect.width - 10;
-    }
-    
-    popup.style.top = top + 'px';
-    popup.style.left = left + 'px';
-}
-
-function hideTouchAbilityPopup() {
-    const touchAbilityPopup = document.getElementById('touch-ability-popup');
-    if (touchAbilityPopup) {
-        touchAbilityPopup.classList.remove('show');
-    }
-}
-
-// Hide touch popup when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
-        hideTouchAbilityPopup();
-    }
-});
-
-// Position info icons on a larger circle outside the character tokens
-function positionInfoIcons() {
-    const circle = document.getElementById('player-circle');
-    if (!circle) return;
-    
-    const circleRect = circle.getBoundingClientRect();
-    const circleWidth = circle.offsetWidth;
-    const circleHeight = circle.offsetHeight;
-    const centerX = circleWidth / 2;
-    const centerY = circleHeight / 2;
-    
-    // Get all info icons
-    const infoIcons = circle.querySelectorAll('.ability-info-icon');
-    
-    infoIcons.forEach(icon => {
-        const playerIndex = parseInt(icon.dataset.playerIndex);
-        const li = icon.parentElement;
-        const angle = parseFloat(li.dataset.angle || '0');
-        
-        // Calculate radius for info icons (add 20% of token radius)
-        const tokenEl = li.querySelector('.player-token');
-        const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
-        const infoRadius = tokenRadius * 1.2;
-        
-        // Calculate position on the outer circle
-        const x = infoRadius * Math.cos(angle);
-        const y = infoRadius * Math.sin(angle);
-        
-        // Position the info icon
-        icon.style.left = `calc(50% + ${x}px)`;
-        icon.style.top = `calc(50% + ${y}px)`;
-    });
-}
