@@ -974,6 +974,17 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.top = `${cy}px`;
               el.style.transform = 'translate(-50%, -50%)';
               el.style.zIndex = '5';
+
+              // Place delete button to the "east" side relative to the radial (plus) direction
+              const del = el.querySelector('.reminder-delete-btn');
+              if (del) {
+                const eastX = -uy;
+                const eastY = ux;
+                const deleteOffset = reminderRadius + Math.max(6, edgeGap * 0.25);
+                del.style.left = '50%';
+                del.style.top = '50%';
+                del.style.transform = `translate(-50%, -50%) translate(${eastX * deleteOffset}px, ${eastY * deleteOffset}px)`;
+              }
           });
           
                   // Position hover zone as a rectangle along the radial line
@@ -1031,6 +1042,17 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.top = `${cy}px`;
               el.style.transform = 'translate(-50%, -50%) scale(0.8)';
               el.style.zIndex = '2';
+
+              // Place delete button to the "east" side relative to the radial (plus) direction
+              const del = el.querySelector('.reminder-delete-btn');
+              if (del) {
+                const eastX = -uy;
+                const eastY = ux;
+                const deleteOffset = reminderRadius + Math.max(6, edgeGap * 0.25);
+                del.style.left = '50%';
+                del.style.top = '50%';
+                del.style.transform = `translate(-50%, -50%) translate(${eastX * deleteOffset}px, ${eastY * deleteOffset}px)`;
+              }
           });
           
                   // Position hover zone as a rectangle along the radial line (same as expanded state)

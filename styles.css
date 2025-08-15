@@ -399,8 +399,8 @@ body {
 .reminder-delete-btn {
   position: absolute;
   left: 50%;
-  top: 0;
-  transform: translate(-50%, -110%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: clamp(16px, calc(var(--token-size) * 0.18), 28px);
   height: clamp(16px, calc(var(--token-size) * 0.18), 28px);
   min-width: 16px;
@@ -1241,15 +1241,5 @@ body.resizing {
   }
 }
 
-/* For southern players, place delete button further outward to avoid the plus */
-#player-circle li.is-south .reminder-delete-btn {
-  top: 100%;
-  transform: translate(-50%, 6%);
-}
-
-/* Default (north/others): keep delete above the token */
-#player-circle li.is-north .reminder-delete-btn {
-  top: 0;
-  transform: translate(-50%, -110%);
-}
+/* Delete button absolute position is centered; JS will place it to the east of the reminder */
 
