@@ -222,7 +222,7 @@ body {
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
     opacity: 1;
-    transform: translate(-50%, calc(-50% + var(--token-size) * 0.6));
+    transform: translate(-50%, calc(-50% + var(--token-size) * 0.8));
     z-index: 10;
     filter: blur(0px);
 }
@@ -465,56 +465,211 @@ body {
   flex: 0 0 var(--sidebar-width, 320px);
   min-width: 220px;
   max-width: 800px;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
+  padding: 0;
   overflow-y: auto;
-  border-right: 3px solid #D4AF37;
-  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  border-right: 2px solid #D4AF37;
+  box-shadow: 6px 0 24px rgba(0,0,0,0.6);
 }
 
-/* Collapsed sidebar state */
-body.sidebar-collapsed #sidebar {
-  flex: 0 0 0 !important;
-  width: 0 !important;
-  min-width: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  overflow: hidden !important;
-}
-body.sidebar-collapsed #sidebar-resizer {
-  display: none !important;
+/* Sidebar sections with better spacing */
+#sidebar .section {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
-#sidebar-resizer {
-  width: 6px;
-  cursor: col-resize;
-  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
-  border-right: 2px solid rgba(212,175,55,0.4);
-  user-select: none;
-  touch-action: none;
-  z-index: 10;
+#sidebar .section:last-child {
+  border-bottom: none;
 }
 
-#sidebar-resizer:hover { background: rgba(212,175,55,0.3); }
+/* Section headers */
+#sidebar h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #D4AF37;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-body.resizing {
-  cursor: col-resize;
-  user-select: none;
+/* Form controls styling */
+#sidebar label {
+  display: block;
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+#sidebar input[type="number"],
+#sidebar input[type="file"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#sidebar input[type="number"]:focus,
+#sidebar input[type="file"]:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Script buttons container */
+.script-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Status message */
+#load-status {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+#load-status.status {
+  background: rgba(88, 50, 134, 0.2);
+  color: #bbb;
+  border: 1px solid rgba(88, 50, 134, 0.3);
+}
+
+#load-status.error {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+/* Character sheet improvements */
+#character-sheet {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#character-sheet::-webkit-scrollbar {
+  width: 8px;
+}
+
+#character-sheet::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.6);
+}
+
+/* Team headers in character sheet */
+#character-sheet h3 {
+  font-size: 16px;
+  margin: 16px 0 12px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+#character-sheet h3.team-townsfolk {
+  background: rgba(58, 123, 213, 0.2);
+  color: #6bb6ff;
+  border-left: 4px solid #3a7bd5;
+}
+
+#character-sheet h3.team-outsider {
+  background: rgba(88, 50, 134, 0.2);
+  color: #b794f6;
+  border-left: 4px solid #583286;
+}
+
+#character-sheet h3.team-minion {
+  background: rgba(202, 60, 60, 0.2);
+  color: #ff8787;
+  border-left: 4px solid #ca3c3c;
+}
+
+#character-sheet h3.team-demon {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border-left: 4px solid #8B0000;
+}
+
+#character-sheet h3.team-travellers {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffd54f;
+  border-left: 4px solid #ffc107;
+}
+
+#character-sheet h3.team-fabled {
+  background: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
+  border-left: 4px solid #9c27b0;
+}
+
+/* Role items */
+#character-sheet .role {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+#character-sheet .role:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(4px);
+}
+
+#character-sheet .role .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  flex-shrink: 0;
+}
+
+#character-sheet .role .name {
+  font-size: 14px;
+  color: #e0e0e0;
 }
 
 .button {
   background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
   color: white;
-  border: none;
-  padding: 10px 16px;
-  margin: 8px 5px;
-  border-radius: 8px;
+  border: 1px solid #7a4ba8;
+  padding: 12px 20px;
+  margin: 6px 0;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
-  border: 2px solid #7a4ba8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
 }
 
 .button:hover {
@@ -745,4 +900,35 @@ label {
     transform: translate(-50%, calc(-50% + var(--token-size) * 0.6));
     filter: blur(0);
   }
+}
+
+/* Collapsed sidebar state */
+body.sidebar-collapsed #sidebar {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+body.sidebar-collapsed #sidebar-resizer {
+  display: none !important;
+}
+
+#sidebar-resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
+  border-right: 2px solid rgba(212,175,55,0.4);
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+}
+
+#sidebar-resizer:hover { background: rgba(212,175,55,0.3); }
+
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
 }

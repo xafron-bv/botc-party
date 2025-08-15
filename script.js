@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
   const loadSavBtn = document.getElementById('load-sav');
+  const loadAllCharsBtn = document.getElementById('load-all-chars');
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
@@ -87,6 +88,55 @@ document.addEventListener('DOMContentLoaded', () => {
       return path;
   }
 
+  async function loadAllCharacters() {
+    try {
+      loadStatus.textContent = 'Loading all characters...';
+      loadStatus.className = 'status';
+      
+      // Load tokens.json directly
+      const response = await fetch('./tokens.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load tokens.json: ${response.status}`);
+      }
+      
+      const tokens = await response.json();
+      console.log('Loading all characters from tokens.json');
+      
+      // Reset allRoles
+      allRoles = {};
+      
+      // Process all teams including fabled and travellers
+      const allTeams = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+      let characterIds = [];
+      
+      allTeams.forEach(teamName => {
+        if (tokens[teamName] && Array.isArray(tokens[teamName])) {
+          tokens[teamName].forEach(role => {
+            const image = resolveAssetPath(role.image);
+            allRoles[role.id] = { ...role, image, team: teamName };
+            characterIds.push(role.id);
+          });
+        }
+      });
+      
+      console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
+      
+      // Create a pseudo-script data array with all character IDs
+      scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
+      
+      displayScript(scriptData);
+      saveAppState();
+      
+      loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
+      loadStatus.className = 'status';
+      
+    } catch (error) {
+      console.error('Failed to load all characters:', error);
+      loadStatus.textContent = `Failed to load all characters: ${error.message}`;
+      loadStatus.className = 'error';
+    }
+  }
+
   async function loadScriptFromFile(path) {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
@@ -115,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
   loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
   loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
+  loadAllCharsBtn && loadAllCharsBtn.addEventListener('click', () => { scriptMetaName = 'All Characters'; renderSetupInfo(); loadAllCharacters(); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -1003,8 +1054,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const text = document.createElementNS('http://www.w3.org/2000/svg','text');
       text.setAttribute('class','icon-reminder-text');
       text.setAttribute('text-anchor','middle');
-      const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
-      textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
+      const textPath = document.createElementNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
       textPath.setAttribute('startOffset','50%');
       // Truncate display on token to avoid overcrowding, but keep tooltip full
       const full = String(labelText || '');
