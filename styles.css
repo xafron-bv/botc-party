@@ -53,7 +53,7 @@ body {
 }
 
 #center {
-  background-image: url('https://botc.app/assets/background4-C7TzDZ7M.webp');
+  background-image: url('../assets/img/background4.webp');
   background-size: cover;
   background-position: center;
   height: 100%;
