@@ -1243,3 +1243,27 @@ body.resizing {
 
 /* Delete button absolute position is centered; JS will place it to the east of the reminder */
 
+/* History lists in sidebar */
+#sidebar .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+#sidebar .history-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+#sidebar .history-list .history-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#sidebar .history-list button.button {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+

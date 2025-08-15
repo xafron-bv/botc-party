@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
   const sidebarCloseBtn = document.getElementById('sidebar-close');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const scriptHistoryList = document.getElementById('script-history-list');
+  const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
   let scriptData = null;
   let scriptMetaName = '';
@@ -109,6 +111,222 @@ document.addEventListener('DOMContentLoaded', () => {
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
+  let scriptHistory = [];
+  let grimoireHistory = [];
+  let isRestoringState = false;
+
+  function generateId(prefix) {
+    try {
+      if (crypto && crypto.randomUUID) return `${prefix || 'id'}_${crypto.randomUUID()}`;
+    } catch(_) {}
+    return `${prefix || 'id'}_${Date.now()}_${Math.floor(Math.random()*1e6)}`;
+  }
+
+  function formatDateName(date = new Date()) {
+    try {
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,'0');
+      const d = String(date.getDate()).padStart(2,'0');
+      const hh = String(date.getHours()).padStart(2,'0');
+      const mm = String(date.getMinutes()).padStart(2,'0');
+      return `${y}-${m}-${d} ${hh}:${mm}`;
+    } catch(_) {
+      return String(date);
+    }
+  }
+
+  function saveHistories() {
+    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
+    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch(_) {}
+  }
+
+  function loadHistories() {
+    try {
+      const sRaw = localStorage.getItem('botcScriptHistoryV1');
+      if (sRaw) scriptHistory = JSON.parse(sRaw) || [];
+    } catch(_) { scriptHistory = []; }
+    try {
+      const gRaw = localStorage.getItem('botcGrimoireHistoryV1');
+      if (gRaw) grimoireHistory = JSON.parse(gRaw) || [];
+    } catch(_) { grimoireHistory = []; }
+  }
+
+  function renderScriptHistory() {
+    if (!scriptHistoryList) return;
+    scriptHistoryList.innerHTML = '';
+    scriptHistory.forEach(entry => {
+      const li = document.createElement('li');
+      li.dataset.id = entry.id;
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'history-name';
+      nameSpan.textContent = entry.name || '(unnamed script)';
+      const loadBtn = document.createElement('button');
+      loadBtn.className = 'button';
+      loadBtn.textContent = 'Load';
+      loadBtn.dataset.action = 'load';
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'button';
+      renameBtn.textContent = 'Rename';
+      renameBtn.dataset.action = 'rename';
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'button';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.dataset.action = 'delete';
+      li.appendChild(nameSpan);
+      li.appendChild(loadBtn);
+      li.appendChild(renameBtn);
+      li.appendChild(deleteBtn);
+      scriptHistoryList.appendChild(li);
+    });
+  }
+
+  function renderGrimoireHistory() {
+    if (!grimoireHistoryList) return;
+    grimoireHistoryList.innerHTML = '';
+    grimoireHistory.forEach(entry => {
+      const li = document.createElement('li');
+      li.dataset.id = entry.id;
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'history-name';
+      nameSpan.textContent = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+      const loadBtn = document.createElement('button');
+      loadBtn.className = 'button';
+      loadBtn.textContent = 'Load';
+      loadBtn.dataset.action = 'load';
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'button';
+      renameBtn.textContent = 'Rename';
+      renameBtn.dataset.action = 'rename';
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'button';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.dataset.action = 'delete';
+      li.appendChild(nameSpan);
+      li.appendChild(loadBtn);
+      li.appendChild(renameBtn);
+      li.appendChild(deleteBtn);
+      grimoireHistoryList.appendChild(li);
+    });
+  }
+
+  function addScriptToHistory(name, data) {
+    const entryName = (name && String(name).trim()) || 'Custom Script';
+    // Update existing by name if found, else add new
+    const idx = scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
+    if (idx >= 0) {
+      scriptHistory[idx].data = data;
+      scriptHistory[idx].updatedAt = Date.now();
+    } else {
+      scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
+    }
+    saveHistories();
+    renderScriptHistory();
+  }
+
+  function snapshotCurrentGrimoire() {
+    try {
+      if (!Array.isArray(players) || players.length === 0) return;
+      const snapPlayers = JSON.parse(JSON.stringify(players));
+      let name = formatDateName(new Date());
+      const entry = {
+        id: generateId('grimoire'),
+        name,
+        createdAt: Date.now(),
+        players: snapPlayers,
+        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
+        scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
+      };
+      grimoireHistory.unshift(entry);
+      saveHistories();
+      renderGrimoireHistory();
+    } catch(_) {}
+  }
+
+  async function restoreGrimoireFromEntry(entry) {
+    if (!entry) return;
+    try {
+      isRestoringState = true;
+      if (entry.scriptData) {
+        await processScriptData(entry.scriptData, false);
+        scriptMetaName = entry.scriptName || scriptMetaName;
+      }
+      setupGrimoire((entry.players || []).length || 0);
+      players = JSON.parse(JSON.stringify(entry.players || []));
+      updateGrimoire();
+      repositionPlayers();
+      saveAppState();
+      renderSetupInfo();
+    } catch (e) {
+      console.error('Failed to restore grimoire from history:', e);
+    } finally {
+      isRestoringState = false;
+    }
+  }
+
+  // Event delegation for history lists
+  if (scriptHistoryList) {
+    scriptHistoryList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const li = btn.closest('li');
+      const id = li && li.dataset.id;
+      const entry = scriptHistory.find(x => x.id === id);
+      if (!entry) return;
+      const action = btn.dataset.action;
+      if (action === 'load') {
+        try {
+          await processScriptData(entry.data, false);
+          scriptMetaName = entry.name || scriptMetaName || '';
+          displayScript(scriptData);
+          saveAppState();
+          renderSetupInfo();
+        } catch (err) { console.error(err); }
+      } else if (action === 'rename') {
+        const newName = prompt('Enter new name for this script:', entry.name || '');
+        if (newName && newName.trim()) {
+          entry.name = newName.trim();
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderScriptHistory();
+        }
+      } else if (action === 'delete') {
+        if (confirm('Delete this script from history?')) {
+          scriptHistory = scriptHistory.filter(x => x.id !== id);
+          saveHistories();
+          renderScriptHistory();
+        }
+      }
+    });
+  }
+
+  if (grimoireHistoryList) {
+    grimoireHistoryList.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const li = btn.closest('li');
+      const id = li && li.dataset.id;
+      const entry = grimoireHistory.find(x => x.id === id);
+      if (!entry) return;
+      const action = btn.dataset.action;
+      if (action === 'load') {
+        await restoreGrimoireFromEntry(entry);
+      } else if (action === 'rename') {
+        const newName = prompt('Enter new name for this grimoire snapshot:', entry.name || formatDateName(new Date(entry.createdAt || Date.now())));
+        if (newName && newName.trim()) {
+          entry.name = newName.trim();
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderGrimoireHistory();
+        }
+      } else if (action === 'delete') {
+        if (confirm('Delete this grimoire snapshot?')) {
+          grimoireHistory = grimoireHistory.filter(x => x.id !== id);
+          saveHistories();
+          renderGrimoireHistory();
+        }
+      }
+    });
+  }
 
   function saveAppState() {
     try {
@@ -119,11 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadAppState() {
     try {
+      isRestoringState = true;
       const raw = localStorage.getItem('botcAppStateV1');
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
-        await processScriptData(saved.scriptData);
+        await processScriptData(saved.scriptData, false);
         if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
       }
       if (saved && Array.isArray(saved.players) && saved.players.length) {
@@ -133,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         repositionPlayers();
         renderSetupInfo();
       }
-    } catch (_) {}
+    } catch (_) {} finally { isRestoringState = false; }
   }
 
   function resolveAssetPath(path) {
@@ -186,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       displayScript(scriptData);
       saveAppState();
+      addScriptToHistory('All Characters', scriptData);
       
       loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
       loadStatus.className = 'status';
@@ -213,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(path, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      await processScriptData(json);
+      await processScriptData(json, true);
       loadStatus.textContent = 'Script loaded successfully!';
       loadStatus.className = 'status';
     } catch (e) {
@@ -240,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = JSON.parse(e.target.result);
         console.log('Uploaded script parsed successfully:', json);
         
-        await processScriptData(json);
+        await processScriptData(json, true);
         loadStatus.textContent = 'Custom script loaded successfully!';
         loadStatus.className = 'status';
       } catch (error) { 
@@ -295,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInfoEl.textContent = parts.join(' ');
   }
 
-  async function processScriptData(data) {
+  async function processScriptData(data, addToHistory = false) {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
@@ -317,6 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
       displayScript(data);
        saveAppState();
        renderSetupInfo();
+       if (addToHistory) {
+         const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
+         addScriptToHistory(histName, data);
+       }
   }
 
   async function processScriptCharacters(characterIds) {
@@ -425,14 +649,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupGrimoire(count) {
-      console.log('Setting up grimoire with', count, 'players');
-      playerCircle.innerHTML = '';
-      players = Array.from({ length: count }, (_, i) => ({
-          name: `Player ${i + 1}`,
-          character: null,
-          reminders: [],
-          dead: false
-      }));
+      try {
+        if (!isRestoringState && Array.isArray(players) && players.length > 0) {
+          snapshotCurrentGrimoire();
+        }
+      } catch(_) {}
+       console.log('Setting up grimoire with', count, 'players');
+       playerCircle.innerHTML = '';
+       players = Array.from({ length: count }, (_, i) => ({
+           name: `Player ${i + 1}`,
+           character: null,
+           reminders: [],
+           dead: false
+       }));
       
       players.forEach((player, i) => {
           const listItem = document.createElement('li');
@@ -1765,6 +1994,11 @@ document.addEventListener('DOMContentLoaded', () => {
       document.addEventListener('touchstart', handleOutsideClick, { passive: true, capture: true });
     }
   })();
+
+  // Load histories and render lists
+  loadHistories();
+  renderScriptHistory();
+  renderGrimoireHistory();
 
   // Restore previous session (script and grimoire)
   loadAppState();
