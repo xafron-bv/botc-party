@@ -1747,6 +1747,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Wait for ongoing CSS transitions/animations to complete before measuring
+    function waitForAnimationsToFinish(element, fallbackMs = 400) {
+      return new Promise((resolve) => {
+        let resolved = false;
+        function finish() {
+          if (resolved) return;
+          resolved = true;
+          resolve();
+        }
+        try {
+          const nodes = [document.body, sidebar, element].filter(Boolean);
+          const animations = [];
+          for (let i = 0; i < nodes.length; i += 1) {
+            const node = nodes[i];
+            if (node && typeof node.getAnimations === 'function') {
+              const arr = node.getAnimations({ subtree: true });
+              for (let j = 0; j < arr.length; j += 1) animations.push(arr[j]);
+            }
+          }
+          if (animations.length > 0) {
+            const timeoutId = setTimeout(finish, Math.max(250, fallbackMs));
+            Promise.all(animations.map((a) => a.finished.catch(() => {}))).then(() => {
+              clearTimeout(timeoutId);
+              // Wait two frames to allow layout to fully settle
+              requestAnimationFrame(() => requestAnimationFrame(finish));
+            });
+          } else {
+            setTimeout(finish, Math.max(250, fallbackMs));
+          }
+        } catch(_) {
+          setTimeout(finish, Math.max(250, fallbackMs));
+        }
+      });
+    }
+
     // Compute popover position near target rect
     function positionPopoverNear(rect) {
       const margin = 12;
@@ -1822,7 +1857,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: 'grimoire',
         title: 'The Grimoire',
         body: 'This is the grimoire. We will close the sidebar for more space.',
-        target: () => document.getElementById('center'),
+        target: () => document.getElementById('player-circle') || document.getElementById('center'),
         requiresSidebarClosed: true,
         onEnter: () => setSidebarCollapsed(true)
       },
@@ -1857,69 +1892,82 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderStep() {
       ensureVisibilityForStep(steps[idx]);
 
-      // If the step wants sidebar closed, ensure it immediately
+      // If the step wants sidebar closed/open, ensure it immediately
       if (steps[idx].onEnter) {
         try { steps[idx].onEnter(); } catch(_) {}
       }
 
       const targetEl = steps[idx].target && steps[idx].target();
-      const rect = targetEl ? targetEl.getBoundingClientRect() : { left: 16, top: 16, width: 300, height: 60, right: 316, bottom: 76 };
 
-      // Show overlay
-      backdrop.style.display = 'block';
-      showHighlight(rect);
+      const doRender = () => {
+        const rect = targetEl ? targetEl.getBoundingClientRect() : { left: 16, top: 16, width: 300, height: 60, right: 316, bottom: 76 };
 
-      // Build popover content
-      pop.innerHTML = '';
+        // Show overlay
+        backdrop.style.display = 'block';
+        showHighlight(rect);
 
-      const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = steps[idx].title;
+        // Build popover content
+        pop.innerHTML = '';
 
-      const body = document.createElement('div');
-      body.className = 'body';
-      body.textContent = steps[idx].body;
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = steps[idx].title;
 
-      const actions = document.createElement('div');
-      actions.className = 'actions';
+        const body = document.createElement('div');
+        body.className = 'body';
+        body.textContent = steps[idx].body;
 
-      const skipBtn = document.createElement('button');
-      skipBtn.className = 'button';
-      skipBtn.textContent = 'Skip';
-      skipBtn.onclick = endTour;
+        const actions = document.createElement('div');
+        actions.className = 'actions';
 
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'button';
-      prevBtn.textContent = 'Back';
-      prevBtn.disabled = idx === 0;
-      prevBtn.onclick = () => { idx = Math.max(0, idx - 1); renderStep(); };
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'button';
+        skipBtn.textContent = 'Skip';
+        skipBtn.onclick = endTour;
 
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'button';
-      nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next';
-      nextBtn.onclick = () => {
-        if (steps[idx].onBeforeNext) {
-          try { steps[idx].onBeforeNext(); } catch(_) {}
-        }
-        if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); }
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'button';
+        prevBtn.textContent = 'Back';
+        prevBtn.disabled = idx === 0;
+        prevBtn.onclick = () => { idx = Math.max(0, idx - 1); renderStep(); };
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'button';
+        nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next';
+        nextBtn.onclick = () => {
+          if (steps[idx].onBeforeNext) {
+            try { steps[idx].onBeforeNext(); } catch(_) {}
+          }
+          if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); }
+        };
+
+        const progress = document.createElement('div');
+        progress.className = 'progress';
+        progress.textContent = `Step ${idx + 1} of ${steps.length}`;
+
+        actions.appendChild(skipBtn);
+        actions.appendChild(prevBtn);
+        actions.appendChild(nextBtn);
+
+        pop.appendChild(title);
+        pop.appendChild(body);
+        pop.appendChild(actions);
+        pop.appendChild(progress);
+
+        pop.style.display = 'block';
+        // Position after contents are added
+        positionPopoverNear(rect);
       };
 
-      const progress = document.createElement('div');
-      progress.className = 'progress';
-      progress.textContent = `Step ${idx + 1} of ${steps.length}`;
+      // If the target is inside the sidebar, scroll it into view so it's visible
+      if (targetEl && sidebar.contains(targetEl)) {
+        try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch(_) {}
+      }
 
-      actions.appendChild(skipBtn);
-      actions.appendChild(prevBtn);
-      actions.appendChild(nextBtn);
-
-      pop.appendChild(title);
-      pop.appendChild(body);
-      pop.appendChild(actions);
-      pop.appendChild(progress);
-
-      pop.style.display = 'block';
-      // Position after contents are added
-      positionPopoverNear(rect);
+      // Wait for transitions/animations to finish, then render highlight
+      waitForAnimationsToFinish(targetEl, 400).then(() => {
+        requestAnimationFrame(() => requestAnimationFrame(doRender));
+      });
     }
 
     function endTour() {
