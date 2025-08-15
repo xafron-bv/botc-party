@@ -32,7 +32,8 @@ body {
   z-index: 1000;
   padding: 10px 12px;
   font-size: 14px;
-  width: auto; /* Override the 100% width from .button class */
+  width: auto !important; /* Override the 100% width from .button class */
+  text-align: left !important; /* Override center alignment from .button class */
 }
 
 /* Close button inside sidebar header */
@@ -48,7 +49,7 @@ body {
   .sidebar-toggle {
     padding: 14px 16px;
     font-size: 16px;
-    width: auto; /* Maintain auto width in touch mode */
+    width: auto !important; /* Maintain auto width in touch mode */
   }
 }
 
