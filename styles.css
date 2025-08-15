@@ -345,16 +345,6 @@ body {
     transform: scale(1.06);
 }
 
-/* Raise stacking when reminder is interacted with so delete stays above plus */
-.icon-reminder:hover,
-.text-reminder:hover { z-index: 8; }
-
-@media (hover: none) and (pointer: coarse) {
-  /* On touch devices, ensure reminders sit above the plus so delete is never hidden */
-  .icon-reminder,
-  .text-reminder { z-index: 8; }
-}
-
 /* Death UI elements */
 .player-token .death-overlay {
     position: absolute;
@@ -405,6 +395,7 @@ body {
 }
 
 /* centered delete control */
+#player-circle li:not(.is-north):not(.is-south) .reminder-delete-btn,
 .reminder-delete-btn {
   position: absolute;
   left: 50%;
@@ -426,7 +417,7 @@ body {
   opacity: 0;
   transition: opacity .15s ease;
   cursor: pointer;
-  z-index: 7;
+  z-index: 5;
 }
 
 .icon-reminder:hover .reminder-delete-btn,
@@ -1250,12 +1241,15 @@ body.resizing {
   }
 }
 
-/* Ensure reminders sit above the plus button when expanded or hovered so delete is on top */
-#player-circle li[data-expanded="1"] .reminders,
-#player-circle li:hover .reminders {
-  z-index: 7;
+/* For southern players, place delete button further outward to avoid the plus */
+#player-circle li.is-south .reminder-delete-btn {
+  top: 100%;
+  transform: translate(-50%, 6%);
 }
 
-@media (hover: none) and (pointer: coarse) {
-  #player-circle li .reminders { z-index: 7; }
+/* Default (north/others): keep delete above the token */
+#player-circle li.is-north .reminder-delete-btn {
+  top: 0;
+  transform: translate(-50%, -110%);
 }
+

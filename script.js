@@ -598,8 +598,12 @@ document.addEventListener('DOMContentLoaded', () => {
               
               if (isNorthQuadrant) {
                   playerNameEl.classList.add('top-half');
+                  listItem.classList.add('is-north');
+                  listItem.classList.remove('is-south');
               } else {
                   playerNameEl.classList.remove('top-half');
+                  listItem.classList.add('is-south');
+                  listItem.classList.remove('is-north');
               }
           }
 
@@ -638,8 +642,12 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (isNorthQuadrant) {
               playerNameEl.classList.add('top-half');
+              li.classList.add('is-north');
+              li.classList.remove('is-south');
           } else {
               playerNameEl.classList.remove('top-half');
+              li.classList.add('is-south');
+              li.classList.remove('is-north');
           }
           
           const tokenDiv = li.querySelector('.player-token');
