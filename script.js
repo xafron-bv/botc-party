@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const reminderTokenModalPlayerName = document.getElementById('reminder-token-modal-player-name');
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
   const sidebarCloseBtn = document.getElementById('sidebar-close');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 
   let scriptData = null;
   let scriptMetaName = '';
@@ -90,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const TOUCH_EXPAND_SUPPRESS_MS = 350;
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
+  const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
 
   function saveAppState() {
     try {
@@ -545,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('Player circle element not found');
           return;
       }
-      // Compute token size and a radius that guarantees non-overlap for given count
+            // Compute token size and a radius that guarantees non-overlap for given count
       const listItemsForSize = circle.querySelectorAll('li');
       if (!listItemsForSize.length) return;
       const sampleToken = listItemsForSize[0].querySelector('.player-token') || listItemsForSize[0];
@@ -555,20 +557,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const chordNeeded = tokenDiameter * 1.25;
       // r >= chord / (2 * sin(pi/count)) ensures neighboring chords >= token size
       let radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
-      // Size the circle container to fully contain tokens
+      // Size the circle container to fully contain tokens, but clamp to viewport/container
+      const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
+      const margin = 24;
+      const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
       const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
-      circle.style.width = requiredContainerSize + 'px';
-      circle.style.height = requiredContainerSize + 'px';
-
-      const circleWidth = requiredContainerSize;
-      const circleHeight = requiredContainerSize;
+      const containerSize = Math.min(requiredContainerSize, maxSize);
+      const effectiveRadius = Math.max(80, (containerSize / 2) - tokenRadius - 12);
+      circle.style.width = containerSize + 'px';
+      circle.style.height = containerSize + 'px';
+      
+      const circleWidth = containerSize;
+      const circleHeight = containerSize;
       const angleStep = (2 * Math.PI) / count;
+      const positionRadius = Math.min(radius, effectiveRadius);
 
       const listItems = circle.querySelectorAll('li');
       listItems.forEach((listItem, i) => {
           const angle = i * angleStep - (Math.PI / 2);
-          const x = (circleWidth / 2) + radius * Math.cos(angle);
-          const y = (circleHeight / 2) + radius * Math.sin(angle);
+          const x = (circleWidth / 2) + positionRadius * Math.cos(angle);
+          const y = (circleHeight / 2) + positionRadius * Math.sin(angle);
           
           listItem.style.position = 'absolute';
           listItem.style.left = `${x}px`;
@@ -1648,7 +1656,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const COLLAPSE_KEY = 'sidebarCollapsed';
     const applyCollapsed = (collapsed) => {
       document.body.classList.toggle('sidebar-collapsed', collapsed);
-      // Show open button only when collapsed
+      const useOverlay = prefersOverlaySidebar.matches;
+      document.body.classList.toggle('sidebar-open', !collapsed && useOverlay);
+      if (sidebarBackdrop) sidebarBackdrop.style.display = (!collapsed && useOverlay) ? 'block' : 'none';
+      // Button label + visibility
       sidebarToggleBtn.textContent = 'Open Sidebar';
       sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
       sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
@@ -1659,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // Initialize from stored state
     const stored = localStorage.getItem(COLLAPSE_KEY);
-    const startCollapsed = stored === '1';
+    const startCollapsed = stored === '1' || prefersOverlaySidebar.matches; // default collapsed on small screens
     applyCollapsed(startCollapsed);
     // Open button (in grimoire)
     sidebarToggleBtn.addEventListener('click', () => {
@@ -1671,10 +1682,21 @@ document.addEventListener('DOMContentLoaded', () => {
         applyCollapsed(true);
       });
     }
+    // Backdrop click closes
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', () => applyCollapsed(true));
+    }
+    // React to viewport changes
+    prefersOverlaySidebar.addEventListener('change', () => {
+      const collapsed = document.body.classList.contains('sidebar-collapsed');
+      applyCollapsed(collapsed);
+    });
     
-    // Add outside click handler for touch devices
+    // Add outside click handler for touch devices when not using overlay
     if (isTouchDevice) {
       const handleOutsideClick = (event) => {
+        const useOverlay = prefersOverlaySidebar.matches;
+        if (useOverlay) return; // overlay/backdrop handles closing on mobile
         // Check if sidebar is currently open
         if (document.body.classList.contains('sidebar-collapsed')) {
           return; // Sidebar is already closed
