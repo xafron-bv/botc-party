@@ -133,7 +133,7 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     overflow: visible; /* ensure reminder overlays are not clipped by the token */
-    z-index: 5;
+    z-index: 1; /* Above player-name (-1) but below other elements */
 }
 
 /* Debug: line from token center to circle center */
@@ -214,7 +214,7 @@ body {
     left: 50%;
     top: calc(50% + var(--token-size) * 0.8);
     transform: translate(-50%, -50%);
-    z-index: 0; /* Below all other game elements */
+    z-index: -1; /* Below token and all other game elements */
     transition: all 0.3s ease;
     opacity: 0.3;
     pointer-events: auto;
@@ -235,7 +235,7 @@ body {
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
     opacity: 1;
-    z-index: 0; /* Keep below all other game elements */
+    z-index: -1; /* Keep below token and all other game elements */
     filter: blur(0px);
 }
 
@@ -243,6 +243,7 @@ body {
 #player-circle li {
     position: relative;
     overflow: visible;
+    /* Ensure proper stacking order for child elements */
 }
 
 .reminders {
@@ -954,7 +955,7 @@ label {
   #player-circle li .player-name {
     opacity: 1;
     filter: blur(0);
-    z-index: 0; /* Keep below all other game elements */
+    z-index: -1; /* Keep below token and all other game elements */
   }
 }
 
