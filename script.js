@@ -565,6 +565,23 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.dataset.angle = String(angle);
 
           // keep default CSS centering behavior for token
+          
+          // Apply top-half class to player names in NW and NE quadrants
+          const playerNameEl = listItem.querySelector('.player-name');
+          if (playerNameEl) {
+              // Calculate the actual x,y position to determine quadrant
+              const x = Math.cos(angle);
+              const y = Math.sin(angle);
+              
+              // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
+              const isNorthQuadrant = y < 0;
+              
+              if (isNorthQuadrant) {
+                  playerNameEl.classList.add('top-half');
+              } else {
+                  playerNameEl.classList.remove('top-half');
+              }
+          }
 
           // Reposition the player's reminder stack and plus button to match new angle
           const count = (players[i] && players[i].reminders) ? players[i].reminders.length : 0;
@@ -586,7 +603,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const listItems = playerCircle.querySelectorAll('li');
       listItems.forEach((li, i) => {
           const player = players[i];
-          li.querySelector('.player-name').textContent = player.name;
+          const playerNameEl = li.querySelector('.player-name');
+          playerNameEl.textContent = player.name;
+          
+          // Check if player is in NW or NE quadrant
+          const angle = parseFloat(li.dataset.angle || '0');
+          
+          // Calculate the actual x,y position to determine quadrant
+          const x = Math.cos(angle);
+          const y = Math.sin(angle);
+          
+          // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
+          const isNorthQuadrant = y < 0;
+          
+          if (isNorthQuadrant) {
+              playerNameEl.classList.add('top-half');
+          } else {
+              playerNameEl.classList.remove('top-half');
+          }
+          
           const tokenDiv = li.querySelector('.player-token');
            const charNameDiv = li.querySelector('.character-name');
             // Remove any previous arc label overlay
