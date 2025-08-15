@@ -345,6 +345,16 @@ body {
     transform: scale(1.06);
 }
 
+/* Raise stacking when reminder is interacted with so delete stays above plus */
+.icon-reminder:hover,
+.text-reminder:hover { z-index: 8; }
+
+@media (hover: none) and (pointer: coarse) {
+  /* On touch devices, ensure reminders sit above the plus so delete is never hidden */
+  .icon-reminder,
+  .text-reminder { z-index: 8; }
+}
+
 /* Death UI elements */
 .player-token .death-overlay {
     position: absolute;
@@ -400,10 +410,10 @@ body {
   left: 50%;
   top: 0;
   transform: translate(-50%, -110%);
-  width: calc(var(--token-size) * 0.0625);
-  height: calc(var(--token-size) * 0.0625);
-  min-width: 12px;
-  min-height: 12px;
+  width: clamp(16px, calc(var(--token-size) * 0.18), 28px);
+  height: clamp(16px, calc(var(--token-size) * 0.18), 28px);
+  min-width: 16px;
+  min-height: 16px;
   border-radius: 50%;
   background: rgba(0,0,0,0.85);
   color: #fff;
@@ -411,7 +421,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: clamp(12px, calc(var(--token-size) * 0.10), 16px);
   line-height: 1;
   opacity: 0;
   transition: opacity .15s ease;
@@ -1238,4 +1248,14 @@ body.resizing {
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     gap: 12px;
   }
+}
+
+/* Ensure reminders sit above the plus button when expanded or hovered so delete is on top */
+#player-circle li[data-expanded="1"] .reminders,
+#player-circle li:hover .reminders {
+  z-index: 7;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #player-circle li .reminders { z-index: 7; }
 }
