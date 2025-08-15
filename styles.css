@@ -1102,3 +1102,64 @@ body.resizing {
     display: none;
   }
 }
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 3000;
+  display: none;
+}
+
+.tour-highlight {
+  position: fixed;
+  border: 2px solid #D4AF37;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 18px rgba(212, 175, 55, 0.8);
+  z-index: 3001;
+  pointer-events: none;
+  display: none;
+}
+
+.tour-popover {
+  position: fixed;
+  max-width: 360px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  color: #fff;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  z-index: 3002;
+  display: none;
+}
+
+.tour-popover .title {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #D4AF37;
+}
+
+.tour-popover .body {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+}
+
+.tour-popover .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tour-popover .actions .button {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.tour-popover .progress {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 8px;
+}
