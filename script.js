@@ -569,8 +569,13 @@ document.addEventListener('DOMContentLoaded', () => {
           // Apply top-half class to player names in the top half of the circle
           const playerNameEl = listItem.querySelector('.player-name');
           if (playerNameEl) {
-              // Angle is measured from top (-π/2), so top half is between -π and 0
-              const isTopHalf = angle >= -Math.PI && angle <= 0;
+              // Convert angle to 0-2π range for easier calculation
+              let normalizedAngle = angle + Math.PI / 2; // Shift so top is 0
+              if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+              
+              // Top half is when y-coordinate is negative (above center)
+              // This happens when normalized angle is between 0 and π
+              const isTopHalf = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
               
               if (isTopHalf) {
                   playerNameEl.classList.add('top-half');
@@ -604,8 +609,13 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Check if player is in top half of circle
           const angle = parseFloat(li.dataset.angle || '0');
-          // Angle is measured from top (-π/2), so top half is between -π and 0
-          const isTopHalf = angle >= -Math.PI && angle <= 0;
+          // Convert angle to 0-2π range for easier calculation
+          let normalizedAngle = angle + Math.PI / 2; // Shift so top is 0
+          if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+          
+          // Top half is when y-coordinate is negative (above center)
+          // This happens when normalized angle is between 0 and π
+          const isTopHalf = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
           
           if (isTopHalf) {
               playerNameEl.classList.add('top-half');
