@@ -94,6 +94,7 @@ body {
   width: 90vmin;
   height: 90vmin;
   z-index: 2; /* Above setup-info */
+  overflow: visible;
 }
 
 .circle li {
@@ -1030,9 +1031,6 @@ body.resizing {
 /* Ability info icon for touch mode */
 .ability-info-icon {
   position: absolute;
-  top: 50%;
-  right: -30px;
-  transform: translateY(-50%);
   width: 24px;
   height: 24px;
   background: rgba(0, 0, 0, 0.9);
@@ -1045,6 +1043,10 @@ body.resizing {
   z-index: 10;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  /* Position will be set dynamically by JavaScript */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .ability-info-icon i {

@@ -540,6 +540,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Debug visuals removed
       });
+      
+      // Position info icons on outer circle
+      positionInfoIcons();
 
       // Draw guide lines from each token to the center after positioning
       // drawRadialGuides(); // Commented out to hide radial guides
@@ -588,15 +591,16 @@ document.addEventListener('DOMContentLoaded', () => {
                       abilityTooltip.classList.remove('show');
                   });
               } else if (role.ability) {
-                  // Add info icon for touch mode
+                  // Add info icon for touch mode - will be positioned after circle layout
                   const infoIcon = document.createElement('div');
                   infoIcon.className = 'ability-info-icon';
                   infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+                  infoIcon.dataset.playerIndex = i;
                   infoIcon.onclick = (e) => {
                       e.stopPropagation();
                       showTouchAbilityPopup(tokenDiv, role.ability);
                   };
-                  tokenDiv.appendChild(infoIcon);
+                  li.appendChild(infoIcon); // Append to li, not tokenDiv
               }
           } else {
             tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
@@ -757,6 +761,11 @@ document.addEventListener('DOMContentLoaded', () => {
           // After rendering, position all reminders and the plus button in a radial stack
           positionRadialStack(li, player.reminders.length);
       });
+      
+      // Position info icons after updating grimoire
+      if ('ontouchstart' in window) {
+          positionInfoIcons();
+      }
   }
 
   // Arrange reminders and plus button along the line from token center to circle center
@@ -1602,3 +1611,37 @@ document.addEventListener('click', (e) => {
         hideTouchAbilityPopup();
     }
 });
+
+// Position info icons on a larger circle outside the character tokens
+function positionInfoIcons() {
+    const circle = document.getElementById('player-circle');
+    if (!circle) return;
+    
+    const circleRect = circle.getBoundingClientRect();
+    const circleWidth = circle.offsetWidth;
+    const circleHeight = circle.offsetHeight;
+    const centerX = circleWidth / 2;
+    const centerY = circleHeight / 2;
+    
+    // Get all info icons
+    const infoIcons = circle.querySelectorAll('.ability-info-icon');
+    
+    infoIcons.forEach(icon => {
+        const playerIndex = parseInt(icon.dataset.playerIndex);
+        const li = icon.parentElement;
+        const angle = parseFloat(li.dataset.angle || '0');
+        
+        // Calculate radius for info icons (add 60px to token radius)
+        const tokenEl = li.querySelector('.player-token');
+        const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
+        const infoRadius = tokenRadius + 60;
+        
+        // Calculate position on the outer circle
+        const x = infoRadius * Math.cos(angle);
+        const y = infoRadius * Math.sin(angle);
+        
+        // Position the info icon
+        icon.style.left = `calc(50% + ${x}px)`;
+        icon.style.top = `calc(50% + ${y}px)`;
+    });
+}
