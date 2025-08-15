@@ -677,8 +677,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, true);
 
                 if (reminder.label) {
-                  const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
-                  iconEl.appendChild(svg);
+                  // Check if this is a custom reminder (has 'custom' in the image path)
+                  const isCustom = reminder.image && reminder.image.includes('custom');
+                  
+                  if (isCustom) {
+                    // For custom reminders, show straight text with dark background
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'icon-reminder-content';
+                    textSpan.textContent = reminder.label;
+                    iconEl.appendChild(textSpan);
+                  } else {
+                    // For other reminders, show curved text at bottom
+                    const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+                    iconEl.appendChild(svg);
+                  }
                 }
 
                 const delBtn = document.createElement('div');
