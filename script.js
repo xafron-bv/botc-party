@@ -1136,11 +1136,12 @@ document.addEventListener('DOMContentLoaded', () => {
       path.setAttribute('d','M16,72 A34,34 0 0,0 84,72');
       defs.appendChild(path);
       svg.appendChild(defs);
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('class','icon-reminder-text');
-      text.setAttribute('text-anchor','middle');
-      const textPath = document.createElementNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
-      textPath.setAttribute('startOffset','50%');
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('class','icon-reminder-text');
+    text.setAttribute('text-anchor','middle');
+    const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
+    textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
+    textPath.setAttribute('startOffset','50%');
       // Truncate display on token to avoid overcrowding, but keep tooltip full
       const full = String(labelText || '');
       const maxChars = 14;
