@@ -124,6 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return path;
   }
 
+  function normalizeKey(value) {
+    if (typeof value !== 'string') return '';
+    return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
   async function loadAllCharacters() {
     try {
       loadStatus.textContent = 'Loading all characters...';
@@ -306,48 +311,55 @@ document.addEventListener('DOMContentLoaded', () => {
           const tokens = await response.json();
           console.log('Tokens.json loaded successfully');
           
-          // Create a lookup map of all available roles with correct team names
+          // Create canonical lookups and a normalization index
           const roleLookup = {};
+          const normalizedToCanonicalId = {};
           Object.entries(tokens).forEach(([teamName, teamArray]) => {
               if (Array.isArray(teamArray)) {
                   teamArray.forEach(role => {
                       const image = resolveAssetPath(role.image);
-                      roleLookup[role.id] = { ...role, image, team: teamName };
+                      const canonical = { ...role, image, team: teamName };
+                      roleLookup[role.id] = canonical;
+                      const normId = normalizeKey(role.id);
+                      const normName = normalizeKey(role.name);
+                      if (normId) normalizedToCanonicalId[normId] = role.id;
+                      if (normName) normalizedToCanonicalId[normName] = role.id;
                   });
               }
           });
           
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
-          // Process the character IDs from the script
+          // Process the character IDs from the script using normalization
           characterIds.forEach((characterItem) => {
-              // Handle string character IDs (official characters)
               if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                  if (roleLookup[characterItem]) {
-                      allRoles[characterItem] = roleLookup[characterItem];
-                      console.log(`Resolved character ${characterItem} (${roleLookup[characterItem].name})`);
+                  const key = normalizeKey(characterItem);
+                  const canonicalId = normalizedToCanonicalId[key];
+                  if (canonicalId && roleLookup[canonicalId]) {
+                      allRoles[canonicalId] = roleLookup[canonicalId];
+                      console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
                   } else {
-                      console.warn(`Character ID not found: ${characterItem}`);
+                      console.warn(`Character not found: ${characterItem}`);
                   }
-              } 
-              // Handle full character objects (custom characters)
-              else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-                  // Validate required fields according to schema
-                  if (characterItem.name && characterItem.team && characterItem.ability) {
+              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  const idKey = normalizeKey(characterItem.id);
+                  const nameKey = normalizeKey(characterItem.name || '');
+                  const canonicalId = normalizedToCanonicalId[idKey] || normalizedToCanonicalId[nameKey];
+                  if (canonicalId && roleLookup[canonicalId]) {
+                      allRoles[canonicalId] = roleLookup[canonicalId];
+                      console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
+                  } else if (characterItem.name && characterItem.team && characterItem.ability) {
                       const customRole = {
                           id: characterItem.id,
                           name: characterItem.name,
                           team: characterItem.team,
                           ability: characterItem.ability,
-                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
                       };
-                      
-                      // Add optional fields if present
                       if (characterItem.reminders) customRole.reminders = characterItem.reminders;
                       if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
                       if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
                       if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
-                      
                       allRoles[characterItem.id] = customRole;
                       console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
                   } else {
@@ -357,31 +369,31 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           
           console.log('Script processing completed');
-          
-      } catch (error) {
-          console.error('Error processing script:', error);
-          characterIds.forEach((characterItem) => {
-              if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                  allRoles[characterItem] = {
-                      id: characterItem,
-                      name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
-                      image: '/assets/img/token-BqDQdWeO.webp',
-                      team: 'unknown'
-                  };
-              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-                  // Handle custom character objects even in error case
-                  if (characterItem.name && characterItem.team && characterItem.ability) {
-                      allRoles[characterItem.id] = {
-                          id: characterItem.id,
-                          name: characterItem.name,
-                          team: characterItem.team,
-                          ability: characterItem.ability,
-                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
-                      };
-                  }
-              }
-          });
-      }
+           
+       } catch (error) {
+           console.error('Error processing script:', error);
+           characterIds.forEach((characterItem) => {
+               if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                   allRoles[characterItem] = {
+                       id: characterItem,
+                       name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
+                       image: './assets/img/token-BqDQdWeO.webp',
+                       team: 'unknown'
+                   };
+               } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                   // Handle custom character objects even in error case
+                   if (characterItem.name && characterItem.team && characterItem.ability) {
+                       allRoles[characterItem.id] = {
+                           id: characterItem.id,
+                           name: characterItem.name,
+                           team: characterItem.team,
+                           ability: characterItem.ability,
+                           image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
+                       };
+                   }
+               }
+           });
+       }
   }
 
   startGameBtn.addEventListener('click', () => {
@@ -1180,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       filteredRoles.forEach(role => {
           const tokenEl = document.createElement('div');
           tokenEl.className = 'token';
-          tokenEl.style.backgroundImage = `url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp')`;
+          tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
           tokenEl.style.backgroundSize = '68% 68%, cover';
           tokenEl.style.position = 'relative';
           tokenEl.style.overflow = 'visible';
@@ -1483,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const roleEl = document.createElement('div');
                     roleEl.className = 'role';
          roleEl.innerHTML = `
-                         <span class="icon" style="background-image: url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                         <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                          <span class="name">${role.name}</span>
                          <div class="ability">${role.ability || 'No ability description available'}</div>
                      `;
@@ -1507,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                  roleEl.innerHTML = `
-                     <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
+                     <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
                      <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
                 characterSheet.appendChild(roleEl);
@@ -1515,7 +1527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Display custom character objects
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
-                const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
+                const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
                 roleEl.innerHTML = `
                     <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                     <span class="name">${characterItem.name || characterItem.id}</span>
