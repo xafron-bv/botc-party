@@ -1124,23 +1124,25 @@ body.resizing {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 
 .tutorial-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   border: 2px solid #D4AF37;
   border-radius: 12px;
   padding: 0;
-  max-width: 500px;
+  max-width: 450px;
   width: 90%;
-  max-height: 90vh;
+  max-width: min(450px, calc(100vw - 40px));
+  max-height: 50vh;
   overflow: auto;
   box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);
+  z-index: 10001;
 }
 
 .tutorial-header {
@@ -1263,9 +1265,25 @@ body.resizing {
   border-radius: 8px;
   pointer-events: none;
   transition: all 0.3s ease;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5),
+              0 0 20px rgba(212, 175, 55, 0.6),
+              inset 0 0 20px rgba(212, 175, 55, 0.3);
   z-index: 9999;
   display: none;
+  animation: tutorialPulse 2s ease-in-out infinite;
+}
+
+@keyframes tutorialPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(212, 175, 55, 0.6),
+                inset 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(212, 175, 55, 0.8),
+                inset 0 0 30px rgba(212, 175, 55, 0.4);
+  }
 }
 
 .tutorial-highlight.active {
@@ -1275,12 +1293,16 @@ body.resizing {
 /* Touch device optimization */
 @media (hover: none) and (pointer: coarse) {
   .tutorial-content {
-    max-width: 95%;
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: calc(100vw - 20px);
+    width: auto;
   }
   
   .tutorial-body {
-    font-size: 18px;
-    padding: 25px;
+    font-size: 16px;
+    padding: 20px;
   }
   
   .tutorial-btn {
@@ -1296,16 +1318,38 @@ body.resizing {
 }
 
 /* Small screen optimization */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .tutorial-content {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    max-height: 70vh;
+  }
+  
   .tutorial-controls {
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   
   .tutorial-btn {
-    width: 100%;
+    min-width: calc(50% - 4px);
+    flex: 1 1 calc(50% - 4px);
+  }
+  
+  .tutorial-btn#tutorial-skip {
+    order: 3;
+    flex: 1 1 100%;
   }
   
   .tutorial-header h2 {
     font-size: 20px;
+  }
+  
+  .tutorial-body {
+    padding: 20px;
+    font-size: 15px;
   }
 }

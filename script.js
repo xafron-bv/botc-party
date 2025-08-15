@@ -1863,12 +1863,13 @@ document.addEventListener('DOMContentLoaded', () => {
       tutorialSkipBtn.addEventListener('click', endTutorial);
       tutorialCloseBtn.addEventListener('click', endTutorial);
       
-      // Close tutorial on backdrop click
-      tutorialOverlay.addEventListener('click', (e) => {
-          if (e.target === tutorialOverlay || e.target.classList.contains('tutorial-backdrop')) {
-              endTutorial();
-          }
-      });
+             // Close tutorial on backdrop click
+       tutorialOverlay.addEventListener('click', (e) => {
+           // Check if click is outside the tutorial content
+           if (!e.target.closest('.tutorial-content')) {
+               endTutorial();
+           }
+       });
       
       // Handle escape key
       document.addEventListener('keydown', (e) => {
@@ -1891,29 +1892,39 @@ document.addEventListener('DOMContentLoaded', () => {
       showTutorialStep();
   }
 
-  function showTutorialStep() {
-      const step = tutorialSteps[currentTutorialStep];
-      
-      // Update content
-      tutorialTitle.textContent = step.title;
-      tutorialText.innerHTML = step.text;
-      
-      // Update progress
-      tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
-      const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
-      tutorialProgressFill.style.width = `${progressPercent}%`;
-      
-      // Update button states
-      tutorialPrevBtn.disabled = currentTutorialStep === 0;
-      tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
-      
-      // Handle highlighting
-      if (step.highlight) {
-          highlightElement(step.highlight);
-      } else {
-          tutorialHighlight.classList.remove('active');
-      }
-  }
+     function showTutorialStep() {
+       const step = tutorialSteps[currentTutorialStep];
+       
+       // Update content
+       tutorialTitle.textContent = step.title;
+       tutorialText.innerHTML = step.text;
+       
+       // Update progress
+       tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
+       const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
+       tutorialProgressFill.style.width = `${progressPercent}%`;
+       
+       // Update button states
+       tutorialPrevBtn.disabled = currentTutorialStep === 0;
+       tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+       
+       // Handle highlighting
+       if (step.highlight) {
+           // Check if we're highlighting a sidebar element and open sidebar if needed
+           const highlightTarget = document.querySelector(step.highlight);
+           if (highlightTarget && sidebar.contains(highlightTarget) && sidebar.classList.contains('hidden')) {
+               toggleSidebar();
+               // Wait for sidebar animation to complete before highlighting
+               setTimeout(() => {
+                   highlightElement(step.highlight);
+               }, 300);
+           } else {
+               highlightElement(step.highlight);
+           }
+       } else {
+           tutorialHighlight.classList.remove('active');
+       }
+   }
 
   function highlightElement(selector) {
       const element = document.querySelector(selector);
