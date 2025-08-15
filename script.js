@@ -3,10 +3,42 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
         console.log('Service worker registered successfully:', registration);
+        
+        // Check for updates on page load
+        registration.update();
+        
+        // Check for updates periodically (every hour)
+        setInterval(() => {
+          registration.update();
+        }, 60 * 60 * 1000);
+        
+        // Handle service worker updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          console.log('Service worker update found!');
+          
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+              console.log('New service worker activated');
+              // Optionally notify user about the update
+              if (confirm('A new version is available! Reload to update?')) {
+                window.location.reload();
+              }
+            }
+          });
+        });
       })
       .catch(error => {
         console.error('Service worker registration failed:', error);
       });
+  });
+  
+  // Handle controller change (when skipWaiting is called)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
   });
 }
 
