@@ -1912,31 +1912,38 @@ document.addEventListener('DOMContentLoaded', () => {
         tutorialPrevBtn.disabled = currentTutorialStep === 0;
         tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
         
-        // Handle sidebar visibility
-        if (step.requireSidebar && sidebar.classList.contains('hidden')) {
-            toggleSidebar();
-            setTimeout(() => handleHighlightAndPosition(step), 300);
-        } else if (!step.requireSidebar && !sidebar.classList.contains('hidden')) {
-            toggleSidebar();
-            setTimeout(() => handleHighlightAndPosition(step), 300);
-        } else {
-            handleHighlightAndPosition(step);
-        }
+                 // Handle sidebar visibility
+         if (step.requireSidebar && sidebar.classList.contains('hidden')) {
+             // Need to open sidebar
+             toggleSidebar();
+             setTimeout(() => handleHighlightAndPosition(step), 350);
+         } else if (!step.requireSidebar && !sidebar.classList.contains('hidden')) {
+             // Need to close sidebar - remove highlight first
+             tutorialHighlight.classList.remove('active');
+             toggleSidebar();
+             setTimeout(() => handleHighlightAndPosition(step), 350);
+         } else {
+             // Sidebar is already in correct state
+             handleHighlightAndPosition(step);
+         }
     }
     
     function handleHighlightAndPosition(step) {
         const tutorialContent = document.querySelector('.tutorial-content');
         
         if (step.highlight) {
-            highlightElement(step.highlight);
-            // Position tutorial near highlighted element
-            const element = document.querySelector(step.highlight);
-            if (element) {
-                positionTutorialNearElement(tutorialContent, element);
-            } else {
-                // Default position if element not found
-                positionTutorialDefault(tutorialContent);
-            }
+            // Wait a bit to ensure any animations have started
+            setTimeout(() => {
+                const element = document.querySelector(step.highlight);
+                if (element && element.offsetParent && element.getBoundingClientRect().width > 0) {
+                    highlightElement(step.highlight);
+                    positionTutorialNearElement(tutorialContent, element);
+                } else {
+                    // Element not visible yet or doesn't exist
+                    tutorialHighlight.classList.remove('active');
+                    positionTutorialDefault(tutorialContent);
+                }
+            }, 50);
         } else {
             tutorialHighlight.classList.remove('active');
             // Center the tutorial if no highlight
@@ -2008,25 +2015,32 @@ document.addEventListener('DOMContentLoaded', () => {
         tutorialContent.style.bottom = 'auto';
     }
 
-  function highlightElement(selector) {
-      const element = document.querySelector(selector);
-      if (!element) {
-          tutorialHighlight.classList.remove('active');
-          return;
-      }
-      
-      const rect = element.getBoundingClientRect();
-      const padding = 10;
-      
-      tutorialHighlight.style.left = `${rect.left - padding}px`;
-      tutorialHighlight.style.top = `${rect.top - padding}px`;
-      tutorialHighlight.style.width = `${rect.width + (padding * 2)}px`;
-      tutorialHighlight.style.height = `${rect.height + (padding * 2)}px`;
-      tutorialHighlight.classList.add('active');
-      
-      // Ensure highlighted element is visible
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+     function highlightElement(selector) {
+       const element = document.querySelector(selector);
+       if (!element || !element.offsetParent) {
+           // Element doesn't exist or is not visible
+           tutorialHighlight.classList.remove('active');
+           return;
+       }
+       
+       const rect = element.getBoundingClientRect();
+       const padding = 10;
+       
+       // Check if element is actually visible
+       if (rect.width === 0 || rect.height === 0) {
+           tutorialHighlight.classList.remove('active');
+           return;
+       }
+       
+       tutorialHighlight.style.left = `${rect.left - padding}px`;
+       tutorialHighlight.style.top = `${rect.top - padding}px`;
+       tutorialHighlight.style.width = `${rect.width + (padding * 2)}px`;
+       tutorialHighlight.style.height = `${rect.height + (padding * 2)}px`;
+       tutorialHighlight.classList.add('active');
+       
+       // Ensure highlighted element is visible
+       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+   }
 
   function nextTutorialStep() {
       if (currentTutorialStep < tutorialSteps.length - 1) {

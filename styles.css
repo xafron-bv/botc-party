@@ -1263,12 +1263,13 @@ body.resizing {
   border: 3px solid #D4AF37;
   border-radius: 8px;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease, opacity 0.2s ease;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5),
               0 0 20px rgba(212, 175, 55, 0.6),
               inset 0 0 20px rgba(212, 175, 55, 0.3);
   z-index: 9999;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
   animation: tutorialPulse 2s ease-in-out infinite;
 }
 
@@ -1286,7 +1287,8 @@ body.resizing {
 }
 
 .tutorial-highlight.active {
-  display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Tutorial arrow pointer */
