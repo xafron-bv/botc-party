@@ -566,18 +566,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // keep default CSS centering behavior for token
           
-          // Apply top-half class to player names in the top half of the circle
+          // Apply top-half class to player names in NW and NE quadrants
           const playerNameEl = listItem.querySelector('.player-name');
           if (playerNameEl) {
-              // Convert angle to 0-2π range for easier calculation
-              let normalizedAngle = angle + Math.PI / 2; // Shift so top is 0
-              if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
+              // Calculate the actual x,y position to determine quadrant
+              const x = Math.cos(angle);
+              const y = Math.sin(angle);
               
-              // Top half is when y-coordinate is negative (above center)
-              // This happens when normalized angle is between 0 and π
-              const isTopHalf = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
+              // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
+              const isNorthQuadrant = y < 0;
               
-              if (isTopHalf) {
+              if (isNorthQuadrant) {
                   playerNameEl.classList.add('top-half');
               } else {
                   playerNameEl.classList.remove('top-half');
@@ -607,17 +606,17 @@ document.addEventListener('DOMContentLoaded', () => {
           const playerNameEl = li.querySelector('.player-name');
           playerNameEl.textContent = player.name;
           
-          // Check if player is in top half of circle
+          // Check if player is in NW or NE quadrant
           const angle = parseFloat(li.dataset.angle || '0');
-          // Convert angle to 0-2π range for easier calculation
-          let normalizedAngle = angle + Math.PI / 2; // Shift so top is 0
-          if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
           
-          // Top half is when y-coordinate is negative (above center)
-          // This happens when normalized angle is between 0 and π
-          const isTopHalf = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
+          // Calculate the actual x,y position to determine quadrant
+          const x = Math.cos(angle);
+          const y = Math.sin(angle);
           
-          if (isTopHalf) {
+          // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
+          const isNorthQuadrant = y < 0;
+          
+          if (isNorthQuadrant) {
               playerNameEl.classList.add('top-half');
           } else {
               playerNameEl.classList.remove('top-half');
