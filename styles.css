@@ -236,6 +236,7 @@ body {
 /* Ensure the list item has proper positioning for hover effects */
 #player-circle li {
     position: relative;
+    overflow: visible;
 }
 
 .reminders {
@@ -1023,17 +1024,19 @@ body.resizing {
 /* Player token hover for ability tooltip */
 .player-token {
   position: relative;
+  overflow: visible;
 }
 
 /* Ability info icon for touch mode */
 .ability-info-icon {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 22px;
-  height: 22px;
-  background: rgba(0, 0, 0, 0.85);
-  border: 1.5px solid #D4AF37;
+  top: 50%;
+  right: -30px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #D4AF37;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1041,6 +1044,7 @@ body.resizing {
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .ability-info-icon i {
