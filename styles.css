@@ -1034,7 +1034,7 @@ body.resizing {
   width: calc(var(--token-size) * 0.25);
   height: calc(var(--token-size) * 0.25);
   background: rgba(0, 0, 0, 0.9);
-  border: 1.5px solid #D4AF37;
+  border: 2px solid #D4AF37;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1044,6 +1044,7 @@ body.resizing {
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   pointer-events: auto;
+  box-sizing: border-box;
   /* Position will be set dynamically by JavaScript */
   left: 50%;
   top: 50%;
@@ -1052,12 +1053,14 @@ body.resizing {
 
 .ability-info-icon i {
   color: #D4AF37;
-  font-size: calc(var(--token-size) * 0.15);
+  font-size: calc(var(--token-size) * 0.18);
+  line-height: 1;
+  display: block;
   pointer-events: none; /* Ensure clicks pass through to parent */
 }
 
 .ability-info-icon:active {
-  transform: scale(0.95);
+  transform: translate(-50%, -50%) scale(0.95);
   background: rgba(0, 0, 0, 0.9);
 }
 

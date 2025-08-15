@@ -596,17 +596,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   infoIcon.className = 'ability-info-icon';
                   infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
                   infoIcon.dataset.playerIndex = i;
-                  // Handle both click and touch events
-                  const handleInfoClick = (e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      showTouchAbilityPopup(infoIcon, role.ability);
-                  };
-                  infoIcon.onclick = handleInfoClick;
-                  infoIcon.addEventListener('touchstart', (e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                  });
+                                  // Handle both click and touch events
+                const handleInfoClick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    showTouchAbilityPopup(infoIcon, role.ability);
+                };
+                infoIcon.onclick = handleInfoClick;
+                infoIcon.addEventListener('touchstart', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleInfoClick(e); // Call the click handler on touch
+                });
                   li.appendChild(infoIcon); // Append to li, not tokenDiv
               }
           } else {
