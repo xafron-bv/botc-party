@@ -1300,8 +1300,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
       const path = document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('id', uniqueId);
-      // Widen and raise arc so full string fits and stays inside the rim
-      path.setAttribute('d','M16,72 A34,34 0 0,0 84,72');
+      // Perfect bottom half-circle inside the token rim
+      path.setAttribute('d','M10,50 A40,40 0 0,1 90,50');
       defs.appendChild(path);
       svg.appendChild(defs);
           const text = document.createElementNS('http://www.w3.org/2000/svg','text');

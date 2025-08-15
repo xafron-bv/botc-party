@@ -388,7 +388,7 @@ body {
 
 /* Character modal specific text styling */
 #character-grid .icon-reminder-text {
-  fill: #D4AF37;
+  fill: #ffffff;
   stroke: rgba(0,0,0,0.9);
   stroke-width: 2.5px;
   font-size: 12px;
