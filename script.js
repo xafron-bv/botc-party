@@ -284,13 +284,38 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
           // Process the character IDs from the script
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  if (roleLookup[characterId]) {
-                      allRoles[characterId] = roleLookup[characterId];
-                      console.log(`Resolved character ${characterId} (${roleLookup[characterId].name})`);
+          characterIds.forEach((characterItem) => {
+              // Handle string character IDs (official characters)
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  if (roleLookup[characterItem]) {
+                      allRoles[characterItem] = roleLookup[characterItem];
+                      console.log(`Resolved character ${characterItem} (${roleLookup[characterItem].name})`);
                   } else {
-                      console.warn(`Character ID not found: ${characterId}`);
+                      console.warn(`Character ID not found: ${characterItem}`);
+                  }
+              } 
+              // Handle full character objects (custom characters)
+              else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Validate required fields according to schema
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      const customRole = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                      
+                      // Add optional fields if present
+                      if (characterItem.reminders) customRole.reminders = characterItem.reminders;
+                      if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
+                      if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
+                      if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
+                      
+                      allRoles[characterItem.id] = customRole;
+                      console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
+                  } else {
+                      console.warn(`Invalid custom character object:`, characterItem);
                   }
               }
           });
@@ -299,14 +324,25 @@ document.addEventListener('DOMContentLoaded', () => {
           
       } catch (error) {
           console.error('Error processing script:', error);
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  allRoles[characterId] = {
-                      id: characterId,
-                      name: characterId.charAt(0).toUpperCase() + characterId.slice(1),
+          characterIds.forEach((characterItem) => {
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  allRoles[characterItem] = {
+                      id: characterItem,
+                      name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
                       image: '/assets/img/token-BqDQdWeO.webp',
                       team: 'unknown'
                   };
+              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Handle custom character objects even in error case
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      allRoles[characterItem.id] = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                  }
               }
           });
       }
@@ -1293,14 +1329,24 @@ document.addEventListener('DOMContentLoaded', () => {
         header.className = 'team-townsfolk';
         characterSheet.appendChild(header);
         
-        data.forEach((characterId, index) => {
-            if (typeof characterId === 'string' && characterId !== '_meta') {
+        data.forEach((characterItem, index) => {
+            if (typeof characterItem === 'string' && characterItem !== '_meta') {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                  roleEl.innerHTML = `
                      <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
-                     <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
+                     <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
+                characterSheet.appendChild(roleEl);
+            } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                // Display custom character objects
+                const roleEl = document.createElement('div');
+                roleEl.className = 'role';
+                const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
+                roleEl.innerHTML = `
+                    <span class="icon" style="background-image: url('${image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                    <span class="name">${characterItem.name || characterItem.id}</span>
+                `;
                 characterSheet.appendChild(roleEl);
             }
         });
