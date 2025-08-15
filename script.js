@@ -715,7 +715,17 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                 const reminderEl = document.createElement('div');
                 reminderEl.className = 'text-reminder';
-                reminderEl.textContent = reminder.value ? String(reminder.value).slice(0, 2) : '';
+                
+                // Check if this is actually a text reminder with a label (legacy data)
+                // If so, use the label as the display text
+                const displayText = reminder.label || reminder.value || '';
+                
+                // Create a span for the text with dark background
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-reminder-content';
+                textSpan.textContent = displayText;
+                reminderEl.appendChild(textSpan);
+                
                 reminderEl.style.transform = 'translate(-50%, -50%)';
                 reminderEl.onclick = (e) => {
                   e.stopPropagation();
@@ -732,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       return;
                     }
                   }
-                  openTextReminderModal(i, idx, reminder.value);
+                  openTextReminderModal(i, idx, reminder.label || reminder.value);
                 };
                 const delBtn2 = document.createElement('div');
                 delBtn2.className = 'reminder-delete-btn';
@@ -1108,7 +1118,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const { playerIndex, reminderIndex } = editingReminder;
       if (text) {
           if (reminderIndex > -1) {
+              // Update existing reminder - preserve label if it exists
               players[playerIndex].reminders[reminderIndex].value = text;
+              if (players[playerIndex].reminders[reminderIndex].label !== undefined) {
+                  players[playerIndex].reminders[reminderIndex].label = text;
+              }
           } else {
               players[playerIndex].reminders.push({ type: 'text', value: text });
           }
