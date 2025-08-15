@@ -1796,48 +1796,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Tutorial System
-  const tutorialSteps = [
-      {
-          title: "Welcome to Blood on the Clocktower",
-          text: "This app helps you manage your Blood on the Clocktower games. Let's take a quick tour to learn about the main features.",
-          highlight: null
-      },
-      {
-          title: "Loading Scripts",
-          text: "Start by loading a script. You can choose from the three base scripts (Trouble Brewing, Bad Moon Rising, Sects & Violets) or upload a custom script JSON file.",
-          highlight: ".script-buttons"
-      },
-      {
-          title: "Game Setup",
-          text: "After loading a script, set the number of players (5-20) and click 'Start Game' to create the player circle.",
-          highlight: "#start-game"
-      },
-      {
-          title: "Character Tokens",
-          text: "Click on any player token to assign them a character. You'll see all available characters from your loaded script. Characters are color-coded by type: Townsfolk (green), Outsider (orange), Minion (red), Demon (purple), Traveller (blue), and Fabled (yellow).",
-          highlight: null
-      },
-      {
-          title: "Reminder Tokens",
-          text: "After assigning a character, you can add reminder tokens by clicking the reminder button on a player. These help track abilities, statuses, and game states. You can also add custom text reminders.",
-          highlight: null
-      },
-      {
-          title: "Touch & Mobile Support",
-          text: "The app is fully touch-compatible. On mobile devices, tap character/reminder tokens to see their abilities. Use pinch-to-zoom on the grimoire, and drag to move around.",
-          highlight: null
-      },
-      {
-          title: "Additional Features",
-          text: "<ul><li>Click player names to edit them</li><li>Dead players show with a shroud effect</li><li>The vote indicator shows voting status</li><li>All changes auto-save locally</li><li>The sidebar can be resized or hidden</li></ul>",
-          highlight: "#sidebar-toggle"
-      },
-      {
-          title: "Ready to Play!",
-          text: "You're all set! Start by loading a script and setting up your game. Have fun storytelling!",
-          highlight: null
-      }
-  ];
+     const tutorialSteps = [
+       {
+           title: "Welcome to Blood on the Clocktower",
+           text: "This app helps you manage your Blood on the Clocktower games. Let's take a quick tour to learn about the main features.",
+           highlight: null,
+           requireSidebar: false
+       },
+       {
+           title: "Loading Scripts",
+           text: "Start by loading a script. Choose from the three base scripts or upload a custom script JSON file.",
+           highlight: ".script-buttons",
+           requireSidebar: true
+       },
+       {
+           title: "Game Setup",
+           text: "Set the number of players (5-20) and click 'Start Game' to create the player circle.",
+           highlight: "#start-game",
+           requireSidebar: true
+       },
+       {
+           title: "Character Tokens",
+           text: "Click on any player token to assign them a character. Characters are color-coded by type.",
+           highlight: "#player-circle",
+           requireSidebar: false
+       },
+       {
+           title: "Reminder Tokens",
+           text: "After assigning a character, click the reminder button on a player to add reminder tokens.",
+           highlight: "#player-circle",
+           requireSidebar: false
+       },
+       {
+           title: "Touch & Mobile Support",
+           text: "The app is fully touch-compatible. Tap tokens to see abilities, pinch to zoom, drag to move.",
+           highlight: null,
+           requireSidebar: false
+       },
+       {
+           title: "Additional Features",
+           text: "Edit player names, mark deaths, track votes. All changes auto-save. Sidebar can be resized or hidden.",
+           highlight: "#sidebar-toggle",
+           requireSidebar: true
+       },
+       {
+           title: "Ready to Play!",
+           text: "You're all set! Start by loading a script and setting up your game. Have fun storytelling!",
+           highlight: null,
+           requireSidebar: false
+       }
+   ];
 
   let currentTutorialStep = 0;
   let tutorialActive = false;
@@ -1879,52 +1887,126 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  function startTutorial() {
-      tutorialActive = true;
-      currentTutorialStep = 0;
-      tutorialOverlay.classList.add('active');
-      
-      // Ensure sidebar is visible for the tutorial
-      if (sidebar.classList.contains('hidden')) {
-          toggleSidebar();
-      }
-      
-      showTutorialStep();
-  }
-
-     function showTutorialStep() {
-       const step = tutorialSteps[currentTutorialStep];
+     function startTutorial() {
+       tutorialActive = true;
+       currentTutorialStep = 0;
+       tutorialOverlay.classList.add('active');
        
-       // Update content
-       tutorialTitle.textContent = step.title;
-       tutorialText.innerHTML = step.text;
-       
-       // Update progress
-       tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
-       const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
-       tutorialProgressFill.style.width = `${progressPercent}%`;
-       
-       // Update button states
-       tutorialPrevBtn.disabled = currentTutorialStep === 0;
-       tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
-       
-       // Handle highlighting
-       if (step.highlight) {
-           // Check if we're highlighting a sidebar element and open sidebar if needed
-           const highlightTarget = document.querySelector(step.highlight);
-           if (highlightTarget && sidebar.contains(highlightTarget) && sidebar.classList.contains('hidden')) {
-               toggleSidebar();
-               // Wait for sidebar animation to complete before highlighting
-               setTimeout(() => {
-                   highlightElement(step.highlight);
-               }, 300);
-           } else {
-               highlightElement(step.highlight);
-           }
-       } else {
-           tutorialHighlight.classList.remove('active');
-       }
+       showTutorialStep();
    }
+
+           function showTutorialStep() {
+        const step = tutorialSteps[currentTutorialStep];
+        const tutorialContent = document.querySelector('.tutorial-content');
+        
+        // Update content
+        tutorialTitle.textContent = step.title;
+        tutorialText.innerHTML = step.text;
+        
+        // Update progress
+        tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
+        const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
+        tutorialProgressFill.style.width = `${progressPercent}%`;
+        
+        // Update button states
+        tutorialPrevBtn.disabled = currentTutorialStep === 0;
+        tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+        
+        // Handle sidebar visibility
+        if (step.requireSidebar && sidebar.classList.contains('hidden')) {
+            toggleSidebar();
+            setTimeout(() => handleHighlightAndPosition(step), 300);
+        } else if (!step.requireSidebar && !sidebar.classList.contains('hidden')) {
+            toggleSidebar();
+            setTimeout(() => handleHighlightAndPosition(step), 300);
+        } else {
+            handleHighlightAndPosition(step);
+        }
+    }
+    
+    function handleHighlightAndPosition(step) {
+        const tutorialContent = document.querySelector('.tutorial-content');
+        
+        if (step.highlight) {
+            highlightElement(step.highlight);
+            // Position tutorial near highlighted element
+            const element = document.querySelector(step.highlight);
+            if (element) {
+                positionTutorialNearElement(tutorialContent, element);
+            } else {
+                // Default position if element not found
+                positionTutorialDefault(tutorialContent);
+            }
+        } else {
+            tutorialHighlight.classList.remove('active');
+            // Center the tutorial if no highlight
+            positionTutorialCenter(tutorialContent);
+        }
+    }
+    
+    function positionTutorialNearElement(tutorialContent, element) {
+        const rect = element.getBoundingClientRect();
+        const tutorialRect = tutorialContent.getBoundingClientRect();
+        const padding = 30; // Increased for arrow
+        
+        let left, top;
+        let arrowClass = '';
+        
+        // Remove previous arrow classes
+        tutorialContent.classList.remove('arrow-left', 'arrow-right', 'arrow-top', 'arrow-bottom');
+        
+        // Try to position to the right of the element
+        if (rect.right + tutorialRect.width + padding < window.innerWidth) {
+            left = rect.right + padding;
+            top = rect.top + (rect.height / 2) - (tutorialRect.height / 2);
+            arrowClass = 'arrow-left';
+        }
+        // Try to position to the left
+        else if (rect.left - tutorialRect.width - padding > 0) {
+            left = rect.left - tutorialRect.width - padding;
+            top = rect.top + (rect.height / 2) - (tutorialRect.height / 2);
+            arrowClass = 'arrow-right';
+        }
+        // Try to position below
+        else if (rect.bottom + tutorialRect.height + padding < window.innerHeight) {
+            left = rect.left + (rect.width / 2) - (tutorialRect.width / 2);
+            top = rect.bottom + padding;
+            arrowClass = 'arrow-top';
+        }
+        // Position above
+        else {
+            left = rect.left + (rect.width / 2) - (tutorialRect.width / 2);
+            top = rect.top - tutorialRect.height - padding;
+            arrowClass = 'arrow-bottom';
+        }
+        
+        // Ensure tutorial stays within viewport
+        left = Math.max(10, Math.min(left, window.innerWidth - tutorialRect.width - 10));
+        top = Math.max(10, Math.min(top, window.innerHeight - tutorialRect.height - 10));
+        
+        tutorialContent.style.left = `${left}px`;
+        tutorialContent.style.top = `${top}px`;
+        tutorialContent.style.transform = 'none';
+        tutorialContent.classList.add(arrowClass);
+    }
+    
+    function positionTutorialDefault(tutorialContent) {
+        tutorialContent.classList.remove('arrow-left', 'arrow-right', 'arrow-top', 'arrow-bottom');
+        tutorialContent.style.right = '20px';
+        tutorialContent.style.bottom = '20px';
+        tutorialContent.style.left = 'auto';
+        tutorialContent.style.top = 'auto';
+        tutorialContent.style.transform = 'none';
+    }
+    
+    function positionTutorialCenter(tutorialContent) {
+        tutorialContent.classList.remove('arrow-left', 'arrow-right', 'arrow-top', 'arrow-bottom');
+        tutorialContent.style.left = '50%';
+        tutorialContent.style.top = '50%';
+        tutorialContent.style.transform = 'translate(-50%, -50%)';
+        tutorialContent.style.right = 'auto';
+        tutorialContent.style.bottom = 'auto';
+    }
 
   function highlightElement(selector) {
       const element = document.querySelector(selector);
@@ -1986,7 +2068,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (_) {}
   }
 
-  // Initialize tutorial when page loads
-  initTutorial();
-  checkFirstVisit();
+     // Initialize tutorial when page loads
+   setTimeout(() => {
+       initTutorial();
+       checkFirstVisit();
+   }, 100);
 });

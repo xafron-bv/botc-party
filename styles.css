@@ -1130,24 +1130,22 @@ body.resizing {
 
 .tutorial-content {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   border: 2px solid #D4AF37;
   border-radius: 12px;
   padding: 0;
-  max-width: 450px;
+  max-width: 320px;
   width: 90%;
-  max-width: min(450px, calc(100vw - 40px));
-  max-height: 50vh;
+  max-width: min(320px, calc(100vw - 40px));
   overflow: auto;
   box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);
   z-index: 10001;
+  transition: all 0.3s ease;
 }
 
 .tutorial-header {
   background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px 10px 0 0;
   position: relative;
 }
@@ -1155,21 +1153,22 @@ body.resizing {
 .tutorial-header h2 {
   margin: 0;
   color: #fff;
-  font-size: 24px;
-  padding-right: 40px;
+  font-size: 18px;
+  padding-right: 35px;
+  line-height: 1.2;
 }
 
 .tutorial-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   color: #fff;
-  font-size: 32px;
+  font-size: 24px;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1182,11 +1181,11 @@ body.resizing {
 }
 
 .tutorial-body {
-  padding: 30px;
+  padding: 20px;
   color: #fff;
-  font-size: 16px;
-  line-height: 1.6;
-  min-height: 150px;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 80px;
 }
 
 .tutorial-body p {
@@ -1204,7 +1203,7 @@ body.resizing {
 
 .tutorial-footer {
   background: rgba(0, 0, 0, 0.3);
-  padding: 20px;
+  padding: 15px;
   border-radius: 0 0 10px 10px;
   border-top: 1px solid rgba(212, 175, 55, 0.3);
 }
@@ -1243,8 +1242,8 @@ body.resizing {
 }
 
 .tutorial-btn {
-  padding: 10px 20px;
-  font-size: 14px;
+  padding: 8px 16px;
+  font-size: 13px;
   flex: 1;
 }
 
@@ -1290,14 +1289,54 @@ body.resizing {
   display: block;
 }
 
+/* Tutorial arrow pointer */
+.tutorial-content::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px;
+  border-color: transparent;
+}
+
+/* Arrow positions based on tutorial placement */
+.tutorial-content.arrow-left::before {
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: #D4AF37;
+  border-left-width: 0;
+}
+
+.tutorial-content.arrow-right::before {
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: #D4AF37;
+  border-right-width: 0;
+}
+
+.tutorial-content.arrow-top::before {
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: #D4AF37;
+  border-top-width: 0;
+}
+
+.tutorial-content.arrow-bottom::before {
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: #D4AF37;
+  border-bottom-width: 0;
+}
+
 /* Touch device optimization */
 @media (hover: none) and (pointer: coarse) {
   .tutorial-content {
-    bottom: 10px;
-    right: 10px;
-    left: 10px;
-    max-width: calc(100vw - 20px);
-    width: auto;
+    max-width: 90vw;
   }
   
   .tutorial-body {
@@ -1320,36 +1359,34 @@ body.resizing {
 /* Small screen optimization */
 @media (max-width: 600px) {
   .tutorial-content {
-    bottom: 0;
-    right: 0;
-    left: 0;
-    max-width: 100%;
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    max-height: 70vh;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .tutorial-content::before {
+    display: none; /* Hide arrows on mobile */
   }
   
   .tutorial-controls {
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   
   .tutorial-btn {
-    min-width: calc(50% - 4px);
-    flex: 1 1 calc(50% - 4px);
-  }
-  
-  .tutorial-btn#tutorial-skip {
-    order: 3;
-    flex: 1 1 100%;
+    padding: 6px 12px;
+    font-size: 12px;
   }
   
   .tutorial-header h2 {
-    font-size: 20px;
+    font-size: 16px;
   }
   
   .tutorial-body {
-    padding: 20px;
-    font-size: 15px;
+    padding: 15px;
+    font-size: 13px;
+    min-height: 60px;
+  }
+  
+  .tutorial-progress {
+    margin-bottom: 15px;
   }
 }
