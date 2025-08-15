@@ -1301,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const path = document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('id', uniqueId);
       // Perfect bottom half-circle inside the token rim
-      path.setAttribute('d','M10,50 A40,40 0 0,1 90,50');
+      path.setAttribute('d','M10,50 A40,40 0 0,0 90,50');
       defs.appendChild(path);
       svg.appendChild(defs);
           const text = document.createElementNS('http://www.w3.org/2000/svg','text');
