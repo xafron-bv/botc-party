@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
+  const setupInfoEl = document.getElementById('setup-info');
   const characterSheet = document.getElementById('character-sheet');
   const loadStatus = document.getElementById('load-status');
   
@@ -42,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarCloseBtn = document.getElementById('sidebar-close');
 
   let scriptData = null;
+  let scriptMetaName = '';
+  let playerSetupTable = [];
   let allRoles = {};
   let players = [];
   let selectedPlayerIndex = -1;
@@ -53,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveAppState() {
     try {
-      const state = { scriptData, players };
+      const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     } catch (_) {}
   }
@@ -65,12 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const saved = JSON.parse(raw);
       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
         await processScriptData(saved.scriptData);
+        if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
       }
       if (saved && Array.isArray(saved.players) && saved.players.length) {
         setupGrimoire(saved.players.length);
         players = saved.players;
         updateGrimoire();
         repositionPlayers();
+        renderSetupInfo();
       }
     } catch (_) {}
   }
@@ -86,6 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
       loadStatus.className = 'status';
+      // Pre-set a best-effort name from the filename so UI updates immediately
+      try {
+        const match = String(path).match(/([^/]+)\.json$/i);
+        if (match) {
+          const base = match[1].replace(/\s*&\s*/g, ' & ');
+          scriptMetaName = base;
+          renderSetupInfo();
+        }
+      } catch (_) {}
       const res = await fetch(path, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
@@ -98,9 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.className = 'error';
     }
   }
-  loadTbBtn && loadTbBtn.addEventListener('click', () => loadScriptFromFile('./Trouble Brewing.json'));
-  loadBmrBtn && loadBmrBtn.addEventListener('click', () => loadScriptFromFile('./Bad Moon Rising.json'));
-  loadSavBtn && loadSavBtn.addEventListener('click', () => loadScriptFromFile('./Sects and Violets.json'));
+  loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
+  loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
+  loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -134,10 +148,51 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsText(file);
   });
 
+  // Load player setup JSON once
+  (async function loadPlayerSetupTable() {
+    try {
+      const res = await fetch('./player-setup.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
+      renderSetupInfo();
+    } catch (e) {
+      console.error('Failed to load player-setup.json', e);
+    }
+  })();
+
+  function lookupCountsForPlayers(count) {
+    if (!Array.isArray(playerSetupTable)) return null;
+    const row = playerSetupTable.find(r => Number(r.players) === Number(count));
+    return row || null;
+  }
+
+  function renderSetupInfo() {
+    if (!setupInfoEl) return;
+    const count = players.length;
+    const row = lookupCountsForPlayers(count);
+    // Prefer parsed meta name; otherwise keep any existing hint
+    let scriptName = scriptMetaName || '';
+    if (!scriptName && Array.isArray(scriptData)) {
+      const meta = scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
+      if (meta && meta.name) scriptName = String(meta.name);
+    }
+    if (!row && !scriptName) { setupInfoEl.textContent = ''; return; }
+    const parts = [];
+    if (scriptName) parts.push(scriptName);
+    if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
+    setupInfoEl.textContent = parts.join(' ');
+  }
+
   async function processScriptData(data) {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
+      // Extract metadata name if present
+      try {
+        const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
+        scriptMetaName = meta && meta.name ? String(meta.name) : '';
+      } catch (_) { scriptMetaName = ''; }
       
       if (Array.isArray(data)) {
           console.log('Processing script with', data.length, 'characters');
@@ -150,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Total roles processed:', Object.keys(allRoles).length);
       displayScript(data);
        saveAppState();
+       renderSetupInfo();
   }
 
   async function processScriptCharacters(characterIds) {
@@ -338,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
           repositionPlayers();
           updateGrimoire();
           saveAppState();
+          renderSetupInfo();
       });
   }
 
