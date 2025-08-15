@@ -264,12 +264,12 @@ body {
     background-size: cover;
     border: 2px solid #D4AF37;
     color: white;
-    width: calc(var(--token-size) * 0.15);
-    height: calc(var(--token-size) * 0.15);
-    min-width: 15px;
-    min-height: 15px;
+    width: calc(var(--token-size) * 0.3);
+    height: calc(var(--token-size) * 0.3);
+    min-width: 30px;
+    min-height: 30px;
     border-radius: 50%; /* circular reminder */
-    font-size: calc(var(--token-size) * 0.1);
+    font-size: calc(var(--token-size) * 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -281,10 +281,10 @@ body {
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: calc(var(--token-size) * 0.15);
-    height: calc(var(--token-size) * 0.15);
-    min-width: 15px;
-    min-height: 15px;
+    width: calc(var(--token-size) * 0.3);
+    height: calc(var(--token-size) * 0.3);
+    min-width: 30px;
+    min-height: 30px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -340,10 +340,10 @@ body {
 .icon-reminder-text {
   fill: #ffffff;
   stroke: rgba(0,0,0,0.85);
-  stroke-width: 1.5px;
+  stroke-width: 2px;
   paint-order: stroke fill;
   font-weight: 800;
-  font-size: calc(var(--token-size) * 0.1);
+  font-size: calc(var(--token-size) * 0.15);
 }
 
 /* Character modal specific text styling */
@@ -457,8 +457,8 @@ body {
     transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
     color: white;
-    width: calc(var(--token-size) * 0.15);
-    height: calc(var(--token-size) * 0.15);
+    width: calc(var(--token-size) * 0.3);
+    height: calc(var(--token-size) * 0.3);
     border-radius: 50%;
     display: flex;
     align-items: center;
