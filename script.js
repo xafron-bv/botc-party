@@ -34,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
   const sidebarResizer = document.getElementById('sidebar-resizer');
+  
+  // Ability tooltip elements
+  const abilityTooltip = document.getElementById('ability-tooltip');
+  const touchAbilityPopup = document.getElementById('touch-ability-popup');
   const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
@@ -378,14 +382,51 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
           playerCircle.appendChild(listItem);
 
-          // Only the main token area opens the character modal; ribbon handles dead toggle
-          listItem.querySelector('.player-token').onclick = (e) => {
-              const target = e.target;
-              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-                  return; // handled by ribbon click
-              }
-              openCharacterModal(i);
-          };
+          // Handle both click and touch for character selection
+          const tokenElement = listItem.querySelector('.player-token');
+          
+          if ('ontouchstart' in window) {
+              // Touch mode: first tap shows ability, second tap opens modal
+              let tapCount = 0;
+              let tapTimer = null;
+              
+              tokenElement.onclick = (e) => {
+                  const target = e.target;
+                  if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                      return; // handled by ribbon click
+                  }
+                  
+                  tapCount++;
+                  
+                  if (tapCount === 1) {
+                      // First tap: show ability popup if character assigned
+                      const player = players[i];
+                      if (player.characterId && allRoles[player.characterId] && allRoles[player.characterId].ability) {
+                          showTouchAbilityPopup(tokenElement, allRoles[player.characterId].ability);
+                      }
+                      
+                      // Reset tap count after delay
+                      tapTimer = setTimeout(() => {
+                          tapCount = 0;
+                      }, 500);
+                  } else if (tapCount === 2) {
+                      // Second tap: open character modal
+                      clearTimeout(tapTimer);
+                      tapCount = 0;
+                      hideTouchAbilityPopup();
+                      openCharacterModal(i);
+                  }
+              };
+          } else {
+              // Non-touch mode: regular click opens modal
+              tokenElement.onclick = (e) => {
+                  const target = e.target;
+                  if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                      return; // handled by ribbon click
+                  }
+                  openCharacterModal(i);
+              };
+          }
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);
@@ -566,6 +607,21 @@ document.addEventListener('DOMContentLoaded', () => {
               // Add curved label on the token
               const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
               tokenDiv.appendChild(svg);
+              
+              // Add tooltip functionality for non-touch devices
+              if (!('ontouchstart' in window)) {
+                  tokenDiv.addEventListener('mouseenter', (e) => {
+                      if (role.ability) {
+                          abilityTooltip.textContent = role.ability;
+                          abilityTooltip.classList.add('show');
+                          positionTooltip(e.target, abilityTooltip);
+                      }
+                  });
+                  
+                  tokenDiv.addEventListener('mouseleave', () => {
+                      abilityTooltip.classList.remove('show');
+                  });
+              }
           } else {
             tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
             tokenDiv.style.backgroundSize = 'cover';
@@ -1317,7 +1373,12 @@ document.addEventListener('DOMContentLoaded', () => {
          roleEl.innerHTML = `
                          <span class="icon" style="background-image: url('${role.image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                          <span class="name">${role.name}</span>
+                         <div class="ability">${role.ability || 'No ability description available'}</div>
                      `;
+                    // Add click handler to toggle ability display
+                    roleEl.addEventListener('click', () => {
+                        roleEl.classList.toggle('show-ability');
+                    });
                     characterSheet.appendChild(roleEl);
                 });
             }
@@ -1346,7 +1407,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 roleEl.innerHTML = `
                     <span class="icon" style="background-image: url('${image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                     <span class="name">${characterItem.name || characterItem.id}</span>
+                    <div class="ability">${characterItem.ability || 'No ability description available'}</div>
                 `;
+                // Add click handler to toggle ability display
+                roleEl.addEventListener('click', () => {
+                    roleEl.classList.toggle('show-ability');
+                });
                 characterSheet.appendChild(roleEl);
             }
         });
@@ -1485,4 +1551,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore previous session (script and grimoire)
   loadAppState();
+});
+
+// Tooltip positioning function
+function positionTooltip(targetElement, tooltip) {
+    const rect = targetElement.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    // Position above the element by default
+    let top = rect.top - tooltipRect.height - 10;
+    let left = rect.left + (rect.width - tooltipRect.width) / 2;
+    
+    // Adjust if tooltip would go off screen
+    if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 10;
+    }
+    
+    if (left < 10) {
+        left = 10;
+    } else if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+    }
+    
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+}
+
+// Touch ability popup functions
+function showTouchAbilityPopup(targetElement, ability) {
+    const popup = touchAbilityPopup;
+    popup.textContent = ability;
+    popup.classList.add('show');
+    
+    const rect = targetElement.getBoundingClientRect();
+    const popupRect = popup.getBoundingClientRect();
+    
+    // Position above the token
+    let top = rect.top - popupRect.height - 20;
+    let left = rect.left + (rect.width - popupRect.width) / 2;
+    
+    // Adjust if popup would go off screen
+    if (top < 10) {
+        // Position below instead
+        top = rect.bottom + 20;
+        // Adjust the arrow
+        popup.style.setProperty('--arrow-top', '-10px');
+        popup.style.setProperty('--arrow-bottom', 'auto');
+        popup.style.setProperty('--arrow-border-color', 'transparent transparent #D4AF37 transparent');
+    } else {
+        // Reset arrow to bottom
+        popup.style.setProperty('--arrow-top', 'auto');
+        popup.style.setProperty('--arrow-bottom', '-10px');
+        popup.style.setProperty('--arrow-border-color', '#D4AF37 transparent transparent transparent');
+    }
+    
+    if (left < 10) {
+        left = 10;
+    } else if (left + popupRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - popupRect.width - 10;
+    }
+    
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+}
+
+function hideTouchAbilityPopup() {
+    touchAbilityPopup.classList.remove('show');
+}
+
+// Hide touch popup when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.player-token') && !e.target.closest('.touch-ability-popup')) {
+        hideTouchAbilityPopup();
+    }
 });
