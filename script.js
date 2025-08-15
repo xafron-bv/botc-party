@@ -887,7 +887,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
         const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
         const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-        const hoverZoneHeight = tokenEl.offsetWidth; // Match token width for precise targeting
+        const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
         const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
         const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
-        const hoverZoneHeight = tokenEl.offsetWidth; // Match token width for precise targeting
+        const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
           
           // Calculate the center of the hover zone along the radial line
           const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
