@@ -1747,6 +1747,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Wait for ongoing CSS transitions/animations to complete before measuring
+    function waitForAnimationsToFinish(element, fallbackMs = 400) {
+      return new Promise((resolve) => {
+        let resolved = false;
+        function finish() {
+          if (resolved) return;
+          resolved = true;
+          resolve();
+        }
+        try {
+          const nodes = [document.body, sidebar, element].filter(Boolean);
+          const animations = [];
+          for (let i = 0; i < nodes.length; i += 1) {
+            const node = nodes[i];
+            if (node && typeof node.getAnimations === 'function') {
+              const arr = node.getAnimations({ subtree: true });
+              for (let j = 0; j < arr.length; j += 1) animations.push(arr[j]);
+            }
+          }
+          if (animations.length > 0) {
+            const timeoutId = setTimeout(finish, Math.max(250, fallbackMs));
+            Promise.all(animations.map((a) => a.finished.catch(() => {}))).then(() => {
+              clearTimeout(timeoutId);
+              // Wait two frames to allow layout to fully settle
+              requestAnimationFrame(() => requestAnimationFrame(finish));
+            });
+          } else {
+            setTimeout(finish, Math.max(250, fallbackMs));
+          }
+        } catch(_) {
+          setTimeout(finish, Math.max(250, fallbackMs));
+        }
+      });
+    }
+
     // Compute popover position near target rect
     function positionPopoverNear(rect) {
       const margin = 12;
@@ -1929,8 +1964,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch(_) {}
       }
 
-      // Defer measurement and rendering to allow scroll/layout to settle (and sidebar transitions)
-      requestAnimationFrame(() => requestAnimationFrame(doRender));
+      // Wait for transitions/animations to finish, then render highlight
+      waitForAnimationsToFinish(targetEl, 400).then(() => {
+        requestAnimationFrame(() => requestAnimationFrame(doRender));
+      });
     }
 
     function endTour() {
