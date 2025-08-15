@@ -1573,7 +1573,8 @@ function positionTooltip(targetElement, tooltip) {
 
 // Touch ability popup functions
 function showTouchAbilityPopup(targetElement, ability) {
-    const popup = touchAbilityPopup;
+    const popup = document.getElementById('touch-ability-popup');
+    if (!popup) return;
     popup.textContent = ability;
     popup.classList.add('show');
     
@@ -1614,7 +1615,10 @@ function showTouchAbilityPopup(targetElement, ability) {
 }
 
 function hideTouchAbilityPopup() {
-    touchAbilityPopup.classList.remove('show');
+    const touchAbilityPopup = document.getElementById('touch-ability-popup');
+    if (touchAbilityPopup) {
+        touchAbilityPopup.classList.remove('show');
+    }
 }
 
 // Hide touch popup when clicking outside
