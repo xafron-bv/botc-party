@@ -75,7 +75,7 @@ body {
   border-radius: 10px;
   background: rgba(0,0,0,0.45);
   box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-  z-index: 2; /* ensure above background guides */
+  z-index: 1; /* Above background, below all game elements */
   pointer-events: none; /* non-interactive overlay */
   font-weight: bold;
 }
@@ -90,6 +90,7 @@ body {
   position: relative;
   width: 90vmin;
   height: 90vmin;
+  z-index: 2; /* Above setup-info */
 }
 
 .circle li {
@@ -223,7 +224,7 @@ body {
 #player-circle li:hover .player-name {
     opacity: 1;
     transform: translate(-50%, calc(-50% + var(--token-size) * 0.8));
-    z-index: 10;
+    z-index: 15; /* Above reminder tokens */
     filter: blur(0px);
 }
 
@@ -897,8 +898,9 @@ label {
 @media (hover: none) and (pointer: coarse) {
   #player-circle li .player-name {
     opacity: 1;
-    transform: translate(-50%, calc(-50% + var(--token-size) * 0.6));
+    transform: translate(-50%, calc(-50% + var(--token-size) * 0.8));
     filter: blur(0);
+    z-index: 15; /* Above reminder tokens */
   }
 }
 
