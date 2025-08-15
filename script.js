@@ -677,8 +677,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, true);
 
                 if (reminder.label) {
-                  // Check if this is a custom reminder (has 'custom' in the image path)
-                  const isCustom = reminder.image && reminder.image.includes('custom');
+                  // Check if this is a custom reminder by ID
+                  const isCustom = reminder.id === 'custom-note';
                   
                   if (isCustom) {
                     // For custom reminders, show straight text with dark background
@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (input === null) return;
                   label = input;
                 }
-                players[selectedPlayerIndex].reminders.push({ type: 'icon', image: token.image, label, rotation: 0 });
+                players[selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
                 updateGrimoire();
                 saveAppState();
                 reminderTokenModal.style.display = 'none';
