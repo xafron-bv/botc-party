@@ -1031,8 +1031,8 @@ body.resizing {
 /* Ability info icon for touch mode */
 .ability-info-icon {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: rgba(0, 0, 0, 0.9);
   border: 2px solid #D4AF37;
   border-radius: 50%;
@@ -1040,9 +1040,10 @@ body.resizing {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 20;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
   /* Position will be set dynamically by JavaScript */
   left: 50%;
   top: 50%;
@@ -1051,7 +1052,8 @@ body.resizing {
 
 .ability-info-icon i {
   color: #D4AF37;
-  font-size: 12px;
+  font-size: 14px;
+  pointer-events: none; /* Ensure clicks pass through to parent */
 }
 
 .ability-info-icon:active {

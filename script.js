@@ -596,10 +596,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   infoIcon.className = 'ability-info-icon';
                   infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
                   infoIcon.dataset.playerIndex = i;
-                  infoIcon.onclick = (e) => {
+                  // Handle both click and touch events
+                  const handleInfoClick = (e) => {
                       e.stopPropagation();
-                      showTouchAbilityPopup(tokenDiv, role.ability);
+                      e.preventDefault();
+                      showTouchAbilityPopup(infoIcon, role.ability);
                   };
+                  infoIcon.onclick = handleInfoClick;
+                  infoIcon.addEventListener('touchstart', (e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                  });
                   li.appendChild(infoIcon); // Append to li, not tokenDiv
               }
           } else {
@@ -1569,7 +1576,11 @@ function showTouchAbilityPopup(targetElement, ability) {
     popup.textContent = ability;
     popup.classList.add('show');
     
-    const rect = targetElement.getBoundingClientRect();
+    // If targetElement is the info icon, find the token for better positioning
+    const isInfoIcon = targetElement.classList.contains('ability-info-icon');
+    const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
+    
+    const rect = referenceElement.getBoundingClientRect();
     const popupRect = popup.getBoundingClientRect();
     
     // Position above the token
@@ -1631,10 +1642,10 @@ function positionInfoIcons() {
         const li = icon.parentElement;
         const angle = parseFloat(li.dataset.angle || '0');
         
-        // Calculate radius for info icons (add 60px to token radius)
+        // Calculate radius for info icons (add 30px to token radius)
         const tokenEl = li.querySelector('.player-token');
         const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
-        const infoRadius = tokenRadius + 60;
+        const infoRadius = tokenRadius + 30;
         
         // Calculate position on the outer circle
         const x = infoRadius * Math.cos(angle);
