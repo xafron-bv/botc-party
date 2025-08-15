@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-offline-grimoire-v4';
+const CACHE_NAME = 'botc-party-grimoire-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -16,24 +16,10 @@ const urlsToCache = [
   './assets/fontawesome/webfonts/fa-regular-400.woff2',
   './assets/fontawesome/webfonts/fa-brands-400.woff2',
   './assets/img/background4-C7TzDZ7M.webp',
-  './assets/img/token-BqDQdWeO.webp',
-  './assets/icons/android-chrome-192x192.png',
-  './assets/icons/android-chrome-512x512.png'
-];
-
-// Files that should always be fetched from network first
-const networkFirstFiles = [
-  'index.html',
-  'styles.css',
-  'script.js',
-  'service-worker.js',
-  'manifest.json'
+  './assets/img/token-BqDQdWeO.webp'
 ];
 
 self.addEventListener('install', event => {
-  // Skip waiting to activate immediately
-  self.skipWaiting();
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -53,13 +39,8 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  const isNetworkFirst = networkFirstFiles.some(file => 
-    url.pathname.endsWith(file) || url.pathname === '/' || url.pathname === '/workspace/'
-  );
-
-  // Handle token image requests - cache first
-  if (event.request.url.includes('/assets/token-icons/')) {
+  // Handle token image requests
+  if (event.request.url.includes('script.bloodontheclocktower.com/images/icon/') || event.request.url.includes('/assets/token-icons/')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -86,25 +67,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle tokens.json requests - cache first
+  // Handle tokens.json requests
   if (event.request.url.includes('/tokens.json') || event.request.url.endsWith('tokens.json')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
           if (response) {
-            // Try to fetch fresh version in background
-            fetch(event.request)
-              .then(freshResponse => {
-                if (freshResponse.ok) {
-                  const responseClone = freshResponse.clone();
-                  caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, responseClone);
-                    // Cache all token images after successfully caching tokens.json
-                    cacheAllTokenImages();
-                  });
-                }
-              })
-              .catch(() => {});
             return response;
           }
           return fetch(event.request)
@@ -138,7 +106,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache base script JSON files on fetch as well - cache first
+  // Cache base script JSON files on fetch as well
   if (event.request.url.endsWith('Trouble%20Brewing.json') || event.request.url.endsWith('Bad%20Moon%20Rising.json') || event.request.url.endsWith('Sects%20and%20Violets.json')) {
     event.respondWith(
       caches.match(event.request).then(response => {
@@ -155,38 +123,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle network-first files (HTML, CSS, JS)
-  if (isNetworkFirst) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fall back to cache if network fails
-          return caches.match(event.request)
-            .then(response => {
-              if (response) {
-                return response;
-              }
-              // Return cached index.html for navigation requests
-              if (event.request.mode === 'navigate') {
-                return caches.match('./index.html');
-              }
-              return null;
-            });
-        })
-    );
-    return;
-  }
-
-  // Handle other requests - cache first
+  // Handle other requests
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -265,21 +202,15 @@ async function cacheAllTokenImages() {
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    Promise.all([
-      // Delete old caches
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            if (cacheWhitelist.indexOf(cacheName) === -1) {
-              console.log('Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }),
-      // Take control of all clients immediately
-      self.clients.claim()
-    ])
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 

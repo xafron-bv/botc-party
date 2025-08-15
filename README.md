@@ -1,4 +1,4 @@
-# Blood on the Clocktower - Offline PWA Grimoire
+# Blood on the Clocktower - Party PWA Grimoire
 
 A Progressive Web App (PWA) version of the Blood on the Clocktower Grimoire that works offline, allowing game masters to manage game sessions without an internet connection.
 
