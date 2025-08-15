@@ -565,6 +565,19 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.dataset.angle = String(angle);
 
           // keep default CSS centering behavior for token
+          
+          // Apply top-half class to player names in the top half of the circle
+          const playerNameEl = listItem.querySelector('.player-name');
+          if (playerNameEl) {
+              // Angle is measured from top (-π/2), so top half is between -π and 0
+              const isTopHalf = angle >= -Math.PI && angle <= 0;
+              
+              if (isTopHalf) {
+                  playerNameEl.classList.add('top-half');
+              } else {
+                  playerNameEl.classList.remove('top-half');
+              }
+          }
 
           // Reposition the player's reminder stack and plus button to match new angle
           const count = (players[i] && players[i].reminders) ? players[i].reminders.length : 0;
@@ -586,7 +599,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const listItems = playerCircle.querySelectorAll('li');
       listItems.forEach((li, i) => {
           const player = players[i];
-          li.querySelector('.player-name').textContent = player.name;
+          const playerNameEl = li.querySelector('.player-name');
+          playerNameEl.textContent = player.name;
+          
+          // Check if player is in top half of circle
+          const angle = parseFloat(li.dataset.angle || '0');
+          // Angle is measured from top (-π/2), so top half is between -π and 0
+          const isTopHalf = angle >= -Math.PI && angle <= 0;
+          
+          if (isTopHalf) {
+              playerNameEl.classList.add('top-half');
+          } else {
+              playerNameEl.classList.remove('top-half');
+          }
+          
           const tokenDiv = li.querySelector('.player-token');
            const charNameDiv = li.querySelector('.character-name');
             // Remove any previous arc label overlay

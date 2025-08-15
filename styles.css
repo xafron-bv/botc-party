@@ -227,6 +227,11 @@ body {
     transform: translate(-50%, -50%) translateY(-2px);
 }
 
+/* Position player names above tokens for top half of circle */
+.player-name.top-half {
+    top: calc(50% - var(--token-size) * 0.8);
+}
+
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
     opacity: 1;
