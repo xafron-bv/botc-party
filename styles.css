@@ -133,7 +133,7 @@ body {
     background-repeat: no-repeat;
     background-position: center;
     overflow: visible; /* ensure reminder overlays are not clipped by the token */
-    z-index: 510; /* Above player-name (-10) and ensures proper layering */
+    z-index: 510; /* Above player-name and ensures proper layering */
 }
 
 /* Debug: line from token center to circle center */
@@ -214,7 +214,7 @@ body {
     left: 50%;
     top: calc(50% + var(--token-size) * 0.8);
     transform: translate(-50%, -50%);
-    z-index: -10; /* Below token and all other game elements */
+    /* No z-index - rely on DOM order (first in DOM = behind) */
     transition: all 0.3s ease;
     opacity: 0.3;
     pointer-events: auto;
@@ -235,7 +235,7 @@ body {
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
     opacity: 1;
-    z-index: -10; /* Keep below token and all other game elements */
+    /* No z-index - rely on DOM order */
     filter: blur(0px);
 }
 
@@ -955,7 +955,7 @@ label {
   #player-circle li .player-name {
     opacity: 1;
     filter: blur(0);
-    z-index: -10; /* Keep below token and all other game elements */
+    /* No z-index - rely on DOM order */
   }
 }
 
