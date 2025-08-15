@@ -991,19 +991,7 @@ body.resizing {
   display: block;
 }
 
-.touch-ability-popup::before {
-  content: '';
-  position: absolute;
-  bottom: var(--arrow-bottom, -10px);
-  top: var(--arrow-top, auto);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 10px;
-  border-color: var(--arrow-border-color, #D4AF37 transparent transparent transparent);
-}
+/* Removed arrow/triangle from tooltip */
 
 /* Character sheet ability display */
 .role .ability {
