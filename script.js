@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
   const loadSavBtn = document.getElementById('load-sav');
+  const loadAllCharsBtn = document.getElementById('load-all-chars');
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
@@ -87,6 +88,55 @@ document.addEventListener('DOMContentLoaded', () => {
       return path;
   }
 
+  async function loadAllCharacters() {
+    try {
+      loadStatus.textContent = 'Loading all characters...';
+      loadStatus.className = 'status';
+      
+      // Load tokens.json directly
+      const response = await fetch('./tokens.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load tokens.json: ${response.status}`);
+      }
+      
+      const tokens = await response.json();
+      console.log('Loading all characters from tokens.json');
+      
+      // Reset allRoles
+      allRoles = {};
+      
+      // Process all teams including fabled and travellers
+      const allTeams = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+      let characterIds = [];
+      
+      allTeams.forEach(teamName => {
+        if (tokens[teamName] && Array.isArray(tokens[teamName])) {
+          tokens[teamName].forEach(role => {
+            const image = resolveAssetPath(role.image);
+            allRoles[role.id] = { ...role, image, team: teamName };
+            characterIds.push(role.id);
+          });
+        }
+      });
+      
+      console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
+      
+      // Create a pseudo-script data array with all character IDs
+      scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
+      
+      displayScript(scriptData);
+      saveAppState();
+      
+      loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
+      loadStatus.className = 'status';
+      
+    } catch (error) {
+      console.error('Failed to load all characters:', error);
+      loadStatus.textContent = `Failed to load all characters: ${error.message}`;
+      loadStatus.className = 'error';
+    }
+  }
+
   async function loadScriptFromFile(path) {
     try {
       loadStatus.textContent = `Loading script from ${path}...`;
@@ -115,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
   loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
   loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
+  loadAllCharsBtn && loadAllCharsBtn.addEventListener('click', () => { scriptMetaName = 'All Characters'; renderSetupInfo(); loadAllCharacters(); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -233,13 +284,38 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
           // Process the character IDs from the script
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  if (roleLookup[characterId]) {
-                      allRoles[characterId] = roleLookup[characterId];
-                      console.log(`Resolved character ${characterId} (${roleLookup[characterId].name})`);
+          characterIds.forEach((characterItem) => {
+              // Handle string character IDs (official characters)
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  if (roleLookup[characterItem]) {
+                      allRoles[characterItem] = roleLookup[characterItem];
+                      console.log(`Resolved character ${characterItem} (${roleLookup[characterItem].name})`);
                   } else {
-                      console.warn(`Character ID not found: ${characterId}`);
+                      console.warn(`Character ID not found: ${characterItem}`);
+                  }
+              } 
+              // Handle full character objects (custom characters)
+              else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Validate required fields according to schema
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      const customRole = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                      
+                      // Add optional fields if present
+                      if (characterItem.reminders) customRole.reminders = characterItem.reminders;
+                      if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
+                      if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
+                      if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
+                      
+                      allRoles[characterItem.id] = customRole;
+                      console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
+                  } else {
+                      console.warn(`Invalid custom character object:`, characterItem);
                   }
               }
           });
@@ -248,14 +324,25 @@ document.addEventListener('DOMContentLoaded', () => {
           
       } catch (error) {
           console.error('Error processing script:', error);
-          characterIds.forEach((characterId) => {
-              if (typeof characterId === 'string' && characterId !== '_meta') {
-                  allRoles[characterId] = {
-                      id: characterId,
-                      name: characterId.charAt(0).toUpperCase() + characterId.slice(1),
+          characterIds.forEach((characterItem) => {
+              if (typeof characterItem === 'string' && characterItem !== '_meta') {
+                  allRoles[characterItem] = {
+                      id: characterItem,
+                      name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
                       image: '/assets/img/token-BqDQdWeO.webp',
                       team: 'unknown'
                   };
+              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                  // Handle custom character objects even in error case
+                  if (characterItem.name && characterItem.team && characterItem.ability) {
+                      allRoles[characterItem.id] = {
+                          id: characterItem.id,
+                          name: characterItem.name,
+                          team: characterItem.team,
+                          ability: characterItem.ability,
+                          image: characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp'
+                      };
+                  }
               }
           });
       }
@@ -448,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Draw guide lines from each token to the center after positioning
-      drawRadialGuides();
+      // drawRadialGuides(); // Commented out to hide radial guides
 
       console.log('Player positioning completed');
   }
@@ -1003,8 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const text = document.createElementNS('http://www.w3.org/2000/svg','text');
       text.setAttribute('class','icon-reminder-text');
       text.setAttribute('text-anchor','middle');
-      const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
-      textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
+      const textPath = document.createElementNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
       textPath.setAttribute('startOffset','50%');
       // Truncate display on token to avoid overcrowding, but keep tooltip full
       const full = String(labelText || '');
@@ -1243,14 +1329,24 @@ document.addEventListener('DOMContentLoaded', () => {
         header.className = 'team-townsfolk';
         characterSheet.appendChild(header);
         
-        data.forEach((characterId, index) => {
-            if (typeof characterId === 'string' && characterId !== '_meta') {
+        data.forEach((characterItem, index) => {
+            if (typeof characterItem === 'string' && characterItem !== '_meta') {
                 const roleEl = document.createElement('div');
                 roleEl.className = 'role';
                  roleEl.innerHTML = `
                      <span class="icon" style="background-image: url('/assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
-                     <span class="name">${characterId.charAt(0).toUpperCase() + characterId.slice(1)}</span>
+                     <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
+                characterSheet.appendChild(roleEl);
+            } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+                // Display custom character objects
+                const roleEl = document.createElement('div');
+                roleEl.className = 'role';
+                const image = characterItem.image ? resolveAssetPath(characterItem.image) : '/assets/img/token-BqDQdWeO.webp';
+                roleEl.innerHTML = `
+                    <span class="icon" style="background-image: url('${image}'), url('/assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                    <span class="name">${characterItem.name || characterItem.id}</span>
+                `;
                 characterSheet.appendChild(roleEl);
             }
         });
