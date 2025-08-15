@@ -809,9 +809,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const ux = vx / (runtimeRadius || 1);
       const uy = vy / (runtimeRadius || 1);
 
-      const reminderDiameter = Math.max(28, tokenEl.offsetWidth * 0.25);
+      const reminderDiameter = Math.max(40, tokenEl.offsetWidth * 0.4);
       const reminderRadius = reminderDiameter / 2;
-      const plusRadius = (tokenEl.offsetWidth / 4) / 2; // from CSS: width: token-size/4
+      const plusRadius = (tokenEl.offsetWidth * 0.3) / 2; // from CSS: width: token-size * 0.3
       const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
       const spacing = reminderDiameter + edgeGap;
 
