@@ -1624,6 +1624,30 @@ document.addEventListener('DOMContentLoaded', () => {
         applyCollapsed(true);
       });
     }
+    
+    // Add outside click handler for touch devices
+    if (isTouchDevice) {
+      const handleOutsideClick = (event) => {
+        // Check if sidebar is currently open
+        if (document.body.classList.contains('sidebar-collapsed')) {
+          return; // Sidebar is already closed
+        }
+        
+        // Check if click is outside sidebar and sidebar resizer
+        const clickedInSidebar = sidebarEl.contains(event.target);
+        const clickedOnResizer = sidebarResizer && sidebarResizer.contains(event.target);
+        const clickedOnToggleButton = sidebarToggleBtn.contains(event.target);
+        
+        if (!clickedInSidebar && !clickedOnResizer && !clickedOnToggleButton) {
+          // Click is outside sidebar, close it
+          applyCollapsed(true);
+        }
+      };
+      
+      // Add both click and touchstart event listeners for better touch support
+      document.addEventListener('click', handleOutsideClick, true);
+      document.addEventListener('touchstart', handleOutsideClick, { passive: true, capture: true });
+    }
   })();
 
   // Restore previous session (script and grimoire)
