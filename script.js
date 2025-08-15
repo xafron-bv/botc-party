@@ -1895,38 +1895,43 @@ document.addEventListener('DOMContentLoaded', () => {
        showTutorialStep();
    }
 
-           function showTutorialStep() {
-        const step = tutorialSteps[currentTutorialStep];
-        const tutorialContent = document.querySelector('.tutorial-content');
-        
-        // Update content
-        tutorialTitle.textContent = step.title;
-        tutorialText.innerHTML = step.text;
-        
-        // Update progress
-        tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
-        const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
-        tutorialProgressFill.style.width = `${progressPercent}%`;
-        
-        // Update button states
-        tutorialPrevBtn.disabled = currentTutorialStep === 0;
-        tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
-        
-                 // Handle sidebar visibility
-         if (step.requireSidebar && sidebar.classList.contains('hidden')) {
-             // Need to open sidebar
+                        function showTutorialStep() {
+         const step = tutorialSteps[currentTutorialStep];
+         const tutorialContent = document.querySelector('.tutorial-content');
+         
+         // First, immediately hide any existing highlight
+         tutorialHighlight.classList.remove('active');
+         
+         // Update content
+         tutorialTitle.textContent = step.title;
+         tutorialText.innerHTML = step.text;
+         
+         // Update progress
+         tutorialStepCounter.textContent = `Step ${currentTutorialStep + 1} of ${tutorialSteps.length}`;
+         const progressPercent = ((currentTutorialStep + 1) / tutorialSteps.length) * 100;
+         tutorialProgressFill.style.width = `${progressPercent}%`;
+         
+         // Update button states
+         tutorialPrevBtn.disabled = currentTutorialStep === 0;
+         tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+         
+         // Handle sidebar visibility BEFORE attempting to highlight
+         const sidebarNeedsChange = (step.requireSidebar && sidebar.classList.contains('hidden')) || 
+                                    (!step.requireSidebar && !sidebar.classList.contains('hidden'));
+         
+         if (sidebarNeedsChange) {
              toggleSidebar();
-             setTimeout(() => handleHighlightAndPosition(step), 350);
-         } else if (!step.requireSidebar && !sidebar.classList.contains('hidden')) {
-             // Need to close sidebar - remove highlight first
-             tutorialHighlight.classList.remove('active');
-             toggleSidebar();
-             setTimeout(() => handleHighlightAndPosition(step), 350);
+             // Wait for sidebar animation to complete (300ms + buffer)
+             setTimeout(() => {
+                 handleHighlightAndPosition(step);
+             }, 350);
          } else {
-             // Sidebar is already in correct state
-             handleHighlightAndPosition(step);
+             // Small delay to ensure DOM is ready
+             setTimeout(() => {
+                 handleHighlightAndPosition(step);
+             }, 50);
          }
-    }
+     }
     
     function handleHighlightAndPosition(step) {
         const tutorialContent = document.querySelector('.tutorial-content');
@@ -2042,21 +2047,27 @@ document.addEventListener('DOMContentLoaded', () => {
        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
    }
 
-  function nextTutorialStep() {
-      if (currentTutorialStep < tutorialSteps.length - 1) {
-          currentTutorialStep++;
-          showTutorialStep();
-      } else {
-          endTutorial();
-      }
-  }
-
-  function previousTutorialStep() {
-      if (currentTutorialStep > 0) {
-          currentTutorialStep--;
-          showTutorialStep();
-      }
-  }
+     function nextTutorialStep() {
+       // Hide highlight before moving to next step
+       tutorialHighlight.classList.remove('active');
+       
+       if (currentTutorialStep < tutorialSteps.length - 1) {
+           currentTutorialStep++;
+           showTutorialStep();
+       } else {
+           endTutorial();
+       }
+   }
+   
+   function previousTutorialStep() {
+       // Hide highlight before moving to previous step
+       tutorialHighlight.classList.remove('active');
+       
+       if (currentTutorialStep > 0) {
+           currentTutorialStep--;
+           showTutorialStep();
+       }
+   }
 
   function endTutorial() {
       tutorialActive = false;
@@ -2069,18 +2080,29 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (_) {}
   }
 
-  // Check if tutorial should be shown on first visit
-  function checkFirstVisit() {
-      try {
-          const hasSeenTutorial = localStorage.getItem('botcTutorialSeen');
-          if (!hasSeenTutorial) {
-              // Delay tutorial start to let page fully load
-              setTimeout(() => {
-                  startTutorial();
-              }, 1000);
-          }
-      } catch (_) {}
-  }
+     // Check if tutorial should be shown on first visit
+   function checkFirstVisit() {
+       try {
+           const hasSeenTutorial = localStorage.getItem('botcTutorialSeen');
+           if (!hasSeenTutorial) {
+               // Delay tutorial start to let page fully load
+               setTimeout(() => {
+                   // Make sure the game has been started before showing tutorial
+                   if (players.length > 0) {
+                       startTutorial();
+                   } else {
+                       // If no game started, wait for it
+                       const checkInterval = setInterval(() => {
+                           if (players.length > 0) {
+                               clearInterval(checkInterval);
+                               startTutorial();
+                           }
+                       }, 1000);
+                   }
+               }, 1500);
+           }
+       } catch (_) {}
+   }
 
      // Initialize tutorial when page loads
    setTimeout(() => {
