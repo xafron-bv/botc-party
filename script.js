@@ -2269,83 +2269,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const steps = [
       {
         id: 'welcome',
-        title: 'Welcome',
-        body: 'This short tour shows how to load a script, assign characters, and use reminder tokens.',
+        title: 'Quick Tour',
+        body: 'Learn the basics: set players, load a script, assign characters, add reminders. Use Next/Back or ←/→. Press Esc to exit.',
         target: () => document.getElementById('sidebar-toggle'),
         requiresSidebarClosed: true
       },
       {
         id: 'open-sidebar',
-        title: 'Open the Sidebar',
-        body: 'Tap here to open the sidebar. The sidebar contains setup and scripts.',
+        title: 'Open the sidebar',
+        body: 'Open the sidebar to set up and load a script.',
         target: () => document.getElementById('sidebar-toggle'),
         requiresSidebarClosed: true,
         onBeforeNext: () => setSidebarCollapsed(false)
       },
       {
         id: 'game-setup',
-        title: 'Game Setup',
-        body: 'Set the player count and press Start Game to create tokens.',
+        title: 'Set players',
+        body: 'Choose the player count and press Start Game to create tokens.',
         target: () => document.getElementById('start-game'),
         requiresSidebarOpen: true
       },
       {
         id: 'scripts',
-        title: 'Load a Script',
-        body: 'Pick one of the built-in scripts to load characters into the sheet.',
+        title: 'Load a script',
+        body: 'Load a built-in script to populate roles.',
         target: () => document.querySelector('#sidebar .script-buttons') || document.getElementById('load-status'),
         requiresSidebarOpen: true
       },
       {
-        id: 'script-history',
-        title: 'Script History',
-        body: 'Your previously loaded or uploaded scripts appear here. Load, rename, or delete them.',
-        target: () => document.getElementById('script-history-list'),
-        requiresSidebarOpen: true
-      },
-      {
-        id: 'character-sheet',
-        title: 'Character Sheet',
-        body: 'After loading a script, the sheet lists characters. Click a player token to assign one.',
-        target: () => document.getElementById('character-sheet'),
-        requiresSidebarOpen: true
-      },
-      {
-        id: 'grimoire-history',
-        title: 'Grimoire History',
-        body: 'Every time you start a new game, the previous grimoire is saved here. Load, rename, or delete snapshots.',
-        target: () => document.getElementById('grimoire-history-list'),
-        requiresSidebarOpen: true
-      },
-      {
-        id: 'grimoire',
-        title: 'The Grimoire',
-        body: 'This is the grimoire. We will close the sidebar for more space.',
-        target: () => document.getElementById('player-circle') || document.getElementById('center'),
-        requiresSidebarClosed: true,
-        onEnter: () => setSidebarCollapsed(true)
-      },
-      {
         id: 'assign-character',
-        title: 'Assign a Character',
+        title: 'Assign a character',
         body: 'Tap a player token to choose and assign a character.',
         target: () => {
           const li = document.querySelector('#player-circle li .player-token');
           return li || document.getElementById('player-circle');
         },
-        requiresSidebarClosed: true
+        requiresSidebarClosed: true,
+        onEnter: () => setSidebarCollapsed(true)
       },
       {
         id: 'reminders',
-        title: 'Reminder Tokens',
-        body: 'Use the + button near a player to add a reminder token or text note.',
+        title: 'Reminders',
+        body: 'Use the + near a player to add a reminder token or text note.',
         target: () => document.querySelector('#player-circle li .reminder-placeholder') || document.getElementById('player-circle'),
         requiresSidebarClosed: true
       },
       {
         id: 'finish',
-        title: 'All set!',
-        body: 'You can revisit this tutorial from the sidebar any time. Have a great game!',
+        title: "You're ready!",
+        body: 'You can restart this tour from the sidebar any time.',
         target: () => document.getElementById('center'),
         requiresSidebarClosed: true
       }
