@@ -730,6 +730,7 @@ body {
   letter-spacing: 0.5px;
   width: 100%;
   text-align: center;
+  box-sizing: border-box;
 }
 
 a.button {
