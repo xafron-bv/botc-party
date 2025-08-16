@@ -1,0 +1,57 @@
+name: Bump service worker cache on PR merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "bump-cache-main"
+  cancel-in-progress: false
+
+jobs:
+  bump-cache:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Ensure up-to-date main
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+
+      - name: Update cache version
+        shell: bash
+        run: |
+          CURRENT_VERSION=$(grep -oP "const CACHE_NAME = 'botc-party-grimoire-v\K[0-9]+" service-worker.js)
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "Failed to determine CURRENT_VERSION from service-worker.js" >&2
+            exit 1
+          fi
+          NEW_VERSION=$((CURRENT_VERSION + 1))
+          sed -i "s/const CACHE_NAME = 'botc-party-grimoire-v${CURRENT_VERSION}'/const CACHE_NAME = 'botc-party-grimoire-v${NEW_VERSION}'/" service-worker.js
+          echo "Updated cache version from v${CURRENT_VERSION} to v${NEW_VERSION}"
+          grep "const CACHE_NAME" service-worker.js
+          echo "NEW_VERSION=${NEW_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Commit and push change
+        shell: bash
+        run: |
+          if git diff --quiet service-worker.js; then
+            echo "No cache version change to commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add service-worker.js
+            git commit -m "chore: bump service worker cache to v${NEW_VERSION}"
+            git push origin HEAD:main
+          fi
