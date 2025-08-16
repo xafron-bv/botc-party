@@ -735,6 +735,11 @@ body {
 a.button {
   display: block;
   text-decoration: none;
+  color: white;
+}
+a.button:link,
+a.button:visited {
+  color: white;
 }
 
 .button:hover {
