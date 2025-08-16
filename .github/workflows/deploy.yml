@@ -22,19 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Update cache version
-        run: |
-          # Get current cache version from service-worker.js
-          CURRENT_VERSION=$(grep -oP "const CACHE_NAME = 'botc-party-grimoire-v\K[0-9]+" service-worker.js)
-          NEW_VERSION=$((CURRENT_VERSION + 1))
-          
-          # Update the cache version in service-worker.js
-          sed -i "s/const CACHE_NAME = 'botc-party-grimoire-v${CURRENT_VERSION}'/const CACHE_NAME = 'botc-party-grimoire-v${NEW_VERSION}'/" service-worker.js
-          
-          echo "Updated cache version from v${CURRENT_VERSION} to v${NEW_VERSION}"
-          
-          # Show the change
-          grep "const CACHE_NAME" service-worker.js
+
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
