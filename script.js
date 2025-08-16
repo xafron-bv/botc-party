@@ -2346,6 +2346,23 @@ document.addEventListener('DOMContentLoaded', () => {
         requiresSidebarClosed: true
       },
       {
+        id: 'offline',
+        title: 'Use it offline',
+        body: () => {
+          const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          const isMacSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) && /Mac/i.test(navigator.platform);
+          if (isIOS) {
+            return 'On iPhone/iPad: tap Share, then "Add to Home Screen" to install. The app works offline once installed.';
+          }
+          if (isMacSafari) {
+            return 'On Mac (Safari): in the Share menu, choose "Add to Dock" to install. The app will be available offline.';
+          }
+          return 'Install this app for offline use: on mobile, use "Add to Home Screen"; on desktop browsers, use "Install app" or create a shortcut.';
+        },
+        target: () => document.getElementById('sidebar-toggle'),
+        requiresSidebarClosed: true
+      },
+      {
         id: 'finish',
         title: "You're ready!",
         body: 'You can restart this tour from the sidebar any time.',
@@ -2382,7 +2399,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const body = document.createElement('div');
         body.className = 'body';
-        body.textContent = steps[idx].body;
+        const bodyText = (typeof steps[idx].body === 'function') ? steps[idx].body() : steps[idx].body;
+        body.textContent = bodyText;
 
         const actions = document.createElement('div');
         actions.className = 'actions';
