@@ -1261,9 +1261,31 @@ body.resizing {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#sidebar .history-list button.button {
-  flex: 0 0 auto;
+#sidebar .history-list .history-edit-input {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 6px 8px;
-  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #fff;
+}
+#sidebar .history-list .icon-btn {
+  background: transparent;
+  border: none;
+  color: #ddd;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+#sidebar .history-list .icon-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+#sidebar .history-list .icon-btn.delete:hover {
+  color: #ff6b6b;
+}
+#sidebar .history-list .icon-btn.save:hover {
+  color: #6bff8a;
 }
 
