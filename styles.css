@@ -730,6 +730,17 @@ body {
   letter-spacing: 0.5px;
   width: 100%;
   text-align: center;
+  box-sizing: border-box;
+}
+
+a.button {
+  display: block;
+  text-decoration: none;
+  color: white;
+}
+a.button:link,
+a.button:visited {
+  color: white;
 }
 
 .button:hover {
@@ -1242,4 +1253,70 @@ body.resizing {
 }
 
 /* Delete button absolute position is centered; JS will place it to the east of the reminder */
+
+/* History lists in sidebar */
+#sidebar .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+#sidebar .history-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  user-select: none;
+}
+#sidebar .history-list .history-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#sidebar .history-list .history-edit-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #fff;
+}
+#sidebar .history-list .icon-btn {
+  background: transparent;
+  border: none;
+  color: #ddd;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+#sidebar .history-list li.pressed {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+#sidebar .history-list li.editing .history-name {
+  display: none !important;
+}
+#sidebar .history-list li.editing .history-edit-input {
+  display: inline-block !important;
+}
+#sidebar .history-list li.editing .icon-btn.rename {
+  display: none !important;
+}
+#sidebar .history-list li.editing .icon-btn.save {
+  display: inline-block !important;
+}
+#sidebar .history-list .icon-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+#sidebar .history-list .icon-btn.delete:hover {
+  color: #ff6b6b;
+}
+#sidebar .history-list .icon-btn.save:hover {
+  color: #6bff8a;
+}
 

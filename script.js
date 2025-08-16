@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
   const sidebarCloseBtn = document.getElementById('sidebar-close');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const scriptHistoryList = document.getElementById('script-history-list');
+  const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
   let scriptData = null;
   let scriptMetaName = '';
@@ -109,6 +111,368 @@ document.addEventListener('DOMContentLoaded', () => {
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
+  let scriptHistory = [];
+  let grimoireHistory = [];
+  let isRestoringState = false;
+
+  function generateId(prefix) {
+    try {
+      if (crypto && crypto.randomUUID) return `${prefix || 'id'}_${crypto.randomUUID()}`;
+    } catch(_) {}
+    return `${prefix || 'id'}_${Date.now()}_${Math.floor(Math.random()*1e6)}`;
+  }
+
+  function formatDateName(date = new Date()) {
+    try {
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,'0');
+      const d = String(date.getDate()).padStart(2,'0');
+      const hh = String(date.getHours()).padStart(2,'0');
+      const mm = String(date.getMinutes()).padStart(2,'0');
+      return `${y}-${m}-${d} ${hh}:${mm}`;
+    } catch(_) {
+      return String(date);
+    }
+  }
+
+  function isExcludedScriptName(name) {
+    if (!name) return false;
+    const n = String(name).trim().toLowerCase();
+    return n === 'trouble brewing' ||
+           n === 'bad moon rising' ||
+           n === 'sects & violets' ||
+           n === 'sects and violets' ||
+           n === 'all characters';
+  }
+
+  function saveHistories() {
+    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
+    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch(_) {}
+  }
+
+  function loadHistories() {
+    try {
+      const sRaw = localStorage.getItem('botcScriptHistoryV1');
+      if (sRaw) scriptHistory = JSON.parse(sRaw) || [];
+    } catch(_) { scriptHistory = []; }
+    try {
+      const gRaw = localStorage.getItem('botcGrimoireHistoryV1');
+      if (gRaw) grimoireHistory = JSON.parse(gRaw) || [];
+    } catch(_) { grimoireHistory = []; }
+  }
+
+  function renderScriptHistory() {
+    if (!scriptHistoryList) return;
+    scriptHistoryList.innerHTML = '';
+    scriptHistory.forEach(entry => {
+      const li = document.createElement('li');
+      li.dataset.id = entry.id;
+      li.className = 'history-item';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'history-name';
+      nameSpan.textContent = entry.name || '(unnamed script)';
+      // Inline edit input (hidden by default)
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'history-edit-input';
+      nameInput.value = entry.name || '';
+      nameInput.style.display = 'none';
+      // Icons
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'icon-btn rename';
+      renameBtn.title = 'Rename';
+      renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save';
+      saveBtn.title = 'Save';
+      saveBtn.style.display = 'none';
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'icon-btn delete';
+      deleteBtn.title = 'Delete';
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+      li.appendChild(nameSpan);
+      li.appendChild(nameInput);
+      li.appendChild(renameBtn);
+      li.appendChild(saveBtn);
+      li.appendChild(deleteBtn);
+      scriptHistoryList.appendChild(li);
+    });
+  }
+
+  function renderGrimoireHistory() {
+    if (!grimoireHistoryList) return;
+    grimoireHistoryList.innerHTML = '';
+    grimoireHistory.forEach(entry => {
+      const li = document.createElement('li');
+      li.dataset.id = entry.id;
+      li.className = 'history-item';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'history-name';
+      nameSpan.textContent = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+      // Inline edit input (hidden by default)
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'history-edit-input';
+      nameInput.value = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+      nameInput.style.display = 'none';
+      // Icons
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'icon-btn rename';
+      renameBtn.title = 'Rename';
+      renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'icon-btn save';
+      saveBtn.title = 'Save';
+      saveBtn.style.display = 'none';
+      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'icon-btn delete';
+      deleteBtn.title = 'Delete';
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+      li.appendChild(nameSpan);
+      li.appendChild(nameInput);
+      li.appendChild(renameBtn);
+      li.appendChild(saveBtn);
+      li.appendChild(deleteBtn);
+      grimoireHistoryList.appendChild(li);
+    });
+  }
+
+  function addScriptToHistory(name, data) {
+    const entryName = (name && String(name).trim()) || 'Custom Script';
+    // Update existing by name if found, else add new
+    const idx = scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
+    if (idx >= 0) {
+      scriptHistory[idx].data = data;
+      scriptHistory[idx].updatedAt = Date.now();
+    } else {
+      scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
+    }
+    saveHistories();
+    renderScriptHistory();
+  }
+
+  function snapshotCurrentGrimoire() {
+    try {
+      if (!Array.isArray(players) || players.length === 0) return;
+      const snapPlayers = JSON.parse(JSON.stringify(players));
+      let name = formatDateName(new Date());
+      const entry = {
+        id: generateId('grimoire'),
+        name,
+        createdAt: Date.now(),
+        players: snapPlayers,
+        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
+        scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
+      };
+      grimoireHistory.unshift(entry);
+      saveHistories();
+      renderGrimoireHistory();
+    } catch(_) {}
+  }
+
+  async function restoreGrimoireFromEntry(entry) {
+    if (!entry) return;
+    try {
+      isRestoringState = true;
+      if (entry.scriptData) {
+        await processScriptData(entry.scriptData, false);
+        scriptMetaName = entry.scriptName || scriptMetaName;
+      }
+      setupGrimoire((entry.players || []).length || 0);
+      players = JSON.parse(JSON.stringify(entry.players || []));
+      updateGrimoire();
+      repositionPlayers();
+      saveAppState();
+      renderSetupInfo();
+    } catch (e) {
+      console.error('Failed to restore grimoire from history:', e);
+    } finally {
+      isRestoringState = false;
+    }
+  }
+
+  // Event delegation for history lists
+  if (scriptHistoryList) {
+    // Click-to-load and icon actions
+    scriptHistoryList.addEventListener('click', async (e) => {
+      const li = e.target.closest('li');
+      if (!li) return;
+      const id = li.dataset.id;
+      const entry = scriptHistory.find(x => x.id === id);
+      if (!entry) return;
+      const clickedDelete = e.target.closest('.icon-btn.delete');
+      const clickedRename = e.target.closest('.icon-btn.rename');
+      const clickedSave = e.target.closest('.icon-btn.save');
+      const clickedInput = e.target.closest('.history-edit-input');
+      if (clickedDelete) {
+        if (confirm('Delete this script from history?')) {
+          scriptHistory = scriptHistory.filter(x => x.id !== id);
+          saveHistories();
+          renderScriptHistory();
+        }
+        return;
+      }
+      if (clickedRename) {
+        const nameSpan = li.querySelector('.history-name');
+        const input = li.querySelector('.history-edit-input');
+        const renameBtn = li.querySelector('.icon-btn.rename');
+        const saveBtn = li.querySelector('.icon-btn.save');
+        nameSpan.style.display = 'none';
+        input.style.display = 'inline-block';
+        renameBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        li.classList.add('editing');
+        input.focus();
+        input.setSelectionRange(0, input.value.length);
+        return;
+      }
+      if (clickedSave) {
+        const input = li.querySelector('.history-edit-input');
+        const newName = (input.value || '').trim();
+        if (newName) {
+          entry.name = newName;
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderScriptHistory();
+        }
+        li.classList.remove('editing');
+        return;
+      }
+      if (clickedInput) return; // don't load when clicking into input
+      if (li.classList.contains('editing')) return; // avoid loading while editing
+      // Default: clicking the item or name loads the script
+      try {
+        await processScriptData(entry.data, false);
+        scriptMetaName = entry.name || scriptMetaName || '';
+        displayScript(scriptData);
+        saveAppState();
+        renderSetupInfo();
+      } catch (err) { console.error(err); }
+    });
+    // Press feedback
+    const pressHandlers = (ul) => {
+      const onDown = (e) => {
+        const li = e.target.closest('li.history-item');
+        if (!li) return;
+        if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+        li.classList.add('pressed');
+      };
+      const onClear = (e) => {
+        document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+      };
+      ul.addEventListener('pointerdown', onDown);
+      ul.addEventListener('pointerup', onClear);
+      ul.addEventListener('pointercancel', onClear);
+      ul.addEventListener('pointerleave', onClear);
+    };
+    pressHandlers(scriptHistoryList);
+    // Save on Enter when editing
+    scriptHistoryList.addEventListener('keydown', (e) => {
+      if (!e.target.classList.contains('history-edit-input')) return;
+      const li = e.target.closest('li');
+      const id = li && li.dataset.id;
+      const entry = scriptHistory.find(x => x.id === id);
+      if (!entry) return;
+      if (e.key === 'Enter') {
+        const newName = (e.target.value || '').trim();
+        if (newName) {
+          entry.name = newName;
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderScriptHistory();
+        }
+      }
+    });
+  }
+
+  if (grimoireHistoryList) {
+    // Click-to-load and icon actions
+    grimoireHistoryList.addEventListener('click', async (e) => {
+      const li = e.target.closest('li');
+      if (!li) return;
+      const id = li.dataset.id;
+      const entry = grimoireHistory.find(x => x.id === id);
+      if (!entry) return;
+      const clickedDelete = e.target.closest('.icon-btn.delete');
+      const clickedRename = e.target.closest('.icon-btn.rename');
+      const clickedSave = e.target.closest('.icon-btn.save');
+      const clickedInput = e.target.closest('.history-edit-input');
+      if (clickedDelete) {
+        if (confirm('Delete this grimoire snapshot?')) {
+          grimoireHistory = grimoireHistory.filter(x => x.id !== id);
+          saveHistories();
+          renderGrimoireHistory();
+        }
+        return;
+      }
+      if (clickedRename) {
+        const nameSpan = li.querySelector('.history-name');
+        const input = li.querySelector('.history-edit-input');
+        const renameBtn = li.querySelector('.icon-btn.rename');
+        const saveBtn = li.querySelector('.icon-btn.save');
+        nameSpan.style.display = 'none';
+        input.style.display = 'inline-block';
+        renameBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        li.classList.add('editing');
+        input.focus();
+        input.setSelectionRange(0, input.value.length);
+        return;
+      }
+      if (clickedSave) {
+        const input = li.querySelector('.history-edit-input');
+        const newName = (input.value || '').trim();
+        if (newName) {
+          entry.name = newName;
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderGrimoireHistory();
+        }
+        li.classList.remove('editing');
+        return;
+      }
+      if (clickedInput) return; // don't load when clicking into input
+      if (li.classList.contains('editing')) return; // avoid loading while editing
+      // Default: clicking the item or name loads the grimoire
+      await restoreGrimoireFromEntry(entry);
+    });
+    // Press feedback
+    const pressHandlersG = (ul) => {
+      const onDown = (e) => {
+        const li = e.target.closest('li.history-item');
+        if (!li) return;
+        if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+        li.classList.add('pressed');
+      };
+      const onClear = () => {
+        document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+      };
+      ul.addEventListener('pointerdown', onDown);
+      ul.addEventListener('pointerup', onClear);
+      ul.addEventListener('pointercancel', onClear);
+      ul.addEventListener('pointerleave', onClear);
+    };
+    pressHandlersG(grimoireHistoryList);
+    // Save on Enter when editing
+    grimoireHistoryList.addEventListener('keydown', (e) => {
+      if (!e.target.classList.contains('history-edit-input')) return;
+      const li = e.target.closest('li');
+      const id = li && li.dataset.id;
+      const entry = grimoireHistory.find(x => x.id === id);
+      if (!entry) return;
+      if (e.key === 'Enter') {
+        const newName = (e.target.value || '').trim();
+        if (newName) {
+          entry.name = newName;
+          entry.updatedAt = Date.now();
+          saveHistories();
+          renderGrimoireHistory();
+        }
+      }
+    });
+  }
 
   function saveAppState() {
     try {
@@ -119,11 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadAppState() {
     try {
+      isRestoringState = true;
       const raw = localStorage.getItem('botcAppStateV1');
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
-        await processScriptData(saved.scriptData);
+        await processScriptData(saved.scriptData, false);
         if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
       }
       if (saved && Array.isArray(saved.players) && saved.players.length) {
@@ -133,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         repositionPlayers();
         renderSetupInfo();
       }
-    } catch (_) {}
+    } catch (_) {} finally { isRestoringState = false; }
   }
 
   function resolveAssetPath(path) {
@@ -213,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(path, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      await processScriptData(json);
+      await processScriptData(json, true);
       loadStatus.textContent = 'Script loaded successfully!';
       loadStatus.className = 'status';
     } catch (e) {
@@ -240,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = JSON.parse(e.target.result);
         console.log('Uploaded script parsed successfully:', json);
         
-        await processScriptData(json);
+        await processScriptData(json, true);
         loadStatus.textContent = 'Custom script loaded successfully!';
         loadStatus.className = 'status';
       } catch (error) { 
@@ -295,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInfoEl.textContent = parts.join(' ');
   }
 
-  async function processScriptData(data) {
+  async function processScriptData(data, addToHistory = false) {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
@@ -317,6 +682,12 @@ document.addEventListener('DOMContentLoaded', () => {
       displayScript(data);
        saveAppState();
        renderSetupInfo();
+       if (addToHistory) {
+         const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
+         if (!isExcludedScriptName(histName)) {
+           addScriptToHistory(histName, data);
+         }
+       }
   }
 
   async function processScriptCharacters(characterIds) {
@@ -425,14 +796,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupGrimoire(count) {
-      console.log('Setting up grimoire with', count, 'players');
-      playerCircle.innerHTML = '';
-      players = Array.from({ length: count }, (_, i) => ({
-          name: `Player ${i + 1}`,
-          character: null,
-          reminders: [],
-          dead: false
-      }));
+      try {
+        if (!isRestoringState && Array.isArray(players) && players.length > 0) {
+          snapshotCurrentGrimoire();
+        }
+      } catch(_) {}
+       console.log('Setting up grimoire with', count, 'players');
+       playerCircle.innerHTML = '';
+       players = Array.from({ length: count }, (_, i) => ({
+           name: `Player ${i + 1}`,
+           character: null,
+           reminders: [],
+           dead: false
+       }));
       
       players.forEach((player, i) => {
           const listItem = document.createElement('li');
@@ -1766,6 +2142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
+  // Load histories and render lists
+  loadHistories();
+  renderScriptHistory();
+  renderGrimoireHistory();
+
   // Restore previous session (script and grimoire)
   loadAppState();
 
@@ -1916,10 +2297,24 @@ document.addEventListener('DOMContentLoaded', () => {
         requiresSidebarOpen: true
       },
       {
+        id: 'script-history',
+        title: 'Script History',
+        body: 'Your previously loaded or uploaded scripts appear here. Load, rename, or delete them.',
+        target: () => document.getElementById('script-history-list'),
+        requiresSidebarOpen: true
+      },
+      {
         id: 'character-sheet',
         title: 'Character Sheet',
         body: 'After loading a script, the sheet lists characters. Click a player token to assign one.',
         target: () => document.getElementById('character-sheet'),
+        requiresSidebarOpen: true
+      },
+      {
+        id: 'grimoire-history',
+        title: 'Grimoire History',
+        body: 'Every time you start a new game, the previous grimoire is saved here. Load, rename, or delete snapshots.',
+        target: () => document.getElementById('grimoire-history-list'),
         requiresSidebarOpen: true
       },
       {
