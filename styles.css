@@ -732,6 +732,11 @@ body {
   text-align: center;
 }
 
+a.button {
+  display: block;
+  text-decoration: none;
+}
+
 .button:hover {
   background: linear-gradient(135deg, #7a4ba8 0%, #9a6bc8 100%);
   transform: translateY(-2px);
