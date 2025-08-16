@@ -1248,6 +1248,8 @@ body.resizing {
   list-style: none;
   padding: 0;
   margin: 8px 0 0 0;
+  max-height: 240px;
+  overflow-y: auto;
 }
 #sidebar .history-list li {
   display: flex;
