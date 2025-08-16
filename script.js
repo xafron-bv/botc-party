@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
+  const reusePlayersCheckbox = document.getElementById('reuse-players');
   const setupInfoEl = document.getElementById('setup-info');
   const characterSheet = document.getElementById('character-sheet');
   const loadStatus = document.getElementById('load-status');
@@ -232,6 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderGrimoireHistory() {
+    // Ensure unique "Last game" appears on top if present
+    grimoireHistory = Array.isArray(grimoireHistory) ? grimoireHistory.reduce((acc, cur) => {
+      const exists = acc.find(x => x.id === cur.id);
+      if (!exists) acc.push(cur);
+      return acc;
+    }, []) : [];
+
     if (!grimoireHistoryList) return;
     grimoireHistoryList.innerHTML = '';
     grimoireHistory.forEach(entry => {
@@ -282,6 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saveHistories();
     renderScriptHistory();
+    // ensure grimoire history shows "Last game" at top without user having to start new
+    try { saveAppState(); } catch(_) {}
   }
 
   function snapshotCurrentGrimoire() {
@@ -468,6 +478,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (li.classList.contains('editing')) return; // avoid loading while editing
       // Default: clicking the item or name loads the grimoire
       await restoreGrimoireFromEntry(entry);
+      // When loading a snapshot, reuse players on setup
+      try { setupGrimoire(players.length, true); } catch(_) {}
     });
     // Press feedback
     const pressHandlersG = (ul) => {
@@ -509,28 +521,44 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
+      // Also keep last session as the default grimoire in history for quick access
+      if (Array.isArray(players) && players.length) {
+        const entry = {
+          id: 'last-session',
+          name: 'Last game',
+          createdAt: Date.now(),
+          players: JSON.parse(JSON.stringify(players)),
+          scriptName: scriptMetaName || '',
+          scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
+        };
+        // replace or insert at the top
+        const idx = grimoireHistory.findIndex(x => x.id === 'last-session');
+        if (idx >= 0) { grimoireHistory[idx] = entry; } else { grimoireHistory.unshift(entry); }
+        saveHistories();
+        renderGrimoireHistory();
+      }
     } catch (_) {}
   }
 
-  async function loadAppState() {
-    try {
-      isRestoringState = true;
-      const raw = localStorage.getItem('botcAppStateV1');
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
-        await processScriptData(saved.scriptData, false);
-        if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
-      }
-      if (saved && Array.isArray(saved.players) && saved.players.length) {
-        setupGrimoire(saved.players.length);
-        players = saved.players;
-        updateGrimoire();
-        repositionPlayers();
-        renderSetupInfo();
-      }
-    } catch (_) {} finally { isRestoringState = false; }
-  }
+     async function loadAppState() {
+     try {
+       isRestoringState = true;
+       const raw = localStorage.getItem('botcAppStateV1');
+       if (!raw) return;
+       const saved = JSON.parse(raw);
+       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
+         await processScriptData(saved.scriptData, false);
+         if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
+       }
+       if (saved && Array.isArray(saved.players) && saved.players.length) {
+         setupGrimoire(saved.players.length, true);
+         players = saved.players;
+         updateGrimoire();
+         repositionPlayers();
+         renderSetupInfo();
+       }
+     } catch (_) {} finally { isRestoringState = false; }
+   }
 
   function resolveAssetPath(path) {
       if (!path) return path;
@@ -820,13 +848,14 @@ document.addEventListener('DOMContentLoaded', () => {
   startGameBtn.addEventListener('click', () => {
     const playerCount = parseInt(playerCountInput.value, 10);
     if (playerCount >= 5 && playerCount <= 20) {
-      setupGrimoire(playerCount);
+      const reuse = !!(reusePlayersCheckbox && reusePlayersCheckbox.checked);
+      setupGrimoire(playerCount, reuse);
     } else {
       alert('Player count must be an integer from 5 to 20.');
     }
   });
 
-  function setupGrimoire(count) {
+  function setupGrimoire(count, reuse = false) {
       try {
         if (!isRestoringState && Array.isArray(players) && players.length > 0) {
           snapshotCurrentGrimoire();
@@ -834,12 +863,16 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(_) {}
        console.log('Setting up grimoire with', count, 'players');
        playerCircle.innerHTML = '';
-       players = Array.from({ length: count }, (_, i) => ({
-           name: `Player ${i + 1}`,
-           character: null,
-           reminders: [],
-           dead: false
-       }));
+       const previous = Array.isArray(players) ? JSON.parse(JSON.stringify(players)) : [];
+       players = Array.from({ length: count }, (_, i) => {
+           const prev = reuse ? previous[i] : null;
+           return {
+               name: prev && prev.name ? prev.name : `Player ${i + 1}`,
+               character: null,
+               reminders: [],
+               dead: false
+           };
+       });
       
       players.forEach((player, i) => {
           const listItem = document.createElement('li');
@@ -954,12 +987,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       // Use requestAnimationFrame to ensure DOM is fully rendered
-      requestAnimationFrame(() => {
-          repositionPlayers();
-          updateGrimoire();
-          saveAppState();
-          renderSetupInfo();
-      });
+             requestAnimationFrame(() => {
+           repositionPlayers();
+           updateGrimoire();
+           saveAppState();
+           renderSetupInfo();
+       });
+       // Auto-save a snapshot of the freshly set grimoire
+       try { snapshotCurrentGrimoire(); } catch(_) {}
   }
 
   function repositionPlayers() {
@@ -1095,6 +1130,7 @@ document.addEventListener('DOMContentLoaded', () => {
               // Add curved label on the token
               const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
               tokenDiv.appendChild(svg);
+              tokenDiv.setAttribute('aria-label', `${role.name}: ${role.ability || ''}`);
               
               // Add tooltip functionality for non-touch devices
               if (!('ontouchstart' in window)) {
@@ -1368,9 +1404,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const ux = vx / (runtimeRadius || 1);
       const uy = vy / (runtimeRadius || 1);
 
-      const reminderDiameter = Math.max(40, tokenEl.offsetWidth * 0.4);
+             const reminderDiameter = Math.max(34, tokenEl.offsetWidth * 0.36);
       const reminderRadius = reminderDiameter / 2;
-      const plusRadius = (tokenEl.offsetWidth * 0.3) / 2; // from CSS: width: token-size * 0.3
+             const plusRadius = (tokenEl.offsetWidth * 0.28) / 2; // from CSS: width: token-size * 0.28
       const edgeGap = Math.max(8, tokenRadiusPx * 0.08);
       const spacing = reminderDiameter + edgeGap;
 
@@ -1414,7 +1450,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   // Position hover zone as a rectangle along the radial line
         const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
         // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
-        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const maxHoverZoneEnd = Math.min(
+          tokenRadiusPx + 200,
+          Math.max(tokenRadiusPx + edgeGap + 20, runtimeRadius - Math.max(12, tokenRadiusPx * 0.25))
+        ); // Stay away from center
         const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
         const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
         const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
@@ -1482,7 +1521,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   // Position hover zone as a rectangle along the radial line (same as expanded state)
         const hoverZoneStart = tokenRadiusPx + edgeGap; // Start from token edge
         // Limit hover zone to not exceed the circle center (runtime radius is distance from center to token center)
-        const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10); // Stay 10px away from center
+        const maxHoverZoneEnd = Math.min(
+          tokenRadiusPx + 200,
+          Math.max(tokenRadiusPx + edgeGap + 20, runtimeRadius - Math.max(12, tokenRadiusPx * 0.25))
+        ); // Stay away from center
         const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); // Ensure minimum width of 20px
         const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; // Width along the radial line
         const hoverZoneHeight = reminderDiameter; // Match reminder size to prevent overlap
@@ -1508,25 +1550,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const plus = li.querySelector('.reminder-placeholder');
-      if (plus) {
-          if (isExpanded) {
-              // Expanded state: place plus button just beyond the last reminder with a small gap
-              const smallGap = Math.max(4, edgeGap * 0.25);
-              let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
-              if (count > 0) {
-                  // From token edge -> last reminder center -> last reminder edge -> small gap -> plus center
-                  offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + ((count - 1) * spacing) + reminderRadius + smallGap + plusRadius;
-              }
-              const targetOffset = offsetFromEdge;
-              const absPX = tokenCenterX + ux * targetOffset;
-              const absPY = tokenCenterY + uy * targetOffset;
-              const px = absPX - liRect.left;
-              const py = absPY - liRect.top;
-              plus.style.left = `${px}px`;
-              plus.style.top = `${py}px`;
-              plus.style.transform = 'translate(-50%, -50%)';
-              plus.style.zIndex = '6';
-          } else {
+             if (plus) {
+           if (isExpanded) {
+               // Expanded state: place plus button just beyond the last reminder with a small gap
+               const smallGap = Math.max(4, edgeGap * 0.25);
+               let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
+               if (count > 0) {
+                   // From token edge -> last reminder center -> last reminder edge -> small gap -> plus center
+                   offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + ((count - 1) * spacing) + reminderRadius + smallGap + plusRadius;
+               }
+               const targetOffset = Math.min(offsetFromEdge, Math.max(tokenRadiusPx + edgeGap + plusRadius + 8, runtimeRadius - Math.max(12, plusRadius)));
+               const absPX = tokenCenterX + ux * targetOffset;
+               const absPY = tokenCenterY + uy * targetOffset;
+               const px = absPX - liRect.left;
+               const py = absPY - liRect.top;
+               plus.style.left = `${px}px`;
+               plus.style.top = `${py}px`;
+               plus.style.transform = 'translate(-50%, -50%)';
+               plus.style.zIndex = '6';
+           } else {
               // Collapsed state: position plus button at the back of the collapsed stack
               const collapsedSpacing = reminderRadius * 0.3; // must match collapsed stack spacing above
               const smallGap = Math.max(2, edgeGap * 0.25);
@@ -1536,8 +1578,9 @@ document.addEventListener('DOMContentLoaded', () => {
                   const lastCenter = firstCenter + ((count - 1) * collapsedSpacing);
                   collapsedOffset = lastCenter + reminderRadius + smallGap + plusRadius;
               }
-              const absPX = tokenCenterX + ux * collapsedOffset;
-              const absPY = tokenCenterY + uy * collapsedOffset;
+              const targetOffsetCollapsed = Math.min(collapsedOffset, Math.max(tokenRadiusPx + edgeGap + plusRadius + 6, runtimeRadius - Math.max(10, plusRadius)));
+              const absPX = tokenCenterX + ux * targetOffsetCollapsed;
+              const absPY = tokenCenterY + uy * targetOffsetCollapsed;
               const px = absPX - liRect.left;
               const py = absPY - liRect.top;
               plus.style.left = `${px}px`;
@@ -1827,14 +1870,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function populateReminderTokenGrid() {
+       // If a character is assigned to the selected player, try to prioritize related reminders first
+       const selected = players[selectedPlayerIndex];
+       const selectedRoleId = selected && selected.character ? String(selected.character) : '';
+       let relatedIds = [];
+       try {
+                 const resMap = await fetch('./tokens.json');
+        const mapJson = await resMap.json();
+         if (selectedRoleId && mapJson.optionalMapping && mapJson.optionalMapping[selectedRoleId]) {
+           relatedIds = Object.values(mapJson.optionalMapping[selectedRoleId]);
+         }
+       } catch(_) {}
+ 
       if (!reminderTokenGrid) return;
       reminderTokenGrid.innerHTML = '';
       try {
          const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load tokens.json');
-        const json = await res.json();
-        let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-        if (reminderTokens.length === 0) {
+                 const json = await res.json();
+         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
+         // Prepend character-specific tokens if provided (e.g., json.balloonist)
+         if (selectedRoleId && Array.isArray(json[selectedRoleId])) {
+           reminderTokens = [...json[selectedRoleId], ...reminderTokens];
+         }
+         if (reminderTokens.length === 0) {
           // Fallback set if tokens.json has no reminderTokens
           reminderTokens = [
             { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
@@ -1850,8 +1909,11 @@ document.addEventListener('DOMContentLoaded', () => {
          // Put custom option at the top
          const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
          reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
-         const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
-        (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
+                   const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+          const prioritized = (relatedIds.length > 0)
+            ? [...reminderTokens.filter(t => relatedIds.includes(t.id)), ...reminderTokens.filter(t => !relatedIds.includes(t.id))]
+            : reminderTokens;
+         ((filtered.length ? filtered : prioritized)).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
             tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;

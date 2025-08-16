@@ -65,3 +65,10 @@ The app is built with vanilla HTML, CSS, and JavaScript. No build process or dep
 ## License
 
 This project is for educational and personal use. Blood on the Clocktower is a trademark of The Pandemonium Institute.
+
+## Recent Updates
+
+- Reuse players: a new checkbox under Game Setup preserves existing player names when starting a new game.
+- Reminder tokens: initial Balloonist-related tokens added; modal prioritizes character-related reminders when applicable.
+- Mobile UX: reminder tokens and plus button slightly smaller on small screens; delete icon only visible when the player's reminders are expanded; raised z-index to avoid overlap at center.
+- Saving: current game is auto-saved and appears as "Last game" in Grimoire History without starting a new game first.

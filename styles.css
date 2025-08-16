@@ -94,6 +94,9 @@ body {
 /* Simple single-line display */
 #setup-info { font-size: clamp(12px, 1.8vmin, 18px); }
 
+/* Ensure token plus button and reminders remain clickable near center by lifting expanded item */
+#player-circle li[data-expanded="1"] .reminders, #player-circle li[data-expanded="1"] .reminder-placeholder { z-index: 7; }
+
 .circle {
   list-style: none;
   padding: 0;
@@ -252,6 +255,11 @@ body {
     position: relative;
     overflow: visible;
     max-width: calc(var(--token-size) + 40px);
+    z-index: 1;
+}
+
+#player-circle li[data-expanded="1"] {
+    z-index: 10;
 }
 
 .reminders {
@@ -277,10 +285,10 @@ body {
     background-image: url('assets/img/token-BqDQdWeO.webp');
     background-size: cover;
     border: 2px solid #D4AF37;
-    width: calc(var(--token-size) * 0.4);
-    height: calc(var(--token-size) * 0.4);
-    min-width: 40px;
-    min-height: 40px;
+    width: calc(var(--token-size) * 0.36);
+    height: calc(var(--token-size) * 0.36);
+    min-width: 34px;
+    min-height: 34px;
     border-radius: 50%; /* circular reminder */
     display: flex;
     align-items: center;
@@ -289,7 +297,16 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     position: absolute;
     overflow: hidden;
-    padding: 4px;
+    padding: 3px;
+}
+
+@media (max-width: 420px) {
+  .text-reminder {
+    width: calc(var(--token-size) * 0.32);
+    height: calc(var(--token-size) * 0.32);
+    min-width: 30px;
+    min-height: 30px;
+  }
 }
 
 /* Text content with dark background */
@@ -319,10 +336,10 @@ body {
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-    width: calc(var(--token-size) * 0.4);
-    height: calc(var(--token-size) * 0.4);
-    min-width: 40px;
-    min-height: 40px;
+    width: calc(var(--token-size) * 0.36);
+    height: calc(var(--token-size) * 0.36);
+    min-width: 34px;
+    min-height: 34px;
     border-radius: 50%;
     background-size: cover;
     background-position: center;
@@ -337,7 +354,16 @@ body {
     overflow: visible; /* allow SVG text to overdraw border */
     z-index: 5; /* ensure above hover zone and nearby elements */
     transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, z-index 0.3s ease;
-    padding: 4px;
+    padding: 3px;
+}
+
+@media (max-width: 420px) {
+  .icon-reminder {
+    width: calc(var(--token-size) * 0.32);
+    height: calc(var(--token-size) * 0.32);
+    min-width: 30px;
+    min-height: 30px;
+  }
 }
 
 .icon-reminder:hover {
@@ -427,7 +453,8 @@ body {
 .text-reminder .reminder-delete-btn { pointer-events: auto; }
 
 @media (hover: none) and (pointer: coarse) {
-  .reminder-delete-btn { opacity: 1; }
+  /* Only show delete when expanded to avoid accidental taps */
+  li[data-expanded="1"] .reminder-delete-btn { opacity: 1; }
 }
 
 /* purple placeholder circle on hover around plus button area */
@@ -460,8 +487,8 @@ body {
 }
 
 #reminder-token-grid .token {
-  width: 70px;
-  height: 70px;
+  width: 62px;
+  height: 62px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -473,6 +500,13 @@ body {
   overflow: visible;
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 420px) {
+  #reminder-token-grid .token {
+    width: 56px;
+    height: 56px;
+  }
 }
 
 #reminder-token-grid .token:hover {
@@ -497,8 +531,8 @@ body {
     transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
     color: white;
-    width: calc(var(--token-size) * 0.3);
-    height: calc(var(--token-size) * 0.3);
+    width: calc(var(--token-size) * 0.28);
+    height: calc(var(--token-size) * 0.28);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -510,6 +544,13 @@ body {
     border: 2px solid #B8860B;
     transition: all 0.3s ease;
     z-index: 6; /* above hover zone and reminders to ensure clickability */
+}
+
+@media (max-width: 420px) {
+  .reminder-placeholder {
+    width: calc(var(--token-size) * 0.26);
+    height: calc(var(--token-size) * 0.26);
+  }
 }
 
 .reminder-placeholder:hover {
