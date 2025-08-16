@@ -99,6 +99,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const scriptHistoryList = document.getElementById('script-history-list');
   const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
+  const backgroundSelect = document.getElementById('background-select');
+  const centerEl = document.getElementById('center');
+
+  const BG_STORAGE_KEY = 'grimoireBackgroundV1';
+  function applyGrimoireBackground(value) {
+    if (!centerEl) return;
+    if (!value || value === 'none') {
+      centerEl.style.backgroundImage = 'none';
+    } else {
+      const url = `./assets/img/${value}`;
+      centerEl.style.backgroundImage = `url('${url}')`;
+      centerEl.style.backgroundSize = 'cover';
+      centerEl.style.backgroundPosition = 'center';
+    }
+  }
+
+  // Initialize background from localStorage
+  try {
+    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'background4-C7TzDZ7M.webp';
+    applyGrimoireBackground(savedBg);
+    if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
+  } catch(_) {}
+
+  if (backgroundSelect) {
+    backgroundSelect.addEventListener('change', () => {
+      const val = backgroundSelect.value;
+      applyGrimoireBackground(val);
+      try { localStorage.setItem(BG_STORAGE_KEY, val); } catch(_) {}
+    });
+  }
+  
   let scriptData = null;
   let scriptMetaName = '';
   let playerSetupTable = [];

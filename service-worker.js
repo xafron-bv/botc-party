@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v4';
+const CACHE_NAME = 'botc-party-grimoire-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -16,6 +16,8 @@ const urlsToCache = [
   './assets/fontawesome/webfonts/fa-regular-400.woff2',
   './assets/fontawesome/webfonts/fa-brands-400.woff2',
   './assets/img/background4-C7TzDZ7M.webp',
+  './assets/img/background4-X8jQb4tv.webp',
+  './assets/img/background-bJ1INm6Z.webp',
   './assets/img/token-BqDQdWeO.webp',
   './assets/icons/android-chrome-192x192.png',
   './assets/icons/android-chrome-512x512.png'
