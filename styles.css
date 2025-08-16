@@ -1267,12 +1267,14 @@ body.resizing {
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
+  user-select: none;
 }
 #sidebar .history-list .history-name {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
 }
 #sidebar .history-list .history-edit-input {
   flex: 1 1 auto;
@@ -1290,6 +1292,22 @@ body.resizing {
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
+}
+#sidebar .history-list li.pressed {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+#sidebar .history-list li.editing .history-name {
+  display: none !important;
+}
+#sidebar .history-list li.editing .history-edit-input {
+  display: inline-block !important;
+}
+#sidebar .history-list li.editing .icon-btn.rename {
+  display: none !important;
+}
+#sidebar .history-list li.editing .icon-btn.save {
+  display: inline-block !important;
 }
 #sidebar .history-list .icon-btn:hover {
   background: rgba(255,255,255,0.08);

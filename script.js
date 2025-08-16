@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.display = 'inline-block';
         renameBtn.style.display = 'none';
         saveBtn.style.display = 'inline-block';
+        li.classList.add('editing');
         input.focus();
         input.setSelectionRange(0, input.value.length);
         return;
@@ -326,9 +327,11 @@ document.addEventListener('DOMContentLoaded', () => {
           saveHistories();
           renderScriptHistory();
         }
+        li.classList.remove('editing');
         return;
       }
       if (clickedInput) return; // don't load when clicking into input
+      if (li.classList.contains('editing')) return; // avoid loading while editing
       // Default: clicking the item or name loads the script
       try {
         await processScriptData(entry.data, false);
@@ -338,6 +341,23 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSetupInfo();
       } catch (err) { console.error(err); }
     });
+    // Press feedback
+    const pressHandlers = (ul) => {
+      const onDown = (e) => {
+        const li = e.target.closest('li.history-item');
+        if (!li) return;
+        if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+        li.classList.add('pressed');
+      };
+      const onClear = (e) => {
+        document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+      };
+      ul.addEventListener('pointerdown', onDown);
+      ul.addEventListener('pointerup', onClear);
+      ul.addEventListener('pointercancel', onClear);
+      ul.addEventListener('pointerleave', onClear);
+    };
+    pressHandlers(scriptHistoryList);
     // Save on Enter when editing
     scriptHistoryList.addEventListener('keydown', (e) => {
       if (!e.target.classList.contains('history-edit-input')) return;
@@ -386,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.display = 'inline-block';
         renameBtn.style.display = 'none';
         saveBtn.style.display = 'inline-block';
+        li.classList.add('editing');
         input.focus();
         input.setSelectionRange(0, input.value.length);
         return;
@@ -399,12 +420,31 @@ document.addEventListener('DOMContentLoaded', () => {
           saveHistories();
           renderGrimoireHistory();
         }
+        li.classList.remove('editing');
         return;
       }
       if (clickedInput) return; // don't load when clicking into input
+      if (li.classList.contains('editing')) return; // avoid loading while editing
       // Default: clicking the item or name loads the grimoire
       await restoreGrimoireFromEntry(entry);
     });
+    // Press feedback
+    const pressHandlersG = (ul) => {
+      const onDown = (e) => {
+        const li = e.target.closest('li.history-item');
+        if (!li) return;
+        if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+        li.classList.add('pressed');
+      };
+      const onClear = () => {
+        document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+      };
+      ul.addEventListener('pointerdown', onDown);
+      ul.addEventListener('pointerup', onClear);
+      ul.addEventListener('pointercancel', onClear);
+      ul.addEventListener('pointerleave', onClear);
+    };
+    pressHandlersG(grimoireHistoryList);
     // Save on Enter when editing
     grimoireHistoryList.addEventListener('keydown', (e) => {
       if (!e.target.classList.contains('history-edit-input')) return;
