@@ -135,6 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function isExcludedScriptName(name) {
+    if (!name) return false;
+    const n = String(name).trim().toLowerCase();
+    return n === 'trouble brewing' ||
+           n === 'bad moon rising' ||
+           n === 'sects & violets' ||
+           n === 'sects and violets' ||
+           n === 'all characters';
+  }
+
   function saveHistories() {
     try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
     try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch(_) {}
@@ -541,7 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
       
       displayScript(scriptData);
       saveAppState();
-      addScriptToHistory('All Characters', scriptData);
       
       loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
       loadStatus.className = 'status';
@@ -675,7 +684,9 @@ document.addEventListener('DOMContentLoaded', () => {
        renderSetupInfo();
        if (addToHistory) {
          const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
-         addScriptToHistory(histName, data);
+         if (!isExcludedScriptName(histName)) {
+           addScriptToHistory(histName, data);
+         }
        }
   }
 
