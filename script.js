@@ -1906,31 +1906,15 @@ document.addEventListener('DOMContentLoaded', () => {
       populateReminderTokenGrid();
   }
 
-  async function populateReminderTokenGrid() {
-       // If a character is assigned to the selected player, try to prioritize related reminders first
-       const selected = players[selectedPlayerIndex];
-       const selectedRoleId = selected && selected.character ? String(selected.character) : '';
-       let relatedIds = [];
-       try {
-                 const resMap = await fetch('./tokens.json');
-        const mapJson = await resMap.json();
-         if (selectedRoleId && mapJson.optionalMapping && mapJson.optionalMapping[selectedRoleId]) {
-           relatedIds = Object.values(mapJson.optionalMapping[selectedRoleId]);
-         }
-       } catch(_) {}
- 
-      if (!reminderTokenGrid) return;
+    async function populateReminderTokenGrid() {
+       if (!reminderTokenGrid) return;
       reminderTokenGrid.innerHTML = '';
       try {
          const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load tokens.json');
                  const json = await res.json();
-         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-         // Prepend character-specific tokens if provided (e.g., json.balloonist)
-         if (selectedRoleId && Array.isArray(json[selectedRoleId])) {
-           reminderTokens = [...json[selectedRoleId], ...reminderTokens];
-         }
-         if (reminderTokens.length === 0) {
+                   let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
+          if (reminderTokens.length === 0) {
           // Fallback set if tokens.json has no reminderTokens
           reminderTokens = [
             { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
@@ -1946,11 +1930,8 @@ document.addEventListener('DOMContentLoaded', () => {
          // Put custom option at the top
          const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
          reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
-                   const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
-          const prioritized = (relatedIds.length > 0)
-            ? [...reminderTokens.filter(t => relatedIds.includes(t.id)), ...reminderTokens.filter(t => !relatedIds.includes(t.id))]
-            : reminderTokens;
-         ((filtered.length ? filtered : prioritized)).forEach((token, idx) => {
+                                       const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+          (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';
             tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
