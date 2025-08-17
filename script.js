@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
   const playerCircle = document.getElementById('player-circle');
-  const reusePlayersCheckbox = document.getElementById('reuse-players');
   const setupInfoEl = document.getElementById('setup-info');
   const characterSheet = document.getElementById('character-sheet');
   const loadStatus = document.getElementById('load-status');
@@ -233,12 +232,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderGrimoireHistory() {
-    // Ensure unique "Last game" appears on top if present
+    // Ensure unique "Current game" appears on top if present
     grimoireHistory = Array.isArray(grimoireHistory) ? grimoireHistory.reduce((acc, cur) => {
       const exists = acc.find(x => x.id === cur.id);
       if (!exists) acc.push(cur);
       return acc;
     }, []) : [];
+    // Move current-session to top if present
+    const idxCur = grimoireHistory.findIndex(x => x.id === 'current-session');
+    if (idxCur > 0) {
+      const [cur] = grimoireHistory.splice(idxCur, 1);
+      grimoireHistory.unshift(cur);
+    }
 
     if (!grimoireHistoryList) return;
     grimoireHistoryList.innerHTML = '';
@@ -290,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saveHistories();
     renderScriptHistory();
-    // ensure grimoire history shows "Last game" at top without user having to start new
+    // ensure grimoire history shows "Current game" at top without user having to start new
     try { saveAppState(); } catch(_) {}
   }
 
@@ -524,15 +529,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // Also keep last session as the default grimoire in history for quick access
       if (Array.isArray(players) && players.length) {
         const entry = {
-          id: 'last-session',
-          name: 'Last game',
+          id: 'current-session',
+          name: 'Current game',
           createdAt: Date.now(),
           players: JSON.parse(JSON.stringify(players)),
           scriptName: scriptMetaName || '',
           scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
         };
         // replace or insert at the top
-        const idx = grimoireHistory.findIndex(x => x.id === 'last-session');
+        const idx = grimoireHistory.findIndex(x => x.id === 'current-session');
         if (idx >= 0) { grimoireHistory[idx] = entry; } else { grimoireHistory.unshift(entry); }
         saveHistories();
         renderGrimoireHistory();
@@ -848,31 +853,30 @@ document.addEventListener('DOMContentLoaded', () => {
   startGameBtn.addEventListener('click', () => {
     const playerCount = parseInt(playerCountInput.value, 10);
     if (playerCount >= 5 && playerCount <= 20) {
-      const reuse = !!(reusePlayersCheckbox && reusePlayersCheckbox.checked);
-      setupGrimoire(playerCount, reuse);
+      setupGrimoire(playerCount);
     } else {
       alert('Player count must be an integer from 5 to 20.');
     }
   });
 
   function setupGrimoire(count, reuse = false) {
-      try {
-        if (!isRestoringState && Array.isArray(players) && players.length > 0) {
-          snapshotCurrentGrimoire();
-        }
-      } catch(_) {}
-       console.log('Setting up grimoire with', count, 'players');
-       playerCircle.innerHTML = '';
-       const previous = Array.isArray(players) ? JSON.parse(JSON.stringify(players)) : [];
-       players = Array.from({ length: count }, (_, i) => {
-           const prev = reuse ? previous[i] : null;
-           return {
-               name: prev && prev.name ? prev.name : `Player ${i + 1}`,
-               character: null,
-               reminders: [],
-               dead: false
-           };
-       });
+       try {
+         if (!isRestoringState && Array.isArray(players) && players.length > 0) {
+           snapshotCurrentGrimoire();
+         }
+       } catch(_) {}
+        console.log('Setting up grimoire with', count, 'players');
+        playerCircle.innerHTML = '';
+        const previous = Array.isArray(players) ? JSON.parse(JSON.stringify(players)) : [];
+        players = Array.from({ length: count }, (_, i) => {
+            const prev = previous[i] || null;
+            return {
+                name: prev && prev.name ? prev.name : `Player ${i + 1}`,
+                character: null,
+                reminders: [],
+                dead: false
+            };
+        });
       
       players.forEach((player, i) => {
           const listItem = document.createElement('li');
@@ -896,6 +900,39 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               openCharacterModal(i);
           };
+          // Long-press to manage seats near this position (insert/remove)
+          let pressTimer;
+          const openSeatMenu = () => {
+              // remove any existing menus
+              document.querySelectorAll('.seat-menu').forEach(m => m.remove());
+              const menu = document.createElement('div');
+              menu.className = 'seat-menu';
+              const addBefore = document.createElement('button'); addBefore.textContent = '+ before';
+              const addAfter = document.createElement('button'); addAfter.textContent = '+ after';
+              const removeHere = document.createElement('button'); removeHere.textContent = 'remove';
+              addBefore.onclick = (ev) => { ev.stopPropagation();
+                const newPlayer = { name: `Player ${players.length + 1}`, character: null, reminders: [], dead: false };
+                players.splice(i, 0, newPlayer);
+                setupGrimoire(players.length); // names preserved
+                updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+              addAfter.onclick = (ev) => { ev.stopPropagation();
+                const newPlayer = { name: `Player ${players.length + 1}`, character: null, reminders: [], dead: false };
+                players.splice(i + 1, 0, newPlayer);
+                setupGrimoire(players.length); updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+              removeHere.onclick = (ev) => { ev.stopPropagation();
+                if (players.length <= 5) { alert('Minimum 5 players.'); return; }
+                players.splice(i, 1);
+                setupGrimoire(players.length); updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+              menu.appendChild(addBefore); menu.appendChild(addAfter); menu.appendChild(removeHere);
+              listItem.appendChild(menu);
+            };
+          const tokenEl = listItem.querySelector('.player-token');
+          tokenEl.addEventListener('mousedown', () => { pressTimer = setTimeout(openSeatMenu, 600); });
+          tokenEl.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
+          tokenEl.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
+          tokenEl.addEventListener('touchstart', () => { pressTimer = setTimeout(openSeatMenu, 600); }, { passive: true });
+          tokenEl.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+          document.addEventListener('click', (ev) => { if (!listItem.contains(ev.target)) { document.querySelectorAll('.seat-menu').forEach(m => m.remove()); } }, true);
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);

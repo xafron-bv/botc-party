@@ -1371,3 +1371,29 @@ body.resizing {
   color: #6bff8a;
 }
 
+
+/* Seat insertion/removal context menu */
+.seat-menu {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.9);
+  border: 1px solid #D4AF37;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 12;
+  display: flex;
+  gap: 6px;
+}
+.seat-menu button {
+  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
+  color: #fff;
+  border: 1px solid #7a4ba8;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.seat-menu button:hover { filter: brightness(1.1); }
+
