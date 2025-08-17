@@ -1397,3 +1397,11 @@ body.resizing {
 }
 .seat-menu button:hover { filter: brightness(1.1); }
 
+.player-token, .reminder-placeholder, .icon-reminder, .text-reminder {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+

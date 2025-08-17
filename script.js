@@ -860,12 +860,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupGrimoire(count, reuse = false) {
-       try {
-         if (!isRestoringState && Array.isArray(players) && players.length > 0) {
-           snapshotCurrentGrimoire();
+              try {
+         if (!isRestoringState) {
+           const idxCur = grimoireHistory.findIndex(x => x.id === 'current-session');
+           if (idxCur >= 0) {
+             const entry = grimoireHistory[idxCur];
+             entry.id = generateId('grimoire');
+             entry.name = formatDateName(new Date(entry.createdAt || Date.now()));
+             entry.updatedAt = Date.now();
+             saveHistories();
+             renderGrimoireHistory();
+           }
          }
        } catch(_) {}
-        console.log('Setting up grimoire with', count, 'players');
+       console.log('Setting up grimoire with', count, 'players');
         playerCircle.innerHTML = '';
         const previous = Array.isArray(players) ? JSON.parse(JSON.stringify(players)) : [];
         players = Array.from({ length: count }, (_, i) => {
@@ -890,16 +898,34 @@ document.addEventListener('DOMContentLoaded', () => {
           playerCircle.appendChild(listItem);
 
           // Only the main token area opens the character modal; ribbon handles dead toggle
-          listItem.querySelector('.player-token').onclick = (e) => {
-              const target = e.target;
-              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-                  return; // handled by ribbon click
-              }
-              if (target && target.classList.contains('ability-info-icon')) {
-                  return; // handled by info icon
-              }
-              openCharacterModal(i);
-          };
+                     // Open character modal on left click only when seat menu is not open
+           listItem.querySelector('.player-token').addEventListener('click', (e) => {
+               const hasMenu = !!listItem.querySelector('.seat-menu');
+               if (hasMenu) return;
+               const target = e.target;
+               if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+                   return; // handled by ribbon click
+               }
+               if (target && target.classList.contains('ability-info-icon')) {
+                   return; // handled by info icon
+               }
+               openCharacterModal(i);
+           });
+           // Prevent OS context menu and open seat menu on right-click
+           listItem.querySelector('.player-token').addEventListener('contextmenu', (e) => {
+             e.preventDefault(); e.stopPropagation();
+             document.querySelectorAll('.seat-menu').forEach(m => m.remove());
+             const menu = document.createElement('div');
+             menu.className = 'seat-menu';
+             const addBefore = document.createElement('button'); addBefore.textContent = '+ before';
+             const addAfter = document.createElement('button'); addAfter.textContent = '+ after';
+             const removeHere = document.createElement('button'); removeHere.textContent = 'remove';
+             addBefore.onclick = (ev) => { ev.stopPropagation(); const newPlayer = { name: `Player ${players.length + 1}`, character: null, reminders: [], dead: false }; players.splice(i, 0, newPlayer); setupGrimoire(players.length); updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+             addAfter.onclick = (ev) => { ev.stopPropagation(); const newPlayer = { name: `Player ${players.length + 1}`, character: null, reminders: [], dead: false }; players.splice(i + 1, 0, newPlayer); setupGrimoire(players.length); updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+             removeHere.onclick = (ev) => { ev.stopPropagation(); if (players.length <= 5) { alert('Minimum 5 players.'); return; } players.splice(i, 1); setupGrimoire(players.length); updateGrimoire(); repositionPlayers(); saveAppState(); menu.remove(); };
+             menu.appendChild(addBefore); menu.appendChild(addAfter); menu.appendChild(removeHere);
+             listItem.appendChild(menu);
+           });
           // Long-press to manage seats near this position (insert/remove)
           let pressTimer;
           const openSeatMenu = () => {
@@ -942,16 +968,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   saveAppState();
               }
           };
-          listItem.querySelector('.reminder-placeholder').onclick = (e) => {
-              e.stopPropagation();
-              if (isTouchDevice) {
-                  openReminderTokenModal(i);
-              } else if (e.altKey) {
-                  openTextReminderModal(i);
-              } else {
-                  openReminderTokenModal(i);
-              }
-          };
+                     // Open reminder token modal on click; Alt+click opens text reminder (desktop convenience)
+           listItem.querySelector('.reminder-placeholder').addEventListener('click', (e) => {
+               e.stopPropagation();
+               if (e.altKey && !isTouchDevice) {
+                   openTextReminderModal(i);
+               } else {
+                   openReminderTokenModal(i);
+               }
+           }, true);
 
           // Hover expand/collapse for reminder stack positioning
           listItem.dataset.expanded = '0';
@@ -1030,8 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
            saveAppState();
            renderSetupInfo();
        });
-       // Auto-save a snapshot of the freshly set grimoire
-       try { snapshotCurrentGrimoire(); } catch(_) {}
+               // (simplified) no auto-snapshot on setup; current-session will be renamed on next setup
   }
 
   function repositionPlayers() {
