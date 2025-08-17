@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v7';
+const CACHE_NAME = 'botc-party-grimoire-v8';
 const urlsToCache = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const urlsToCache = [
   './LICENSE.md',
   './styles.css',
   './script.js',
-  './tokens.json',
+  './characters.json',
   './Trouble Brewing.json',
   './Bad Moon Rising.json',
   './Sects and Violets.json',
@@ -61,7 +61,7 @@ self.addEventListener('fetch', event => {
   );
 
   // Handle token image requests - cache first
-  if (event.request.url.includes('/assets/token-icons/')) {
+  if (event.request.url.includes('/build/img/icons/') || event.request.url.includes('/assets/token-icons/')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -88,8 +88,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle tokens.json requests - cache first
-  if (event.request.url.includes('/tokens.json') || event.request.url.endsWith('tokens.json')) {
+  // Handle characters.json requests - cache first
+  if (event.request.url.includes('/characters.json') || event.request.url.endsWith('characters.json')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -101,7 +101,7 @@ self.addEventListener('fetch', event => {
                   const responseClone = freshResponse.clone();
                   caches.open(CACHE_NAME).then(cache => {
                     cache.put(event.request, responseClone);
-                    // Cache all token images after successfully caching tokens.json
+                    // Cache all token images after successfully caching characters.json
                     cacheAllTokenImages();
                   });
                 }
@@ -115,23 +115,16 @@ self.addEventListener('fetch', event => {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);
-                  // Cache all token images after successfully caching tokens.json
+                  // Cache all token images after successfully caching characters.json
                   cacheAllTokenImages();
                 });
               }
               return response;
             })
             .catch(error => {
-              console.error('Failed to fetch tokens.json:', error);
-              // Return a basic fallback if tokens.json fails
-              return new Response(JSON.stringify({
-                townsfolk: [],
-                outsider: [],
-                minion: [],
-                demon: [],
-                travellers: [],
-                fabled: []
-              }), {
+              console.error('Failed to fetch characters.json:', error);
+              // Return a basic fallback if characters.json fails
+              return new Response(JSON.stringify([]), {
                 headers: { 'Content-Type': 'application/json' }
               });
             });
@@ -220,26 +213,17 @@ async function cacheAllTokenImages() {
   try {
     const cache = await caches.open(CACHE_NAME);
     
-    // Get tokens.json from cache instead of fetching again
-    const cachedResponse = await cache.match('./tokens.json');
+    // Get characters.json from cache instead of fetching again
+    const cachedResponse = await cache.match('./characters.json');
     if (!cachedResponse) {
-      console.log('tokens.json not found in cache, skipping image caching');
+      console.log('characters.json not found in cache, skipping image caching');
       return;
     }
     
-    const tokens = await cachedResponse.json();
-    const imageUrls = [];
-    
-    // Extract all image URLs from the tokens
-    Object.values(tokens).forEach(team => {
-      if (Array.isArray(team)) {
-        team.forEach(role => {
-          if (role.image) {
-            imageUrls.push(role.image);
-          }
-        });
-      }
-    });
+    const characters = await cachedResponse.json();
+    const imageUrls = Array.isArray(characters)
+      ? characters.filter(c => c && c.image).map(c => c.image)
+      : [];
     
     console.log(`Found ${imageUrls.length} token images to cache`);
     
