@@ -1896,7 +1896,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 reminderTokenModal.style.display = 'none';
             };
             tokenEl.addEventListener('click', handleSelect);
-            tokenEl.addEventListener('touchend', handleSelect, { passive: false });
 
             // Add curved bottom text to preview
             if (token.label) {

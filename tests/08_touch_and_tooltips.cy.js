@@ -67,5 +67,31 @@ describe('Ability UI - Touch', () => {
     cy.get('body').click('topLeft');
     cy.get('#touch-ability-popup').should('not.have.class', 'show');
   });
+
+  it('reminder token scrolling does not accidentally select; tap still selects', () => {
+    cy.viewport('iphone-6');
+    // Open reminder token modal for first player
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+
+    // Ensure grid has many tokens; scroll the container
+    cy.get('#reminder-token-grid').should('have.descendants', '.token');
+    // Record baseline count of icon reminders for the first player
+    cy.get('#player-circle li').first().then(($li) => {
+      const beforeCount = $li.find('.icon-reminder').length;
+      // Scroll within the grid to simulate finger scroll; no selection should occur
+      cy.get('#reminder-token-grid').scrollTo('bottom');
+      cy.get('#player-circle li').first().then(($li2) => {
+        expect($li2.find('.icon-reminder').length).to.eq(beforeCount);
+      });
+      // Filter to a non-custom token and tap to select
+      cy.get('#reminder-token-search').type('wrong');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('not.be.visible');
+      cy.get('#player-circle li').first().then(($li3) => {
+        expect($li3.find('.icon-reminder').length).to.eq(beforeCount + 1);
+      });
+    });
+  });
 });
 
