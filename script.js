@@ -1841,14 +1841,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const scriptReminderTokens = [];
         try {
           Object.values(allRoles || {}).forEach(role => {
+            const roleImage = resolveAssetPath(role.image);
             if (role && Array.isArray(role.reminders) && role.reminders.length) {
-              const roleImage = resolveAssetPath(role.image);
               role.reminders.forEach(rem => {
                 const label = String(rem || '').trim();
                 if (!label) return;
                 const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
                 const id = `${role.id}-${norm}`;
-                scriptReminderTokens.push({ id, image: roleImage, label });
+                scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+              });
+            }
+            if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
+              role.remindersGlobal.forEach(rem => {
+                const label = String(rem || '').trim();
+                if (!label) return;
+                const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+                const id = `${role.id}-global-${norm}`;
+                scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
               });
             }
           });
@@ -1871,7 +1880,12 @@ document.addEventListener('DOMContentLoaded', () => {
          // Put custom option at the top
          const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
          reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
-         const filtered = reminderTokens.filter(t => (t.label || '').toLowerCase().includes(filter));
+         const filtered = reminderTokens.filter(t => {
+           const combined = `${(t.label || '').toLowerCase()} ${(t.characterName || '').toLowerCase()}`.trim();
+           if (!filter) return true;
+           const terms = filter.split(/\s+/).filter(Boolean);
+           return terms.every(term => combined.includes(term));
+         });
         (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
             const tokenEl = document.createElement('div');
             tokenEl.className = 'token';

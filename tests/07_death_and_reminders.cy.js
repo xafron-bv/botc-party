@@ -84,5 +84,23 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
   });
+
+  it('searches reminder tokens by character name and combined terms', () => {
+    // Open modal
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+
+    // Search by character name only (Monk is in Trouble Brewing)
+    cy.get('#reminder-token-search').clear().type('monk');
+    cy.get('#reminder-token-grid .token[title="Protected"]').should('have.length.greaterThan', 0);
+
+    // Multi-term search: character name + partial wording
+    cy.get('#reminder-token-search').clear().type('monk prot');
+    cy.get('#reminder-token-grid .token[title="Protected"]').should('have.length.greaterThan', 0);
+
+    // Close
+    cy.get('#reminder-token-modal').click('topLeft', { force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+  });
 });
 
