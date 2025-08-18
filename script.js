@@ -1836,6 +1836,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) throw new Error('Failed to load characters.json');
         const json = await res.json();
         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
+        // Add per-character reminders from the current script: use the character's icon and reminder text as label
+        try {
+          const scriptReminderTokens = [];
+          Object.values(allRoles || {}).forEach(role => {
+            if (role && Array.isArray(role.reminders) && role.reminders.length) {
+              const roleImage = resolveAssetPath(role.image);
+              role.reminders.forEach(rem => {
+                const label = String(rem || '').trim();
+                if (!label) return;
+                const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+                const id = `${role.id}-${norm}`;
+                scriptReminderTokens.push({ id, image: roleImage, label });
+              });
+            }
+          });
+          if (scriptReminderTokens.length) {
+            reminderTokens = [...scriptReminderTokens, ...reminderTokens];
+          }
+        } catch (_) {}
         if (reminderTokens.length === 0) {
           // Fallback set if characters.json has no reminderTokens
           reminderTokens = [
