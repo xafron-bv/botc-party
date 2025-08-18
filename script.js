@@ -1711,7 +1711,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modals by tapping outside content
   characterModal.addEventListener('click', (e) => { if (e.target === characterModal) characterModal.style.display = 'none'; });
   textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
-  reminderTokenModal && reminderTokenModal.addEventListener('click', (e) => { if (e.target === reminderTokenModal) reminderTokenModal.style.display = 'none'; });
+  // For reminder token modal, also close if clicking outside the content container
+  reminderTokenModal && reminderTokenModal.addEventListener('click', (e) => {
+    if (e.target === reminderTokenModal) { reminderTokenModal.style.display = 'none'; return; }
+    const content = reminderTokenModal.querySelector('.modal-content');
+    if (content && !content.contains(e.target)) { reminderTokenModal.style.display = 'none'; }
+  });
 
   function createCurvedLabelSvg(uniqueId, labelText) {
       const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -1834,6 +1839,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (reminderTokens.length === 0) {
           // Fallback set if characters.json has no reminderTokens
           reminderTokens = [
+            { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
+            { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
             { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
             { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
             { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
