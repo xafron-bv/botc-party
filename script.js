@@ -101,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const backgroundSelect = document.getElementById('background-select');
   const centerEl = document.getElementById('center');
+  
+  // Player context menu elements
+  let playerContextMenu = null;
+  let contextMenuTargetIndex = -1;
+  let longPressTimer = null;
 
   const BG_STORAGE_KEY = 'grimoireBackgroundV1';
   function applyGrimoireBackground(value) {
@@ -282,6 +287,243 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saveHistories();
     renderScriptHistory();
+  }
+
+  // Build player circle UI from current players WITHOUT snapshotting or resetting players
+  function rebuildPlayerCircleUiPreserveState() {
+    if (!playerCircle) return;
+    playerCircle.innerHTML = '';
+    // Keep sidebar input in sync with current number of players
+    if (playerCountInput) {
+      try { playerCountInput.value = String(players.length); } catch(_) {}
+    }
+    players.forEach((player, i) => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `
+          <div class="reminders"></div>
+          <div class="player-token" title="Assign character"></div>
+           <div class="character-name" aria-live="polite"></div>
+          <div class="player-name" title="Edit name">${player.name}</div>
+          <div class="reminder-placeholder" title="Add text reminder">+</div>
+      `;
+      playerCircle.appendChild(listItem);
+
+      // Open character modal on token click (unless clicking ribbon/info icon)
+      listItem.querySelector('.player-token').onclick = (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return;
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return;
+        }
+        openCharacterModal(i);
+      };
+      listItem.querySelector('.player-name').onclick = (e) => {
+        e.stopPropagation();
+        const newName = prompt("Enter player name:", player.name);
+        if (newName) {
+          players[i].name = newName;
+          updateGrimoire();
+          saveAppState();
+        }
+      };
+      listItem.querySelector('.reminder-placeholder').onclick = (e) => {
+        e.stopPropagation();
+        if (isTouchDevice) {
+          openReminderTokenModal(i);
+        } else if (e.altKey) {
+          openTextReminderModal(i);
+        } else {
+          openReminderTokenModal(i);
+        }
+      };
+
+      // Hover expand/collapse for reminder stack positioning
+      listItem.dataset.expanded = '0';
+      const expand = () => {
+        const wasExpanded = listItem.dataset.expanded === '1';
+        const allLis = document.querySelectorAll('#player-circle li');
+        allLis.forEach(el => {
+          if (el !== listItem && el.dataset.expanded === '1') {
+            el.dataset.expanded = '0';
+            const idx = Array.from(allLis).indexOf(el);
+            positionRadialStack(el, (players[idx]?.reminders || []).length);
+          }
+        });
+        listItem.dataset.expanded = '1';
+        if (isTouchDevice && !wasExpanded) {
+          listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+        }
+        positionRadialStack(listItem, players[i].reminders.length);
+      };
+      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
+      if (!isTouchDevice) {
+        listItem.addEventListener('mouseenter', expand);
+        listItem.addEventListener('mouseleave', collapse);
+        listItem.addEventListener('pointerenter', expand);
+        listItem.addEventListener('pointerleave', collapse);
+      }
+      listItem.addEventListener('touchstart', (e) => {
+        const target = e.target;
+        const tappedReminders = !!(target && target.closest('.reminders'));
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch(_) {}
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, players[i].reminders.length);
+      }, { passive: false });
+
+      // Player context menu: right-click
+      listItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showPlayerContextMenu(e.clientX, e.clientY, i);
+      });
+      // Long-press on token to open context menu on touch devices
+      const tokenEl = listItem.querySelector('.player-token');
+      tokenEl.addEventListener('pointerdown', (e) => {
+        if (!isTouchDevice) return;
+        try { e.preventDefault(); } catch(_) {}
+        clearTimeout(longPressTimer);
+        const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+        const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+        longPressTimer = setTimeout(() => {
+          showPlayerContextMenu(x, y, i);
+        }, 600);
+      });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+        tokenEl.addEventListener(evt, () => { clearTimeout(longPressTimer); });
+      });
+
+      // Install one-time outside collapse handler for touch devices
+      if (isTouchDevice && !outsideCollapseHandlerInstalled) {
+        outsideCollapseHandlerInstalled = true;
+        const maybeCollapseOnOutside = (ev) => {
+          const target = ev.target;
+          const allLis = document.querySelectorAll('#player-circle li');
+          let clickedInsideExpanded = false;
+          allLis.forEach(el => {
+            if (el.dataset.expanded === '1' && el.contains(target)) {
+              clickedInsideExpanded = true;
+            }
+          });
+          if (clickedInsideExpanded) return;
+          allLis.forEach(el => {
+            if (el.dataset.expanded === '1') {
+              el.dataset.expanded = '0';
+              positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+            }
+          });
+        };
+        document.addEventListener('click', maybeCollapseOnOutside, true);
+        document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
+      }
+    });
+    // Apply layout and state immediately for deterministic testing and UX
+    repositionPlayers();
+    updateGrimoire();
+    saveAppState();
+    renderSetupInfo();
+    // Also after paint to ensure positions stabilize
+    requestAnimationFrame(() => {
+      repositionPlayers();
+      updateGrimoire();
+    });
+  }
+
+  function ensurePlayerContextMenu() {
+    if (playerContextMenu) return playerContextMenu;
+    const menu = document.createElement('div');
+    menu.id = 'player-context-menu';
+    const addBeforeBtn = document.createElement('button');
+    addBeforeBtn.id = 'player-menu-add-before';
+    addBeforeBtn.textContent = 'Add Player Before';
+    const addAfterBtn = document.createElement('button');
+    addAfterBtn.id = 'player-menu-add-after';
+    addAfterBtn.textContent = 'Add Player After';
+    const removeBtn = document.createElement('button');
+    removeBtn.id = 'player-menu-remove';
+    removeBtn.textContent = 'Remove Player';
+
+    addBeforeBtn.addEventListener('click', () => {
+      const idx = contextMenuTargetIndex;
+      hidePlayerContextMenu();
+      if (idx < 0) return;
+      if (players.length >= 20) return; // clamp to max
+      const newName = `Player ${players.length + 1}`;
+      const newPlayer = { name: newName, character: null, reminders: [], dead: false };
+      players.splice(idx, 0, newPlayer);
+      rebuildPlayerCircleUiPreserveState();
+    });
+    addAfterBtn.addEventListener('click', () => {
+      const idx = contextMenuTargetIndex;
+      hidePlayerContextMenu();
+      if (idx < 0) return;
+      if (players.length >= 20) return; // clamp to max
+      const newName = `Player ${players.length + 1}`;
+      const newPlayer = { name: newName, character: null, reminders: [], dead: false };
+      players.splice(idx + 1, 0, newPlayer);
+      rebuildPlayerCircleUiPreserveState();
+    });
+    removeBtn.addEventListener('click', () => {
+      const idx = contextMenuTargetIndex;
+      hidePlayerContextMenu();
+      if (idx < 0) return;
+      if (players.length <= 5) return; // keep within 5..20
+      players.splice(idx, 1);
+      rebuildPlayerCircleUiPreserveState();
+    });
+
+    menu.appendChild(addBeforeBtn);
+    menu.appendChild(addAfterBtn);
+    menu.appendChild(removeBtn);
+    document.body.appendChild(menu);
+
+    // Hide menu when clicking elsewhere or pressing Escape
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target)) hidePlayerContextMenu();
+    }, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hidePlayerContextMenu();
+    });
+    playerContextMenu = menu;
+    return menu;
+  }
+
+  function showPlayerContextMenu(x, y, playerIndex) {
+    const menu = ensurePlayerContextMenu();
+    contextMenuTargetIndex = playerIndex;
+    // Enable/disable buttons based on limits
+    const canAdd = players.length < 20;
+    const canRemove = players.length > 5;
+    const addBeforeBtn = menu.querySelector('#player-menu-add-before');
+    const addAfterBtn = menu.querySelector('#player-menu-add-after');
+    const removeBtn = menu.querySelector('#player-menu-remove');
+    [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+    });
+    if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
+    if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
+    menu.style.display = 'block';
+    // Position within viewport bounds
+    const margin = 6;
+    requestAnimationFrame(() => {
+      const rect = menu.getBoundingClientRect();
+      let left = x;
+      let top = y;
+      if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
+      if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    });
+  }
+
+  function hidePlayerContextMenu() {
+    if (playerContextMenu) playerContextMenu.style.display = 'none';
+    contextMenuTargetIndex = -1;
+    clearTimeout(longPressTimer);
   }
 
   function snapshotCurrentGrimoire() {
@@ -860,6 +1102,26 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               openCharacterModal(i);
           };
+          // Player context menu: right-click
+          listItem.addEventListener('contextmenu', (e) => {
+              e.preventDefault();
+              showPlayerContextMenu(e.clientX, e.clientY, i);
+          });
+          // Long-press on token to open context menu on touch devices
+          const tokenForMenu = listItem.querySelector('.player-token');
+          tokenForMenu.addEventListener('pointerdown', (e) => {
+              if (!isTouchDevice) return;
+              try { e.preventDefault(); } catch(_) {}
+              clearTimeout(longPressTimer);
+              const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+              const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+              longPressTimer = setTimeout(() => {
+                  showPlayerContextMenu(x, y, i);
+              }, 600);
+          });
+          ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+              tokenForMenu.addEventListener(evt, () => { clearTimeout(longPressTimer); });
+          });
           listItem.querySelector('.player-name').onclick = (e) => {
               e.stopPropagation();
               const newName = prompt("Enter player name:", player.name);
