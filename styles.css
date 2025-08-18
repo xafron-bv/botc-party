@@ -1,3 +1,1361 @@
+:root {
+  --token-size: clamp(64px, 14vmin, 140px);
+  --reminder-size: clamp(28px, 4vmin, 48px);
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #fff;
+  font-family: 'Verdana', sans-serif;
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+}
+
+#grimoire {
+  flex-grow: 1;
+  position: relative;
+  background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: auto !important; /* Override the 100% width from .button class */
+  text-align: left !important; /* Override center alignment from .button class */
+}
+
+/* Close button inside sidebar header */
+#sidebar .sidebar-close {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 5;
+  margin: 0 0 10px 0;
+}
+@media (max-width: 900px) {
+  #sidebar .sidebar-close {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sidebar-toggle {
+    padding: 14px 16px;
+    font-size: 16px;
+    width: auto !important; /* Maintain auto width in touch mode */
+  }
+}
+
+#center {
+  background-size: cover;
+  background-position: center;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px; /* give breathing room on small screens */
+  box-sizing: border-box;
+}
+
+/* Center overlay with script name and role counts */
+#setup-info {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  padding: 12px 16px;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.45);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  z-index: 1; /* Above background, below all game elements */
+  pointer-events: none; /* non-interactive overlay */
+  font-weight: bold;
+}
+
+/* Simple single-line display */
+#setup-info { font-size: clamp(12px, 1.8vmin, 18px); }
+
+.circle {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  width: min(90vmin, calc(100vw - 32px));
+  height: min(90vmin, calc(100vh - 140px));
+  z-index: 2; /* Above setup-info */
+  overflow: visible;
+}
+
+.circle li {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--token-size);
+  height: var(--token-size);
+  /* serve as positioning container for absolute token */
+  overflow: visible;
+}
+
+.player-token {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%; /* ensure perfect circle */
+    aspect-ratio: 1 / 1; /* prevent oval scaling */
+    border: 4px solid #D4AF37;
+    box-shadow: 
+      0 0 20px rgba(212, 175, 55, 0.6),
+      inset 0 0 20px rgba(0,0,0,0.3);
+    cursor: pointer;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    background-image: url('assets/img/token-BqDQdWeO.webp');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    overflow: visible; /* ensure reminder overlays are not clipped by the token */
+    z-index: 5;
+}
+
+/* Debug: line from token center to circle center */
+.alignment-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 0; /* set dynamically */
+  background: rgba(0, 255, 255, 0.7);
+  box-shadow: 0 0 6px rgba(0,255,255,0.8);
+  transform: translateX(-50%) rotate(0deg);
+  transform-origin: 50% 0%;
+  pointer-events: none;
+  z-index: 20; /* ensure above background */
+  display: none; /* Hide debug lines */
+}
+
+/* Global overlay debug lines anchored to #center */
+.alignment-line-global {
+  position: absolute;
+  width: 0; /* set dynamically */
+  height: 3px;
+  background: rgba(0, 255, 255, 0.9);
+  box-shadow: 0 0 6px rgba(0,255,255,0.9);
+  transform: translate(0, -50%) rotate(0deg);
+  transform-origin: 0% 50%;
+  pointer-events: none;
+  z-index: 25;
+  display: none; /* Hide debug lines */
+}
+
+.center-dot,
+.token-center-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,255,255,0.95);
+  box-shadow: 0 0 8px rgba(0,255,255,0.95);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 26;
+  display: none; /* Hide debug dots */
+}
+
+.player-token:hover {
+    box-shadow: 
+      0 0 30px rgba(212, 175, 55, 0.8),
+      inset 0 0 20px rgba(0,0,0,0.3);
+}
+
+.player-token.has-character {
+    background-size: cover;
+    background-color: transparent;
+    border-color: #D4AF37;
+    box-shadow: 
+      0 0 25px rgba(212, 175, 55, 0.8),
+      inset 0 0 15px rgba(0,0,0,0.2);
+}
+
+.character-name { display: none; }
+
+.player-name {
+    background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(40,40,40,0.9) 100%);
+    padding: 0.8vmin 2vmin;
+    border-radius: 20px;
+    font-size: clamp(12px, 2.2vmin, 18px);
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 2px solid #D4AF37;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    position: absolute;
+    left: 50%;
+    top: calc(50% + var(--token-size) * 0.8);
+    transform: translate(-50%, -50%);
+    z-index: 0; /* Below all other game elements */
+    transition: all 0.3s ease;
+    opacity: 0.3;
+    pointer-events: auto;
+    filter: blur(0.5px);
+}
+
+.player-name:hover {
+    background: linear-gradient(135deg, rgba(40,40,40,0.9) 0%, rgba(60,60,60,0.9) 100%);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+    transform: translate(-50%, -50%) translateY(-2px);
+}
+
+/* Position player names above tokens for top half of circle */
+.player-name.top-half {
+    top: calc(50% - var(--token-size) * 0.8);
+}
+
+/* Hover effect on the list item to reveal and position the name tag */
+#player-circle li:hover .player-name {
+    opacity: 1;
+    z-index: 0; /* Keep below all other game elements */
+    filter: blur(0px);
+}
+
+/* Ensure the list item has proper positioning for hover effects */
+#player-circle li {
+    position: relative;
+    overflow: visible;
+    max-width: calc(var(--token-size) + 40px);
+}
+
+.reminders {
+    display: block; /* let absolutely positioned children place freely */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3; /* above plus button */
+}
+
+/* Radial hover zone for reminders - positioned dynamically via JavaScript */
+.reminder-hover-zone {
+    position: absolute;
+    background: transparent;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+.text-reminder {
+    background-image: url('assets/img/token-BqDQdWeO.webp');
+    background-size: cover;
+    border: 2px solid #D4AF37;
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 50%; /* circular reminder */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    position: absolute;
+    overflow: hidden;
+    padding: 4px;
+}
+
+/* Text content with dark background */
+.text-reminder-content,
+.icon-reminder-content {
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: clamp(8px, calc(var(--token-size) * 0.08), 14px);
+    font-weight: bold;
+    text-align: center;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: hidden;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.15;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    position: relative;
+    z-index: 10;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4; /* Max 4 lines */
+}
+
+/* icon reminder token that overlaps player token */
+.icon-reminder {
+    width: calc(var(--token-size) * 0.4);
+    height: calc(var(--token-size) * 0.4);
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid #D4AF37;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+    pointer-events: auto;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url('assets/img/token-BqDQdWeO.webp');
+    overflow: visible; /* allow SVG text to overdraw border */
+    z-index: 5; /* ensure above hover zone and nearby elements */
+    transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, z-index 0.3s ease;
+    padding: 4px;
+}
+
+.icon-reminder:hover {
+    transform: scale(1.06);
+}
+
+/* Death UI elements */
+.player-token .death-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #000;
+    opacity: 0.12;
+    transition: opacity .15s ease;
+    cursor: default;
+    z-index: 5;
+    pointer-events: none; /* allow clicks to pass through to token except ribbon */
+}
+
+.player-token .death-ribbon {
+    position: absolute;
+    left: 50%;
+    top: -6%;
+    transform: translateX(-50%);
+    width: clamp(36%, 42%, 48%);
+    height: auto;
+    opacity: 0.18; /* visible but subtle by default */
+    transition: opacity .15s ease;
+    pointer-events: none; /* delegate events to painted SVG shapes inside */
+    z-index: 6;
+}
+
+.player-token:hover .death-overlay { opacity: 0.2; }
+.player-token .death-ribbon:hover { opacity: 1; cursor: pointer; }
+.player-token.is-dead .death-overlay { opacity: 0.35; }
+.player-token.is-dead .death-ribbon { opacity: 0.7; }
+
+.icon-reminder-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+.icon-reminder-text {
+  fill: #ffffff;
+  stroke: rgba(0,0,0,0.85);
+  stroke-width: 2px;
+  paint-order: stroke fill;
+  font-weight: 800;
+  font-size: calc(var(--token-size) * 0.2);
+}
+
+/* Character modal specific text styling */
+#character-grid .icon-reminder-text {
+  fill: #ffffff;
+  stroke: rgba(0,0,0,0.9);
+  stroke-width: 2.5px;
+  font-size: 12px;
+}
+
+/* centered delete control */
+#player-circle li:not(.is-north):not(.is-south) .reminder-delete-btn,
+.reminder-delete-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(16px, calc(var(--token-size) * 0.18), 28px);
+  height: clamp(16px, calc(var(--token-size) * 0.18), 28px);
+  min-width: 16px;
+  min-height: 16px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  border: 1px solid #D4AF37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(12px, calc(var(--token-size) * 0.10), 16px);
+  line-height: 1;
+  opacity: 0;
+  transition: opacity .15s ease;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.icon-reminder:hover .reminder-delete-btn,
+.text-reminder:hover .reminder-delete-btn { opacity: 1; }
+
+/* Keep delete button clickable even if reminder is not expanded */
+.icon-reminder .reminder-delete-btn,
+.text-reminder .reminder-delete-btn { pointer-events: auto; }
+
+@media (hover: none) and (pointer: coarse) {
+  .reminder-delete-btn { opacity: 1; }
+}
+
+/* purple placeholder circle on hover around plus button area */
+.reminder-placeholder::after {
+    content: '';
+    position: absolute;
+    width: 3.4vmin;
+    height: 3.4vmin;
+    border-radius: 50%;
+    background: rgba(88, 50, 134, 0.35);
+    border: 2px solid rgba(154, 107, 200, 0.7);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.reminder-placeholder:hover::after {
+    opacity: 1;
+}
+
+#reminder-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+  max-height: min(350px, 60vh);
+  overflow-y: auto;
+  padding: 15px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+#reminder-token-grid .token {
+  width: 70px;
+  height: 70px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+#reminder-token-grid .token:hover {
+  border-color: #D4AF37;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+}
+
+.text-reminder:hover {
+    background: linear-gradient(135deg, rgba(40,40,40,0.9) 0%, rgba(60,60,60,0.9) 100%);
+    transform: scale(1.05);
+}
+
+/* Smooth movement for text reminders during expand/collapse */
+.text-reminder { 
+    transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, z-index 0.3s ease; 
+}
+
+.reminder-placeholder {
+    position: absolute;
+    /* left/top set dynamically next to the last reminder */
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    color: white;
+    width: calc(var(--token-size) * 0.3);
+    height: calc(var(--token-size) * 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: clamp(12px, 2vmin, 18px);
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    border: 2px solid #B8860B;
+    transition: all 0.3s ease;
+    z-index: 6; /* above hover zone and reminders to ensure clickability */
+}
+
+.reminder-placeholder:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+}
+
+#sidebar {
+  flex: 0 0 var(--sidebar-width, 320px);
+  min-width: 220px;
+  max-width: 800px;
+  background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
+  padding: 0;
+  overflow-y: auto;
+  border-right: 2px solid #D4AF37;
+  box-shadow: 6px 0 24px rgba(0,0,0,0.6);
+  transition: flex 0.3s ease, width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease;
+}
+
+/* Sidebar sections with better spacing */
+#sidebar .section {
+  padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+#sidebar .section:last-child {
+  border-bottom: none;
+}
+
+/* Section headers */
+#sidebar h3 {
+  margin: 0 0 16px 0;
+  font-size: clamp(16px, 2vmin, 20px);
+  font-weight: 600;
+  color: #D4AF37;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Form controls styling */
+#sidebar label {
+  display: block;
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+#sidebar input[type="number"],
+#sidebar input[type="file"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#sidebar input[type="number"]:focus,
+#sidebar input[type="file"]:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Script buttons container */
+.script-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Status message */
+#load-status {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+#load-status.status {
+  background: rgba(88, 50, 134, 0.2);
+  color: #bbb;
+  border: 1px solid rgba(88, 50, 134, 0.3);
+}
+
+#load-status.error {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+/* Character sheet improvements */
+#character-sheet {
+  max-height: min(400px, 60vh);
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+#character-sheet::-webkit-scrollbar {
+  width: 8px;
+}
+
+#character-sheet::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 4px;
+}
+
+#character-sheet::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.6);
+}
+
+/* Team headers in character sheet */
+#character-sheet h3 {
+  font-size: 16px;
+  margin: 16px 0 12px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+#character-sheet h3.team-townsfolk {
+  background: rgba(58, 123, 213, 0.2);
+  color: #6bb6ff;
+  border-left: 4px solid #3a7bd5;
+}
+
+#character-sheet h3.team-outsider {
+  background: rgba(88, 50, 134, 0.2);
+  color: #b794f6;
+  border-left: 4px solid #583286;
+}
+
+#character-sheet h3.team-minion {
+  background: rgba(202, 60, 60, 0.2);
+  color: #ff8787;
+  border-left: 4px solid #ca3c3c;
+}
+
+#character-sheet h3.team-demon {
+  background: rgba(139, 0, 0, 0.2);
+  color: #ff6b6b;
+  border-left: 4px solid #8B0000;
+}
+
+#character-sheet h3.team-travellers {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffd54f;
+  border-left: 4px solid #ffc107;
+}
+
+#character-sheet h3.team-fabled {
+  background: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
+  border-left: 4px solid #9c27b0;
+}
+
+/* Role items */
+#character-sheet .role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#character-sheet .role:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(4px);
+}
+
+#character-sheet .role .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  flex-shrink: 0;
+}
+
+#character-sheet .role .name {
+  font-size: clamp(13px, 1.6vmin, 16px);
+  color: #e0e0e0;
+  flex: 1;
+}
+
+.button {
+  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
+  color: white;
+  border: 1px solid #7a4ba8;
+  padding: 12px 20px;
+  margin: 6px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(13px, 1.6vmin, 16px);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+a.button {
+  display: block;
+  text-decoration: none;
+  color: white;
+}
+a.button:link,
+a.button:visited {
+  color: white;
+}
+
+.button:hover {
+  background: linear-gradient(135deg, #7a4ba8 0%, #9a6bc8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
+.button:disabled {
+  background: linear-gradient(135deg, #555 0%, #777 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+input[type="number"] {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  color: white;
+  border: 2px solid #D4AF37;
+  padding: 10px;
+  border-radius: 6px;
+  max-width: 100%;
+  font-size: clamp(13px, 1.6vmin, 16px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+input[type="file"] {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  color: white;
+  border: 2px solid #D4AF37;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: clamp(13px, 1.6vmin, 16px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#background-select {
+  width: 100%;
+}
+
+select {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  color: white;
+  border: 2px solid #D4AF37;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: clamp(13px, 1.6vmin, 16px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+  border-radius: 10px;
+  border: 2px solid #444;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.section h3 {
+  margin-top: 0;
+  color: #D4AF37;
+  font-size: 18px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  border-bottom: 2px solid #D4AF37;
+  padding-bottom: 8px;
+}
+
+#character-sheet {
+  /* consolidated in earlier section with responsive max-height */
+  max-height: min(400px, 60vh);
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.script-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.script-buttons .button {
+  margin: 0;
+  padding: 8px 14px;
+  font-size: clamp(12px, 1.6vmin, 14px);
+  flex: 1 1 auto;
+}
+
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin: 8px 0;
+  padding: 10px;
+  background: linear-gradient(135deg, #444 0%, #3a3a3a 100%);
+  border-radius: 6px;
+  border: 1px solid #555;
+  transition: all 0.3s ease;
+}
+
+.role:hover {
+  background: linear-gradient(135deg, #555 0%, #444 100%);
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Character sheet icon thumbnail sizing */
+.role .icon {
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  min-height: 35px;
+  background-image: url('assets/img/token-BqDQdWeO.webp');
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  margin-right: 15px;
+  border: 2px solid #D4AF37;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.role .name {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.team-townsfolk { color: #4CAF50; }
+.team-outsider { color: #FF9800; }
+.team-minion { color: #F44336; }
+.team-demon { color: #9C27B0; }
+.team-travellers { color: #2196F3; }
+.team-fabled { color: #FFC107; }
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 4000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.9);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  padding: 30px;
+  border-radius: 15px;
+  max-width: min(720px, 90vw);
+  max-height: min(85%, 90vh);
+  overflow-y: auto;
+  border: 3px solid #D4AF37;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+#character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 25px 15px;
+  margin: 20px 0;
+  max-height: min(350px, 60vh);
+  overflow-y: auto;
+  padding: 15px 15px 25px 15px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+#character-grid .token {
+  margin-bottom: 20px; /* Space for the curved text */
+}
+@media (max-width: 600px) {
+  .token {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+.token {
+  width: 70px;
+  height: 70px;
+  background-image: url('assets/img/token-BqDQdWeO.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: visible;
+}
+
+.token:hover {
+  border-color: #D4AF37;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+}
+
+#character-search {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  color: white;
+  border: 2px solid #D4AF37;
+  border-radius: 6px;
+  font-size: clamp(14px, 1.8vmin, 18px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.status {
+  color: #4CAF50;
+  font-size: 14px;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 6px;
+  border-left: 4px solid #4CAF50;
+}
+
+/* Hide message containers when empty */
+#load-status:empty,
+.status:empty,
+.error:empty { display: none; }
+
+.error {
+  color: #F44336;
+  font-size: 14px;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 6px;
+  border-left: 4px solid #F44336;
+}
+
+label {
+  color: #D4AF37;
+  font-weight: bold;
+  margin: 5px 0;
+  display: block;
+}
+
+/* Touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  #player-circle li .player-name {
+    opacity: 1;
+    filter: blur(0);
+    z-index: 0; /* Keep below all other game elements */
+  }
+}
+
+/* Collapsed sidebar state */
+body.sidebar-collapsed #sidebar {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+body.sidebar-collapsed #sidebar-resizer {
+  display: none !important;
+}
+
+#sidebar-resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: linear-gradient(180deg, rgba(212,175,55,0.25), rgba(212,175,55,0.05));
+  border-right: 2px solid rgba(212,175,55,0.4);
+  user-select: none;
+  touch-action: none;
+  z-index: 10;
+}
+
+#sidebar-resizer:hover { background: rgba(212,175,55,0.3); }
+
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Hide radial guides SVG */
+#radial-guides {
+  display: none !important;
+}
+
+/* Ability tooltip styles */
+.ability-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #D4AF37;
+  font-size: 13px;
+  max-width: min(300px, 90vw);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
+
+.ability-tooltip.show {
+  opacity: 1;
+}
+
+/* Touch mode ability popup */
+.touch-ability-popup {
+  position: absolute;
+  background: rgba(20, 20, 20, 0.98);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 2px solid #D4AF37;
+  font-size: 14px;
+  max-width: min(320px, 90vw);
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  line-height: 1.5;
+  display: none;
+}
+
+.touch-ability-popup.show {
+  display: block;
+}
+
+/* Removed arrow/triangle from tooltip */
+
+/* Character sheet ability display */
+.role .ability {
+  font-size: clamp(11px, 1.5vmin, 13px);
+  color: #bbb;
+  margin-top: 8px;
+  margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
+  font-style: italic;
+  line-height: 1.4;
+  display: none;
+  width: calc(100% - 44px);
+  flex-basis: 100%;
+}
+
+.role.show-ability .ability {
+  display: block;
+}
+
+/* Player token hover for ability tooltip */
+.player-token {
+  position: relative;
+  overflow: visible;
+}
+
+/* Ability info icon for touch mode */
+.ability-info-icon {
+  position: absolute;
+  width: calc(var(--token-size) * 0.25);
+  height: calc(var(--token-size) * 0.25);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  pointer-events: auto;
+  box-sizing: border-box;
+  /* Position will be set dynamically by JavaScript */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ability-info-icon i {
+  color: #D4AF37;
+  font-size: calc(var(--token-size) * 0.18);
+  line-height: 1;
+  display: block;
+  pointer-events: none; /* Ensure clicks pass through to parent */
+}
+
+.ability-info-icon:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Only show info icon on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .ability-info-icon {
+    display: none;
+  }
+}
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.07);
+  z-index: 3000;
+  display: none;
+}
+
+.tour-highlight {
+  position: fixed;
+  border: 2px solid #D4AF37;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.14), 0 0 18px rgba(212, 175, 55, 0.8);
+  z-index: 3001;
+  pointer-events: none;
+  display: none;
+}
+
+.tour-popover {
+  position: fixed;
+  max-width: 360px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  color: #fff;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  z-index: 3002;
+  display: none;
+}
+
+.tour-popover .title {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #D4AF37;
+}
+
+.tour-popover .body {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+}
+
+.tour-popover .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tour-popover .actions .button {
+  width: auto;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.tour-popover .progress {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100dvh;
+    max-width: 85vw;
+    width: var(--sidebar-width, 320px);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 2002;
+  }
+  body.sidebar-open #sidebar {
+    transform: translateX(0);
+  }
+  #sidebar-resizer {
+    display: none;
+  }
+  .sidebar-toggle {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 2001;
+  }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    display: none;
+  }
+  body.sidebar-open .sidebar-backdrop { display: block; }
+  body.sidebar-collapsed #sidebar { transform: translateX(-100%) !important; }
+  body.sidebar-collapsed .sidebar-toggle { display: inline-block; }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --token-size: clamp(56px, 16vmin, 120px);
+  }
+  #character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 18px 12px;
+  }
+  .modal-content {
+    padding: 20px;
+    max-width: 92%;
+    max-height: 92%;
+  }
+  #reminder-token-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* Delete button absolute position is centered; JS will place it to the east of the reminder */
+
+/* History lists in sidebar */
+#sidebar .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+#sidebar .history-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  user-select: none;
+}
+#sidebar .history-list .history-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#sidebar .history-list .history-edit-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #fff;
+}
+#sidebar .history-list .icon-btn {
+  background: transparent;
+  border: none;
+  color: #ddd;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+#sidebar .history-list li.pressed {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+#sidebar .history-list li.editing .history-name {
+  display: none !important;
+}
+#sidebar .history-list li.editing .history-edit-input {
+  display: inline-block !important;
+}
+#sidebar .history-list li.editing .icon-btn.rename {
+  display: none !important;
+}
+#sidebar .history-list li.editing .icon-btn.save {
+  display: inline-block !important;
+}
+#sidebar .history-list .icon-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+#sidebar .history-list .icon-btn.delete:hover {
+  color: #ff6b6b;
+}
+#sidebar .history-list .icon-btn.save:hover {
+  color: #6bff8a;
+}
+
+/* Player context menu */
+#player-context-menu {
+  position: fixed;
+  z-index: 5000;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #D4AF37;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+  display: none;
+  padding: 6px;
+}
+#player-context-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #eee;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+}
+#player-context-menu button:hover { background: rgba(255,255,255,0.08); }
+#player-context-menu button.disabled,
+#player-context-menu button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Prevent iOS text selection/callout in player area and context menu */
 #player-circle,

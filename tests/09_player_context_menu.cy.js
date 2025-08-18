@@ -88,6 +88,12 @@ describe('Player context menu - touch long-press', () => {
       .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
       .wait(650)
       .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
+    // Assert no selection occurred (window.getSelection empty)
+    cy.window().then((win) => {
+      const sel = win.getSelection && win.getSelection();
+      const selectedText = sel && typeof sel.toString === 'function' ? sel.toString() : '';
+      expect(selectedText).to.eq('');
+    });
     cy.get('#player-context-menu').should('be.visible');
     cy.get('#player-menu-add-after').click();
     cy.get('#player-circle li').should('have.length', 6);
