@@ -76,7 +76,7 @@ describe('Game', () => {
     cy.get('#character-search').clear().type('Librarian');
     cy.get('#character-grid .token[title="Librarian"]').first().click();
 
-    // Add 2 reminder tokens to player 1
+    // Add 2 reminder tokens to player 1 (generic tokens should always be present)
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title="Townsfolk"]').first().click();
@@ -85,6 +85,15 @@ describe('Game', () => {
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
+
+    // If Balloonist is in the script, its per-character reminders should also be available
+    // Open and search for "Seen Townsfolk" as a sanity check
+    cy.get('#player-circle li .reminder-placeholder').eq(0).click();
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-search').clear().type('seen towns');
+    cy.get('#reminder-token-grid .token').should('have.length.greaterThan', 0);
+    cy.get('#reminder-token-modal').click('topLeft', { force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
 
     // Expand/collapse reminders stack using hover events
     cy.get('#player-circle li').eq(0).trigger('mouseenter');

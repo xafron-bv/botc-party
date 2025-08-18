@@ -71,6 +71,8 @@ describe('Death & Reminders', () => {
     // Filter tokens for "Wrong"
     cy.get('#reminder-token-search').type('wrong');
     cy.get('#reminder-token-grid .token').should('have.length.greaterThan', 0);
+    // Ensure a generic token like "Wrong" is present
+    cy.get('#reminder-token-grid .token[title="Wrong"]').should('have.length.greaterThan', 0);
     cy.get('#reminder-token-grid .token').first().click();
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li .icon-reminder').should('have.length.greaterThan', 0);

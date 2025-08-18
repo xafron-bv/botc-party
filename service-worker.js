@@ -6,7 +6,7 @@ const urlsToCache = [
   './LICENSE.md',
   './styles.css',
   './script.js',
-  './tokens.json',
+  './characters.json',
   './Trouble Brewing.json',
   './Bad Moon Rising.json',
   './Sects and Violets.json',
@@ -60,8 +60,8 @@ self.addEventListener('fetch', event => {
     url.pathname.endsWith(file) || url.pathname === '/' || url.pathname === '/workspace/'
   );
 
-  // Handle token image requests - cache first
-  if (event.request.url.includes('/assets/token-icons/')) {
+  // Handle character image requests - cache first
+  if (event.request.url.includes('/build/img/icons/')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -74,7 +74,7 @@ self.addEventListener('fetch', event => {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);
-                  console.log(`Cached token image: ${event.request.url}`);
+                  console.log(`Cached character image: ${event.request.url}`);
                 });
               }
               return response;
@@ -88,8 +88,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle tokens.json requests - cache first
-  if (event.request.url.includes('/tokens.json') || event.request.url.endsWith('tokens.json')) {
+  // Handle characters.json requests - cache first
+  if (event.request.url.includes('/characters.json') || event.request.url.endsWith('characters.json')) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -101,7 +101,7 @@ self.addEventListener('fetch', event => {
                   const responseClone = freshResponse.clone();
                   caches.open(CACHE_NAME).then(cache => {
                     cache.put(event.request, responseClone);
-                    // Cache all token images after successfully caching tokens.json
+                    // Cache all token images after successfully caching characters.json
                     cacheAllTokenImages();
                   });
                 }
@@ -115,25 +115,16 @@ self.addEventListener('fetch', event => {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);
-                  // Cache all token images after successfully caching tokens.json
+                  // Cache all token images after successfully caching characters.json
                   cacheAllTokenImages();
                 });
               }
               return response;
             })
             .catch(error => {
-              console.error('Failed to fetch tokens.json:', error);
-              // Return a basic fallback if tokens.json fails
-              return new Response(JSON.stringify({
-                townsfolk: [],
-                outsider: [],
-                minion: [],
-                demon: [],
-                travellers: [],
-                fabled: []
-              }), {
-                headers: { 'Content-Type': 'application/json' }
-              });
+              console.error('Failed to fetch characters.json:', error);
+              // Return a basic fallback if characters.json fails
+              return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } });
             });
         })
     );
@@ -220,26 +211,24 @@ async function cacheAllTokenImages() {
   try {
     const cache = await caches.open(CACHE_NAME);
     
-    // Get tokens.json from cache instead of fetching again
-    const cachedResponse = await cache.match('./tokens.json');
+    // Get characters.json from cache instead of fetching again
+    const cachedResponse = await cache.match('./characters.json');
     if (!cachedResponse) {
-      console.log('tokens.json not found in cache, skipping image caching');
+      console.log('characters.json not found in cache, skipping image caching');
       return;
     }
     
-    const tokens = await cachedResponse.json();
+    const characters = await cachedResponse.json();
     const imageUrls = [];
     
-    // Extract all image URLs from the tokens
-    Object.values(tokens).forEach(team => {
-      if (Array.isArray(team)) {
-        team.forEach(role => {
-          if (role.image) {
-            imageUrls.push(role.image);
-          }
-        });
-      }
-    });
+    // Extract all image URLs from the characters list
+    if (Array.isArray(characters)) {
+      characters.forEach(role => {
+        if (role && role.image) {
+          imageUrls.push(role.image);
+        }
+      });
+    }
     
     console.log(`Found ${imageUrls.length} token images to cache`);
     
