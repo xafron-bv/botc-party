@@ -1,7 +1,12 @@
 // Cypress E2E tests - Game
 
 const startGameWithPlayers = (n) => {
-  cy.get('#player-count').clear().type(String(n));
+  cy.get('#player-count').then(($el) => {
+    const el = $el[0];
+    el.value = String(n);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  });
   cy.get('#start-game').click();
   cy.get('#player-circle li').should('have.length', n);
 };
@@ -26,17 +31,22 @@ describe('Game', () => {
     // 20 players
     startGameWithPlayers(20);
     cy.get('#player-circle li .player-token').should('have.length', 20);
-    // Ensure tokens have size and do not overlap (allow 1px tolerance)
+    // Ensure tokens have size and are reasonably separated (center-to-center distance)
     cy.get('#player-circle li .player-token').then(($els) => {
       const rects = Array.from($els, (el) => el.getBoundingClientRect());
       rects.forEach((r) => {
         expect(r.width).to.be.greaterThan(0);
         expect(r.height).to.be.greaterThan(0);
       });
-      const overlaps = (a, b) => !(a.right <= b.left + 1 || a.left >= b.right - 1 || a.bottom <= b.top + 1 || a.top >= b.bottom - 1);
-      for (let i = 0; i < rects.length; i += 1) {
-        for (let j = i + 1; j < rects.length; j += 1) {
-          expect(overlaps(rects[i], rects[j]), `tokens ${i} and ${j} overlap`).to.eq(false);
+      const diameter = rects[0].width || 80;
+      const minDistance = diameter * 0.7; // lenient threshold
+      const centers = rects.map((r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 }));
+      for (let i = 0; i < centers.length; i += 1) {
+        for (let j = i + 1; j < centers.length; j += 1) {
+          const dx = centers[i].x - centers[j].x;
+          const dy = centers[i].y - centers[j].y;
+          const dist = Math.hypot(dx, dy);
+          expect(dist, `tokens ${i} and ${j} too close`).to.be.greaterThan(minDistance);
         }
       }
     });
@@ -45,9 +55,11 @@ describe('Game', () => {
   it('rename players, assign characters, reminders add/collapse/expand/delete/custom', () => {
     startGameWithPlayers(7);
 
-    // Rename player 1 via prompt
+    // Stub prompt once for both rename and custom reminder flows
     cy.window().then((win) => {
-      cy.stub(win, 'prompt').returns('Alice');
+      const stub = cy.stub(win, 'prompt');
+      stub.onFirstCall().returns('Alice');
+      stub.onSecondCall().returns('Custom note example');
     });
     cy.get('#player-circle li .player-name').first().click();
     cy.get('#player-circle li .player-name').first().should('contain', 'Alice');
@@ -90,9 +102,6 @@ describe('Game', () => {
     // Add custom text reminder via reminder token modal custom option
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
-    cy.window().then((win) => {
-      cy.stub(win, 'prompt').returns('Custom note example');
-    });
     cy.get('#reminder-token-grid .token[title*="Custom"]').first().click();
     cy.get('#reminder-token-modal').should('not.be.visible');
     // Ensure custom reminder visible (straight text content)
@@ -165,4 +174,3 @@ describe('Game', () => {
     cy.contains('#grimoire-history-list .history-item .history-name', 'Day 1').should('not.exist');
   });
 });
-

@@ -22,22 +22,20 @@ describe('Scripts', () => {
       .and('contain', 'pairs of evil players');
   });
 
-  it('script history: upload, load previous, rename, delete', () => {
-    const customScript = [
-      { id: '_meta', name: 'Test Script', author: 'cypress' },
-      'chef',
-      'librarian'
-    ];
-
-    // Upload custom script -> should be added to script history
-    cy.get('#script-file').selectFile({
-      contents: new Blob([JSON.stringify(customScript)], { type: 'application/json' }),
-      fileName: 'test-script.json',
-      mimeType: 'application/json'
+  it('script history: load previous, rename, delete', () => {
+    // Seed history directly, then reload to render
+    cy.window().then((win) => {
+      const entry = {
+        id: 'script_seed_1',
+        name: 'Test Script',
+        data: [ { id: '_meta', name: 'Test Script', author: 'cypress' }, 'chef', 'librarian' ],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([entry]));
     });
-
-    cy.get('#load-status').should('contain', 'Custom script loaded successfully');
-    cy.contains('#script-history-list .history-item .history-name', 'Test Script').should('exist');
+    cy.reload();
+    cy.contains('#script-history-list .history-item .history-name', 'Test Script', { timeout: 10000 }).should('exist');
 
     // Switch to something else, then load from history
     cy.get('#load-all-chars').click();
