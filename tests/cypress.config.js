@@ -1,6 +1,4 @@
-const { defineConfig } = require('cypress');
-
-module.exports = defineConfig({
+module.exports = {
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL || 'http://127.0.0.1:5173',
     specPattern: 'tests/**/*.cy.js',
@@ -8,5 +6,5 @@ module.exports = defineConfig({
     chromeWebSecurity: false,
     video: false
   }
-});
+};
 
