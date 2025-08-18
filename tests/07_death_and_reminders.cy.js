@@ -51,15 +51,18 @@ describe('Death & Reminders', () => {
     cy.get('#text-reminder-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned today');
 
-    // Edit by clicking the text reminder
-    cy.get('#player-circle li .text-reminder').first().click();
-    cy.get('#text-reminder-modal').should('be.visible');
-    cy.get('#reminder-text-input').clear().type('Poisoned at dusk');
-    cy.get('#save-reminder-btn').click();
+    // Edit via hover edit icon on desktop
+    cy.window().then((win) => {
+      cy.stub(win, 'prompt').returns('Poisoned at dusk');
+    });
+    cy.get('#player-circle li .text-reminder').first().trigger('mouseenter');
+    cy.get('#player-circle li .text-reminder .reminder-action.edit').first().click({ force: true });
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned at dusk');
 
-    // Delete text reminder
-    cy.get('#player-circle li .text-reminder .reminder-delete-btn').first().click({ force: true });
+    // Delete text reminder via hover delete icon on desktop
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
+    cy.get('#player-circle li .text-reminder').first().trigger('mouseenter');
+    cy.get('#player-circle li .text-reminder .reminder-action.delete').first().click({ force: true });
     cy.get('#player-circle li .text-reminder').should('have.length', 0);
   });
 

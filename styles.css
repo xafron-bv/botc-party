@@ -393,9 +393,8 @@ body {
   font-size: 12px;
 }
 
-/* centered delete control */
-#player-circle li:not(.is-north):not(.is-south) .reminder-delete-btn,
-.reminder-delete-btn {
+/* Reminder hover actions (desktop): edit + delete icons */
+.reminder-action {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -414,20 +413,27 @@ body {
   font-size: clamp(12px, calc(var(--token-size) * 0.10), 16px);
   line-height: 1;
   opacity: 0;
-  transition: opacity .15s ease;
+  transition: opacity .15s ease, transform .15s ease;
   cursor: pointer;
-  z-index: 5;
+  z-index: 6;
+  pointer-events: auto;
 }
 
-.icon-reminder:hover .reminder-delete-btn,
-.text-reminder:hover .reminder-delete-btn { opacity: 1; }
+.reminder-action i { pointer-events: none; }
 
-/* Keep delete button clickable even if reminder is not expanded */
-.icon-reminder .reminder-delete-btn,
-.text-reminder .reminder-delete-btn { pointer-events: auto; }
+.icon-reminder:hover .reminder-action,
+.text-reminder:hover .reminder-action { opacity: 1; }
+
+.reminder-action.edit {
+  transform: translate(-50%, -50%) translate(-40%, -40%);
+}
+
+.reminder-action.delete {
+  transform: translate(-50%, -50%) translate(40%, -40%);
+}
 
 @media (hover: none) and (pointer: coarse) {
-  .reminder-delete-btn { opacity: 1; }
+  .reminder-action { display: none; }
 }
 
 /* purple placeholder circle on hover around plus button area */
@@ -442,6 +448,35 @@ body {
     opacity: 0;
     transition: opacity 0.2s ease;
 }
+
+.reminder-placeholder:hover::after {
+    opacity: 1;
+}
+
+/* Context menu for reminders */
+#reminder-context-menu {
+  position: fixed;
+  z-index: 5000;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #D4AF37;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+  display: none;
+  padding: 6px;
+}
+#reminder-context-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #eee;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+}
+#reminder-context-menu button:hover { background: rgba(255,255,255,0.08); }
 
 .reminder-placeholder:hover::after {
     opacity: 1;
