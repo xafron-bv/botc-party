@@ -62,6 +62,21 @@ The app uses a service worker to cache:
 
 The app is built with vanilla HTML, CSS, and JavaScript. No build process or dependencies required.
 
+## Tests (Cypress)
+
+- Tests live under `tests/` and are written in JavaScript.
+- You don't need to install Cypress locally; run it via npx. This command will serve the app on a local port and execute the tests headlessly:
+
+```bash
+npx --yes http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
+```
+
+- Or to open the interactive test runner:
+
+```bash
+npx --yes http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress open --config-file tests/cypress.config.js ; kill %1 || true
+```
+
 ## License
 
 This project is for educational and personal use. Blood on the Clocktower is a trademark of The Pandemonium Institute.
