@@ -1579,9 +1579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       return;
                     }
                   }
-                  if (!isTouchDevice) {
-                    openTextReminderModal(i, idx, reminder.label || reminder.value);
-                  }
+                  // No-op on desktop; use hover edit icon instead
                 };
                 // Desktop hover actions on text reminders
                 if (!isTouchDevice) {
@@ -1604,7 +1602,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                       }
                     }
-                    openTextReminderModal(i, idx, reminder.label || reminder.value);
+                    const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+                    const next = prompt('Edit reminder', current);
+                    if (next !== null) {
+                      players[i].reminders[idx].value = next;
+                      if (players[i].reminders[idx].label !== undefined) {
+                        players[i].reminders[idx].label = next;
+                      }
+                      updateGrimoire();
+                      saveAppState();
+                    }
                   });
                   reminderEl.appendChild(editBtn2);
 
