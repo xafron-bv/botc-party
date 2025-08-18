@@ -99,10 +99,10 @@ describe('Game', () => {
     cy.get('#player-circle li').eq(0).trigger('mouseenter');
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
 
-    // Delete one reminder
-    cy.get('#player-circle li').eq(0).within(() => {
-      cy.get('.reminders .reminder-delete-btn').first().click({ force: true });
-    });
+    // Delete one reminder via hover delete icon
+    cy.get('#player-circle li').eq(0).find('.reminders .icon-reminder, .reminders .text-reminder').first().trigger('mouseenter');
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
+    cy.get('#player-circle li').eq(0).find('.reminders .reminder-action.delete').first().click({ force: true });
 
     // Collapse stack
     cy.get('#player-circle li').eq(0).trigger('mouseleave');

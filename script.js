@@ -1480,35 +1480,64 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                 }
 
-                const delBtn = document.createElement('div');
-                delBtn.className = 'reminder-delete-btn';
-                delBtn.title = 'Delete';
-                delBtn.textContent = '🗑';
-                const onDeleteIcon = (e) => {
-                  e.stopPropagation();
-                  try { e.preventDefault(); } catch(_) {}
-                  const parentLi = delBtn.closest('li');
-                  // Block action if not expanded or if within suppression window
-                  if (parentLi) {
-                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                    if (parentLi.dataset.expanded !== '1') {
-                      // Expand instead
-                      parentLi.dataset.expanded = '1';
-                      if (isTouchDevice) parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                      positionRadialStack(parentLi, players[i].reminders.length);
-                      return;
+                // Desktop hover actions on icon reminders
+                if (!isTouchDevice) {
+                  const editBtn = document.createElement('div');
+                  editBtn.className = 'reminder-action edit';
+                  editBtn.title = 'Edit';
+                  editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                  editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    try { e.preventDefault(); } catch(_) {}
+                    const parentLi = editBtn.closest('li');
+                    if (parentLi) {
+                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                        if (parentLi.dataset.expanded !== '1') {
+                          parentLi.dataset.expanded = '1';
+                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                          positionRadialStack(parentLi, players[i].reminders.length);
+                        }
+                        return;
+                      }
                     }
-                    if (Date.now() < suppressUntil && isTouchDevice) {
-                      return;
+                    const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+                    const next = prompt('Edit reminder', current);
+                    if (next !== null) {
+                      players[i].reminders[idx].label = next;
+                      updateGrimoire();
+                      saveAppState();
                     }
-                  }
-                  players[i].reminders.splice(idx, 1);
-                  updateGrimoire();
-                  saveAppState();
-                };
-                delBtn.addEventListener('click', onDeleteIcon);
-                delBtn.addEventListener('touchend', onDeleteIcon, { passive: false });
-                iconEl.appendChild(delBtn);
+                  });
+                  iconEl.appendChild(editBtn);
+
+                  const delBtn = document.createElement('div');
+                  delBtn.className = 'reminder-action delete';
+                  delBtn.title = 'Delete';
+                  delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                  delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    try { e.preventDefault(); } catch(_) {}
+                    const parentLi = delBtn.closest('li');
+                    if (parentLi) {
+                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                        if (parentLi.dataset.expanded !== '1') {
+                          parentLi.dataset.expanded = '1';
+                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                          positionRadialStack(parentLi, players[i].reminders.length);
+                        }
+                        return;
+                      }
+                    }
+                    if (confirm('Delete this reminder token?')) {
+                      players[i].reminders.splice(idx, 1);
+                      updateGrimoire();
+                      saveAppState();
+                    }
+                  });
+                  iconEl.appendChild(delBtn);
+                }
 
                 remindersDiv.appendChild(iconEl);
               } else {
@@ -1550,36 +1579,69 @@ document.addEventListener('DOMContentLoaded', () => {
                       return;
                     }
                   }
-                  openTextReminderModal(i, idx, reminder.label || reminder.value);
+                  // No-op on desktop; use hover edit icon instead
                 };
-                const delBtn2 = document.createElement('div');
-                delBtn2.className = 'reminder-delete-btn';
-                delBtn2.title = 'Delete';
-                delBtn2.textContent = '🗑';
-                const onDeleteText = (e) => {
-                  e.stopPropagation();
-                  try { e.preventDefault(); } catch(_) {}
-                  const parentLi = delBtn2.closest('li');
-                  // Block action if not expanded or if within suppression window
-                  if (parentLi) {
-                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                    if (parentLi.dataset.expanded !== '1') {
-                      parentLi.dataset.expanded = '1';
-                      if (isTouchDevice) parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                      positionRadialStack(parentLi, players[i].reminders.length);
-                      return;
+                // Desktop hover actions on text reminders
+                if (!isTouchDevice) {
+                  const editBtn2 = document.createElement('div');
+                  editBtn2.className = 'reminder-action edit';
+                  editBtn2.title = 'Edit';
+                  editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                  editBtn2.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    try { e.preventDefault(); } catch(_) {}
+                    const parentLi = editBtn2.closest('li');
+                    if (parentLi) {
+                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                        if (parentLi.dataset.expanded !== '1') {
+                          parentLi.dataset.expanded = '1';
+                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                          positionRadialStack(parentLi, players[i].reminders.length);
+                        }
+                        return;
+                      }
                     }
-                    if (Date.now() < suppressUntil && isTouchDevice) {
-                      return;
+                    const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+                    const next = prompt('Edit reminder', current);
+                    if (next !== null) {
+                      players[i].reminders[idx].value = next;
+                      if (players[i].reminders[idx].label !== undefined) {
+                        players[i].reminders[idx].label = next;
+                      }
+                      updateGrimoire();
+                      saveAppState();
                     }
-                  }
-                  players[i].reminders.splice(idx, 1);
-                  updateGrimoire();
-                  saveAppState();
-                };
-                delBtn2.addEventListener('click', onDeleteText);
-                delBtn2.addEventListener('touchend', onDeleteText, { passive: false });
-                reminderEl.appendChild(delBtn2);
+                  });
+                  reminderEl.appendChild(editBtn2);
+
+                  const delBtn2 = document.createElement('div');
+                  delBtn2.className = 'reminder-action delete';
+                  delBtn2.title = 'Delete';
+                  delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                  delBtn2.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    try { e.preventDefault(); } catch(_) {}
+                    const parentLi = delBtn2.closest('li');
+                    if (parentLi) {
+                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                        if (parentLi.dataset.expanded !== '1') {
+                          parentLi.dataset.expanded = '1';
+                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                          positionRadialStack(parentLi, players[i].reminders.length);
+                        }
+                        return;
+                      }
+                    }
+                    if (confirm('Delete this reminder?')) {
+                      players[i].reminders.splice(idx, 1);
+                      updateGrimoire();
+                      saveAppState();
+                    }
+                  });
+                  reminderEl.appendChild(delBtn2);
+                }
                 remindersDiv.appendChild(reminderEl);
               }
           });
@@ -1658,16 +1720,7 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.transform = 'translate(-50%, -50%)';
               el.style.zIndex = '5';
 
-              // Place delete button to the "east" side relative to the radial (plus) direction
-              const del = el.querySelector('.reminder-delete-btn');
-              if (del) {
-                const eastX = -uy;
-                const eastY = ux;
-                const deleteOffset = reminderRadius + Math.max(6, edgeGap * 0.25);
-                del.style.left = '50%';
-                del.style.top = '50%';
-                del.style.transform = `translate(-50%, -50%) translate(${eastX * deleteOffset}px, ${eastY * deleteOffset}px)`;
-              }
+              // No special placement needed for hover actions; they center with internal offsets via CSS
           });
           
                   // Position hover zone as a rectangle along the radial line
@@ -1726,16 +1779,7 @@ document.addEventListener('DOMContentLoaded', () => {
               el.style.transform = 'translate(-50%, -50%) scale(0.8)';
               el.style.zIndex = '2';
 
-              // Place delete button to the "east" side relative to the radial (plus) direction
-              const del = el.querySelector('.reminder-delete-btn');
-              if (del) {
-                const eastX = -uy;
-                const eastY = ux;
-                const deleteOffset = reminderRadius + Math.max(6, edgeGap * 0.25);
-                del.style.left = '50%';
-                del.style.top = '50%';
-                del.style.transform = `translate(-50%, -50%) translate(${eastX * deleteOffset}px, ${eastY * deleteOffset}px)`;
-              }
+              // No special placement needed for hover actions in collapsed state
           });
           
                   // Position hover zone as a rectangle along the radial line (same as expanded state)
