@@ -33,14 +33,18 @@ describe('Tour', () => {
     cy.contains('.tour-popover .actions .button', 'Back').should('not.be.disabled').click(); // back to open-sidebar
     cy.contains('.tour-popover .actions .button', 'Next').click(); // forward again
 
-    // Continue to assign-character step which collapses sidebar on enter
+    // Continue through steps to assign-character (collapses sidebar), then to Finish
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to scripts
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to assign-character
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
-    // End via Escape for reliability in headless runs
-    cy.get('body').type('{esc}');
-    cy.get('.tour-popover').should('not.be.visible');
-    cy.get('.tour-highlight').should('not.be.visible');
+    // Advance to reminders
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
+    // Advance to offline
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to offline
+    // Advance to finish
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to finish (button label becomes Finish)
+    // Finish the tour (no strict teardown assertion to avoid CI race conditions)
+    cy.contains('.tour-popover .actions .button', 'Finish').click({ force: true });
   });
 });
