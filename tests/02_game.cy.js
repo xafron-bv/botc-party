@@ -158,8 +158,8 @@ describe('Game', () => {
     // There should be at least one grimoire history entry
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
 
-    // Rename first
-    cy.get('#grimoire-history-list .history-item').first().within(() => {
+    // Rename first non-current item (index 1, since index 0 is the pinned current game)
+    cy.get('#grimoire-history-list .history-item').eq(1).within(() => {
       cy.get('.icon-btn.rename').click();
       cy.get('.history-edit-input').clear().type('Day 1');
       cy.get('.icon-btn.save').click();

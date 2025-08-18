@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let scriptHistory = [];
   let grimoireHistory = [];
   let isRestoringState = false;
+  const CURRENT_GRIMOIRE_ID = 'grimoire_current';
 
   function generateId(prefix) {
     try {
@@ -240,12 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
       li.className = 'history-item';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'history-name';
-      nameSpan.textContent = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+      const isCurrent = entry.isCurrent === true || entry.id === CURRENT_GRIMOIRE_ID;
+      nameSpan.textContent = isCurrent ? 'current game' : (entry.name || formatDateName(new Date(entry.createdAt || Date.now())));
       // Inline edit input (hidden by default)
       const nameInput = document.createElement('input');
       nameInput.type = 'text';
       nameInput.className = 'history-edit-input';
-      nameInput.value = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+      nameInput.value = isCurrent ? 'current game' : (entry.name || formatDateName(new Date(entry.createdAt || Date.now())));
       nameInput.style.display = 'none';
       // Icons
       const renameBtn = document.createElement('button');
@@ -263,9 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
       li.appendChild(nameSpan);
       li.appendChild(nameInput);
-      li.appendChild(renameBtn);
-      li.appendChild(saveBtn);
-      li.appendChild(deleteBtn);
+      // Do not allow rename/delete on the pinned current entry
+      if (!isCurrent) {
+        li.appendChild(renameBtn);
+        li.appendChild(saveBtn);
+        li.appendChild(deleteBtn);
+      }
       grimoireHistoryList.appendChild(li);
     });
   }
@@ -297,7 +302,13 @@ document.addEventListener('DOMContentLoaded', () => {
         scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
         scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
       };
-      grimoireHistory.unshift(entry);
+      // Insert snapshots after the pinned current entry if present
+      const currentIdx = grimoireHistory.findIndex(x => x && (x.isCurrent === true || x.id === CURRENT_GRIMOIRE_ID));
+      if (currentIdx >= 0) {
+        grimoireHistory.splice(currentIdx + 1, 0, entry);
+      } else {
+        grimoireHistory.unshift(entry);
+      }
       saveHistories();
       renderGrimoireHistory();
     } catch(_) {}
@@ -505,10 +516,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function upsertCurrentGameHistory() {
+    try {
+      // Only maintain a current game entry when there is an active game
+      if (!Array.isArray(players) || players.length === 0) return;
+      const existing = grimoireHistory.find(e => e && (e.isCurrent === true || e.id === CURRENT_GRIMOIRE_ID));
+      const snapPlayers = JSON.parse(JSON.stringify(players));
+      const currentEntry = {
+        id: CURRENT_GRIMOIRE_ID,
+        name: 'current game',
+        isCurrent: true,
+        createdAt: existing && existing.createdAt ? existing.createdAt : Date.now(),
+        updatedAt: Date.now(),
+        players: snapPlayers,
+        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
+        scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
+      };
+      // Remove any previous current entry duplicates
+      grimoireHistory = grimoireHistory.filter(e => e && !(e.isCurrent === true || e.id === CURRENT_GRIMOIRE_ID));
+      // Place current at the very front
+      grimoireHistory.unshift(currentEntry);
+      saveHistories();
+      renderGrimoireHistory();
+    } catch(_) {}
+  }
+
   function saveAppState() {
     try {
       const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
+      // Keep the current game pinned and up-to-date in history
+      upsertCurrentGameHistory();
     } catch (_) {}
   }
 
@@ -528,6 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateGrimoire();
         repositionPlayers();
         renderSetupInfo();
+        // Ensure the pinned current game is visible immediately after restore
+        upsertCurrentGameHistory();
       }
     } catch (_) {} finally { isRestoringState = false; }
   }
