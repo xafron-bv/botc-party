@@ -1357,3 +1357,24 @@ body.resizing {
 #player-context-menu button.disabled,
 #player-context-menu button:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Prevent iOS text selection/callout in player area and context menu */
+#player-circle,
+#player-circle * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#player-circle .player-token,
+#player-circle .player-name,
+#player-circle .reminders,
+#player-circle .reminder-placeholder {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+#player-context-menu,
+#player-context-menu * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
