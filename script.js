@@ -1835,10 +1835,11 @@ document.addEventListener('DOMContentLoaded', () => {
          const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load characters.json');
         const json = await res.json();
+        // Base: any tokens supplied by data file
         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-        // Add per-character reminders from the current script: use the character's icon and reminder text as label
+        // Build per-character reminders from the current script: use the character's icon and reminder text as label
+        const scriptReminderTokens = [];
         try {
-          const scriptReminderTokens = [];
           Object.values(allRoles || {}).forEach(role => {
             if (role && Array.isArray(role.reminders) && role.reminders.length) {
               const roleImage = resolveAssetPath(role.image);
@@ -1851,22 +1852,19 @@ document.addEventListener('DOMContentLoaded', () => {
               });
             }
           });
-          if (scriptReminderTokens.length) {
-            reminderTokens = [...scriptReminderTokens, ...reminderTokens];
-          }
         } catch (_) {}
-        if (reminderTokens.length === 0) {
-          // Fallback set if characters.json has no reminderTokens
-          reminderTokens = [
-            { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
-            { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
-            { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
-            { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
-            { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
-            { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
-            { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
-          ];
-        }
+        // Always-available generic tokens
+        const genericTokens = [
+          { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
+          { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
+          { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
+          { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
+          { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
+          { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
+          { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
+        ];
+        // Merge: generic + per-character + file-provided
+        reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
          const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
          // Normalize image paths for gh-pages subpath
          reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
