@@ -20,12 +20,12 @@ A Progressive Web App (PWA) version of the Blood on the Clocktower Grimoire that
 3. **Start Game**: Click "Start Game" to create the player circle
 4. **Assign Characters**: Click on player tokens to assign characters from the loaded script
 5. **Add Reminders**: Click the "+" button on players to add text reminders
-6. **Custom Scripts**: Upload custom JSON scripts in the same format as tokens.json
+6. **Custom Scripts**: Upload custom JSON scripts in the same format as characters.json
 
 ## File Structure
 
 - `index.html` - Main application interface
-- `tokens.json` - Default character library with all official BOTC roles
+- `characters.json` - Default character library with all official BOTC roles
 - `service-worker.js` - Service worker for offline functionality and caching
 - `manifest.json` - PWA manifest for app installation
 - `tb.json` - Example script file (Trouble Brewing)
