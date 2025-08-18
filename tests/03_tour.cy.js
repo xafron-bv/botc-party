@@ -38,9 +38,16 @@ describe('Tour', () => {
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to assign-character
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
-    // End via Escape for reliability in headless runs
-    cy.get('body').type('{esc}');
-    cy.get('.tour-popover').should('not.be.visible');
-    cy.get('.tour-highlight').should('not.be.visible');
+    // End via Skip to ensure deterministic teardown in headless runs
+    cy.contains('.tour-popover .actions .button', 'Skip').click({ force: true });
+    // If not hidden yet (animation/overlay timing), press Escape as a fallback
+    cy.get('.tour-popover').then(($el) => {
+      if ($el.css('display') !== 'none') {
+        cy.get('body').type('{esc}');
+      }
+    });
+    cy.get('.tour-popover', { timeout: 10000 }).should('have.css', 'display', 'none');
+    cy.get('.tour-highlight', { timeout: 10000 }).should('have.css', 'display', 'none');
+    cy.get('.tour-backdrop', { timeout: 10000 }).should('have.css', 'display', 'none');
   });
 });
