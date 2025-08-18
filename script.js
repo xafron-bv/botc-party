@@ -549,31 +549,29 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.textContent = 'Loading all characters...';
       loadStatus.className = 'status';
       
-      // Load tokens.json directly
-      const response = await fetch('./tokens.json');
+      // Load characters.json directly
+      const response = await fetch('./characters.json');
       if (!response.ok) {
-        throw new Error(`Failed to load tokens.json: ${response.status}`);
+        throw new Error(`Failed to load characters.json: ${response.status}`);
       }
       
-      const tokens = await response.json();
-      console.log('Loading all characters from tokens.json');
+      const characters = await response.json();
+      console.log('Loading all characters from characters.json');
       
       // Reset allRoles
       allRoles = {};
       
-      // Process all teams including fabled and travellers
-      const allTeams = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+      // Process flat characters array (includes townsfolk, outsider, minion, demon, traveller, fabled)
       let characterIds = [];
-      
-      allTeams.forEach(teamName => {
-        if (tokens[teamName] && Array.isArray(tokens[teamName])) {
-          tokens[teamName].forEach(role => {
-            const image = resolveAssetPath(role.image);
-            allRoles[role.id] = { ...role, image, team: teamName };
-            characterIds.push(role.id);
-          });
-        }
-      });
+      if (Array.isArray(characters)) {
+        characters.forEach(role => {
+          if (!role || !role.id) return;
+          const image = resolveAssetPath(role.image);
+          const teamName = role.team || '';
+          allRoles[role.id] = { ...role, image, team: teamName };
+          characterIds.push(role.id);
+        });
+      }
       
       console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
       
@@ -723,31 +721,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function processScriptCharacters(characterIds) {
       try {
-          console.log('Loading tokens.json to resolve character IDs...');
-          const response = await fetch('./tokens.json');
+          console.log('Loading characters.json to resolve character IDs...');
+          const response = await fetch('./characters.json');
           if (!response.ok) {
-              throw new Error(`Failed to load tokens.json: ${response.status}`);
+              throw new Error(`Failed to load characters.json: ${response.status}`);
           }
           
-          const tokens = await response.json();
-          console.log('Tokens.json loaded successfully');
+          const characters = await response.json();
+          console.log('characters.json loaded successfully');
           
           // Create canonical lookups and a normalization index
           const roleLookup = {};
           const normalizedToCanonicalId = {};
-          Object.entries(tokens).forEach(([teamName, teamArray]) => {
-              if (Array.isArray(teamArray)) {
-                  teamArray.forEach(role => {
-                      const image = resolveAssetPath(role.image);
-                      const canonical = { ...role, image, team: teamName };
-                      roleLookup[role.id] = canonical;
-                      const normId = normalizeKey(role.id);
-                      const normName = normalizeKey(role.name);
-                      if (normId) normalizedToCanonicalId[normId] = role.id;
-                      if (normName) normalizedToCanonicalId[normName] = role.id;
-                  });
-              }
-          });
+          if (Array.isArray(characters)) {
+              characters.forEach(role => {
+                  if (!role || !role.id) return;
+                  const image = resolveAssetPath(role.image);
+                  const canonical = { ...role, image, team: role.team || '' };
+                  roleLookup[role.id] = canonical;
+                  const normId = normalizeKey(role.id);
+                  const normName = normalizeKey(role.name);
+                  if (normId) normalizedToCanonicalId[normId] = role.id;
+                  if (normName) normalizedToCanonicalId[normName] = role.id;
+              });
+          }
           
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
@@ -1714,7 +1711,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modals by tapping outside content
   characterModal.addEventListener('click', (e) => { if (e.target === characterModal) characterModal.style.display = 'none'; });
   textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
-  reminderTokenModal && reminderTokenModal.addEventListener('click', (e) => { if (e.target === reminderTokenModal) reminderTokenModal.style.display = 'none'; });
+  // For reminder token modal, also close if clicking outside the content container
+  reminderTokenModal && reminderTokenModal.addEventListener('click', (e) => {
+    if (e.target === reminderTokenModal) { reminderTokenModal.style.display = 'none'; return; }
+    const content = reminderTokenModal.querySelector('.modal-content');
+    if (content && !content.contains(e.target)) { reminderTokenModal.style.display = 'none'; }
+  });
 
   function createCurvedLabelSvg(uniqueId, labelText) {
       const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -1830,20 +1832,39 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!reminderTokenGrid) return;
       reminderTokenGrid.innerHTML = '';
       try {
-         const res = await fetch('./tokens.json?v=reminders', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to load tokens.json');
+         const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load characters.json');
         const json = await res.json();
+        // Base: any tokens supplied by data file
         let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-        if (reminderTokens.length === 0) {
-          // Fallback set if tokens.json has no reminderTokens
-          reminderTokens = [
-            { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
-            { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
-            { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
-            { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
-            { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
-          ];
-        }
+        // Build per-character reminders from the current script: use the character's icon and reminder text as label
+        const scriptReminderTokens = [];
+        try {
+          Object.values(allRoles || {}).forEach(role => {
+            if (role && Array.isArray(role.reminders) && role.reminders.length) {
+              const roleImage = resolveAssetPath(role.image);
+              role.reminders.forEach(rem => {
+                const label = String(rem || '').trim();
+                if (!label) return;
+                const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+                const id = `${role.id}-${norm}`;
+                scriptReminderTokens.push({ id, image: roleImage, label });
+              });
+            }
+          });
+        } catch (_) {}
+        // Always-available generic tokens
+        const genericTokens = [
+          { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
+          { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
+          { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
+          { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
+          { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
+          { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
+          { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
+        ];
+        // Merge: generic + per-character + file-provided
+        reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
          const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
          // Normalize image paths for gh-pages subpath
          reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
