@@ -11,6 +11,8 @@ const urlsToCache = [
   './ui/tooltip.js',
   './ui/svg.js',
   './ui/guides.js',
+  './ui/sidebar.js',
+  './ui/tour.js',
   './characters.json',
   './Trouble Brewing.json',
   './Bad Moon Rising.json',
@@ -32,7 +34,7 @@ const urlsToCache = [
 const networkFirstFiles = [
   'index.html',
   'styles.css',
-  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js',
+  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js', 'ui/sidebar.js', 'ui/tour.js',
   'service-worker.js',
   'manifest.json'
 ];
