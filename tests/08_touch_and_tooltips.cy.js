@@ -98,8 +98,8 @@ describe('Ability UI - Touch', () => {
     cy.viewport('iphone-6');
     // Start with two players
     startGameWithPlayers(5);
-    // Expand second player's stack via touchstart (simulate tap on its area)
-    cy.get('#player-circle li').eq(1).trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    // Expand second player's stack via touchstart (simulate tap on its reminders area to avoid overlap)
+    cy.get('#player-circle li').eq(1).find('.reminders').trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
     // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
@@ -122,10 +122,11 @@ describe('Ability UI - Touch', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
 
     // Ensure the stack is expanded so interaction is clear
-    cy.get('#player-circle li').first().trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#player-circle li').first().find('.reminders').trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
 
-    // Long-press start shows visual feedback
+    // Long-press start shows visual feedback; ensure modal is not visible
+    cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').first()
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('exist');
