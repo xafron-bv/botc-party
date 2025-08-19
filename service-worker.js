@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v17';
+const CACHE_NAME = 'botc-party-grimoire-v19';
 const urlsToCache = [
   './',
   './index.html',
@@ -6,6 +6,14 @@ const urlsToCache = [
   './LICENSE.md',
   './styles.css',
   './script.js',
+  './utils.js',
+  './pwa.js',
+  './ui/tooltip.js',
+  './ui/svg.js',
+  './ui/guides.js',
+  './ui/sidebar.js',
+  './ui/tour.js',
+  './ui/layout.js',
   './characters.json',
   './Trouble Brewing.json',
   './Bad Moon Rising.json',
@@ -27,7 +35,7 @@ const urlsToCache = [
 const networkFirstFiles = [
   'index.html',
   'styles.css',
-  'script.js',
+  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js', 'ui/sidebar.js', 'ui/tour.js', 'ui/layout.js',
   'service-worker.js',
   'manifest.json'
 ];
