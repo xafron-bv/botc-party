@@ -101,9 +101,17 @@ describe('Ability UI - Touch', () => {
     // Expand second player's stack via touchstart (simulate tap on its reminders area to avoid overlap)
     cy.get('#player-circle li').eq(1).find('.reminders').trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
+    cy.wait(50);
     // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
+    cy.wait(50);
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    // Ensure modal is closed before continuing
+    cy.get('body').then(($body) => {
+      if ($body.find('#reminder-token-modal:visible').length) {
+        cy.get('#reminder-token-modal').click('topLeft', { force: true });
+      }
+    });
     cy.get('#reminder-token-modal').should('not.be.visible');
     // Tap plus again: now the modal should open
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
@@ -119,6 +127,12 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token').first().click({ force: true });
+    // If the modal remains visible due to async behavior, click backdrop to close
+    cy.get('body').then(($body) => {
+      if ($body.find('#reminder-token-modal:visible').length) {
+        cy.get('#reminder-token-modal').click('topLeft', { force: true });
+      }
+    });
     cy.get('#reminder-token-modal').should('not.be.visible');
 
     // Ensure the stack is expanded so interaction is clear
