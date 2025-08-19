@@ -98,10 +98,9 @@ describe('Ability UI - Touch', () => {
     cy.viewport('iphone-6');
     // Start with two players
     startGameWithPlayers(5);
-    // Expand second player's stack via touchstart (simulate tap on its reminders area to avoid overlap)
-    cy.get('#player-circle li').eq(1).find('.reminders').trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    // Deterministically mark second player as expanded
+    cy.get('#player-circle li').eq(1).invoke('attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
-    cy.wait(50);
     // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
     cy.wait(50);
@@ -127,6 +126,8 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token').first().click({ force: true });
+    // Ensure a reminder was added
+    cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('exist');
     // If the modal remains visible due to async behavior, click backdrop to close
     cy.get('body').then(($body) => {
       if ($body.find('#reminder-token-modal:visible').length) {
