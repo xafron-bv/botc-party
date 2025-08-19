@@ -425,6 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
         outsideCollapseHandlerInstalled = true;
         const maybeCollapseOnOutside = (ev) => {
           const target = ev.target;
+          // If the tap/click is anywhere inside the player circle, do not auto-collapse here.
+          // This allows reminder + gating to expand the tapped stack first.
+          const playerCircleEl = document.getElementById('player-circle');
+          if (playerCircleEl && playerCircleEl.contains(target)) return;
           const allLis = document.querySelectorAll('#player-circle li');
           let clickedInsideExpanded = false;
           allLis.forEach(el => {
@@ -1313,6 +1317,9 @@ document.addEventListener('DOMContentLoaded', () => {
             outsideCollapseHandlerInstalled = true;
             const maybeCollapseOnOutside = (ev) => {
               const target = ev.target;
+              // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
+              const playerCircleEl = document.getElementById('player-circle');
+              if (playerCircleEl && playerCircleEl.contains(target)) return;
               // Do nothing if target is inside any expanded list item
               const allLis = document.querySelectorAll('#player-circle li');
               let clickedInsideExpanded = false;

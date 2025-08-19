@@ -98,11 +98,14 @@ describe('Ability UI - Touch', () => {
     cy.viewport('iphone-6');
     // Start with two players
     startGameWithPlayers(5);
-    // Deterministically mark second player as expanded
+    // Deterministically mark second player as expanded and first as collapsed
     cy.get('#player-circle li').eq(1).invoke('attr', 'data-expanded', '1');
+    cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '0');
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
-    // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
+    // Now tap plus on first player: should expand first (and not open modal yet)
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
+    // Wait a beat for the expand to propagate
     cy.wait(50);
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
     // Ensure modal is closed before continuing
@@ -125,8 +128,9 @@ describe('Ability UI - Touch', () => {
     // Add one reminder to first player to have a token
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-grid .token').first().click({ force: true });
-    // Ensure a reminder was added
+    // Prefer a deterministic token that always exists by title
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+    // Ensure a reminder was added (retry until rendered)
     cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('exist');
     // If the modal remains visible due to async behavior, click backdrop to close
     cy.get('body').then(($body) => {
@@ -142,7 +146,9 @@ describe('Ability UI - Touch', () => {
 
     // Long-press start shows visual feedback; ensure modal is not visible
     cy.get('#reminder-token-modal').should('not.be.visible');
+    // Retry until a reminder exists and is interactable
     cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').first()
+      .should('exist')
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('exist');
     // End press removes feedback
