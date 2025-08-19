@@ -334,6 +334,26 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       listItem.querySelector('.reminder-placeholder').onclick = (e) => {
         e.stopPropagation();
+        // If another stack is expanded and this one is not, expand this one instead of acting
+        const thisLi = listItem;
+        if (thisLi.dataset.expanded !== '1') {
+          const allLis = document.querySelectorAll('#player-circle li');
+          let someoneExpanded = false;
+          allLis.forEach(el => {
+            if (el !== thisLi && el.dataset.expanded === '1') {
+              someoneExpanded = true;
+              el.dataset.expanded = '0';
+              const idx = Array.from(allLis).indexOf(el);
+              positionRadialStack(el, (players[idx]?.reminders || []).length);
+            }
+          });
+          if (someoneExpanded) {
+            thisLi.dataset.expanded = '1';
+            thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(thisLi, players[i].reminders.length);
+            return;
+          }
+        }
         if (isTouchDevice) {
           openReminderTokenModal(i);
         } else if (e.altKey) {
@@ -1219,6 +1239,25 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
+              const thisLi = listItem;
+              if (thisLi.dataset.expanded !== '1') {
+                const allLis = document.querySelectorAll('#player-circle li');
+                let someoneExpanded = false;
+                allLis.forEach(el => {
+                  if (el !== thisLi && el.dataset.expanded === '1') {
+                    someoneExpanded = true;
+                    el.dataset.expanded = '0';
+                    const idx = Array.from(allLis).indexOf(el);
+                    positionRadialStack(el, (players[idx]?.reminders || []).length);
+                  }
+                });
+                if (someoneExpanded) {
+                  thisLi.dataset.expanded = '1';
+                  thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(thisLi, players[i].reminders.length);
+                  return;
+                }
+              }
               if (isTouchDevice) {
                   openReminderTokenModal(i);
               } else if (e.altKey) {

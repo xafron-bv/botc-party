@@ -70,7 +70,7 @@ describe('Ability UI - Touch', () => {
 
   it('reminder token scrolling does not accidentally select; tap still selects', () => {
     cy.viewport('iphone-6');
-    // Open reminder token modal for first player
+    // Open reminder token modal for first player (no other stacks expanded yet)
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
 
@@ -92,6 +92,25 @@ describe('Ability UI - Touch', () => {
         expect($li3.find('.icon-reminder').length).to.eq(beforeCount + 1);
       });
     });
+  });
+
+  it('plus button first expands when another stack is expanded; second tap opens modal', () => {
+    cy.viewport('iphone-6');
+    // Start with two players
+    startGameWithPlayers(5);
+    // Expand second player's stack via touchstart (simulate tap on its area)
+    cy.get('#player-circle li').eq(1).trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
+    // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
+    cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Tap plus again: now the modal should open
+    cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    // Close
+    cy.get('#reminder-token-modal').click('topLeft', { force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
   });
 });
 
