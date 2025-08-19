@@ -1,63 +1,6 @@
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(registration => {
-        console.log('Service worker registered successfully:', registration);
-        
-        // Suppress update prompt only on first standalone launch (A2HS first open)
-        const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
-        const FIRST_LAUNCH_KEY = 'pwa_first_standalone_launch_done';
-        let suppressUpdatePrompt = false;
-        if (isStandalone && !localStorage.getItem(FIRST_LAUNCH_KEY)) {
-          suppressUpdatePrompt = true;
-          localStorage.setItem(FIRST_LAUNCH_KEY, '1');
-        }
-        
-        // Check for updates on page load
-        registration.update();
-        
-        // Check for updates periodically (every hour)
-        setInterval(() => {
-          registration.update();
-        }, 60 * 60 * 1000);
-        
-        // Handle service worker updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          console.log('Service worker update found!');
-          
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
-              // Only prompt if there's an existing controller (i.e., this is an update, not first install)
-              if (navigator.serviceWorker.controller) {
-                console.log('New service worker installed (update available)');
-                if (!suppressUpdatePrompt) {
-                  if (confirm('A new version is available! Reload to update?')) {
-                    window.location.reload();
-                  }
-                } else {
-                  console.log('Suppressing update prompt on first standalone launch');
-                }
-              } else {
-                console.log('Service worker installed for the first time');
-              }
-            }
-          });
-        });
-      })
-      .catch(error => {
-        console.error('Service worker registration failed:', error);
-      });
-  });
-  
-  // Handle controller change (when skipWaiting is called)
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload();
-  });
-}
+import './pwa.js';
+import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -155,35 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let grimoireHistory = [];
   let isRestoringState = false;
 
-  function generateId(prefix) {
-    try {
-      if (crypto && crypto.randomUUID) return `${prefix || 'id'}_${crypto.randomUUID()}`;
-    } catch(_) {}
-    return `${prefix || 'id'}_${Date.now()}_${Math.floor(Math.random()*1e6)}`;
-  }
-
-  function formatDateName(date = new Date()) {
-    try {
-      const y = date.getFullYear();
-      const m = String(date.getMonth()+1).padStart(2,'0');
-      const d = String(date.getDate()).padStart(2,'0');
-      const hh = String(date.getHours()).padStart(2,'0');
-      const mm = String(date.getMinutes()).padStart(2,'0');
-      return `${y}-${m}-${d} ${hh}:${mm}`;
-    } catch(_) {
-      return String(date);
-    }
-  }
-
-  function isExcludedScriptName(name) {
-    if (!name) return false;
-    const n = String(name).trim().toLowerCase();
-    return n === 'trouble brewing' ||
-           n === 'bad moon rising' ||
-           n === 'sects & violets' ||
-           n === 'sects and violets' ||
-           n === 'all characters';
-  }
+  // Helpers now imported from utils.js
 
   function saveHistories() {
     try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
@@ -882,17 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {} finally { isRestoringState = false; }
   }
 
-  function resolveAssetPath(path) {
-      if (!path) return path;
-      if (/^https?:\/\//.test(path)) return path;
-      if (path.startsWith('/')) return `.${path}`;
-      return path;
-  }
-
-  function normalizeKey(value) {
-    if (typeof value !== 'string') return '';
-    return value.toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
+  // Path and key helpers imported from utils.js
 
   async function loadAllCharacters() {
     try {
@@ -2025,86 +1930,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   }
 
-  // Ensure an SVG layer exists to render radial guide lines and the center marker
-  function ensureGuidesSvg() {
-    const circleEl = document.getElementById('player-circle');
-    if (!circleEl) return null;
-    let svg = circleEl.querySelector('#radial-guides');
-    if (!svg) {
-      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('id', 'radial-guides');
-      svg.setAttribute('preserveAspectRatio', 'none');
-      svg.style.position = 'absolute';
-      svg.style.left = '0';
-      svg.style.top = '0';
-      svg.style.width = '100%';
-      svg.style.height = '100%';
-      svg.style.pointerEvents = 'none';
-      svg.style.zIndex = '-1';
-      // Insert behind token <li> elements
-      if (circleEl.firstChild) {
-        circleEl.insertBefore(svg, circleEl.firstChild);
-      } else {
-        circleEl.appendChild(svg);
-      }
-    }
-    return svg;
-  }
-
-  // Draw lines from each token center to the center of the big circle and a visible center mark
-  function drawRadialGuides() {
-    const circleEl = document.getElementById('player-circle');
-    if (!circleEl) return;
-    const svg = ensureGuidesSvg();
-    if (!svg) return;
-
-    const width = circleEl.offsetWidth || 0;
-    const height = circleEl.offsetHeight || 0;
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-    // Clear previous
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-
-    // Center point
-    const cx = width / 2;
-    const cy = height / 2;
-
-    // Add subtle center mark
-    const centerOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    centerOuter.setAttribute('cx', String(cx));
-    centerOuter.setAttribute('cy', String(cy));
-    centerOuter.setAttribute('r', '10');
-    centerOuter.setAttribute('fill', 'rgba(0,0,0,0.35)');
-    centerOuter.setAttribute('stroke', '#D4AF37');
-    centerOuter.setAttribute('stroke-width', '2');
-    svg.appendChild(centerOuter);
-
-    const centerInner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    centerInner.setAttribute('cx', String(cx));
-    centerInner.setAttribute('cy', String(cy));
-    centerInner.setAttribute('r', '3');
-    centerInner.setAttribute('fill', '#D4AF37');
-    svg.appendChild(centerInner);
-
-    // Lines to each token
-    const containerRect = circleEl.getBoundingClientRect();
-    const lis = circleEl.querySelectorAll('li');
-    lis.forEach(li => {
-      const token = li.querySelector('.player-token');
-      const rect = token ? token.getBoundingClientRect() : li.getBoundingClientRect();
-      const tx = (rect.left - containerRect.left) + rect.width / 2;
-      const ty = (rect.top - containerRect.top) + rect.height / 2;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', String(cx));
-      line.setAttribute('y1', String(cy));
-      line.setAttribute('x2', String(tx));
-      line.setAttribute('y2', String(ty));
-      line.setAttribute('stroke', 'rgba(255,255,255,0.25)');
-      line.setAttribute('stroke-width', '2');
-      line.setAttribute('shape-rendering', 'geometricPrecision');
-      svg.appendChild(line);
-    });
-  }
+  // ensureGuidesSvg and drawRadialGuides moved to ui/guides.js
   
   function openCharacterModal(playerIndex) {
       if (!scriptData) {
@@ -2198,110 +2024,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (content && !content.contains(e.target)) { reminderTokenModal.style.display = 'none'; }
   });
 
-  function createCurvedLabelSvg(uniqueId, labelText) {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('viewBox','0 0 100 100');
-      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
-      svg.classList.add('icon-reminder-svg');
-      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('id', uniqueId);
-      // Perfect bottom half-circle inside the token rim
-      path.setAttribute('d','M10,50 A40,40 0 0,0 90,50');
-      defs.appendChild(path);
-      svg.appendChild(defs);
-          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-    text.setAttribute('class','icon-reminder-text');
-    text.setAttribute('text-anchor','middle');
-    const textPath = document.createElementNS('http://www.w3.org/2000/svg','textPath');
-    textPath.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href',`#${uniqueId}`);
-    textPath.setAttribute('startOffset','50%');
-      // Truncate display on token to avoid overcrowding, but keep tooltip full
-      const full = String(labelText || '');
-      const maxChars = 14;
-      const display = full.length > maxChars ? full.slice(0, maxChars - 1) + '…' : full;
-      const len = display.length;
-      // Dynamic font size based on length
-      let fontSize = 12;
-      if (len > 12 && len <= 16) fontSize = 11.5;
-      else if (len > 16) fontSize = 11;
-      text.style.fontSize = `${fontSize}px`;
-      // For short labels, do NOT stretch spacing (prevents "h     i" look)
-      // Only force-fit very long labels to avoid overflow
-      if (len >= 10) {
-        text.style.letterSpacing = '0.1px';
-        text.setAttribute('lengthAdjust','spacingAndGlyphs');
-        const targetLength = 92; // visual arc length
-        textPath.setAttribute('textLength', String(targetLength));
-      }
-      textPath.textContent = display;
-      text.appendChild(textPath);
-      svg.appendChild(text);
-      return svg;
-  }
+  // createCurvedLabelSvg moved to ui/svg.js
 
-  // Create a black ribbon SVG similar to the reference image
-  function createDeathRibbonSvg() {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('viewBox','0 0 100 140');
-      svg.setAttribute('preserveAspectRatio','xMidYMid meet');
-      svg.style.pointerEvents = 'none';
-      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-      const pattern = document.createElementNS('http://www.w3.org/2000/svg','pattern');
-      pattern.setAttribute('id','deathPattern');
-      pattern.setAttribute('patternUnits','userSpaceOnUse');
-      pattern.setAttribute('width','12');
-      pattern.setAttribute('height','12');
-      const pbg = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      pbg.setAttribute('width','12');
-      pbg.setAttribute('height','12');
-      pbg.setAttribute('fill','#0f0f10');
-      const p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
-      p1.setAttribute('d','M0 12 L12 0 M-3 9 L3 3 M9 15 L15 9');
-      p1.setAttribute('stroke','#1b1b1d');
-      p1.setAttribute('stroke-width','2');
-      defs.appendChild(pattern);
-      pattern.appendChild(pbg);
-      pattern.appendChild(p1);
-      svg.appendChild(defs);
-
-      // Main banner
-      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      rect.setAttribute('x','22');
-      rect.setAttribute('y','0');
-      rect.setAttribute('rx','6');
-      rect.setAttribute('ry','6');
-      rect.setAttribute('width','56');
-      rect.setAttribute('height','88');
-      rect.setAttribute('fill','url(#deathPattern)');
-      rect.setAttribute('stroke','#000');
-      rect.setAttribute('stroke-width','6');
-      rect.setAttribute('pointer-events','visiblePainted');
-
-      // Notch
-      const notch = document.createElementNS('http://www.w3.org/2000/svg','path');
-      notch.setAttribute('d','M22 88 L50 120 L78 88 Z');
-      notch.setAttribute('fill','url(#deathPattern)');
-      notch.setAttribute('stroke','#000');
-      notch.setAttribute('stroke-width','6');
-      notch.setAttribute('pointer-events','visiblePainted');
-
-      // Subtle inner shadow
-      const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      shadow.setAttribute('x','26');
-      shadow.setAttribute('y','4');
-      shadow.setAttribute('rx','6');
-      shadow.setAttribute('ry','6');
-      shadow.setAttribute('width','48');
-      shadow.setAttribute('height','78');
-      shadow.setAttribute('fill','rgba(255,255,255,0.03)');
-      shadow.setAttribute('pointer-events','none');
-
-      svg.appendChild(rect);
-      svg.appendChild(notch);
-      svg.appendChild(shadow);
-      return svg;
-  }
+  // createDeathRibbonSvg moved to ui/svg.js
 
   function openReminderTokenModal(playerIndex) {
       selectedPlayerIndex = playerIndex;
@@ -3013,109 +2738,4 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 });
 
-// Tooltip positioning function
-function positionTooltip(targetElement, tooltip) {
-    const rect = targetElement.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
-    
-    // Position above the element by default
-    let top = rect.top - tooltipRect.height - 10;
-    let left = rect.left + (rect.width - tooltipRect.width) / 2;
-    
-    // Adjust if tooltip would go off screen
-    if (top < 10) {
-        // Position below instead
-        top = rect.bottom + 10;
-    }
-    
-    if (left < 10) {
-        left = 10;
-    } else if (left + tooltipRect.width > window.innerWidth - 10) {
-        left = window.innerWidth - tooltipRect.width - 10;
-    }
-    
-    tooltip.style.top = top + 'px';
-    tooltip.style.left = left + 'px';
-}
-
-// Touch ability popup functions
-function showTouchAbilityPopup(targetElement, ability) {
-    const popup = document.getElementById('touch-ability-popup');
-    if (!popup) return;
-    popup.textContent = ability;
-    popup.classList.add('show');
-    
-    // If targetElement is the info icon, find the token for better positioning
-    const isInfoIcon = targetElement.classList.contains('ability-info-icon');
-    const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
-    
-    const rect = referenceElement.getBoundingClientRect();
-    const popupRect = popup.getBoundingClientRect();
-    
-    // Position above the token
-    let top = rect.top - popupRect.height - 20;
-    let left = rect.left + (rect.width - popupRect.width) / 2;
-    
-    // Adjust if popup would go off screen
-    if (top < 10) {
-        // Position below instead
-        top = rect.bottom + 20;
-    }
-    
-    if (left < 10) {
-        left = 10;
-    } else if (left + popupRect.width > window.innerWidth - 10) {
-        left = window.innerWidth - popupRect.width - 10;
-    }
-    
-    popup.style.top = top + 'px';
-    popup.style.left = left + 'px';
-}
-
-function hideTouchAbilityPopup() {
-    const touchAbilityPopup = document.getElementById('touch-ability-popup');
-    if (touchAbilityPopup) {
-        touchAbilityPopup.classList.remove('show');
-    }
-}
-
-// Hide touch popup when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
-        hideTouchAbilityPopup();
-    }
-});
-
-// Position info icons on a larger circle outside the character tokens
-function positionInfoIcons() {
-    const circle = document.getElementById('player-circle');
-    if (!circle) return;
-    
-    const circleRect = circle.getBoundingClientRect();
-    const circleWidth = circle.offsetWidth;
-    const circleHeight = circle.offsetHeight;
-    const centerX = circleWidth / 2;
-    const centerY = circleHeight / 2;
-    
-    // Get all info icons
-    const infoIcons = circle.querySelectorAll('.ability-info-icon');
-    
-    infoIcons.forEach(icon => {
-        const playerIndex = parseInt(icon.dataset.playerIndex);
-        const li = icon.parentElement;
-        const angle = parseFloat(li.dataset.angle || '0');
-        
-        // Calculate radius for info icons (add 20% of token radius)
-        const tokenEl = li.querySelector('.player-token');
-        const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
-        const infoRadius = tokenRadius * 1.2;
-        
-        // Calculate position on the outer circle
-        const x = infoRadius * Math.cos(angle);
-        const y = infoRadius * Math.sin(angle);
-        
-        // Position the info icon
-        icon.style.left = `calc(50% + ${x}px)`;
-        icon.style.top = `calc(50% + ${y}px)`;
-    });
-}
+// Tooltip and info icon helpers are imported from ui/tooltip.js
