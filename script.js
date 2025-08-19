@@ -585,11 +585,9 @@ document.addEventListener('DOMContentLoaded', () => {
       hideReminderContextMenu();
       if (playerIndex < 0 || reminderIndex < 0) return;
       if (!players[playerIndex] || !players[playerIndex].reminders) return;
-      if (confirm('Delete this reminder?')) {
-        players[playerIndex].reminders.splice(reminderIndex, 1);
-        updateGrimoire();
-        saveAppState();
-      }
+      players[playerIndex].reminders.splice(reminderIndex, 1);
+      updateGrimoire();
+      saveAppState();
     });
 
     menu.appendChild(editBtn);
@@ -1662,11 +1660,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                       }
                     }
-                    if (confirm('Delete this reminder token?')) {
-                      players[i].reminders.splice(idx, 1);
-                      updateGrimoire();
-                      saveAppState();
-                    }
+                    players[i].reminders.splice(idx, 1);
+                    updateGrimoire();
+                    saveAppState();
                   });
                   iconEl.appendChild(delBtn);
                 }
@@ -1790,11 +1786,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                       }
                     }
-                    if (confirm('Delete this reminder?')) {
-                      players[i].reminders.splice(idx, 1);
-                      updateGrimoire();
-                      saveAppState();
-                    }
+                    players[i].reminders.splice(idx, 1);
+                    updateGrimoire();
+                    saveAppState();
                   });
                   reminderEl.appendChild(delBtn2);
                 }
@@ -2232,11 +2226,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (len > 12 && len <= 16) fontSize = 11.5;
       else if (len > 16) fontSize = 11;
       text.style.fontSize = `${fontSize}px`;
-      text.style.letterSpacing = '0.1px';
-      text.setAttribute('lengthAdjust','spacingAndGlyphs');
-      // Force the displayed text to fit exactly along the arc
-      const targetLength = 92; // tweakable to the visual arc length
-      textPath.setAttribute('textLength', String(targetLength));
+      // For short labels, do NOT stretch spacing (prevents "h     i" look)
+      // Only force-fit very long labels to avoid overflow
+      if (len >= 10) {
+        text.style.letterSpacing = '0.1px';
+        text.setAttribute('lengthAdjust','spacingAndGlyphs');
+        const targetLength = 92; // visual arc length
+        textPath.setAttribute('textLength', String(targetLength));
+      }
       textPath.textContent = display;
       text.appendChild(textPath);
       svg.appendChild(text);
