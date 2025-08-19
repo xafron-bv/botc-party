@@ -59,11 +59,45 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li .text-reminder .reminder-action.edit').first().click({ force: true });
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned at dusk');
 
-    // Delete text reminder via hover delete icon on desktop
-    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
+    // Delete text reminder via hover delete icon on desktop (no confirmation expected)
+    cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStub'); });
     cy.get('#player-circle li .text-reminder').first().trigger('mouseenter');
-    cy.get('#player-circle li .text-reminder .reminder-action.delete').first().click({ force: true });
+    cy.get('@confirmStub').its('callCount').then((before) => {
+      cy.get('#player-circle li .text-reminder .reminder-action.delete').first().click({ force: true });
+      cy.get('@confirmStub').its('callCount').should('eq', before);
+    });
     cy.get('#player-circle li .text-reminder').should('have.length', 0);
+  });
+
+  it('deletes icon reminder without confirmation and short labels are not force-spaced', () => {
+    // Add a generic icon reminder
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
+
+    // Expand stack for hover actions
+    cy.get('#player-circle li').first().trigger('mouseenter');
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
+
+    // Edit the icon reminder label to a very short string 'hi'
+    cy.window().then((win) => { cy.stub(win, 'prompt').returns('hi'); });
+    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('mouseenter');
+    cy.get('#player-circle li').first().find('.icon-reminder .reminder-action.edit').first().click({ force: true });
+    // Assert the curved SVG text renders without forced spacing (no textLength for short labels)
+    cy.get('#player-circle li').first().find('.icon-reminder .icon-reminder-svg textPath').first()
+      .should('contain.text', 'hi')
+      .invoke('attr', 'textLength').should('be.undefined');
+
+    // Delete the icon reminder and ensure no confirmation occurs
+    cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStub2'); });
+    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('mouseenter');
+    cy.get('@confirmStub2').its('callCount').then((before) => {
+      cy.get('#player-circle li').first().find('.icon-reminder .reminder-action.delete').first().click({ force: true });
+      cy.get('@confirmStub2').its('callCount').should('eq', before);
+    });
+    cy.get('#player-circle li').first().find('.icon-reminder').should('have.length', 0);
   });
 
   it('reminder token modal opens/closes via backdrop and search filters tokens', () => {
