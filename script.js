@@ -334,6 +334,26 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       listItem.querySelector('.reminder-placeholder').onclick = (e) => {
         e.stopPropagation();
+        const thisLi = listItem;
+        // If another player's stack is expanded and this one is collapsed, first expand this one
+        if (thisLi.dataset.expanded !== '1') {
+          const allLis = document.querySelectorAll('#player-circle li');
+          let someoneExpanded = false;
+          allLis.forEach(el => {
+            if (el !== thisLi && el.dataset.expanded === '1') {
+              someoneExpanded = true;
+              el.dataset.expanded = '0';
+              const idx = Array.from(allLis).indexOf(el);
+              positionRadialStack(el, (players[idx]?.reminders || []).length);
+            }
+          });
+          if (someoneExpanded) {
+            thisLi.dataset.expanded = '1';
+            thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(thisLi, players[i].reminders.length);
+            return;
+          }
+        }
         if (isTouchDevice) {
           openReminderTokenModal(i);
         } else if (e.altKey) {
@@ -1219,6 +1239,25 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
+              const thisLi = listItem;
+              if (thisLi.dataset.expanded !== '1') {
+                const allLis = document.querySelectorAll('#player-circle li');
+                let someoneExpanded = false;
+                allLis.forEach(el => {
+                  if (el !== thisLi && el.dataset.expanded === '1') {
+                    someoneExpanded = true;
+                    el.dataset.expanded = '0';
+                    const idx = Array.from(allLis).indexOf(el);
+                    positionRadialStack(el, (players[idx]?.reminders || []).length);
+                  }
+                });
+                if (someoneExpanded) {
+                  thisLi.dataset.expanded = '1';
+                  thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(thisLi, players[i].reminders.length);
+                  return;
+                }
+              }
               if (isTouchDevice) {
                   openReminderTokenModal(i);
               } else if (e.altKey) {
@@ -1630,13 +1669,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   const onPressStart = (e) => {
                     try { e.preventDefault(); } catch(_) {}
                     clearTimeout(longPressTimer);
+                    try { iconEl.classList.add('press-feedback'); } catch(_) {}
                     const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
                     const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
                     longPressTimer = setTimeout(() => {
+                      try { iconEl.classList.remove('press-feedback'); } catch(_) {}
                       showReminderContextMenu(x, y, i, idx);
                     }, 600);
                   };
-                  const onPressEnd = () => { clearTimeout(longPressTimer); };
+                  const onPressEnd = () => { clearTimeout(longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch(_) {} };
                   iconEl.addEventListener('pointerdown', onPressStart);
                   iconEl.addEventListener('pointerup', onPressEnd);
                   iconEl.addEventListener('pointercancel', onPressEnd);
@@ -1755,13 +1796,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   const onPressStart2 = (e) => {
                     try { e.preventDefault(); } catch(_) {}
                     clearTimeout(longPressTimer);
+                    try { reminderEl.classList.add('press-feedback'); } catch(_) {}
                     const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
                     const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
                     longPressTimer = setTimeout(() => {
+                      try { reminderEl.classList.remove('press-feedback'); } catch(_) {}
                       showReminderContextMenu(x, y, i, idx);
                     }, 600);
                   };
-                  const onPressEnd2 = () => { clearTimeout(longPressTimer); };
+                  const onPressEnd2 = () => { clearTimeout(longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch(_) {} };
                   reminderEl.addEventListener('pointerdown', onPressStart2);
                   reminderEl.addEventListener('pointerup', onPressEnd2);
                   reminderEl.addEventListener('pointercancel', onPressEnd2);
