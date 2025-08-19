@@ -99,7 +99,7 @@ describe('Ability UI - Touch', () => {
     // Start with two players
     startGameWithPlayers(5);
     // Expand second player's stack via touchstart (simulate tap on its area)
-    cy.get('#player-circle li').eq(1).trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#player-circle li').eq(1).trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }] });
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
     // Now tap plus on first player: should collapse second and expand first, but NOT open modal yet
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
@@ -111,6 +111,28 @@ describe('Ability UI - Touch', () => {
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
+  });
+
+  it('shows press feedback on long-press capable reminder tokens on touch', () => {
+    cy.viewport('iphone-6');
+    // Add one reminder to first player to have a token
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+
+    // Ensure the stack is expanded so interaction is clear
+    cy.get('#player-circle li').first().trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }] });
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
+
+    // Long-press start shows visual feedback
+    cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').first()
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('exist');
+    // End press removes feedback
+    cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').first()
+      .trigger('touchend', { force: true });
+    cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('not.exist');
   });
 });
 
