@@ -67,7 +67,8 @@ describe('Death & Reminders', () => {
   });
 
   it('reminder token modal opens/closes via backdrop and search filters tokens', () => {
-    // Open modal
+    // Ensure no other stacks are expanded, then open modal
+    cy.get('#player-circle li').should('have.attr', 'data-expanded', '0');
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
 

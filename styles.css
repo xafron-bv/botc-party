@@ -344,6 +344,15 @@ body {
     transform: scale(1.06);
 }
 
+/* Touch press feedback for long-press capable reminders */
+.icon-reminder.press-feedback, .text-reminder.press-feedback {
+  outline: 3px solid rgba(212, 175, 55, 0.9);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.35), 0 0 12px rgba(212, 175, 55, 0.6);
+  transform: translate(-50%, -50%) scale(0.96) !important;
+  transition: box-shadow 120ms ease, outline-color 120ms ease, transform 120ms ease;
+}
+
 /* Death UI elements */
 .player-token .death-overlay {
     position: absolute;

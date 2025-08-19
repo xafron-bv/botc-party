@@ -106,6 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let playerContextMenu = null;
   let contextMenuTargetIndex = -1;
   let longPressTimer = null;
+  
+  // Reminder context menu elements (for touch long-press on reminders)
+  let reminderContextMenu = null;
+  let reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
 
   const BG_STORAGE_KEY = 'grimoireBackgroundV1';
   function applyGrimoireBackground(value) {
@@ -330,6 +334,26 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       listItem.querySelector('.reminder-placeholder').onclick = (e) => {
         e.stopPropagation();
+        const thisLi = listItem;
+        // If another player's stack is expanded and this one is collapsed, first expand this one
+        if (thisLi.dataset.expanded !== '1') {
+          const allLis = document.querySelectorAll('#player-circle li');
+          let someoneExpanded = false;
+          allLis.forEach(el => {
+            if (el !== thisLi && el.dataset.expanded === '1') {
+              someoneExpanded = true;
+              el.dataset.expanded = '0';
+              const idx = Array.from(allLis).indexOf(el);
+              positionRadialStack(el, (players[idx]?.reminders || []).length);
+            }
+          });
+          if (someoneExpanded) {
+            thisLi.dataset.expanded = '1';
+            thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(thisLi, players[i].reminders.length);
+            return;
+          }
+        }
         if (isTouchDevice) {
           openReminderTokenModal(i);
         } else if (e.altKey) {
@@ -401,6 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
         outsideCollapseHandlerInstalled = true;
         const maybeCollapseOnOutside = (ev) => {
           const target = ev.target;
+          // If the tap/click is anywhere inside the player circle, do not auto-collapse here.
+          // This allows reminder + gating to expand the tapped stack first.
+          const playerCircleEl = document.getElementById('player-circle');
+          if (playerCircleEl && playerCircleEl.contains(target)) return;
           const allLis = document.querySelectorAll('#player-circle li');
           let clickedInsideExpanded = false;
           allLis.forEach(el => {
@@ -518,6 +546,88 @@ document.addEventListener('DOMContentLoaded', () => {
       menu.style.left = `${left}px`;
       menu.style.top = `${top}px`;
     });
+  }
+
+  function ensureReminderContextMenu() {
+    if (reminderContextMenu) return reminderContextMenu;
+    const menu = document.createElement('div');
+    menu.id = 'reminder-context-menu';
+    const editBtn = document.createElement('button');
+    editBtn.id = 'reminder-menu-edit';
+    editBtn.textContent = 'Edit Reminder';
+    const deleteBtn = document.createElement('button');
+    deleteBtn.id = 'reminder-menu-delete';
+    deleteBtn.textContent = 'Delete Reminder';
+
+    editBtn.addEventListener('click', () => {
+      const { playerIndex, reminderIndex } = reminderContextTarget;
+      hideReminderContextMenu();
+      if (playerIndex < 0 || reminderIndex < 0) return;
+      const rem = (players[playerIndex] && players[playerIndex].reminders && players[playerIndex].reminders[reminderIndex]) || null;
+      if (!rem) return;
+      const current = rem.label || rem.value || '';
+      const next = prompt('Edit reminder', current);
+      if (next !== null) {
+        if (rem.type === 'icon') {
+          rem.label = next;
+        } else {
+          // Text reminder
+          rem.value = next;
+          if (rem.label !== undefined) rem.label = next;
+        }
+        updateGrimoire();
+        saveAppState();
+      }
+    });
+
+    deleteBtn.addEventListener('click', () => {
+      const { playerIndex, reminderIndex } = reminderContextTarget;
+      hideReminderContextMenu();
+      if (playerIndex < 0 || reminderIndex < 0) return;
+      if (!players[playerIndex] || !players[playerIndex].reminders) return;
+      if (confirm('Delete this reminder?')) {
+        players[playerIndex].reminders.splice(reminderIndex, 1);
+        updateGrimoire();
+        saveAppState();
+      }
+    });
+
+    menu.appendChild(editBtn);
+    menu.appendChild(deleteBtn);
+    document.body.appendChild(menu);
+
+    // Hide on outside click or Escape
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target)) hideReminderContextMenu();
+    }, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideReminderContextMenu();
+    });
+
+    reminderContextMenu = menu;
+    return menu;
+  }
+
+  function showReminderContextMenu(x, y, playerIndex, reminderIndex) {
+    const menu = ensureReminderContextMenu();
+    reminderContextTarget = { playerIndex, reminderIndex };
+    menu.style.display = 'block';
+    const margin = 6;
+    requestAnimationFrame(() => {
+      const rect = menu.getBoundingClientRect();
+      let left = x;
+      let top = y;
+      if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
+      if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    });
+  }
+
+  function hideReminderContextMenu() {
+    if (reminderContextMenu) reminderContextMenu.style.display = 'none';
+    reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
+    clearTimeout(longPressTimer);
   }
 
   function hidePlayerContextMenu() {
@@ -1133,6 +1243,25 @@ document.addEventListener('DOMContentLoaded', () => {
           };
           listItem.querySelector('.reminder-placeholder').onclick = (e) => {
               e.stopPropagation();
+              const thisLi = listItem;
+              if (thisLi.dataset.expanded !== '1') {
+                const allLis = document.querySelectorAll('#player-circle li');
+                let someoneExpanded = false;
+                allLis.forEach(el => {
+                  if (el !== thisLi && el.dataset.expanded === '1') {
+                    someoneExpanded = true;
+                    el.dataset.expanded = '0';
+                    const idx = Array.from(allLis).indexOf(el);
+                    positionRadialStack(el, (players[idx]?.reminders || []).length);
+                  }
+                });
+                if (someoneExpanded) {
+                  thisLi.dataset.expanded = '1';
+                  thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(thisLi, players[i].reminders.length);
+                  return;
+                }
+              }
               if (isTouchDevice) {
                   openReminderTokenModal(i);
               } else if (e.altKey) {
@@ -1188,6 +1317,9 @@ document.addEventListener('DOMContentLoaded', () => {
             outsideCollapseHandlerInstalled = true;
             const maybeCollapseOnOutside = (ev) => {
               const target = ev.target;
+              // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
+              const playerCircleEl = document.getElementById('player-circle');
+              if (playerCircleEl && playerCircleEl.contains(target)) return;
               // Do nothing if target is inside any expanded list item
               const allLis = document.querySelectorAll('#player-circle li');
               let clickedInsideExpanded = false;
@@ -1539,6 +1671,30 @@ document.addEventListener('DOMContentLoaded', () => {
                   iconEl.appendChild(delBtn);
                 }
 
+                // Touch long-press for reminder context menu (iOS Safari, Android)
+                if (isTouchDevice) {
+                  const onPressStart = (e) => {
+                    try { e.preventDefault(); } catch(_) {}
+                    clearTimeout(longPressTimer);
+                    try { iconEl.classList.add('press-feedback'); } catch(_) {}
+                    const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+                    const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+                    longPressTimer = setTimeout(() => {
+                      try { iconEl.classList.remove('press-feedback'); } catch(_) {}
+                      showReminderContextMenu(x, y, i, idx);
+                    }, 600);
+                  };
+                  const onPressEnd = () => { clearTimeout(longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch(_) {} };
+                  iconEl.addEventListener('pointerdown', onPressStart);
+                  iconEl.addEventListener('pointerup', onPressEnd);
+                  iconEl.addEventListener('pointercancel', onPressEnd);
+                  iconEl.addEventListener('pointerleave', onPressEnd);
+                  iconEl.addEventListener('touchstart', onPressStart, { passive: false });
+                  iconEl.addEventListener('touchend', onPressEnd);
+                  iconEl.addEventListener('touchcancel', onPressEnd);
+                  iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
+                }
+
                 remindersDiv.appendChild(iconEl);
               } else {
                 const reminderEl = document.createElement('div');
@@ -1642,6 +1798,30 @@ document.addEventListener('DOMContentLoaded', () => {
                   });
                   reminderEl.appendChild(delBtn2);
                 }
+                // Touch long-press for reminder context menu
+                if (isTouchDevice) {
+                  const onPressStart2 = (e) => {
+                    try { e.preventDefault(); } catch(_) {}
+                    clearTimeout(longPressTimer);
+                    try { reminderEl.classList.add('press-feedback'); } catch(_) {}
+                    const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+                    const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+                    longPressTimer = setTimeout(() => {
+                      try { reminderEl.classList.remove('press-feedback'); } catch(_) {}
+                      showReminderContextMenu(x, y, i, idx);
+                    }, 600);
+                  };
+                  const onPressEnd2 = () => { clearTimeout(longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch(_) {} };
+                  reminderEl.addEventListener('pointerdown', onPressStart2);
+                  reminderEl.addEventListener('pointerup', onPressEnd2);
+                  reminderEl.addEventListener('pointercancel', onPressEnd2);
+                  reminderEl.addEventListener('pointerleave', onPressEnd2);
+                  reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
+                  reminderEl.addEventListener('touchend', onPressEnd2);
+                  reminderEl.addEventListener('touchcancel', onPressEnd2);
+                  reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
+                }
+
                 remindersDiv.appendChild(reminderEl);
               }
           });
@@ -1669,9 +1849,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const actionUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
           const suppressUntil = Math.max(touchUntil, actionUntil);
           const inSuppressWindow = Date.now() < suppressUntil;
-          // Allow pointer events for reminders only when expanded. During suppression window,
-          // keep them disabled to avoid immediate action on first click/tap.
-          remindersContainer.style.pointerEvents = isExpanded ? (inSuppressWindow ? 'none' : 'auto') : 'none';
+          // Allow pointer events for reminders always so long-press can be detected even when collapsed.
+          // While expanded and in the suppression window, temporarily disable to avoid accidental actions.
+          remindersContainer.style.pointerEvents = (isExpanded && inSuppressWindow) ? 'none' : 'auto';
       }
       
       // Compute the actual distance from circle center to this token center (runtime radius)

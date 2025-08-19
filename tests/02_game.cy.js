@@ -77,6 +77,8 @@ describe('Game', () => {
     cy.get('#character-grid .token[title="Librarian"]').first().click();
 
     // Add 2 reminder tokens to player 1 (generic tokens should always be present)
+    // Ensure no other stack is expanded
+    cy.get('#player-circle li').should('have.attr', 'data-expanded', '0');
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title="Townsfolk"]').first().click();
