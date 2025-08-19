@@ -1,4 +1,5 @@
 import './pwa.js';
+import { generateId, formatDateName, isExcludedScriptName, resolveAssetPath, normalizeKey } from './utils.js';
 import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 
