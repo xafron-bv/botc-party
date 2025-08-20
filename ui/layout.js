@@ -160,6 +160,22 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
         iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
         iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
         iconEl.title = reminder.label || '';
+        // Label rendering on icon: custom shows straight text; others show curved text
+        if (reminder.label) {
+          const isCustom = reminder.id === 'custom-note';
+          if (isCustom) {
+            const textSpan = document.createElement('span');
+            textSpan.className = 'icon-reminder-content';
+            textSpan.textContent = reminder.label;
+            const len = reminder.label.length;
+            if (len > 40) textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+            else if (len > 20) textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+            iconEl.appendChild(textSpan);
+          } else {
+            const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+            iconEl.appendChild(svg);
+          }
+        }
         // Desktop hover actions (edit/delete)
         if (!('ontouchstart' in window)) {
           const editBtn = document.createElement('div');
