@@ -971,7 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const meta = scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
       if (meta && meta.name) scriptName = String(meta.name);
     }
-    if (!row && !scriptName) { setupInfoEl.textContent = ''; return; }
+    if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
     const parts = [];
     if (scriptName) parts.push(scriptName);
     if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
