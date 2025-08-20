@@ -8,6 +8,10 @@ describe('Scripts', () => {
     });
   });
 
+  it('shows an empty-state hint before a script is loaded and before players are added', () => {
+    cy.contains('#setup-info', 'Select a script and add players from the sidebar.').should('exist');
+  });
+
   it('loads a built-in script and shows abilities that can be expanded', () => {
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
