@@ -4,7 +4,7 @@ import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
-import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
+import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout, updateGrimoire as updateGrimoireLayout } from "./ui/layout.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -1322,6 +1322,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function repositionPlayers() { repositionPlayersLayout(players); }
 
   function updateGrimoire() {
+    updateGrimoireLayout(
+      players,
+      allRoles,
+      isTouchDevice,
+      {
+        saveAppState,
+        showReminderContextMenu,
+        CLICK_EXPAND_SUPPRESS_MS,
+        setLongPressTimer: (t) => { longPressTimer = t; },
+        clearLongPressTimer: () => { clearTimeout(longPressTimer); }
+      }
+    );
+    return;
       const listItems = playerCircle.querySelectorAll('li');
       listItems.forEach((li, i) => {
           const player = players[i];

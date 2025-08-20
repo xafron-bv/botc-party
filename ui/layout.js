@@ -58,13 +58,22 @@ export function repositionPlayers(players) {
   positionInfoIcons();
 }
 
-export function updateGrimoire(players, allRoles, isTouchDevice) {
+export function updateGrimoire(players, allRoles, isTouchDevice, opts = {}) {
+  const {
+    saveAppState = () => {},
+    showReminderContextMenu = () => {},
+    CLICK_EXPAND_SUPPRESS_MS = 250,
+    setLongPressTimer = () => {},
+    clearLongPressTimer = () => {}
+  } = opts;
+
   const playerCircle = document.getElementById('player-circle');
   const listItems = playerCircle.querySelectorAll('li');
   listItems.forEach((li, i) => {
     const player = players[i];
     const playerNameEl = li.querySelector('.player-name');
     playerNameEl.textContent = player.name;
+
     const angle = parseFloat(li.dataset.angle || '0');
     const y = Math.sin(angle);
     const isNorthQuadrant = y < 0;
@@ -77,6 +86,7 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
       li.classList.add('is-south');
       li.classList.remove('is-north');
     }
+
     const tokenDiv = li.querySelector('.player-token');
     const charNameDiv = li.querySelector('.character-name');
     const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
@@ -85,6 +95,7 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
     if (oldCircle) oldCircle.remove();
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
+
     if (player.character && allRoles[player.character]) {
       const role = allRoles[player.character];
       tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
@@ -94,6 +105,7 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
       if (charNameDiv) charNameDiv.textContent = role.name;
       const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
       tokenDiv.appendChild(svg);
+
       if (!('ontouchstart' in window)) {
         tokenDiv.addEventListener('mouseenter', (e) => {
           if (role.ability) {
@@ -118,7 +130,11 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
           showTouchAbilityPopup(infoIcon, role.ability);
         };
         infoIcon.onclick = handleInfoClick;
-        infoIcon.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); handleInfoClick(e); });
+        infoIcon.addEventListener('touchstart', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          handleInfoClick(e);
+        });
         li.appendChild(infoIcon);
       }
     } else {
@@ -130,8 +146,33 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
       const arc = tokenDiv.querySelector('.icon-reminder-svg');
       if (arc) arc.remove();
     }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'death-overlay';
+    overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+    tokenDiv.appendChild(overlay);
+
+    const ribbon = createDeathRibbonSvg();
+    ribbon.classList.add('death-ribbon');
+    const handleRibbonToggle = (e) => {
+      e.stopPropagation();
+      players[i].dead = !players[i].dead;
+      updateGrimoire(players, allRoles, isTouchDevice, opts);
+      saveAppState();
+    };
+    try {
+      ribbon.querySelectorAll('rect, path').forEach((shape) => {
+        shape.addEventListener('click', handleRibbonToggle);
+      });
+    } catch (_) {
+      ribbon.addEventListener('click', handleRibbonToggle);
+    }
+    tokenDiv.appendChild(ribbon);
+    if (player.dead) tokenDiv.classList.add('is-dead'); else tokenDiv.classList.remove('is-dead');
+
     const remindersDiv = li.querySelector('.reminders');
     remindersDiv.innerHTML = '';
+
     player.reminders.forEach((reminder, idx) => {
       if (reminder.type === 'icon') {
         const iconEl = document.createElement('div');
@@ -139,24 +180,240 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
         iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
         iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
         iconEl.title = reminder.label || '';
+
+        iconEl.addEventListener('click', (e) => {
+          const parentLi = iconEl.closest('li');
+          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+          if (isCollapsed) {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) {}
+            parentLi.dataset.expanded = '1';
+            parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(parentLi, players[i].reminders.length, players);
+          }
+        }, true);
+
+        if (reminder.label) {
+          const isCustom = reminder.id === 'custom-note';
+          if (isCustom) {
+            const textSpan = document.createElement('span');
+            textSpan.className = 'icon-reminder-content';
+            textSpan.textContent = reminder.label;
+            const textLength = reminder.label.length;
+            if (textLength > 40) {
+              textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+            } else if (textLength > 20) {
+              textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+            }
+            iconEl.appendChild(textSpan);
+          } else {
+            const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+            iconEl.appendChild(svg);
+          }
+        }
+
+        if (!isTouchDevice) {
+          const editBtn = document.createElement('div');
+          editBtn.className = 'reminder-action edit';
+          editBtn.title = 'Edit';
+          editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) {}
+            const parentLi = editBtn.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, players[i].reminders.length, players);
+                }
+                return;
+              }
+            }
+            const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+            const next = prompt('Edit reminder', current);
+            if (next !== null) {
+              players[i].reminders[idx].label = next;
+              updateGrimoire(players, allRoles, isTouchDevice, opts);
+              saveAppState();
+            }
+          });
+          iconEl.appendChild(editBtn);
+
+          const delBtn = document.createElement('div');
+          delBtn.className = 'reminder-action delete';
+          delBtn.title = 'Delete';
+          delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) {}
+            const parentLi = delBtn.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, players[i].reminders.length, players);
+                }
+                return;
+              }
+            }
+            players[i].reminders.splice(idx, 1);
+            updateGrimoire(players, allRoles, isTouchDevice, opts);
+            saveAppState();
+          });
+          iconEl.appendChild(delBtn);
+        }
+
+        if (isTouchDevice) {
+          const onPressStart = (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            clearLongPressTimer();
+            try { iconEl.classList.add('press-feedback'); } catch (_) {}
+            const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+            const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+            setLongPressTimer(setTimeout(() => {
+              try { iconEl.classList.remove('press-feedback'); } catch (_) {}
+              showReminderContextMenu(x, y, i, idx);
+            }, 600));
+          };
+          const onPressEnd = () => { clearLongPressTimer(); try { iconEl.classList.remove('press-feedback'); } catch (_) {} };
+          iconEl.addEventListener('pointerdown', onPressStart);
+          iconEl.addEventListener('pointerup', onPressEnd);
+          iconEl.addEventListener('pointercancel', onPressEnd);
+          iconEl.addEventListener('pointerleave', onPressEnd);
+          iconEl.addEventListener('touchstart', onPressStart, { passive: false });
+          iconEl.addEventListener('touchend', onPressEnd);
+          iconEl.addEventListener('touchcancel', onPressEnd);
+          iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) {} });
+        }
+
         remindersDiv.appendChild(iconEl);
       } else {
         const reminderEl = document.createElement('div');
         reminderEl.className = 'text-reminder';
+
         const displayText = reminder.label || reminder.value || '';
         const textSpan = document.createElement('span');
         textSpan.className = 'text-reminder-content';
         textSpan.textContent = displayText;
         const textLength = displayText.length;
-        if (textLength > 40) textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
-        else if (textLength > 20) textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+        if (textLength > 40) {
+          textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+        } else if (textLength > 20) {
+          textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+        }
+
         reminderEl.appendChild(textSpan);
         reminderEl.style.transform = 'translate(-50%, -50%)';
+        reminderEl.onclick = (e) => {
+          e.stopPropagation();
+          const parentLi = reminderEl.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, players[i].reminders.length, players);
+              }
+              return;
+            }
+          }
+        };
+
+        if (!isTouchDevice) {
+          const editBtn2 = document.createElement('div');
+          editBtn2.className = 'reminder-action edit';
+          editBtn2.title = 'Edit';
+          editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
+          editBtn2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) {}
+            const parentLi = editBtn2.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, players[i].reminders.length, players);
+                }
+                return;
+              }
+            }
+            const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+            const next = prompt('Edit reminder', current);
+            if (next !== null) {
+              players[i].reminders[idx].value = next;
+              if (players[i].reminders[idx].label !== undefined) {
+                players[i].reminders[idx].label = next;
+              }
+              updateGrimoire(players, allRoles, isTouchDevice, opts);
+              saveAppState();
+            }
+          });
+          reminderEl.appendChild(editBtn2);
+
+          const delBtn2 = document.createElement('div');
+          delBtn2.className = 'reminder-action delete';
+          delBtn2.title = 'Delete';
+          delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
+          delBtn2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) {}
+            const parentLi = delBtn2.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, players[i].reminders.length, players);
+                }
+                return;
+              }
+            }
+            players[i].reminders.splice(idx, 1);
+            updateGrimoire(players, allRoles, isTouchDevice, opts);
+            saveAppState();
+          });
+          reminderEl.appendChild(delBtn2);
+        }
+
+        if (isTouchDevice) {
+          const onPressStart2 = (e) => {
+            try { e.preventDefault(); } catch (_) {}
+            clearLongPressTimer();
+            try { reminderEl.classList.add('press-feedback'); } catch (_) {}
+            const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+            const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+            setLongPressTimer(setTimeout(() => {
+              try { reminderEl.classList.remove('press-feedback'); } catch (_) {}
+              showReminderContextMenu(x, y, i, idx);
+            }, 600));
+          };
+          const onPressEnd2 = () => { clearLongPressTimer(); try { reminderEl.classList.remove('press-feedback'); } catch (_) {} };
+          reminderEl.addEventListener('pointerdown', onPressStart2);
+          reminderEl.addEventListener('pointerup', onPressEnd2);
+          reminderEl.addEventListener('pointercancel', onPressEnd2);
+          reminderEl.addEventListener('pointerleave', onPressEnd2);
+          reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
+          reminderEl.addEventListener('touchend', onPressEnd2);
+          reminderEl.addEventListener('touchcancel', onPressEnd2);
+          reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) {} });
+        }
+
         remindersDiv.appendChild(reminderEl);
       }
     });
+
     positionRadialStack(li, player.reminders.length, players);
   });
+
   if ('ontouchstart' in window) positionInfoIcons();
 }
 
