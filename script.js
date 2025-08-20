@@ -5,6 +5,7 @@ import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
+import { createHistoryManager } from './history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -118,119 +119,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
-  let scriptHistory = [];
-  let grimoireHistory = [];
   let isRestoringState = false;
 
   // Helpers now imported from utils.js
 
-  function saveHistories() {
-    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
-    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch(_) {}
-  }
-
-  function loadHistories() {
-    try {
-      const sRaw = localStorage.getItem('botcScriptHistoryV1');
-      if (sRaw) scriptHistory = JSON.parse(sRaw) || [];
-    } catch(_) { scriptHistory = []; }
-    try {
-      const gRaw = localStorage.getItem('botcGrimoireHistoryV1');
-      if (gRaw) grimoireHistory = JSON.parse(gRaw) || [];
-    } catch(_) { grimoireHistory = []; }
-  }
-
-  function renderScriptHistory() {
-    if (!scriptHistoryList) return;
-    scriptHistoryList.innerHTML = '';
-    scriptHistory.forEach(entry => {
-      const li = document.createElement('li');
-      li.dataset.id = entry.id;
-      li.className = 'history-item';
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'history-name';
-      nameSpan.textContent = entry.name || '(unnamed script)';
-      // Inline edit input (hidden by default)
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'history-edit-input';
-      nameInput.value = entry.name || '';
-      nameInput.style.display = 'none';
-      // Icons
-      const renameBtn = document.createElement('button');
-      renameBtn.className = 'icon-btn rename';
-      renameBtn.title = 'Rename';
-      renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'icon-btn save';
-      saveBtn.title = 'Save';
-      saveBtn.style.display = 'none';
-      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn delete';
-      deleteBtn.title = 'Delete';
-      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-      li.appendChild(nameSpan);
-      li.appendChild(nameInput);
-      li.appendChild(renameBtn);
-      li.appendChild(saveBtn);
-      li.appendChild(deleteBtn);
-      scriptHistoryList.appendChild(li);
-    });
-  }
-
-  function renderGrimoireHistory() {
-    if (!grimoireHistoryList) return;
-    grimoireHistoryList.innerHTML = '';
-    grimoireHistory.forEach(entry => {
-      const li = document.createElement('li');
-      li.dataset.id = entry.id;
-      li.className = 'history-item';
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'history-name';
-      nameSpan.textContent = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
-      // Inline edit input (hidden by default)
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'history-edit-input';
-      nameInput.value = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
-      nameInput.style.display = 'none';
-      // Icons
-      const renameBtn = document.createElement('button');
-      renameBtn.className = 'icon-btn rename';
-      renameBtn.title = 'Rename';
-      renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'icon-btn save';
-      saveBtn.title = 'Save';
-      saveBtn.style.display = 'none';
-      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn delete';
-      deleteBtn.title = 'Delete';
-      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-      li.appendChild(nameSpan);
-      li.appendChild(nameInput);
-      li.appendChild(renameBtn);
-      li.appendChild(saveBtn);
-      li.appendChild(deleteBtn);
-      grimoireHistoryList.appendChild(li);
-    });
-  }
-
-  function addScriptToHistory(name, data) {
-    const entryName = (name && String(name).trim()) || 'Custom Script';
-    // Update existing by name if found, else add new
-    const idx = scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
-    if (idx >= 0) {
-      scriptHistory[idx].data = data;
-      scriptHistory[idx].updatedAt = Date.now();
-    } else {
-      scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
-    }
-    saveHistories();
-    renderScriptHistory();
-  }
+  // History manager encapsulates script and grimoire history
+  const historyManager = createHistoryManager({
+    elements: { scriptHistoryList, grimoireHistoryList },
+    getters: {
+      getPlayers: () => players,
+      getScriptData: () => scriptData,
+      getScriptMetaName: () => scriptMetaName,
+    },
+    setters: {
+      setIsRestoringState: (v) => { isRestoringState = !!v; },
+      setScriptMetaName: (v) => { scriptMetaName = v; },
+      setPlayers: (v) => { players = v; },
+    },
+    callbacks: {
+      processScriptData,
+      setupGrimoire,
+      updateGrimoire,
+      repositionPlayers,
+      saveAppState,
+      renderSetupInfo,
+      displayScript,
+    },
+  });
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
   function rebuildPlayerCircleUiPreserveState() {
@@ -573,105 +488,13 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(longPressTimer);
   }
 
-  function snapshotCurrentGrimoire() {
-    try {
-      if (!Array.isArray(players) || players.length === 0) return;
-      const snapPlayers = JSON.parse(JSON.stringify(players));
-      let name = formatDateName(new Date());
-      const entry = {
-        id: generateId('grimoire'),
-        name,
-        createdAt: Date.now(),
-        players: snapPlayers,
-        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-        scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
-      };
-      grimoireHistory.unshift(entry);
-      saveHistories();
-      renderGrimoireHistory();
-    } catch(_) {}
-  }
+  function snapshotCurrentGrimoire() { historyManager.snapshotCurrentGrimoire(); }
 
-  async function restoreGrimoireFromEntry(entry) {
-    if (!entry) return;
-    try {
-      isRestoringState = true;
-      if (entry.scriptData) {
-        await processScriptData(entry.scriptData, false);
-        scriptMetaName = entry.scriptName || scriptMetaName;
-      }
-      setupGrimoire((entry.players || []).length || 0);
-      players = JSON.parse(JSON.stringify(entry.players || []));
-      updateGrimoire();
-      repositionPlayers();
-      saveAppState();
-      renderSetupInfo();
-    } catch (e) {
-      console.error('Failed to restore grimoire from history:', e);
-    } finally {
-      isRestoringState = false;
-    }
-  }
+  async function restoreGrimoireFromEntry(entry) { /* handled by historyManager */ }
 
   // Event delegation for history lists
   if (scriptHistoryList) {
-    // Click-to-load and icon actions
-    scriptHistoryList.addEventListener('click', async (e) => {
-      const li = e.target.closest('li');
-      if (!li) return;
-      const id = li.dataset.id;
-      const entry = scriptHistory.find(x => x.id === id);
-      if (!entry) return;
-      const clickedDelete = e.target.closest('.icon-btn.delete');
-      const clickedRename = e.target.closest('.icon-btn.rename');
-      const clickedSave = e.target.closest('.icon-btn.save');
-      const clickedInput = e.target.closest('.history-edit-input');
-      if (clickedDelete) {
-        if (confirm('Delete this script from history?')) {
-          scriptHistory = scriptHistory.filter(x => x.id !== id);
-          saveHistories();
-          renderScriptHistory();
-        }
-        return;
-      }
-      if (clickedRename) {
-        const nameSpan = li.querySelector('.history-name');
-        const input = li.querySelector('.history-edit-input');
-        const renameBtn = li.querySelector('.icon-btn.rename');
-        const saveBtn = li.querySelector('.icon-btn.save');
-        nameSpan.style.display = 'none';
-        input.style.display = 'inline-block';
-        renameBtn.style.display = 'none';
-        saveBtn.style.display = 'inline-block';
-        li.classList.add('editing');
-        input.focus();
-        input.setSelectionRange(0, input.value.length);
-        return;
-      }
-      if (clickedSave) {
-        const input = li.querySelector('.history-edit-input');
-        const newName = (input.value || '').trim();
-        if (newName) {
-          entry.name = newName;
-          entry.updatedAt = Date.now();
-          saveHistories();
-          renderScriptHistory();
-        }
-        li.classList.remove('editing');
-        return;
-      }
-      if (clickedInput) return; // don't load when clicking into input
-      if (li.classList.contains('editing')) return; // avoid loading while editing
-      // Default: clicking the item or name loads the script
-      try {
-        await processScriptData(entry.data, false);
-        scriptMetaName = entry.name || scriptMetaName || '';
-        displayScript(scriptData);
-        saveAppState();
-        renderSetupInfo();
-      } catch (err) { console.error(err); }
-    });
-    // Press feedback
+    // Delegated to historyManager
     const pressHandlers = (ul) => {
       const onDown = (e) => {
         const li = e.target.closest('li.history-item');
@@ -688,77 +511,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.addEventListener('pointerleave', onClear);
     };
     pressHandlers(scriptHistoryList);
-    // Save on Enter when editing
-    scriptHistoryList.addEventListener('keydown', (e) => {
-      if (!e.target.classList.contains('history-edit-input')) return;
-      const li = e.target.closest('li');
-      const id = li && li.dataset.id;
-      const entry = scriptHistory.find(x => x.id === id);
-      if (!entry) return;
-      if (e.key === 'Enter') {
-        const newName = (e.target.value || '').trim();
-        if (newName) {
-          entry.name = newName;
-          entry.updatedAt = Date.now();
-          saveHistories();
-          renderScriptHistory();
-        }
-      }
-    });
   }
 
   if (grimoireHistoryList) {
-    // Click-to-load and icon actions
-    grimoireHistoryList.addEventListener('click', async (e) => {
-      const li = e.target.closest('li');
-      if (!li) return;
-      const id = li.dataset.id;
-      const entry = grimoireHistory.find(x => x.id === id);
-      if (!entry) return;
-      const clickedDelete = e.target.closest('.icon-btn.delete');
-      const clickedRename = e.target.closest('.icon-btn.rename');
-      const clickedSave = e.target.closest('.icon-btn.save');
-      const clickedInput = e.target.closest('.history-edit-input');
-      if (clickedDelete) {
-        if (confirm('Delete this grimoire snapshot?')) {
-          grimoireHistory = grimoireHistory.filter(x => x.id !== id);
-          saveHistories();
-          renderGrimoireHistory();
-        }
-        return;
-      }
-      if (clickedRename) {
-        const nameSpan = li.querySelector('.history-name');
-        const input = li.querySelector('.history-edit-input');
-        const renameBtn = li.querySelector('.icon-btn.rename');
-        const saveBtn = li.querySelector('.icon-btn.save');
-        nameSpan.style.display = 'none';
-        input.style.display = 'inline-block';
-        renameBtn.style.display = 'none';
-        saveBtn.style.display = 'inline-block';
-        li.classList.add('editing');
-        input.focus();
-        input.setSelectionRange(0, input.value.length);
-        return;
-      }
-      if (clickedSave) {
-        const input = li.querySelector('.history-edit-input');
-        const newName = (input.value || '').trim();
-        if (newName) {
-          entry.name = newName;
-          entry.updatedAt = Date.now();
-          saveHistories();
-          renderGrimoireHistory();
-        }
-        li.classList.remove('editing');
-        return;
-      }
-      if (clickedInput) return; // don't load when clicking into input
-      if (li.classList.contains('editing')) return; // avoid loading while editing
-      // Default: clicking the item or name loads the grimoire
-      await restoreGrimoireFromEntry(entry);
-    });
-    // Press feedback
+    // Delegated to historyManager
     const pressHandlersG = (ul) => {
       const onDown = (e) => {
         const li = e.target.closest('li.history-item');
@@ -775,23 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.addEventListener('pointerleave', onClear);
     };
     pressHandlersG(grimoireHistoryList);
-    // Save on Enter when editing
-    grimoireHistoryList.addEventListener('keydown', (e) => {
-      if (!e.target.classList.contains('history-edit-input')) return;
-      const li = e.target.closest('li');
-      const id = li && li.dataset.id;
-      const entry = grimoireHistory.find(x => x.id === id);
-      if (!entry) return;
-      if (e.key === 'Enter') {
-        const newName = (e.target.value || '').trim();
-        if (newName) {
-          entry.name = newName;
-          entry.updatedAt = Date.now();
-          saveHistories();
-          renderGrimoireHistory();
-        }
-      }
-    });
   }
 
   function saveAppState() {
@@ -1006,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
        if (addToHistory) {
          const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
          if (!isExcludedScriptName(histName)) {
-           addScriptToHistory(histName, data);
+           historyManager.addScriptToHistory(histName, data);
          }
        }
   }
@@ -2113,10 +1852,8 @@ document.addEventListener('DOMContentLoaded', () => {
     repositionPlayers
   });
 
-  // Load histories and render lists
-  loadHistories();
-  renderScriptHistory();
-  renderGrimoireHistory();
+  // Load histories and render lists via manager
+  historyManager.initialize();
 
   // Restore previous session (script and grimoire)
   loadAppState();
