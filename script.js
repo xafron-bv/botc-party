@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const backgroundSelect = document.getElementById('background-select');
   const centerEl = document.getElementById('center');
+  const includeTravellersCheckbox = document.getElementById('include-travellers');
   
   // Player context menu elements
   let playerContextMenu = null;
@@ -86,10 +87,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+  // Initialize travellers toggle from localStorage
+  try {
+    includeTravellers = (localStorage.getItem(INCLUDE_TRAVELLERS_KEY) === '1');
+  } catch(_) { includeTravellers = false; }
+  if (includeTravellersCheckbox) {
+    includeTravellersCheckbox.checked = includeTravellers;
+    includeTravellersCheckbox.addEventListener('change', () => {
+      includeTravellers = !!includeTravellersCheckbox.checked;
+      applyTravellerToggleAndRefresh();
+      saveAppState();
+    });
+  }
+  
   let scriptData = null;
   let scriptMetaName = '';
   let playerSetupTable = [];
   let allRoles = {};
+  // Roles separation for traveller toggle
+  let baseRoles = {};
+  let extraTravellerRoles = {};
   let players = [];
   let selectedPlayerIndex = -1;
   let editingReminder = { playerIndex: -1, reminderIndex: -1 };
@@ -101,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let scriptHistory = [];
   let grimoireHistory = [];
   let isRestoringState = false;
+  const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
+  let includeTravellers = false;
 
   // Helpers now imported from utils.js
 
@@ -778,6 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
+      try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, includeTravellers ? '1' : '0'); } catch(_) {}
     } catch (_) {}
   }
 
@@ -817,8 +837,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const characters = await response.json();
       console.log('Loading all characters from characters.json');
       
-      // Reset allRoles
+      // Reset role maps
       allRoles = {};
+      baseRoles = {};
+      extraTravellerRoles = {};
+      const roleLookup = {};
       
       // Process flat characters array (includes townsfolk, outsider, minion, demon, traveller, fabled)
       let characterIds = [];
@@ -826,8 +849,14 @@ document.addEventListener('DOMContentLoaded', () => {
         characters.forEach(role => {
           if (!role || !role.id) return;
           const image = resolveAssetPath(role.image);
-          const teamName = role.team || '';
-          allRoles[role.id] = { ...role, image, team: teamName };
+          const teamName = (role.team || '').toLowerCase();
+          const canonical = { ...role, image, team: teamName };
+          roleLookup[role.id] = canonical;
+          if (teamName === 'traveller') {
+            extraTravellerRoles[role.id] = canonical;
+          } else {
+            baseRoles[role.id] = canonical;
+          }
           characterIds.push(role.id);
         });
       }
@@ -836,8 +865,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Create a pseudo-script data array with all character IDs
       scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
-      
-      displayScript(scriptData);
+      // Apply traveller toggle to compute allRoles and render
+      applyTravellerToggleAndRefresh();
       saveAppState();
       
       loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
@@ -952,6 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Processing script data:', data);
       scriptData = data;
       allRoles = {};
+      baseRoles = {};
+      extraTravellerRoles = {};
       // Extract metadata name if present
       try {
         const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
@@ -967,7 +998,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       console.log('Total roles processed:', Object.keys(allRoles).length);
-      displayScript(data);
+      // After processing into baseRoles/extraTravellerRoles, apply toggle
+      applyTravellerToggleAndRefresh();
        saveAppState();
        renderSetupInfo();
        if (addToHistory) {
@@ -996,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', () => {
               characters.forEach(role => {
                   if (!role || !role.id) return;
                   const image = resolveAssetPath(role.image);
-                  const canonical = { ...role, image, team: role.team || '' };
+                  const canonical = { ...role, image, team: (role.team || '').toLowerCase() };
                   roleLookup[role.id] = canonical;
                   const normId = normalizeKey(role.id);
                   const normName = normalizeKey(role.name);
@@ -1007,13 +1039,25 @@ document.addEventListener('DOMContentLoaded', () => {
           
           console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
           
+          // Pre-populate extraTravellerRoles with all traveller roles from the dataset
+          Object.values(roleLookup).forEach(role => {
+            if ((role.team || '').toLowerCase() === 'traveller') {
+              extraTravellerRoles[role.id] = role;
+            }
+          });
+
           // Process the character IDs from the script using normalization
           characterIds.forEach((characterItem) => {
               if (typeof characterItem === 'string' && characterItem !== '_meta') {
                   const key = normalizeKey(characterItem);
                   const canonicalId = normalizedToCanonicalId[key];
                   if (canonicalId && roleLookup[canonicalId]) {
-                      allRoles[canonicalId] = roleLookup[canonicalId];
+                      const role = roleLookup[canonicalId];
+                      if (role.team === 'traveller') {
+                        extraTravellerRoles[canonicalId] = role;
+                      } else {
+                        baseRoles[canonicalId] = role;
+                      }
                       console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
                   } else {
                       console.warn(`Character not found: ${characterItem}`);
@@ -1023,13 +1067,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   const nameKey = normalizeKey(characterItem.name || '');
                   const canonicalId = normalizedToCanonicalId[idKey] || normalizedToCanonicalId[nameKey];
                   if (canonicalId && roleLookup[canonicalId]) {
-                      allRoles[canonicalId] = roleLookup[canonicalId];
+                      const role = roleLookup[canonicalId];
+                      if (role.team === 'traveller') {
+                        extraTravellerRoles[canonicalId] = role;
+                      } else {
+                        baseRoles[canonicalId] = role;
+                      }
                       console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
                   } else if (characterItem.name && characterItem.team && characterItem.ability) {
                       const customRole = {
                           id: characterItem.id,
                           name: characterItem.name,
-                          team: characterItem.team,
+                          team: String(characterItem.team || '').toLowerCase(),
                           ability: characterItem.ability,
                           image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
                       };
@@ -1037,7 +1086,11 @@ document.addEventListener('DOMContentLoaded', () => {
                       if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
                       if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
                       if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
-                      allRoles[characterItem.id] = customRole;
+                      if (customRole.team === 'traveller') {
+                        extraTravellerRoles[characterItem.id] = customRole;
+                      } else {
+                        baseRoles[characterItem.id] = customRole;
+                      }
                       console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
                   } else {
                       console.warn(`Invalid custom character object:`, characterItem);
@@ -1051,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
            console.error('Error processing script:', error);
            characterIds.forEach((characterItem) => {
                if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                   allRoles[characterItem] = {
+                   baseRoles[characterItem] = {
                        id: characterItem,
                        name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
                        image: './assets/img/token-BqDQdWeO.webp',
@@ -1060,13 +1113,18 @@ document.addEventListener('DOMContentLoaded', () => {
                } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
                    // Handle custom character objects even in error case
                    if (characterItem.name && characterItem.team && characterItem.ability) {
-                       allRoles[characterItem.id] = {
+                       const customFallback = {
                            id: characterItem.id,
                            name: characterItem.name,
-                           team: characterItem.team,
+                           team: String(characterItem.team || '').toLowerCase(),
                            ability: characterItem.ability,
                            image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
                        };
+                       if (customFallback.team === 'traveller') {
+                         extraTravellerRoles[characterItem.id] = customFallback;
+                       } else {
+                         baseRoles[characterItem.id] = customFallback;
+                       }
                    }
                }
            });
@@ -1300,8 +1358,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const oldRibbon = tokenDiv.querySelector('.death-ribbon');
             if (oldRibbon) oldRibbon.remove();
           
-            if (player.character && allRoles[player.character]) {
-            const role = allRoles[player.character];
+            if (player.character) {
+            const role = getRoleById(player.character);
+            if (role) {
              tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
               tokenDiv.style.backgroundSize = '68% 68%, cover';
             tokenDiv.style.backgroundColor = 'transparent';
@@ -1344,6 +1403,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                   li.appendChild(infoIcon); // Append to li, not tokenDiv
               }
+            } else {
+            tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+            tokenDiv.style.backgroundSize = 'cover';
+            tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+            tokenDiv.classList.remove('has-character');
+             if (charNameDiv) charNameDiv.textContent = '';
+              // Ensure no leftover arc label remains
+              const arc = tokenDiv.querySelector('.icon-reminder-svg');
+              if (arc) arc.remove();
+          }
           } else {
             tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
             tokenDiv.style.backgroundSize = 'cover';
@@ -1916,12 +1985,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Display grouped by team if we have team information
     if (Object.keys(teamGroups).length > 0) {
-        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'travellers', 'fabled'];
+        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
         teamOrder.forEach(team => {
             if (teamGroups[team] && teamGroups[team].length > 0) {
                 const teamHeader = document.createElement('h3');
-                teamHeader.textContent = team.charAt(0).toUpperCase() + team.slice(1);
-                teamHeader.className = `team-${team}`;
+                let teamLabel = team.charAt(0).toUpperCase() + team.slice(1);
+                if (team === 'traveller') teamLabel = 'Travellers';
+                teamHeader.textContent = teamLabel;
+                teamHeader.className = `team-${team === 'traveller' ? 'travellers' : team}`;
                 characterSheet.appendChild(teamHeader);
                 
                 teamGroups[team].forEach(role => {
@@ -2006,6 +2077,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('DOMContentLoaded', autoLoadTokens);
   } else {
     autoLoadTokens();
+  }
+
+  // Compute visible roles from baseRoles and extraTravellerRoles based on toggle
+  function applyTravellerToggleAndRefresh() {
+    allRoles = { ...(baseRoles || {}) };
+    if (includeTravellers) {
+      allRoles = { ...allRoles, ...(extraTravellerRoles || {}) };
+    }
+    // Re-render character sheet and, if modal is open, the character grid
+    if (Array.isArray(scriptData)) displayScript(scriptData);
+    if (characterModal && characterModal.style.display === 'flex') {
+      populateCharacterGrid();
+    }
+  }
+
+  // Helper to get role by id respecting traveller toggle
+  function getRoleById(roleId) {
+    return allRoles[roleId] || baseRoles[roleId] || extraTravellerRoles[roleId] || null;
   }
 
   // Sidebar resizer
