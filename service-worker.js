@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v21';
+const CACHE_NAME = 'botc-party-grimoire-v22';
 const urlsToCache = [
   './',
   './index.html',
