@@ -49,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const backgroundSelect = document.getElementById('background-select');
   const centerEl = document.getElementById('center');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
+  // Travellers toggle state key and default
+  const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
+  let includeTravellers = false;
   
   // Player context menu elements
   let playerContextMenu = null;
@@ -118,8 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let scriptHistory = [];
   let grimoireHistory = [];
   let isRestoringState = false;
-  const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
-  let includeTravellers = false;
 
   // Helpers now imported from utils.js
 
