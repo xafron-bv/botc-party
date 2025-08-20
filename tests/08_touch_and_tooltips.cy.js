@@ -156,5 +156,32 @@ describe('Ability UI - Touch', () => {
       .trigger('touchend', { force: true });
     cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('not.exist');
   });
+
+  it('opens reminder context menu via long-press and can delete a reminder', () => {
+    cy.viewport('iphone-6');
+    // Add one reminder to first player to have a token
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+
+    // Ensure a reminder exists
+    cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('exist');
+
+    // Long-press the reminder to open context menu
+    cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').first()
+      .trigger('pointerdown', { force: true, clientX: 120, clientY: 120 })
+      .wait(650)
+      .trigger('pointerup', { force: true, clientX: 120, clientY: 120 });
+
+    // Menu should appear and allow delete; reminder count should decrease
+    cy.get('#reminder-context-menu').should('be.visible');
+    cy.get('#player-circle li').first().then(($li) => {
+      const before = $li.find('.icon-reminder, .text-reminder').length;
+      cy.get('#reminder-menu-delete').click({ force: true });
+      cy.get('#reminder-context-menu').should('not.be.visible');
+      cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('have.length', before - 1);
+    });
+  });
 });
 
