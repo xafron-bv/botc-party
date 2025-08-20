@@ -85,6 +85,27 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
     if (oldCircle) oldCircle.remove();
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
+    // Add death overlay circle and ribbon indicator (required by tests)
+    const overlay = document.createElement('div');
+    overlay.className = 'death-overlay';
+    overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+    tokenDiv.appendChild(overlay);
+    const ribbon = createDeathRibbonSvg();
+    ribbon.classList.add('death-ribbon');
+    const handleRibbonToggle = (e) => {
+      e.stopPropagation();
+      players[i].dead = !players[i].dead;
+      updateGrimoire(players, allRoles, isTouchDevice);
+    };
+    try {
+      ribbon.querySelectorAll('rect, path').forEach((shape) => {
+        shape.addEventListener('click', handleRibbonToggle);
+      });
+    } catch (_) {
+      ribbon.addEventListener('click', handleRibbonToggle);
+    }
+    tokenDiv.appendChild(ribbon);
+    if (player.dead) tokenDiv.classList.add('is-dead'); else tokenDiv.classList.remove('is-dead');
     if (player.character && allRoles[player.character]) {
       const role = allRoles[player.character];
       tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
@@ -139,6 +160,62 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
         iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
         iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
         iconEl.title = reminder.label || '';
+        // Desktop hover actions (edit/delete)
+        if (!('ontouchstart' in window)) {
+          const editBtn = document.createElement('div');
+          editBtn.className = 'reminder-action edit';
+          editBtn.title = 'Edit';
+          editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const parentLi = editBtn.closest('li');
+            if (parentLi && parentLi.dataset.expanded !== '1') {
+              parentLi.dataset.expanded = '1';
+              positionRadialStack(parentLi, players[i].reminders.length, players);
+              return;
+            }
+            const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+            const next = prompt('Edit reminder', current);
+            if (next !== null) {
+              players[i].reminders[idx].label = next;
+              updateGrimoire(players, allRoles, isTouchDevice);
+            }
+          });
+          iconEl.appendChild(editBtn);
+          const delBtn = document.createElement('div');
+          delBtn.className = 'reminder-action delete';
+          delBtn.title = 'Delete';
+          delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const parentLi = delBtn.closest('li');
+            if (parentLi && parentLi.dataset.expanded !== '1') {
+              parentLi.dataset.expanded = '1';
+              positionRadialStack(parentLi, players[i].reminders.length, players);
+              return;
+            }
+            players[i].reminders.splice(idx, 1);
+            updateGrimoire(players, allRoles, isTouchDevice);
+          });
+          iconEl.appendChild(delBtn);
+        } else {
+          // Touch long-press press-feedback (visual only)
+          let pressTimer = null;
+          const onPressStart = (e) => {
+            try { e.preventDefault(); } catch(_) {}
+            iconEl.classList.add('press-feedback');
+            clearTimeout(pressTimer);
+            pressTimer = setTimeout(() => {}, 600);
+          };
+          const onPressEnd = () => { iconEl.classList.remove('press-feedback'); clearTimeout(pressTimer); };
+          iconEl.addEventListener('touchstart', onPressStart, { passive: false });
+          iconEl.addEventListener('touchend', onPressEnd);
+          iconEl.addEventListener('touchcancel', onPressEnd);
+          iconEl.addEventListener('pointerdown', onPressStart);
+          iconEl.addEventListener('pointerup', onPressEnd);
+          iconEl.addEventListener('pointercancel', onPressEnd);
+          iconEl.addEventListener('pointerleave', onPressEnd);
+        }
         remindersDiv.appendChild(iconEl);
       } else {
         const reminderEl = document.createElement('div');
@@ -152,6 +229,62 @@ export function updateGrimoire(players, allRoles, isTouchDevice) {
         else if (textLength > 20) textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
         reminderEl.appendChild(textSpan);
         reminderEl.style.transform = 'translate(-50%, -50%)';
+        if (!('ontouchstart' in window)) {
+          const editBtn2 = document.createElement('div');
+          editBtn2.className = 'reminder-action edit';
+          editBtn2.title = 'Edit';
+          editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
+          editBtn2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const parentLi = editBtn2.closest('li');
+            if (parentLi && parentLi.dataset.expanded !== '1') {
+              parentLi.dataset.expanded = '1';
+              positionRadialStack(parentLi, players[i].reminders.length, players);
+              return;
+            }
+            const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+            const next = prompt('Edit reminder', current);
+            if (next !== null) {
+              players[i].reminders[idx].value = next;
+              if (players[i].reminders[idx].label !== undefined) players[i].reminders[idx].label = next;
+              updateGrimoire(players, allRoles, isTouchDevice);
+            }
+          });
+          reminderEl.appendChild(editBtn2);
+          const delBtn2 = document.createElement('div');
+          delBtn2.className = 'reminder-action delete';
+          delBtn2.title = 'Delete';
+          delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
+          delBtn2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const parentLi = delBtn2.closest('li');
+            if (parentLi && parentLi.dataset.expanded !== '1') {
+              parentLi.dataset.expanded = '1';
+              positionRadialStack(parentLi, players[i].reminders.length, players);
+              return;
+            }
+            players[i].reminders.splice(idx, 1);
+            updateGrimoire(players, allRoles, isTouchDevice);
+          });
+          reminderEl.appendChild(delBtn2);
+        } else {
+          // Touch press feedback
+          let pressTimer2 = null;
+          const onPressStart2 = (e) => {
+            try { e.preventDefault(); } catch(_) {}
+            reminderEl.classList.add('press-feedback');
+            clearTimeout(pressTimer2);
+            pressTimer2 = setTimeout(() => {}, 600);
+          };
+          const onPressEnd2 = () => { reminderEl.classList.remove('press-feedback'); clearTimeout(pressTimer2); };
+          reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
+          reminderEl.addEventListener('touchend', onPressEnd2);
+          reminderEl.addEventListener('touchcancel', onPressEnd2);
+          reminderEl.addEventListener('pointerdown', onPressStart2);
+          reminderEl.addEventListener('pointerup', onPressEnd2);
+          reminderEl.addEventListener('pointercancel', onPressEnd2);
+          reminderEl.addEventListener('pointerleave', onPressEnd2);
+        }
         remindersDiv.appendChild(reminderEl);
       }
     });
