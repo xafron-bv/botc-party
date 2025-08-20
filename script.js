@@ -1061,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function repositionPlayers() { repositionPlayersLayout(players); }
 
   function updateGrimoire() {
+      return updateGrimoireLayout(players, allRoles, isTouchDevice);
       const listItems = playerCircle.querySelectorAll('li');
       listItems.forEach((li, i) => {
           const player = players[i];
