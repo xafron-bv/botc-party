@@ -4,7 +4,7 @@ import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
-import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
+import { repositionPlayers as repositionPlayersLayout, updateGrimoire as updateGrimoireLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
 import { createHistoryManager } from './history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
