@@ -1,0 +1,141 @@
+name: PR Preview Deploy
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+    branches: ["**"]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR HEAD
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Derive 6-letter unique hash
+        id: hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 6-char hash derived from PR SHA to avoid collisions
+          HASH=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-6)
+          echo "hash=${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare preview directory content
+        run: |
+          set -euxo pipefail
+          mkdir -p preview
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'node_modules' ./ preview/
+
+      - name: Fetch gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 0
+
+      - name: Initialize gh-pages if needed
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ ! -d gh-pages/.git ]; then
+            rm -rf gh-pages
+            git clone --depth 1 --branch gh-pages "${{ github.server_url }}/${{ github.repository }}.git" gh-pages || true
+          fi
+          if [ ! -d gh-pages/.git ]; then
+            mkdir -p gh-pages
+            cd gh-pages
+            git init
+            git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
+            git checkout -b gh-pages
+            touch .nojekyll
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .nojekyll
+            git commit -m "chore: initialize gh-pages branch"
+            git push -u origin gh-pages
+          fi
+
+      - name: Deploy preview to dev/<hash>
+        id: deploy
+        shell: bash
+        run: |
+          set -euxo pipefail
+          HASH="${{ steps.hash.outputs.hash }}"
+          DEV_DIR="gh-pages/dev/${HASH}"
+          mkdir -p "${DEV_DIR}"
+          rsync -a --delete preview/ "${DEV_DIR}/"
+          touch gh-pages/.nojekyll
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep .; then
+            git add -A
+            git commit -m "ci: deploy PR #${{ github.event.pull_request.number }} preview to dev/${HASH}"
+            git push origin HEAD:gh-pages
+          else
+            echo "No changes to commit to gh-pages for preview."
+          fi
+          echo "preview_path=dev/${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Determine Pages URL
+        id: pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          # GitHub Pages base URL for org/user sites is <owner>.github.io/<repo>
+          OWNER_REPO="${{ github.repository }}"
+          OWNER=${OWNER_REPO%%/*}
+          REPO=${OWNER_REPO#*/}
+          BASE="https://${OWNER}.github.io/${REPO}"
+          echo "base_url=${BASE}" >> "$GITHUB_OUTPUT"
+
+      - name: Post link as commit on PR branch (same-repo only)
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          HASH="${{ steps.hash.outputs.hash }}"
+          MESSAGE="Preview: https://botc.party/dev/${HASH}"
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Fetch and checkout the PR branch
+          git fetch origin "${BRANCH}:${BRANCH}"
+          git checkout "${BRANCH}"
+          if git log -n 1 --pretty=%B | grep -F "${MESSAGE}"; then
+            echo "Preview commit already exists; skipping."
+            exit 0
+          fi
+          # Create an empty commit with the preview link
+          git commit --allow-empty -m "${MESSAGE}"
+          git push origin "HEAD:${BRANCH}"
+
+      - name: Comment link on PR (forks or if commit not possible)
+        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const hash = process.env.HASH || "${{ steps.hash.outputs.hash }}";
+            const body = `Preview: https://botc.party/dev/${hash}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            });
