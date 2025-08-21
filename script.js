@@ -5,7 +5,7 @@ import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
-import { renderScriptHistory, saveHistories, loadHistories, renderGrimoireHistory, handleScriptHistoryClick } from './ui/history.js';
+import { renderScriptHistory, saveHistories, loadHistories, renderGrimoireHistory, addScriptHistoryListListeners } from './ui/history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -522,42 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Event delegation for history lists
   if (scriptHistoryList) {
-    // Click-to-load and icon actions
-    scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, history, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }));
-    // Press feedback
-    const pressHandlers = (ul) => {
-      const onDown = (e) => {
-        const li = e.target.closest('li.history-item');
-        if (!li) return;
-        if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
-        li.classList.add('pressed');
-      };
-      const onClear = (e) => {
-        document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
-      };
-      ul.addEventListener('pointerdown', onDown);
-      ul.addEventListener('pointerup', onClear);
-      ul.addEventListener('pointercancel', onClear);
-      ul.addEventListener('pointerleave', onClear);
-    };
-    pressHandlers(scriptHistoryList);
-    // Save on Enter when editing
-    scriptHistoryList.addEventListener('keydown', (e) => {
-      if (!e.target.classList.contains('history-edit-input')) return;
-      const li = e.target.closest('li');
-      const id = li && li.dataset.id;
-      const entry = history.scriptHistory.find(x => x.id === id);
-      if (!entry) return;
-      if (e.key === 'Enter') {
-        const newName = (e.target.value || '').trim();
-        if (newName) {
-          entry.name = newName;
-          entry.updatedAt = Date.now();
-          saveHistories(history);
-          renderScriptHistory({ scriptHistoryList, history });
-        }
-      }
-    });
+    addScriptHistoryListListeners({ scriptHistoryList, history, processScriptData, displayScript, saveAppState, renderSetupInfo });
   }
 
   if (grimoireHistoryList) {

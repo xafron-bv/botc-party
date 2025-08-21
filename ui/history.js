@@ -147,3 +147,40 @@ export async function handleScriptHistoryClick({ e, history, scriptHistoryList, 
     renderSetupInfo();
   } catch (err) { console.error(err); }
 }
+
+export function handleScriptHistoryOnDown({ e }) {
+  const li = e.target.closest('li.history-item');
+  if (!li) return;
+  if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+  li.classList.add('pressed');
+}
+
+export function handleScriptHistoryOnClear() {
+  document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+}
+
+export function handleScriptHistoryOnKeyDown({ e, history, scriptHistoryList }) {
+  if (!e.target.classList.contains('history-edit-input')) return;
+  const li = e.target.closest('li');
+  const id = li && li.dataset.id;
+  const entry = history.scriptHistory.find(x => x.id === id);
+  if (!entry) return;
+  if (e.key === 'Enter') {
+    const newName = (e.target.value || '').trim();
+    if (newName) {
+      entry.name = newName;
+      entry.updatedAt = Date.now();
+      saveHistories(history);
+      renderScriptHistory({ scriptHistoryList, history });
+    }
+  }
+}
+
+export function addScriptHistoryListListeners({ scriptHistoryList, history, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
+  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, history, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }));
+  scriptHistoryList.addEventListener('pointerdown', (e) => handleScriptHistoryOnDown({ e }));
+  scriptHistoryList.addEventListener('pointerup', () => handleScriptHistoryOnClear());
+  scriptHistoryList.addEventListener('pointercancel', () => handleScriptHistoryOnClear());
+  scriptHistoryList.addEventListener('pointerleave', () => handleScriptHistoryOnClear());
+  scriptHistoryList.addEventListener('keydown', (e) => handleScriptHistoryOnKeyDown({ e, history, scriptHistoryList }));
+}
