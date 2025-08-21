@@ -59,7 +59,7 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, h
   } catch (_) { }
 }
 
-export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryList, restoreGrimoireFromEntry }) {
+export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -106,7 +106,7 @@ export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryLi
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
   // Default: clicking the item or name loads the grimoire
-  await restoreGrimoireFromEntry({ entry });
+  await restoreGrimoireFromEntry({ entry, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo });
 }
 
 export function handleGrimoireHistoryOnDown(e) {
@@ -137,11 +137,32 @@ export function handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList
   }
 }
 
-export function addGrimoireHistoryListListeners({ grimoireHistoryList, history, restoreGrimoireFromEntry }) {
+export async function restoreGrimoireFromEntry({ entry, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
+  if (!entry) return;
+  try {
+    grimoireState.isRestoringState = true;
+    if (entry.scriptData) {
+      await processScriptData(entry.scriptData, false);
+      grimoireState.scriptMetaName = entry.scriptName || grimoireState.scriptMetaName;
+    }
+    setupGrimoire((entry.players || []).length || 0);
+    grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
+    updateGrimoire();
+    repositionPlayers();
+    saveAppState();
+    renderSetupInfo();
+  } catch (e) {
+    console.error('Failed to restore grimoire from history:', e);
+  } finally {
+    grimoireState.isRestoringState = false;
+  }
+}
+
+export function addGrimoireHistoryListListeners({ grimoireHistoryList, history, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
   grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown);
   grimoireHistoryList.addEventListener('pointerup', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointercancel', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);
-  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, history, grimoireHistoryList, restoreGrimoireFromEntry }));
+  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, history, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }));
   grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList }));
 }

@@ -470,34 +470,13 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(grimoireState.longPressTimer);
   }
 
-  async function restoreGrimoireFromEntry({ entry }) {
-    if (!entry) return;
-    try {
-      grimoireState.isRestoringState = true;
-      if (entry.scriptData) {
-        await processScriptData(entry.scriptData, false);
-        grimoireState.scriptMetaName = entry.scriptName || grimoireState.scriptMetaName;
-      }
-      setupGrimoire((entry.players || []).length || 0);
-      grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
-      updateGrimoire();
-      repositionPlayers();
-      saveAppState();
-      renderSetupInfo();
-    } catch (e) {
-      console.error('Failed to restore grimoire from history:', e);
-    } finally {
-      grimoireState.isRestoringState = false;
-    }
-  }
-
   // Event delegation for history lists
   if (scriptHistoryList) {
     addScriptHistoryListListeners({ scriptHistoryList, history, processScriptData, displayScript, saveAppState, renderSetupInfo });
   }
 
   if (grimoireHistoryList) {
-    addGrimoireHistoryListListeners({ grimoireHistoryList, history, restoreGrimoireFromEntry });
+    addGrimoireHistoryListListeners({ grimoireHistoryList, history, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo });
   }
 
   function saveAppState() {
