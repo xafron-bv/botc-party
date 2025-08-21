@@ -7,7 +7,7 @@ import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
 import { saveHistories, loadHistories } from './ui/history/index.js';
 import { renderScriptHistory, addScriptHistoryListListeners, addScriptToHistory } from "./ui/history/script.js";
-import { renderGrimoireHistory } from "./ui/history/grimoire.js";
+import { renderGrimoireHistory, snapshotCurrentGrimoire } from "./ui/history/grimoire.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -466,25 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playerContextMenu) playerContextMenu.style.display = 'none';
     contextMenuTargetIndex = -1;
     clearTimeout(longPressTimer);
-  }
-
-  function snapshotCurrentGrimoire() {
-    try {
-      if (!Array.isArray(players) || players.length === 0) return;
-      const snapPlayers = JSON.parse(JSON.stringify(players));
-      let name = formatDateName(new Date());
-      const entry = {
-        id: generateId('grimoire'),
-        name,
-        createdAt: Date.now(),
-        players: snapPlayers,
-        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-        scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
-      };
-      history.grimoireHistory.unshift(entry);
-      saveHistories(history);
-      renderGrimoireHistory({ grimoireHistoryList, history });
-    } catch (_) { }
   }
 
   async function restoreGrimoireFromEntry(entry) {
@@ -950,7 +931,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupGrimoire(count) {
     try {
       if (!isRestoringState && Array.isArray(players) && players.length > 0) {
-        snapshotCurrentGrimoire();
+        snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, history, grimoireHistoryList });
       }
     } catch (_) { }
     console.log('Setting up grimoire with', count, 'players');
