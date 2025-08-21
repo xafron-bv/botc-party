@@ -7,7 +7,7 @@ import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { initInAppTour } from './ui/tour.js';
 import { isExcludedScriptName, normalizeKey, resolveAssetPath } from './utils.js';
-import { saveAppState, renderSetupInfo, loadAppState, startGame, updateGrimoire } from './ui/grimoire.js';
+import { saveAppState, renderSetupInfo, loadAppState, startGame, updateGrimoire, initGrimoireBackground, handleGrimoireBackgroundChange } from './ui/grimoire.js';
 import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY } from './constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
   const backgroundSelect = document.getElementById('background-select');
-  const centerEl = document.getElementById('center');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
   // Travellers toggle state key and default
 
@@ -75,32 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
     outsideCollapseHandlerInstalled: false
   };
 
-  const BG_STORAGE_KEY = 'grimoireBackgroundV1';
-  function applyGrimoireBackground(value) {
-    if (!centerEl) return;
-    if (!value || value === 'none') {
-      centerEl.style.backgroundImage = 'none';
-    } else {
-      const url = `./assets/img/${value}`;
-      centerEl.style.backgroundImage = `url('${url}')`;
-      centerEl.style.backgroundSize = 'cover';
-      centerEl.style.backgroundPosition = 'center';
-    }
-  }
-
-  // Initialize background from localStorage
-  try {
-    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'background4-C7TzDZ7M.webp';
-    applyGrimoireBackground(savedBg);
-    if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
-  } catch (_) { }
+  initGrimoireBackground();
 
   if (backgroundSelect) {
-    backgroundSelect.addEventListener('change', () => {
-      const val = backgroundSelect.value;
-      applyGrimoireBackground(val);
-      try { localStorage.setItem(BG_STORAGE_KEY, val); } catch (_) { }
-    });
+    backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
   }
 
   // Initialize travellers toggle from localStorage

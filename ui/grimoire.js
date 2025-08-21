@@ -1,6 +1,6 @@
 import { snapshotCurrentGrimoire } from "./history/grimoire.js";
 import { repositionPlayers, positionRadialStack } from "./layout.js";
-import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY } from "../constants.js";
+import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from "../constants.js";
 import { createCurvedLabelSvg } from "./svg.js";
 import { resolveAssetPath } from "../utils.js";
 import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from "./tooltip.js";
@@ -655,4 +655,35 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
   } else {
     alert('Player count must be an integer from 5 to 20.');
   }
+}
+
+export function applyGrimoireBackground(value) {
+  const centerEl = document.getElementById('center');
+  if (!centerEl) return;
+  if (!value || value === 'none') {
+    centerEl.style.backgroundImage = 'none';
+  } else {
+    const url = `./assets/img/${value}`;
+    centerEl.style.backgroundImage = `url('${url}')`;
+    centerEl.style.backgroundSize = 'cover';
+    centerEl.style.backgroundPosition = 'center';
+  }
+}
+
+export function initGrimoireBackground() {
+  const centerEl = document.getElementById('center');
+  const backgroundSelect = document.getElementById('background-select');
+  if (!centerEl) return;
+  try {
+    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'background4-C7TzDZ7M.webp';
+    applyGrimoireBackground(savedBg);
+    if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
+  } catch (_) { }
+}
+
+export function handleGrimoireBackgroundChange() {
+  const backgroundSelect = document.getElementById('background-select');
+  const val = backgroundSelect.value;
+  applyGrimoireBackground(val);
+  try { localStorage.setItem(BG_STORAGE_KEY, val); } catch (_) { }
 }
