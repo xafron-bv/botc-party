@@ -5,6 +5,7 @@ import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
+import { renderScriptHistory } from './ui/history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const setupInfoEl = document.getElementById('setup-info');
   const characterSheet = document.getElementById('character-sheet');
   const loadStatus = document.getElementById('load-status');
-  
+
   const characterModal = document.getElementById('character-modal');
   const closeCharacterModalBtn = document.getElementById('close-character-modal');
   const characterGrid = document.getElementById('character-grid');
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveReminderBtn = document.getElementById('save-reminder-btn');
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
   const sidebarResizer = document.getElementById('sidebar-resizer');
-  
+
   // Ability tooltip elements
   const abilityTooltip = document.getElementById('ability-tooltip');
   const touchAbilityPopup = document.getElementById('touch-ability-popup');
@@ -52,12 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Travellers toggle state key and default
   const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
   let includeTravellers = false;
-  
+
   // Player context menu elements
   let playerContextMenu = null;
   let contextMenuTargetIndex = -1;
   let longPressTimer = null;
-  
+
   // Reminder context menu elements (for touch long-press on reminders)
   let reminderContextMenu = null;
   let reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
@@ -80,20 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'background4-C7TzDZ7M.webp';
     applyGrimoireBackground(savedBg);
     if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
-  } catch(_) {}
+  } catch (_) { }
 
   if (backgroundSelect) {
     backgroundSelect.addEventListener('change', () => {
       const val = backgroundSelect.value;
       applyGrimoireBackground(val);
-      try { localStorage.setItem(BG_STORAGE_KEY, val); } catch(_) {}
+      try { localStorage.setItem(BG_STORAGE_KEY, val); } catch (_) { }
     });
   }
-  
+
   // Initialize travellers toggle from localStorage
   try {
     includeTravellers = (localStorage.getItem(INCLUDE_TRAVELLERS_KEY) === '1');
-  } catch(_) { includeTravellers = false; }
+  } catch (_) { includeTravellers = false; }
   if (includeTravellersCheckbox) {
     includeTravellersCheckbox.checked = includeTravellers;
     includeTravellersCheckbox.addEventListener('change', () => {
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveAppState();
     });
   }
-  
+
   let scriptData = null;
   let scriptMetaName = '';
   let playerSetupTable = [];
@@ -125,58 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Helpers now imported from utils.js
 
   function saveHistories() {
-    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch(_) {}
-    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch(_) {}
+    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch (_) { }
+    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch (_) { }
   }
 
   function loadHistories() {
     try {
       const sRaw = localStorage.getItem('botcScriptHistoryV1');
       if (sRaw) scriptHistory = JSON.parse(sRaw) || [];
-    } catch(_) { scriptHistory = []; }
+    } catch (_) { scriptHistory = []; }
     try {
       const gRaw = localStorage.getItem('botcGrimoireHistoryV1');
       if (gRaw) grimoireHistory = JSON.parse(gRaw) || [];
-    } catch(_) { grimoireHistory = []; }
-  }
-
-  function renderScriptHistory() {
-    if (!scriptHistoryList) return;
-    scriptHistoryList.innerHTML = '';
-    scriptHistory.forEach(entry => {
-      const li = document.createElement('li');
-      li.dataset.id = entry.id;
-      li.className = 'history-item';
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'history-name';
-      nameSpan.textContent = entry.name || '(unnamed script)';
-      // Inline edit input (hidden by default)
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'history-edit-input';
-      nameInput.value = entry.name || '';
-      nameInput.style.display = 'none';
-      // Icons
-      const renameBtn = document.createElement('button');
-      renameBtn.className = 'icon-btn rename';
-      renameBtn.title = 'Rename';
-      renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'icon-btn save';
-      saveBtn.title = 'Save';
-      saveBtn.style.display = 'none';
-      saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn delete';
-      deleteBtn.title = 'Delete';
-      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-      li.appendChild(nameSpan);
-      li.appendChild(nameInput);
-      li.appendChild(renameBtn);
-      li.appendChild(saveBtn);
-      li.appendChild(deleteBtn);
-      scriptHistoryList.appendChild(li);
-    });
+    } catch (_) { grimoireHistory = []; }
   }
 
   function renderGrimoireHistory() {
@@ -229,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
     }
     saveHistories();
-    renderScriptHistory();
+    renderScriptHistory({ scriptHistoryList, scriptHistory });
   }
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
@@ -238,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playerCircle.innerHTML = '';
     // Keep sidebar input in sync with current number of players
     if (playerCountInput) {
-      try { playerCountInput.value = String(players.length); } catch(_) {}
+      try { playerCountInput.value = String(players.length); } catch (_) { }
     }
     players.forEach((player, i) => {
       const listItem = document.createElement('li');
@@ -331,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target;
         const tappedReminders = !!(target && target.closest('.reminders'));
         if (tappedReminders) {
-          try { e.preventDefault(); } catch(_) {}
+          try { e.preventDefault(); } catch (_) { }
           listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
         }
         expand();
@@ -347,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tokenEl = listItem.querySelector('.player-token');
       tokenEl.addEventListener('pointerdown', (e) => {
         if (!isTouchDevice) return;
-        try { e.preventDefault(); } catch(_) {}
+        try { e.preventDefault(); } catch (_) { }
         clearTimeout(longPressTimer);
         const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
         const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
@@ -589,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grimoireHistory.unshift(entry);
       saveHistories();
       renderGrimoireHistory();
-    } catch(_) {}
+    } catch (_) { }
   }
 
   async function restoreGrimoireFromEntry(entry) {
@@ -630,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm('Delete this script from history?')) {
           scriptHistory = scriptHistory.filter(x => x.id !== id);
           saveHistories();
-          renderScriptHistory();
+          renderScriptHistory({ scriptHistoryList, scriptHistory });
         }
         return;
       }
@@ -655,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
           entry.name = newName;
           entry.updatedAt = Date.now();
           saveHistories();
-          renderScriptHistory();
+          renderScriptHistory({ scriptHistoryList, scriptHistory });
         }
         li.classList.remove('editing');
         return;
@@ -701,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
           entry.name = newName;
           entry.updatedAt = Date.now();
           saveHistories();
-          renderScriptHistory();
+          renderScriptHistory({ scriptHistoryList, scriptHistory });
         }
       }
     });
@@ -798,8 +760,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const state = { scriptData, players, scriptName: scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
-      try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, includeTravellers ? '1' : '0'); } catch(_) {}
-    } catch (_) {}
+      try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, includeTravellers ? '1' : '0'); } catch (_) { }
+    } catch (_) { }
   }
 
   async function loadAppState() {
@@ -819,7 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
         repositionPlayers();
         renderSetupInfo();
       }
-    } catch (_) {} finally { isRestoringState = false; }
+    } catch (_) { } finally { isRestoringState = false; }
   }
 
   // Path and key helpers imported from utils.js
@@ -828,22 +790,22 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       loadStatus.textContent = 'Loading all characters...';
       loadStatus.className = 'status';
-      
+
       // Load characters.json directly
       const response = await fetch('./characters.json');
       if (!response.ok) {
         throw new Error(`Failed to load characters.json: ${response.status}`);
       }
-      
+
       const characters = await response.json();
       console.log('Loading all characters from characters.json');
-      
+
       // Reset role maps
       allRoles = {};
       baseRoles = {};
       extraTravellerRoles = {};
       const roleLookup = {};
-      
+
       // Process flat characters array (includes townsfolk, outsider, minion, demon, traveller, fabled)
       let characterIds = [];
       if (Array.isArray(characters)) {
@@ -861,18 +823,18 @@ document.addEventListener('DOMContentLoaded', () => {
           characterIds.push(role.id);
         });
       }
-      
+
       console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
-      
+
       // Create a pseudo-script data array with all character IDs
       scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
       // Apply traveller toggle to compute allRoles and render
       applyTravellerToggleAndRefresh();
       saveAppState();
-      
+
       loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
       loadStatus.className = 'status';
-      
+
     } catch (error) {
       console.error('Failed to load all characters:', error);
       loadStatus.textContent = `Failed to load all characters: ${error.message}`;
@@ -892,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
           scriptMetaName = base;
           renderSetupInfo();
         }
-      } catch (_) {}
+      } catch (_) { }
       const res = await fetch(path, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
@@ -913,32 +875,32 @@ document.addEventListener('DOMContentLoaded', () => {
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     console.log('File selected:', file.name, 'Size:', file.size);
-    
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         console.log('Parsing uploaded file...');
         const json = JSON.parse(e.target.result);
         console.log('Uploaded script parsed successfully:', json);
-        
+
         await processScriptData(json, true);
         loadStatus.textContent = 'Custom script loaded successfully!';
         loadStatus.className = 'status';
-      } catch (error) { 
+      } catch (error) {
         console.error('Error parsing uploaded file:', error);
         loadStatus.textContent = `Invalid JSON file: ${error.message}`;
         loadStatus.className = 'error';
       }
     };
-    
+
     reader.onerror = (error) => {
       console.error('File reading error:', error);
       loadStatus.textContent = 'Error reading file';
       loadStatus.className = 'error';
     };
-    
+
     reader.readAsText(file);
   });
 
@@ -979,157 +941,157 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function processScriptData(data, addToHistory = false) {
-      console.log('Processing script data:', data);
-      scriptData = data;
-      allRoles = {};
-      baseRoles = {};
-      extraTravellerRoles = {};
-      // Extract metadata name if present
-      try {
-        const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
-        scriptMetaName = meta && meta.name ? String(meta.name) : '';
-      } catch (_) { scriptMetaName = ''; }
-      
-      if (Array.isArray(data)) {
-          console.log('Processing script with', data.length, 'characters');
-          await processScriptCharacters(data);
-      } else {
-          console.error('Unexpected script format:', typeof data);
-          return;
+    console.log('Processing script data:', data);
+    scriptData = data;
+    allRoles = {};
+    baseRoles = {};
+    extraTravellerRoles = {};
+    // Extract metadata name if present
+    try {
+      const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
+      scriptMetaName = meta && meta.name ? String(meta.name) : '';
+    } catch (_) { scriptMetaName = ''; }
+
+    if (Array.isArray(data)) {
+      console.log('Processing script with', data.length, 'characters');
+      await processScriptCharacters(data);
+    } else {
+      console.error('Unexpected script format:', typeof data);
+      return;
+    }
+
+    console.log('Total roles processed:', Object.keys(allRoles).length);
+    // After processing into baseRoles/extraTravellerRoles, apply toggle
+    applyTravellerToggleAndRefresh();
+    saveAppState();
+    renderSetupInfo();
+    if (addToHistory) {
+      const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
+      if (!isExcludedScriptName(histName)) {
+        addScriptToHistory(histName, data);
       }
-      
-      console.log('Total roles processed:', Object.keys(allRoles).length);
-      // After processing into baseRoles/extraTravellerRoles, apply toggle
-      applyTravellerToggleAndRefresh();
-       saveAppState();
-       renderSetupInfo();
-       if (addToHistory) {
-         const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
-         if (!isExcludedScriptName(histName)) {
-           addScriptToHistory(histName, data);
-         }
-       }
+    }
   }
 
   async function processScriptCharacters(characterIds) {
-      try {
-          console.log('Loading characters.json to resolve character IDs...');
-          const response = await fetch('./characters.json');
-          if (!response.ok) {
-              throw new Error(`Failed to load characters.json: ${response.status}`);
-          }
-          
-          const characters = await response.json();
-          console.log('characters.json loaded successfully');
-          
-          // Create canonical lookups and a normalization index
-          const roleLookup = {};
-          const normalizedToCanonicalId = {};
-          if (Array.isArray(characters)) {
-              characters.forEach(role => {
-                  if (!role || !role.id) return;
-                  const image = resolveAssetPath(role.image);
-                  const canonical = { ...role, image, team: (role.team || '').toLowerCase() };
-                  roleLookup[role.id] = canonical;
-                  const normId = normalizeKey(role.id);
-                  const normName = normalizeKey(role.name);
-                  if (normId) normalizedToCanonicalId[normId] = role.id;
-                  if (normName) normalizedToCanonicalId[normName] = role.id;
-              });
-          }
-          
-          console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
-          
-          // Pre-populate extraTravellerRoles with all traveller roles from the dataset
-          Object.values(roleLookup).forEach(role => {
-            if ((role.team || '').toLowerCase() === 'traveller') {
-              extraTravellerRoles[role.id] = role;
-            }
-          });
+    try {
+      console.log('Loading characters.json to resolve character IDs...');
+      const response = await fetch('./characters.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load characters.json: ${response.status}`);
+      }
 
-          // Process the character IDs from the script using normalization
-          characterIds.forEach((characterItem) => {
-              if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                  const key = normalizeKey(characterItem);
-                  const canonicalId = normalizedToCanonicalId[key];
-                  if (canonicalId && roleLookup[canonicalId]) {
-                      const role = roleLookup[canonicalId];
-                      if (role.team === 'traveller') {
-                        extraTravellerRoles[canonicalId] = role;
-                      } else {
-                        baseRoles[canonicalId] = role;
-                      }
-                      console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
-                  } else {
-                      console.warn(`Character not found: ${characterItem}`);
-                  }
-              } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-                  const idKey = normalizeKey(characterItem.id);
-                  const nameKey = normalizeKey(characterItem.name || '');
-                  const canonicalId = normalizedToCanonicalId[idKey] || normalizedToCanonicalId[nameKey];
-                  if (canonicalId && roleLookup[canonicalId]) {
-                      const role = roleLookup[canonicalId];
-                      if (role.team === 'traveller') {
-                        extraTravellerRoles[canonicalId] = role;
-                      } else {
-                        baseRoles[canonicalId] = role;
-                      }
-                      console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
-                  } else if (characterItem.name && characterItem.team && characterItem.ability) {
-                      const customRole = {
-                          id: characterItem.id,
-                          name: characterItem.name,
-                          team: String(characterItem.team || '').toLowerCase(),
-                          ability: characterItem.ability,
-                          image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
-                      };
-                      if (characterItem.reminders) customRole.reminders = characterItem.reminders;
-                      if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
-                      if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
-                      if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
-                      if (customRole.team === 'traveller') {
-                        extraTravellerRoles[characterItem.id] = customRole;
-                      } else {
-                        baseRoles[characterItem.id] = customRole;
-                      }
-                      console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
-                  } else {
-                      console.warn(`Invalid custom character object:`, characterItem);
-                  }
-              }
-          });
-          
-          console.log('Script processing completed');
-           
-       } catch (error) {
-           console.error('Error processing script:', error);
-           characterIds.forEach((characterItem) => {
-               if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                   baseRoles[characterItem] = {
-                       id: characterItem,
-                       name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
-                       image: './assets/img/token-BqDQdWeO.webp',
-                       team: 'unknown'
-                   };
-               } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-                   // Handle custom character objects even in error case
-                   if (characterItem.name && characterItem.team && characterItem.ability) {
-                       const customFallback = {
-                           id: characterItem.id,
-                           name: characterItem.name,
-                           team: String(characterItem.team || '').toLowerCase(),
-                           ability: characterItem.ability,
-                           image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
-                       };
-                       if (customFallback.team === 'traveller') {
-                         extraTravellerRoles[characterItem.id] = customFallback;
-                       } else {
-                         baseRoles[characterItem.id] = customFallback;
-                       }
-                   }
-               }
-           });
-       }
+      const characters = await response.json();
+      console.log('characters.json loaded successfully');
+
+      // Create canonical lookups and a normalization index
+      const roleLookup = {};
+      const normalizedToCanonicalId = {};
+      if (Array.isArray(characters)) {
+        characters.forEach(role => {
+          if (!role || !role.id) return;
+          const image = resolveAssetPath(role.image);
+          const canonical = { ...role, image, team: (role.team || '').toLowerCase() };
+          roleLookup[role.id] = canonical;
+          const normId = normalizeKey(role.id);
+          const normName = normalizeKey(role.name);
+          if (normId) normalizedToCanonicalId[normId] = role.id;
+          if (normName) normalizedToCanonicalId[normName] = role.id;
+        });
+      }
+
+      console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
+
+      // Pre-populate extraTravellerRoles with all traveller roles from the dataset
+      Object.values(roleLookup).forEach(role => {
+        if ((role.team || '').toLowerCase() === 'traveller') {
+          extraTravellerRoles[role.id] = role;
+        }
+      });
+
+      // Process the character IDs from the script using normalization
+      characterIds.forEach((characterItem) => {
+        if (typeof characterItem === 'string' && characterItem !== '_meta') {
+          const key = normalizeKey(characterItem);
+          const canonicalId = normalizedToCanonicalId[key];
+          if (canonicalId && roleLookup[canonicalId]) {
+            const role = roleLookup[canonicalId];
+            if (role.team === 'traveller') {
+              extraTravellerRoles[canonicalId] = role;
+            } else {
+              baseRoles[canonicalId] = role;
+            }
+            console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
+          } else {
+            console.warn(`Character not found: ${characterItem}`);
+          }
+        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+          const idKey = normalizeKey(characterItem.id);
+          const nameKey = normalizeKey(characterItem.name || '');
+          const canonicalId = normalizedToCanonicalId[idKey] || normalizedToCanonicalId[nameKey];
+          if (canonicalId && roleLookup[canonicalId]) {
+            const role = roleLookup[canonicalId];
+            if (role.team === 'traveller') {
+              extraTravellerRoles[canonicalId] = role;
+            } else {
+              baseRoles[canonicalId] = role;
+            }
+            console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
+          } else if (characterItem.name && characterItem.team && characterItem.ability) {
+            const customRole = {
+              id: characterItem.id,
+              name: characterItem.name,
+              team: String(characterItem.team || '').toLowerCase(),
+              ability: characterItem.ability,
+              image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
+            };
+            if (characterItem.reminders) customRole.reminders = characterItem.reminders;
+            if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
+            if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
+            if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
+            if (customRole.team === 'traveller') {
+              extraTravellerRoles[characterItem.id] = customRole;
+            } else {
+              baseRoles[characterItem.id] = customRole;
+            }
+            console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
+          } else {
+            console.warn(`Invalid custom character object:`, characterItem);
+          }
+        }
+      });
+
+      console.log('Script processing completed');
+
+    } catch (error) {
+      console.error('Error processing script:', error);
+      characterIds.forEach((characterItem) => {
+        if (typeof characterItem === 'string' && characterItem !== '_meta') {
+          baseRoles[characterItem] = {
+            id: characterItem,
+            name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
+            image: './assets/img/token-BqDQdWeO.webp',
+            team: 'unknown'
+          };
+        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+          // Handle custom character objects even in error case
+          if (characterItem.name && characterItem.team && characterItem.ability) {
+            const customFallback = {
+              id: characterItem.id,
+              name: characterItem.name,
+              team: String(characterItem.team || '').toLowerCase(),
+              ability: characterItem.ability,
+              image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
+            };
+            if (customFallback.team === 'traveller') {
+              extraTravellerRoles[characterItem.id] = customFallback;
+            } else {
+              baseRoles[characterItem.id] = customFallback;
+            }
+          }
+        }
+      });
+    }
   }
 
   startGameBtn.addEventListener('click', () => {
@@ -1142,669 +1104,669 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function setupGrimoire(count) {
-      try {
-        if (!isRestoringState && Array.isArray(players) && players.length > 0) {
-          snapshotCurrentGrimoire();
-        }
-      } catch(_) {}
-       console.log('Setting up grimoire with', count, 'players');
-       playerCircle.innerHTML = '';
-       players = Array.from({ length: count }, (_, i) => ({
-           name: `Player ${i + 1}`,
-           character: null,
-           reminders: [],
-           dead: false
-       }));
-      
-      players.forEach((player, i) => {
-          const listItem = document.createElement('li');
-          listItem.innerHTML = `
+    try {
+      if (!isRestoringState && Array.isArray(players) && players.length > 0) {
+        snapshotCurrentGrimoire();
+      }
+    } catch (_) { }
+    console.log('Setting up grimoire with', count, 'players');
+    playerCircle.innerHTML = '';
+    players = Array.from({ length: count }, (_, i) => ({
+      name: `Player ${i + 1}`,
+      character: null,
+      reminders: [],
+      dead: false
+    }));
+
+    players.forEach((player, i) => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `
               <div class="reminders"></div>
               <div class="player-token" title="Assign character"></div>
                <div class="character-name" aria-live="polite"></div>
               <div class="player-name" title="Edit name">${player.name}</div>
               <div class="reminder-placeholder" title="Add text reminder">+</div>
           `;
-          playerCircle.appendChild(listItem);
+      playerCircle.appendChild(listItem);
 
-          // Only the main token area opens the character modal; ribbon handles dead toggle
-          listItem.querySelector('.player-token').onclick = (e) => {
-              const target = e.target;
-              if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-                  return; // handled by ribbon click
-              }
-              if (target && target.classList.contains('ability-info-icon')) {
-                  return; // handled by info icon
-              }
-              openCharacterModal(i);
-          };
-          // Player context menu: right-click
-          listItem.addEventListener('contextmenu', (e) => {
-              e.preventDefault();
-              showPlayerContextMenu(e.clientX, e.clientY, i);
-          });
-          // Long-press on token to open context menu on touch devices
-          const tokenForMenu = listItem.querySelector('.player-token');
-          tokenForMenu.addEventListener('pointerdown', (e) => {
-              if (!isTouchDevice) return;
-              try { e.preventDefault(); } catch(_) {}
-              clearTimeout(longPressTimer);
-              const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-              const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-              longPressTimer = setTimeout(() => {
-                  showPlayerContextMenu(x, y, i);
-              }, 600);
-          });
-          ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-              tokenForMenu.addEventListener(evt, () => { clearTimeout(longPressTimer); });
-          });
-          listItem.querySelector('.player-name').onclick = (e) => {
-              e.stopPropagation();
-              const newName = prompt("Enter player name:", player.name);
-              if (newName) {
-                  players[i].name = newName;
-                  updateGrimoire();
-                  saveAppState();
-              }
-          };
-          listItem.querySelector('.reminder-placeholder').onclick = (e) => {
-              e.stopPropagation();
-              const thisLi = listItem;
-              if (thisLi.dataset.expanded !== '1') {
-                const allLis = document.querySelectorAll('#player-circle li');
-                let someoneExpanded = false;
-                allLis.forEach(el => {
-                  if (el !== thisLi && el.dataset.expanded === '1') {
-                    someoneExpanded = true;
-                    el.dataset.expanded = '0';
-                    const idx = Array.from(allLis).indexOf(el);
-                    positionRadialStack(el, (players[idx]?.reminders || []).length);
-                  }
-                });
-                if (someoneExpanded) {
-                  thisLi.dataset.expanded = '1';
-                  thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(thisLi, players[i].reminders.length);
-                  return;
-                }
-              }
-              if (isTouchDevice) {
-                  openReminderTokenModal(i);
-              } else if (e.altKey) {
-                  openTextReminderModal(i);
-              } else {
-                  openReminderTokenModal(i);
-              }
-          };
-
-          // Hover expand/collapse for reminder stack positioning
-          listItem.dataset.expanded = '0';
-          const expand = () => {
-            const wasExpanded = listItem.dataset.expanded === '1';
-            const allLis = document.querySelectorAll('#player-circle li');
-            allLis.forEach(el => {
-              if (el !== listItem && el.dataset.expanded === '1') {
-                el.dataset.expanded = '0';
-                const idx = Array.from(allLis).indexOf(el);
-                positionRadialStack(el, (players[idx]?.reminders || []).length);
-              }
-            });
-            listItem.dataset.expanded = '1';
-            // Only set suppression on touch, and only when changing from collapsed -> expanded
-            if (isTouchDevice && !wasExpanded) {
-              listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            }
-            positionRadialStack(listItem, players[i].reminders.length);
-          };
-          const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
-          if (!isTouchDevice) {
-            listItem.addEventListener('mouseenter', expand);
-            listItem.addEventListener('mouseleave', collapse);
-            // Pointer events for broader device support
-            listItem.addEventListener('pointerenter', expand);
-            listItem.addEventListener('pointerleave', collapse);
-          }
-          // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
-          listItem.addEventListener('touchstart', (e) => {
-              const target = e.target;
-              const tappedReminders = !!(target && target.closest('.reminders'));
-              if (tappedReminders) {
-                  try { e.preventDefault(); } catch(_) {}
-                  listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
-              }
-              expand();
-              positionRadialStack(listItem, players[i].reminders.length);
-          }, { passive: false });
-
-          // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
-
-          // Install one-time outside click/tap collapse for touch devices
-          if (isTouchDevice && !outsideCollapseHandlerInstalled) {
-            outsideCollapseHandlerInstalled = true;
-            const maybeCollapseOnOutside = (ev) => {
-              const target = ev.target;
-              // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
-              const playerCircleEl = document.getElementById('player-circle');
-              if (playerCircleEl && playerCircleEl.contains(target)) return;
-              // Do nothing if target is inside any expanded list item
-              const allLis = document.querySelectorAll('#player-circle li');
-              let clickedInsideExpanded = false;
-              allLis.forEach(el => {
-                if (el.dataset.expanded === '1' && el.contains(target)) {
-                  clickedInsideExpanded = true;
-                }
-              });
-              if (clickedInsideExpanded) return;
-              // Collapse all expanded items
-              allLis.forEach(el => {
-                if (el.dataset.expanded === '1') {
-                  el.dataset.expanded = '0';
-                  positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
-                }
-              });
-            };
-            document.addEventListener('click', maybeCollapseOnOutside, true);
-            document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
-          }
-
-          // No capture intercepts; rely on pointer-events gating and the touchstart handler above
+      // Only the main token area opens the character modal; ribbon handles dead toggle
+      listItem.querySelector('.player-token').onclick = (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return; // handled by ribbon click
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return; // handled by info icon
+        }
+        openCharacterModal(i);
+      };
+      // Player context menu: right-click
+      listItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showPlayerContextMenu(e.clientX, e.clientY, i);
       });
-      
-      // Use requestAnimationFrame to ensure DOM is fully rendered
-      requestAnimationFrame(() => {
-          repositionPlayers();
+      // Long-press on token to open context menu on touch devices
+      const tokenForMenu = listItem.querySelector('.player-token');
+      tokenForMenu.addEventListener('pointerdown', (e) => {
+        if (!isTouchDevice) return;
+        try { e.preventDefault(); } catch (_) { }
+        clearTimeout(longPressTimer);
+        const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+        const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+        longPressTimer = setTimeout(() => {
+          showPlayerContextMenu(x, y, i);
+        }, 600);
+      });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+        tokenForMenu.addEventListener(evt, () => { clearTimeout(longPressTimer); });
+      });
+      listItem.querySelector('.player-name').onclick = (e) => {
+        e.stopPropagation();
+        const newName = prompt("Enter player name:", player.name);
+        if (newName) {
+          players[i].name = newName;
           updateGrimoire();
           saveAppState();
-          renderSetupInfo();
-      });
+        }
+      };
+      listItem.querySelector('.reminder-placeholder').onclick = (e) => {
+        e.stopPropagation();
+        const thisLi = listItem;
+        if (thisLi.dataset.expanded !== '1') {
+          const allLis = document.querySelectorAll('#player-circle li');
+          let someoneExpanded = false;
+          allLis.forEach(el => {
+            if (el !== thisLi && el.dataset.expanded === '1') {
+              someoneExpanded = true;
+              el.dataset.expanded = '0';
+              const idx = Array.from(allLis).indexOf(el);
+              positionRadialStack(el, (players[idx]?.reminders || []).length);
+            }
+          });
+          if (someoneExpanded) {
+            thisLi.dataset.expanded = '1';
+            thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(thisLi, players[i].reminders.length);
+            return;
+          }
+        }
+        if (isTouchDevice) {
+          openReminderTokenModal(i);
+        } else if (e.altKey) {
+          openTextReminderModal(i);
+        } else {
+          openReminderTokenModal(i);
+        }
+      };
+
+      // Hover expand/collapse for reminder stack positioning
+      listItem.dataset.expanded = '0';
+      const expand = () => {
+        const wasExpanded = listItem.dataset.expanded === '1';
+        const allLis = document.querySelectorAll('#player-circle li');
+        allLis.forEach(el => {
+          if (el !== listItem && el.dataset.expanded === '1') {
+            el.dataset.expanded = '0';
+            const idx = Array.from(allLis).indexOf(el);
+            positionRadialStack(el, (players[idx]?.reminders || []).length);
+          }
+        });
+        listItem.dataset.expanded = '1';
+        // Only set suppression on touch, and only when changing from collapsed -> expanded
+        if (isTouchDevice && !wasExpanded) {
+          listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+        }
+        positionRadialStack(listItem, players[i].reminders.length);
+      };
+      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
+      if (!isTouchDevice) {
+        listItem.addEventListener('mouseenter', expand);
+        listItem.addEventListener('mouseleave', collapse);
+        // Pointer events for broader device support
+        listItem.addEventListener('pointerenter', expand);
+        listItem.addEventListener('pointerleave', collapse);
+      }
+      // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
+      listItem.addEventListener('touchstart', (e) => {
+        const target = e.target;
+        const tappedReminders = !!(target && target.closest('.reminders'));
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch (_) { }
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, players[i].reminders.length);
+      }, { passive: false });
+
+      // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
+
+      // Install one-time outside click/tap collapse for touch devices
+      if (isTouchDevice && !outsideCollapseHandlerInstalled) {
+        outsideCollapseHandlerInstalled = true;
+        const maybeCollapseOnOutside = (ev) => {
+          const target = ev.target;
+          // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
+          const playerCircleEl = document.getElementById('player-circle');
+          if (playerCircleEl && playerCircleEl.contains(target)) return;
+          // Do nothing if target is inside any expanded list item
+          const allLis = document.querySelectorAll('#player-circle li');
+          let clickedInsideExpanded = false;
+          allLis.forEach(el => {
+            if (el.dataset.expanded === '1' && el.contains(target)) {
+              clickedInsideExpanded = true;
+            }
+          });
+          if (clickedInsideExpanded) return;
+          // Collapse all expanded items
+          allLis.forEach(el => {
+            if (el.dataset.expanded === '1') {
+              el.dataset.expanded = '0';
+              positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+            }
+          });
+        };
+        document.addEventListener('click', maybeCollapseOnOutside, true);
+        document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
+      }
+
+      // No capture intercepts; rely on pointer-events gating and the touchstart handler above
+    });
+
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      repositionPlayers();
+      updateGrimoire();
+      saveAppState();
+      renderSetupInfo();
+    });
   }
 
   function repositionPlayers() { repositionPlayersLayout(players); }
 
   function updateGrimoire() {
-      const listItems = playerCircle.querySelectorAll('li');
-      listItems.forEach((li, i) => {
-          const player = players[i];
-          const playerNameEl = li.querySelector('.player-name');
-          playerNameEl.textContent = player.name;
-          
-          // Check if player is in NW or NE quadrant
-          const angle = parseFloat(li.dataset.angle || '0');
-          
-          // Calculate the actual x,y position to determine quadrant
-          const x = Math.cos(angle);
-          const y = Math.sin(angle);
-          
-          // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
-          const isNorthQuadrant = y < 0;
-          
-          if (isNorthQuadrant) {
-              playerNameEl.classList.add('top-half');
-              li.classList.add('is-north');
-              li.classList.remove('is-south');
-          } else {
-              playerNameEl.classList.remove('top-half');
-              li.classList.add('is-south');
-              li.classList.remove('is-north');
-          }
-          
-          const tokenDiv = li.querySelector('.player-token');
-           const charNameDiv = li.querySelector('.character-name');
-            // Remove any previous arc label overlay
-            const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
-            if (existingArc) existingArc.remove();
-            // Remove any previous death UI
-            const oldCircle = tokenDiv.querySelector('.death-overlay');
-            if (oldCircle) oldCircle.remove();
-            const oldRibbon = tokenDiv.querySelector('.death-ribbon');
-            if (oldRibbon) oldRibbon.remove();
-          
-            if (player.character) {
-            const role = getRoleById(player.character);
-            if (role) {
-             tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-              tokenDiv.style.backgroundSize = '68% 68%, cover';
-            tokenDiv.style.backgroundColor = 'transparent';
-            tokenDiv.classList.add('has-character');
-             if (charNameDiv) charNameDiv.textContent = role.name;
-              // Add curved label on the token
-              const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
-              tokenDiv.appendChild(svg);
-              
-              // Add tooltip functionality for non-touch devices
-              if (!('ontouchstart' in window)) {
-                  tokenDiv.addEventListener('mouseenter', (e) => {
-                      if (role.ability) {
-                          abilityTooltip.textContent = role.ability;
-                          abilityTooltip.classList.add('show');
-                          positionTooltip(e.target, abilityTooltip);
-                      }
-                  });
-                  
-                  tokenDiv.addEventListener('mouseleave', () => {
-                      abilityTooltip.classList.remove('show');
-                  });
-              } else if (role.ability) {
-                  // Add info icon for touch mode - will be positioned after circle layout
-                  const infoIcon = document.createElement('div');
-                  infoIcon.className = 'ability-info-icon';
-                  infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-                  infoIcon.dataset.playerIndex = i;
-                                  // Handle both click and touch events
-                const handleInfoClick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    showTouchAbilityPopup(infoIcon, role.ability);
-                };
-                infoIcon.onclick = handleInfoClick;
-                infoIcon.addEventListener('touchstart', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleInfoClick(e); // Call the click handler on touch
-                });
-                  li.appendChild(infoIcon); // Append to li, not tokenDiv
+    const listItems = playerCircle.querySelectorAll('li');
+    listItems.forEach((li, i) => {
+      const player = players[i];
+      const playerNameEl = li.querySelector('.player-name');
+      playerNameEl.textContent = player.name;
+
+      // Check if player is in NW or NE quadrant
+      const angle = parseFloat(li.dataset.angle || '0');
+
+      // Calculate the actual x,y position to determine quadrant
+      const x = Math.cos(angle);
+      const y = Math.sin(angle);
+
+      // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
+      const isNorthQuadrant = y < 0;
+
+      if (isNorthQuadrant) {
+        playerNameEl.classList.add('top-half');
+        li.classList.add('is-north');
+        li.classList.remove('is-south');
+      } else {
+        playerNameEl.classList.remove('top-half');
+        li.classList.add('is-south');
+        li.classList.remove('is-north');
+      }
+
+      const tokenDiv = li.querySelector('.player-token');
+      const charNameDiv = li.querySelector('.character-name');
+      // Remove any previous arc label overlay
+      const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
+      if (existingArc) existingArc.remove();
+      // Remove any previous death UI
+      const oldCircle = tokenDiv.querySelector('.death-overlay');
+      if (oldCircle) oldCircle.remove();
+      const oldRibbon = tokenDiv.querySelector('.death-ribbon');
+      if (oldRibbon) oldRibbon.remove();
+
+      if (player.character) {
+        const role = getRoleById(player.character);
+        if (role) {
+          tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+          tokenDiv.style.backgroundSize = '68% 68%, cover';
+          tokenDiv.style.backgroundColor = 'transparent';
+          tokenDiv.classList.add('has-character');
+          if (charNameDiv) charNameDiv.textContent = role.name;
+          // Add curved label on the token
+          const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
+          tokenDiv.appendChild(svg);
+
+          // Add tooltip functionality for non-touch devices
+          if (!('ontouchstart' in window)) {
+            tokenDiv.addEventListener('mouseenter', (e) => {
+              if (role.ability) {
+                abilityTooltip.textContent = role.ability;
+                abilityTooltip.classList.add('show');
+                positionTooltip(e.target, abilityTooltip);
               }
-            } else {
-            tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-            tokenDiv.style.backgroundSize = 'cover';
-            tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
-            tokenDiv.classList.remove('has-character');
-             if (charNameDiv) charNameDiv.textContent = '';
-              // Ensure no leftover arc label remains
-              const arc = tokenDiv.querySelector('.icon-reminder-svg');
-              if (arc) arc.remove();
-          }
-          } else {
-            tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-            tokenDiv.style.backgroundSize = 'cover';
-            tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
-            tokenDiv.classList.remove('has-character');
-             if (charNameDiv) charNameDiv.textContent = '';
-              // Ensure no leftover arc label remains
-              const arc = tokenDiv.querySelector('.icon-reminder-svg');
-              if (arc) arc.remove();
-          }
+            });
 
-          // Add death overlay circle and ribbon indicator
-          const overlay = document.createElement('div');
-          overlay.className = 'death-overlay';
-          overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
-          // overlay is visual only; click is on ribbon
-          tokenDiv.appendChild(overlay);
-
-          const ribbon = createDeathRibbonSvg();
-          ribbon.classList.add('death-ribbon');
-          const handleRibbonToggle = (e) => {
+            tokenDiv.addEventListener('mouseleave', () => {
+              abilityTooltip.classList.remove('show');
+            });
+          } else if (role.ability) {
+            // Add info icon for touch mode - will be positioned after circle layout
+            const infoIcon = document.createElement('div');
+            infoIcon.className = 'ability-info-icon';
+            infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            infoIcon.dataset.playerIndex = i;
+            // Handle both click and touch events
+            const handleInfoClick = (e) => {
               e.stopPropagation();
-              players[i].dead = !players[i].dead;
-              updateGrimoire();
-              saveAppState();
-          };
-          // Attach to painted shapes only to avoid transparent hit areas
-          try {
-              ribbon.querySelectorAll('rect, path').forEach((shape) => {
-                  shape.addEventListener('click', handleRibbonToggle);
-              });
-          } catch (_) {
-              // Fallback: still attach on svg
-              ribbon.addEventListener('click', handleRibbonToggle);
+              e.preventDefault();
+              showTouchAbilityPopup(infoIcon, role.ability);
+            };
+            infoIcon.onclick = handleInfoClick;
+            infoIcon.addEventListener('touchstart', (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleInfoClick(e); // Call the click handler on touch
+            });
+            li.appendChild(infoIcon); // Append to li, not tokenDiv
           }
-          tokenDiv.appendChild(ribbon);
+        } else {
+          tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+          tokenDiv.style.backgroundSize = 'cover';
+          tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+          tokenDiv.classList.remove('has-character');
+          if (charNameDiv) charNameDiv.textContent = '';
+          // Ensure no leftover arc label remains
+          const arc = tokenDiv.querySelector('.icon-reminder-svg');
+          if (arc) arc.remove();
+        }
+      } else {
+        tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+        tokenDiv.style.backgroundSize = 'cover';
+        tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+        tokenDiv.classList.remove('has-character');
+        if (charNameDiv) charNameDiv.textContent = '';
+        // Ensure no leftover arc label remains
+        const arc = tokenDiv.querySelector('.icon-reminder-svg');
+        if (arc) arc.remove();
+      }
 
-          if (player.dead) {
-              tokenDiv.classList.add('is-dead');
-          } else {
-              tokenDiv.classList.remove('is-dead');
+      // Add death overlay circle and ribbon indicator
+      const overlay = document.createElement('div');
+      overlay.className = 'death-overlay';
+      overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+      // overlay is visual only; click is on ribbon
+      tokenDiv.appendChild(overlay);
+
+      const ribbon = createDeathRibbonSvg();
+      ribbon.classList.add('death-ribbon');
+      const handleRibbonToggle = (e) => {
+        e.stopPropagation();
+        players[i].dead = !players[i].dead;
+        updateGrimoire();
+        saveAppState();
+      };
+      // Attach to painted shapes only to avoid transparent hit areas
+      try {
+        ribbon.querySelectorAll('rect, path').forEach((shape) => {
+          shape.addEventListener('click', handleRibbonToggle);
+        });
+      } catch (_) {
+        // Fallback: still attach on svg
+        ribbon.addEventListener('click', handleRibbonToggle);
+      }
+      tokenDiv.appendChild(ribbon);
+
+      if (player.dead) {
+        tokenDiv.classList.add('is-dead');
+      } else {
+        tokenDiv.classList.remove('is-dead');
+      }
+
+      const remindersDiv = li.querySelector('.reminders');
+      remindersDiv.innerHTML = '';
+
+      // Create reminder elements; positions are handled by positionRadialStack()
+      player.reminders.forEach((reminder, idx) => {
+        if (reminder.type === 'icon') {
+          const iconEl = document.createElement('div');
+          iconEl.className = 'icon-reminder';
+          iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
+          iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+          iconEl.title = (reminder.label || '');
+          iconEl.addEventListener('click', (e) => {
+            const parentLi = iconEl.closest('li');
+            const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+            if (isCollapsed) {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              parentLi.dataset.expanded = '1';
+              parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+              positionRadialStack(parentLi, players[i].reminders.length);
+            }
+          }, true);
+
+          if (reminder.label) {
+            // Check if this is a custom reminder by ID
+            const isCustom = reminder.id === 'custom-note';
+
+            if (isCustom) {
+              // For custom reminders, show straight text with dark background
+              const textSpan = document.createElement('span');
+              textSpan.className = 'icon-reminder-content';
+              textSpan.textContent = reminder.label;
+
+              // Adjust font size based on text length
+              const textLength = reminder.label.length;
+              if (textLength > 40) {
+                textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+              } else if (textLength > 20) {
+                textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+              }
+
+              iconEl.appendChild(textSpan);
+            } else {
+              // For other reminders, show curved text at bottom
+              const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
+              iconEl.appendChild(svg);
+            }
           }
 
-          const remindersDiv = li.querySelector('.reminders');
-          remindersDiv.innerHTML = '';
-          
-          // Create reminder elements; positions are handled by positionRadialStack()
-          player.reminders.forEach((reminder, idx) => {
-              if (reminder.type === 'icon') {
-                const iconEl = document.createElement('div');
-                iconEl.className = 'icon-reminder';
-                iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-                iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-                iconEl.title = (reminder.label || '');
-                iconEl.addEventListener('click', (e) => {
-                  const parentLi = iconEl.closest('li');
-                  const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
-                  if (isCollapsed) {
-                    e.stopPropagation();
-                    try { e.preventDefault(); } catch(_) {}
+          // Desktop hover actions on icon reminders
+          if (!isTouchDevice) {
+            const editBtn = document.createElement('div');
+            editBtn.className = 'reminder-action edit';
+            editBtn.title = 'Edit';
+            editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+            editBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              const parentLi = editBtn.closest('li');
+              if (parentLi) {
+                const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                  if (parentLi.dataset.expanded !== '1') {
                     parentLi.dataset.expanded = '1';
                     parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
                     positionRadialStack(parentLi, players[i].reminders.length);
                   }
-                }, true);
-
-                if (reminder.label) {
-                  // Check if this is a custom reminder by ID
-                  const isCustom = reminder.id === 'custom-note';
-                  
-                  if (isCustom) {
-                    // For custom reminders, show straight text with dark background
-                    const textSpan = document.createElement('span');
-                    textSpan.className = 'icon-reminder-content';
-                    textSpan.textContent = reminder.label;
-                    
-                    // Adjust font size based on text length
-                    const textLength = reminder.label.length;
-                    if (textLength > 40) {
-                      textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
-                    } else if (textLength > 20) {
-                      textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
-                    }
-                    
-                    iconEl.appendChild(textSpan);
-                  } else {
-                    // For other reminders, show curved text at bottom
-                    const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
-                    iconEl.appendChild(svg);
-                  }
+                  return;
                 }
-
-                // Desktop hover actions on icon reminders
-                if (!isTouchDevice) {
-                  const editBtn = document.createElement('div');
-                  editBtn.className = 'reminder-action edit';
-                  editBtn.title = 'Edit';
-                  editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-                  editBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    try { e.preventDefault(); } catch(_) {}
-                    const parentLi = editBtn.closest('li');
-                    if (parentLi) {
-                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                        if (parentLi.dataset.expanded !== '1') {
-                          parentLi.dataset.expanded = '1';
-                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                          positionRadialStack(parentLi, players[i].reminders.length);
-                        }
-                        return;
-                      }
-                    }
-                    const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
-                    const next = prompt('Edit reminder', current);
-                    if (next !== null) {
-                      players[i].reminders[idx].label = next;
-                      updateGrimoire();
-                      saveAppState();
-                    }
-                  });
-                  iconEl.appendChild(editBtn);
-
-                  const delBtn = document.createElement('div');
-                  delBtn.className = 'reminder-action delete';
-                  delBtn.title = 'Delete';
-                  delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                  delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    try { e.preventDefault(); } catch(_) {}
-                    const parentLi = delBtn.closest('li');
-                    if (parentLi) {
-                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                        if (parentLi.dataset.expanded !== '1') {
-                          parentLi.dataset.expanded = '1';
-                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                          positionRadialStack(parentLi, players[i].reminders.length);
-                        }
-                        return;
-                      }
-                    }
-                    players[i].reminders.splice(idx, 1);
-                    updateGrimoire();
-                    saveAppState();
-                  });
-                  iconEl.appendChild(delBtn);
-                }
-
-                // Touch long-press for reminder context menu (iOS Safari, Android)
-                if (isTouchDevice) {
-                  const onPressStart = (e) => {
-                    try { e.preventDefault(); } catch(_) {}
-                    clearTimeout(longPressTimer);
-                    try { iconEl.classList.add('press-feedback'); } catch(_) {}
-                    const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-                    const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-                    longPressTimer = setTimeout(() => {
-                      try { iconEl.classList.remove('press-feedback'); } catch(_) {}
-                      showReminderContextMenu(x, y, i, idx);
-                    }, 600);
-                  };
-                  const onPressEnd = () => { clearTimeout(longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch(_) {} };
-                  iconEl.addEventListener('pointerdown', onPressStart);
-                  iconEl.addEventListener('pointerup', onPressEnd);
-                  iconEl.addEventListener('pointercancel', onPressEnd);
-                  iconEl.addEventListener('pointerleave', onPressEnd);
-                  iconEl.addEventListener('touchstart', onPressStart, { passive: false });
-                  iconEl.addEventListener('touchend', onPressEnd);
-                  iconEl.addEventListener('touchcancel', onPressEnd);
-                  iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
-                }
-
-                remindersDiv.appendChild(iconEl);
-              } else {
-                const reminderEl = document.createElement('div');
-                reminderEl.className = 'text-reminder';
-                
-                // Check if this is actually a text reminder with a label (legacy data)
-                // If so, use the label as the display text
-                const displayText = reminder.label || reminder.value || '';
-                
-                // Create a span for the text with dark background
-                const textSpan = document.createElement('span');
-                textSpan.className = 'text-reminder-content';
-                textSpan.textContent = displayText;
-                
-                // Adjust font size based on text length
-                const textLength = displayText.length;
-                if (textLength > 40) {
-                  textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
-                } else if (textLength > 20) {
-                  textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
-                }
-                
-                reminderEl.appendChild(textSpan);
-                
-                reminderEl.style.transform = 'translate(-50%, -50%)';
-                reminderEl.onclick = (e) => {
-                  e.stopPropagation();
-                  const parentLi = reminderEl.closest('li');
-                  if (parentLi) {
-                    const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                    if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                      // If collapsed, expand instead of acting
-                      if (parentLi.dataset.expanded !== '1') {
-                        parentLi.dataset.expanded = '1';
-                        parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                        positionRadialStack(parentLi, players[i].reminders.length);
-                      }
-                      return;
-                    }
-                  }
-                  // No-op on desktop; use hover edit icon instead
-                };
-                // Desktop hover actions on text reminders
-                if (!isTouchDevice) {
-                  const editBtn2 = document.createElement('div');
-                  editBtn2.className = 'reminder-action edit';
-                  editBtn2.title = 'Edit';
-                  editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
-                  editBtn2.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    try { e.preventDefault(); } catch(_) {}
-                    const parentLi = editBtn2.closest('li');
-                    if (parentLi) {
-                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                        if (parentLi.dataset.expanded !== '1') {
-                          parentLi.dataset.expanded = '1';
-                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                          positionRadialStack(parentLi, players[i].reminders.length);
-                        }
-                        return;
-                      }
-                    }
-                    const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
-                    const next = prompt('Edit reminder', current);
-                    if (next !== null) {
-                      players[i].reminders[idx].value = next;
-                      if (players[i].reminders[idx].label !== undefined) {
-                        players[i].reminders[idx].label = next;
-                      }
-                      updateGrimoire();
-                      saveAppState();
-                    }
-                  });
-                  reminderEl.appendChild(editBtn2);
-
-                  const delBtn2 = document.createElement('div');
-                  delBtn2.className = 'reminder-action delete';
-                  delBtn2.title = 'Delete';
-                  delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                  delBtn2.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    try { e.preventDefault(); } catch(_) {}
-                    const parentLi = delBtn2.closest('li');
-                    if (parentLi) {
-                      const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-                      if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                        if (parentLi.dataset.expanded !== '1') {
-                          parentLi.dataset.expanded = '1';
-                          parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                          positionRadialStack(parentLi, players[i].reminders.length);
-                        }
-                        return;
-                      }
-                    }
-                    players[i].reminders.splice(idx, 1);
-                    updateGrimoire();
-                    saveAppState();
-                  });
-                  reminderEl.appendChild(delBtn2);
-                }
-                // Touch long-press for reminder context menu
-                if (isTouchDevice) {
-                  const onPressStart2 = (e) => {
-                    try { e.preventDefault(); } catch(_) {}
-                    clearTimeout(longPressTimer);
-                    try { reminderEl.classList.add('press-feedback'); } catch(_) {}
-                    const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-                    const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-                    longPressTimer = setTimeout(() => {
-                      try { reminderEl.classList.remove('press-feedback'); } catch(_) {}
-                      showReminderContextMenu(x, y, i, idx);
-                    }, 600);
-                  };
-                  const onPressEnd2 = () => { clearTimeout(longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch(_) {} };
-                  reminderEl.addEventListener('pointerdown', onPressStart2);
-                  reminderEl.addEventListener('pointerup', onPressEnd2);
-                  reminderEl.addEventListener('pointercancel', onPressEnd2);
-                  reminderEl.addEventListener('pointerleave', onPressEnd2);
-                  reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
-                  reminderEl.addEventListener('touchend', onPressEnd2);
-                  reminderEl.addEventListener('touchcancel', onPressEnd2);
-                  reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
-                }
-
-                remindersDiv.appendChild(reminderEl);
               }
-          });
+              const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+              const next = prompt('Edit reminder', current);
+              if (next !== null) {
+                players[i].reminders[idx].label = next;
+                updateGrimoire();
+                saveAppState();
+              }
+            });
+            iconEl.appendChild(editBtn);
 
-          // After rendering, position all reminders and the plus button in a radial stack
-          positionRadialStack(li, player.reminders.length);
+            const delBtn = document.createElement('div');
+            delBtn.className = 'reminder-action delete';
+            delBtn.title = 'Delete';
+            delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            delBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              const parentLi = delBtn.closest('li');
+              if (parentLi) {
+                const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                  if (parentLi.dataset.expanded !== '1') {
+                    parentLi.dataset.expanded = '1';
+                    parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                    positionRadialStack(parentLi, players[i].reminders.length);
+                  }
+                  return;
+                }
+              }
+              players[i].reminders.splice(idx, 1);
+              updateGrimoire();
+              saveAppState();
+            });
+            iconEl.appendChild(delBtn);
+          }
+
+          // Touch long-press for reminder context menu (iOS Safari, Android)
+          if (isTouchDevice) {
+            const onPressStart = (e) => {
+              try { e.preventDefault(); } catch (_) { }
+              clearTimeout(longPressTimer);
+              try { iconEl.classList.add('press-feedback'); } catch (_) { }
+              const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+              const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+              longPressTimer = setTimeout(() => {
+                try { iconEl.classList.remove('press-feedback'); } catch (_) { }
+                showReminderContextMenu(x, y, i, idx);
+              }, 600);
+            };
+            const onPressEnd = () => { clearTimeout(longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch (_) { } };
+            iconEl.addEventListener('pointerdown', onPressStart);
+            iconEl.addEventListener('pointerup', onPressEnd);
+            iconEl.addEventListener('pointercancel', onPressEnd);
+            iconEl.addEventListener('pointerleave', onPressEnd);
+            iconEl.addEventListener('touchstart', onPressStart, { passive: false });
+            iconEl.addEventListener('touchend', onPressEnd);
+            iconEl.addEventListener('touchcancel', onPressEnd);
+            iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
+          }
+
+          remindersDiv.appendChild(iconEl);
+        } else {
+          const reminderEl = document.createElement('div');
+          reminderEl.className = 'text-reminder';
+
+          // Check if this is actually a text reminder with a label (legacy data)
+          // If so, use the label as the display text
+          const displayText = reminder.label || reminder.value || '';
+
+          // Create a span for the text with dark background
+          const textSpan = document.createElement('span');
+          textSpan.className = 'text-reminder-content';
+          textSpan.textContent = displayText;
+
+          // Adjust font size based on text length
+          const textLength = displayText.length;
+          if (textLength > 40) {
+            textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+          } else if (textLength > 20) {
+            textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+          }
+
+          reminderEl.appendChild(textSpan);
+
+          reminderEl.style.transform = 'translate(-50%, -50%)';
+          reminderEl.onclick = (e) => {
+            e.stopPropagation();
+            const parentLi = reminderEl.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                // If collapsed, expand instead of acting
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, players[i].reminders.length);
+                }
+                return;
+              }
+            }
+            // No-op on desktop; use hover edit icon instead
+          };
+          // Desktop hover actions on text reminders
+          if (!isTouchDevice) {
+            const editBtn2 = document.createElement('div');
+            editBtn2.className = 'reminder-action edit';
+            editBtn2.title = 'Edit';
+            editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
+            editBtn2.addEventListener('click', (e) => {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              const parentLi = editBtn2.closest('li');
+              if (parentLi) {
+                const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                  if (parentLi.dataset.expanded !== '1') {
+                    parentLi.dataset.expanded = '1';
+                    parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                    positionRadialStack(parentLi, players[i].reminders.length);
+                  }
+                  return;
+                }
+              }
+              const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+              const next = prompt('Edit reminder', current);
+              if (next !== null) {
+                players[i].reminders[idx].value = next;
+                if (players[i].reminders[idx].label !== undefined) {
+                  players[i].reminders[idx].label = next;
+                }
+                updateGrimoire();
+                saveAppState();
+              }
+            });
+            reminderEl.appendChild(editBtn2);
+
+            const delBtn2 = document.createElement('div');
+            delBtn2.className = 'reminder-action delete';
+            delBtn2.title = 'Delete';
+            delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            delBtn2.addEventListener('click', (e) => {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              const parentLi = delBtn2.closest('li');
+              if (parentLi) {
+                const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+                if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                  if (parentLi.dataset.expanded !== '1') {
+                    parentLi.dataset.expanded = '1';
+                    parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                    positionRadialStack(parentLi, players[i].reminders.length);
+                  }
+                  return;
+                }
+              }
+              players[i].reminders.splice(idx, 1);
+              updateGrimoire();
+              saveAppState();
+            });
+            reminderEl.appendChild(delBtn2);
+          }
+          // Touch long-press for reminder context menu
+          if (isTouchDevice) {
+            const onPressStart2 = (e) => {
+              try { e.preventDefault(); } catch (_) { }
+              clearTimeout(longPressTimer);
+              try { reminderEl.classList.add('press-feedback'); } catch (_) { }
+              const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+              const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+              longPressTimer = setTimeout(() => {
+                try { reminderEl.classList.remove('press-feedback'); } catch (_) { }
+                showReminderContextMenu(x, y, i, idx);
+              }, 600);
+            };
+            const onPressEnd2 = () => { clearTimeout(longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch (_) { } };
+            reminderEl.addEventListener('pointerdown', onPressStart2);
+            reminderEl.addEventListener('pointerup', onPressEnd2);
+            reminderEl.addEventListener('pointercancel', onPressEnd2);
+            reminderEl.addEventListener('pointerleave', onPressEnd2);
+            reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
+            reminderEl.addEventListener('touchend', onPressEnd2);
+            reminderEl.addEventListener('touchcancel', onPressEnd2);
+            reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
+          }
+
+          remindersDiv.appendChild(reminderEl);
+        }
       });
-      
-      // Position info icons after updating grimoire
-      if ('ontouchstart' in window) {
-          positionInfoIcons();
-      }
+
+      // After rendering, position all reminders and the plus button in a radial stack
+      positionRadialStack(li, player.reminders.length);
+    });
+
+    // Position info icons after updating grimoire
+    if ('ontouchstart' in window) {
+      positionInfoIcons();
+    }
   }
 
   // Arrange reminders and plus button along the line from token center to circle center
   function positionRadialStack(li, count) { positionRadialStackLayout(li, count, players); }
 
   // ensureGuidesSvg and drawRadialGuides moved to ui/guides.js
-  
+
   function openCharacterModal(playerIndex) {
-      if (!scriptData) {
-          alert("Please load a script first.");
-          return;
-      }
-      selectedPlayerIndex = playerIndex;
-      characterModalPlayerName.textContent = players[playerIndex].name;
-      populateCharacterGrid();
-      characterModal.style.display = 'flex';
-      characterSearch.value = '';
-      characterSearch.focus();
+    if (!scriptData) {
+      alert("Please load a script first.");
+      return;
+    }
+    selectedPlayerIndex = playerIndex;
+    characterModalPlayerName.textContent = players[playerIndex].name;
+    populateCharacterGrid();
+    characterModal.style.display = 'flex';
+    characterSearch.value = '';
+    characterSearch.focus();
   }
 
   function populateCharacterGrid() {
-      characterGrid.innerHTML = '';
-      const filter = characterSearch.value.toLowerCase();
-      
-      const filteredRoles = Object.values(allRoles)
-          .filter(role => role.name.toLowerCase().includes(filter));
-      
-      console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
-      
-      filteredRoles.forEach(role => {
-          const tokenEl = document.createElement('div');
-          tokenEl.className = 'token';
-          tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-          tokenEl.style.backgroundSize = '68% 68%, cover';
-          tokenEl.style.position = 'relative';
-          tokenEl.style.overflow = 'visible';
-          tokenEl.title = role.name;
-          tokenEl.onclick = () => assignCharacter(role.id);
-          // Add curved bottom text on the token preview
-          const svg = createCurvedLabelSvg(`picker-role-arc-${role.id}` , role.name);
-          tokenEl.appendChild(svg);
-          characterGrid.appendChild(tokenEl);
-      });
+    characterGrid.innerHTML = '';
+    const filter = characterSearch.value.toLowerCase();
+
+    const filteredRoles = Object.values(allRoles)
+      .filter(role => role.name.toLowerCase().includes(filter));
+
+    console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
+
+    filteredRoles.forEach(role => {
+      const tokenEl = document.createElement('div');
+      tokenEl.className = 'token';
+      tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+      tokenEl.style.backgroundSize = '68% 68%, cover';
+      tokenEl.style.position = 'relative';
+      tokenEl.style.overflow = 'visible';
+      tokenEl.title = role.name;
+      tokenEl.onclick = () => assignCharacter(role.id);
+      // Add curved bottom text on the token preview
+      const svg = createCurvedLabelSvg(`picker-role-arc-${role.id}`, role.name);
+      tokenEl.appendChild(svg);
+      characterGrid.appendChild(tokenEl);
+    });
   }
 
   function assignCharacter(roleId) {
-      if (selectedPlayerIndex > -1) {
-          players[selectedPlayerIndex].character = roleId;
-          console.log(`Assigned character ${roleId} to player ${selectedPlayerIndex}`);
-          updateGrimoire();
-          characterModal.style.display = 'none';
-          saveAppState();
-      }
+    if (selectedPlayerIndex > -1) {
+      players[selectedPlayerIndex].character = roleId;
+      console.log(`Assigned character ${roleId} to player ${selectedPlayerIndex}`);
+      updateGrimoire();
+      characterModal.style.display = 'none';
+      saveAppState();
+    }
   }
 
   function openTextReminderModal(playerIndex, reminderIndex = -1, existingText = '') {
-      editingReminder = { playerIndex, reminderIndex };
-      reminderTextInput.value = existingText;
-      textReminderModal.style.display = 'flex';
-      reminderTextInput.focus();
+    editingReminder = { playerIndex, reminderIndex };
+    reminderTextInput.value = existingText;
+    textReminderModal.style.display = 'flex';
+    reminderTextInput.focus();
   }
 
   saveReminderBtn.onclick = () => {
-      const text = reminderTextInput.value.trim();
-      const { playerIndex, reminderIndex } = editingReminder;
-      if (text) {
-          if (reminderIndex > -1) {
-              // Update existing reminder - preserve label if it exists
-              players[playerIndex].reminders[reminderIndex].value = text;
-              if (players[playerIndex].reminders[reminderIndex].label !== undefined) {
-                  players[playerIndex].reminders[reminderIndex].label = text;
-              }
-          } else {
-              players[playerIndex].reminders.push({ type: 'text', value: text });
-          }
-      } else if (reminderIndex > -1) {
-          players[playerIndex].reminders.splice(reminderIndex, 1);
+    const text = reminderTextInput.value.trim();
+    const { playerIndex, reminderIndex } = editingReminder;
+    if (text) {
+      if (reminderIndex > -1) {
+        // Update existing reminder - preserve label if it exists
+        players[playerIndex].reminders[reminderIndex].value = text;
+        if (players[playerIndex].reminders[reminderIndex].label !== undefined) {
+          players[playerIndex].reminders[reminderIndex].label = text;
+        }
+      } else {
+        players[playerIndex].reminders.push({ type: 'text', value: text });
       }
-      updateGrimoire();
-      saveAppState();
-      textReminderModal.style.display = 'none';
+    } else if (reminderIndex > -1) {
+      players[playerIndex].reminders.splice(reminderIndex, 1);
+    }
+    updateGrimoire();
+    saveAppState();
+    textReminderModal.style.display = 'none';
   };
 
   closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
@@ -1828,113 +1790,113 @@ document.addEventListener('DOMContentLoaded', () => {
   // createDeathRibbonSvg moved to ui/svg.js
 
   function openReminderTokenModal(playerIndex) {
-      selectedPlayerIndex = playerIndex;
-      if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = players[playerIndex].name;
-      reminderTokenModal.style.display = 'flex';
-      if (reminderTokenSearch) reminderTokenSearch.value = '';
-      populateReminderTokenGrid();
+    selectedPlayerIndex = playerIndex;
+    if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = players[playerIndex].name;
+    reminderTokenModal.style.display = 'flex';
+    if (reminderTokenSearch) reminderTokenSearch.value = '';
+    populateReminderTokenGrid();
   }
 
   async function populateReminderTokenGrid() {
-      if (!reminderTokenGrid) return;
-      reminderTokenGrid.innerHTML = '';
+    if (!reminderTokenGrid) return;
+    reminderTokenGrid.innerHTML = '';
+    try {
+      const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to load characters.json');
+      const json = await res.json();
+      // Base: any tokens supplied by data file
+      let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
+      // Build per-character reminders from the current script: use the character's icon and reminder text as label
+      const scriptReminderTokens = [];
       try {
-         const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to load characters.json');
-        const json = await res.json();
-        // Base: any tokens supplied by data file
-        let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-        // Build per-character reminders from the current script: use the character's icon and reminder text as label
-        const scriptReminderTokens = [];
-        try {
-          Object.values(allRoles || {}).forEach(role => {
-            const roleImage = resolveAssetPath(role.image);
-            if (role && Array.isArray(role.reminders) && role.reminders.length) {
-              role.reminders.forEach(rem => {
-                const label = String(rem || '').trim();
-                if (!label) return;
-                const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-                const id = `${role.id}-${norm}`;
-                scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-              });
-            }
-            if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
-              role.remindersGlobal.forEach(rem => {
-                const label = String(rem || '').trim();
-                if (!label) return;
-                const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-                const id = `${role.id}-global-${norm}`;
-                scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-              });
-            }
-          });
-        } catch (_) {}
-        // Always-available generic tokens
-        const genericTokens = [
-          { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
-          { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
-          { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
-          { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
-          { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
-          { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
-          { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
-        ];
-        // Merge: generic + per-character + file-provided
-        reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
-         const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
-         // Normalize image paths for gh-pages subpath
-         reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
-         // Put custom option at the top
-         const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
-         reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
-         const filtered = reminderTokens.filter(t => {
-           const combined = `${(t.label || '').toLowerCase()} ${(t.characterName || '').toLowerCase()}`.trim();
-           if (!filter) return true;
-           const terms = filter.split(/\s+/).filter(Boolean);
-           return terms.every(term => combined.includes(term));
-         });
-        (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
-            const tokenEl = document.createElement('div');
-            tokenEl.className = 'token';
-            tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-            tokenEl.style.backgroundSize = 'cover, cover';
-            tokenEl.style.position = 'relative';
-            tokenEl.style.overflow = 'visible';
-            tokenEl.style.zIndex = '1';
-            tokenEl.title = token.label || '';
-            const handleSelect = (ev) => {
-                try { ev.preventDefault(); } catch(_) {}
-                ev.stopPropagation();
-                let label = token.label;
-                if ((label || '').toLowerCase().includes('custom')) {
-                  const input = prompt('Enter reminder text:', '');
-                  if (input === null) return;
-                  label = input;
-                }
-                players[selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
-                updateGrimoire();
-                saveAppState();
-                reminderTokenModal.style.display = 'none';
-            };
-            tokenEl.addEventListener('click', handleSelect);
-
-            // Add curved bottom text to preview
-            if (token.label) {
-              const svg = createCurvedLabelSvg(`picker-arc-${idx}`, token.label);
-              tokenEl.appendChild(svg);
-            }
-            reminderTokenGrid.appendChild(tokenEl);
+        Object.values(allRoles || {}).forEach(role => {
+          const roleImage = resolveAssetPath(role.image);
+          if (role && Array.isArray(role.reminders) && role.reminders.length) {
+            role.reminders.forEach(rem => {
+              const label = String(rem || '').trim();
+              if (!label) return;
+              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+              const id = `${role.id}-${norm}`;
+              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+            });
+          }
+          if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
+            role.remindersGlobal.forEach(rem => {
+              const label = String(rem || '').trim();
+              if (!label) return;
+              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+              const id = `${role.id}-global-${norm}`;
+              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+            });
+          }
         });
-      } catch (e) {
-        console.error(e);
-        // As a last resort, show a simple message
-        const msg = document.createElement('div');
-        msg.style.color = '#ccc';
-        msg.textContent = 'No reminder tokens available.';
-        reminderTokenGrid.appendChild(msg);
-      }
+      } catch (_) { }
+      // Always-available generic tokens
+      const genericTokens = [
+        { id: 'townsfolk-townsfolk', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
+        { id: 'wrong-wrong', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
+        { id: 'drunk-isthedrunk', image: '/assets/reminders/drunk_g--QNmv0ZY.webp', label: 'Is The Drunk' },
+        { id: 'good-good', image: '/assets/reminders/good-D9wGdnv9.webp', label: 'Good' },
+        { id: 'evil-evil', image: '/assets/reminders/evil-CDY3e2Qm.webp', label: 'Evil' },
+        { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
+        { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
+      ];
+      // Merge: generic + per-character + file-provided
+      reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
+      const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
+      // Normalize image paths for gh-pages subpath
+      reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
+      // Put custom option at the top
+      const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
+      reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
+      const filtered = reminderTokens.filter(t => {
+        const combined = `${(t.label || '').toLowerCase()} ${(t.characterName || '').toLowerCase()}`.trim();
+        if (!filter) return true;
+        const terms = filter.split(/\s+/).filter(Boolean);
+        return terms.every(term => combined.includes(term));
+      });
+      (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
+        const tokenEl = document.createElement('div');
+        tokenEl.className = 'token';
+        tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+        tokenEl.style.backgroundSize = 'cover, cover';
+        tokenEl.style.position = 'relative';
+        tokenEl.style.overflow = 'visible';
+        tokenEl.style.zIndex = '1';
+        tokenEl.title = token.label || '';
+        const handleSelect = (ev) => {
+          try { ev.preventDefault(); } catch (_) { }
+          ev.stopPropagation();
+          let label = token.label;
+          if ((label || '').toLowerCase().includes('custom')) {
+            const input = prompt('Enter reminder text:', '');
+            if (input === null) return;
+            label = input;
+          }
+          players[selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
+          updateGrimoire();
+          saveAppState();
+          reminderTokenModal.style.display = 'none';
+        };
+        tokenEl.addEventListener('click', handleSelect);
+
+        // Add curved bottom text to preview
+        if (token.label) {
+          const svg = createCurvedLabelSvg(`picker-arc-${idx}`, token.label);
+          tokenEl.appendChild(svg);
+        }
+        reminderTokenGrid.appendChild(tokenEl);
+      });
+    } catch (e) {
+      console.error(e);
+      // As a last resort, show a simple message
+      const msg = document.createElement('div');
+      msg.style.color = '#ccc';
+      msg.textContent = 'No reminder tokens available.';
+      reminderTokenGrid.appendChild(msg);
+    }
   }
-  
+
   // Handle container resize to reposition players
   let resizeObserver;
   if ('ResizeObserver' in window) {
@@ -1944,7 +1906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(repositionPlayers);
       }
     });
-    
+
     // Observe the player circle container for size changes
     const playerCircle = document.getElementById('player-circle');
     if (playerCircle) {
@@ -1963,88 +1925,88 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 250);
     });
   }
-  
+
   // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && players.length > 0) {
       requestAnimationFrame(repositionPlayers);
     }
   });
-  
+
   function displayScript(data) {
     console.log('Displaying script with', data.length, 'characters');
     characterSheet.innerHTML = '';
-    
+
     // Group characters by team if we have resolved role data
     const teamGroups = {};
     Object.values(allRoles).forEach(role => {
-        if (!teamGroups[role.team]) {
-            teamGroups[role.team] = [];
-        }
-        teamGroups[role.team].push(role);
+      if (!teamGroups[role.team]) {
+        teamGroups[role.team] = [];
+      }
+      teamGroups[role.team].push(role);
     });
-    
+
     // Display grouped by team if we have team information
     if (Object.keys(teamGroups).length > 0) {
-        const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
-        teamOrder.forEach(team => {
-            if (teamGroups[team] && teamGroups[team].length > 0) {
-                const teamHeader = document.createElement('h3');
-                let teamLabel = team.charAt(0).toUpperCase() + team.slice(1);
-                if (team === 'traveller') teamLabel = 'Travellers';
-                teamHeader.textContent = teamLabel;
-                teamHeader.className = `team-${team === 'traveller' ? 'travellers' : team}`;
-                characterSheet.appendChild(teamHeader);
-                
-                teamGroups[team].forEach(role => {
-                    const roleEl = document.createElement('div');
-                    roleEl.className = 'role';
-         roleEl.innerHTML = `
+      const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
+      teamOrder.forEach(team => {
+        if (teamGroups[team] && teamGroups[team].length > 0) {
+          const teamHeader = document.createElement('h3');
+          let teamLabel = team.charAt(0).toUpperCase() + team.slice(1);
+          if (team === 'traveller') teamLabel = 'Travellers';
+          teamHeader.textContent = teamLabel;
+          teamHeader.className = `team-${team === 'traveller' ? 'travellers' : team}`;
+          characterSheet.appendChild(teamHeader);
+
+          teamGroups[team].forEach(role => {
+            const roleEl = document.createElement('div');
+            roleEl.className = 'role';
+            roleEl.innerHTML = `
                          <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                          <span class="name">${role.name}</span>
                          <div class="ability">${role.ability || 'No ability description available'}</div>
                      `;
-                    // Add click handler to toggle ability display
-                    roleEl.addEventListener('click', () => {
-                        roleEl.classList.toggle('show-ability');
-                    });
-                    characterSheet.appendChild(roleEl);
-                });
-            }
-        });
+            // Add click handler to toggle ability display
+            roleEl.addEventListener('click', () => {
+              roleEl.classList.toggle('show-ability');
+            });
+            characterSheet.appendChild(roleEl);
+          });
+        }
+      });
     } else {
-        // Fallback: show all characters in a single list
-        const header = document.createElement('h3');
-        header.textContent = 'Characters';
-        header.className = 'team-townsfolk';
-        characterSheet.appendChild(header);
-        
-        data.forEach((characterItem, index) => {
-            if (typeof characterItem === 'string' && characterItem !== '_meta') {
-                const roleEl = document.createElement('div');
-                roleEl.className = 'role';
-                 roleEl.innerHTML = `
+      // Fallback: show all characters in a single list
+      const header = document.createElement('h3');
+      header.textContent = 'Characters';
+      header.className = 'team-townsfolk';
+      characterSheet.appendChild(header);
+
+      data.forEach((characterItem, index) => {
+        if (typeof characterItem === 'string' && characterItem !== '_meta') {
+          const roleEl = document.createElement('div');
+          roleEl.className = 'role';
+          roleEl.innerHTML = `
                      <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
                      <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                  `;
-                characterSheet.appendChild(roleEl);
-            } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-                // Display custom character objects
-                const roleEl = document.createElement('div');
-                roleEl.className = 'role';
-                const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
-                roleEl.innerHTML = `
+          characterSheet.appendChild(roleEl);
+        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+          // Display custom character objects
+          const roleEl = document.createElement('div');
+          roleEl.className = 'role';
+          const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
+          roleEl.innerHTML = `
                     <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
                     <span class="name">${characterItem.name || characterItem.id}</span>
                     <div class="ability">${characterItem.ability || 'No ability description available'}</div>
                 `;
-                // Add click handler to toggle ability display
-                roleEl.addEventListener('click', () => {
-                    roleEl.classList.toggle('show-ability');
-                });
-                characterSheet.appendChild(roleEl);
-            }
-        });
+          // Add click handler to toggle ability display
+          roleEl.addEventListener('click', () => {
+            roleEl.classList.toggle('show-ability');
+          });
+          characterSheet.appendChild(roleEl);
+        }
+      });
     }
   }
 
@@ -2058,14 +2020,14 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log('Service worker controller changed');
       });
-      
+
       // Fallback: if no service worker after a reasonable time, load anyway
       const fallbackTimer = setTimeout(() => {
         if (!navigator.serviceWorker.controller) {
           console.log('Service worker not ready');
         }
       }, 2000);
-      
+
       // Clear fallback if service worker becomes ready
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         clearTimeout(fallbackTimer);
@@ -2115,7 +2077,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load histories and render lists
   loadHistories();
-  renderScriptHistory();
+  renderScriptHistory({ scriptHistoryList, scriptHistory });
   renderGrimoireHistory();
 
   // Restore previous session (script and grimoire)
