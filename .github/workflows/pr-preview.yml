@@ -1,0 +1,122 @@
+name: PR Preview Deploy
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+    branches: ["**"]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR HEAD
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Derive 6-letter unique hash
+        id: hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Stable 6-char hash derived from PR number
+          HASH=$(printf "pr-%s" "${{ github.event.pull_request.number }}" | sha1sum | cut -c1-6)
+          echo "hash=${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare preview directory content
+        run: |
+          set -euxo pipefail
+          mkdir -p preview
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'node_modules' ./ preview/
+
+      - name: Fetch gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 0
+        continue-on-error: true
+
+      - name: Initialize gh-pages if needed
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ ! -d gh-pages/.git ]; then
+            rm -rf gh-pages
+            git clone --depth 1 --branch gh-pages "${{ github.server_url }}/${{ github.repository }}.git" gh-pages || true
+          fi
+          if [ ! -d gh-pages/.git ]; then
+            mkdir -p gh-pages
+            cd gh-pages
+            git init
+            git remote add origin "${{ github.server_url }}/${{ github.repository }}.git"
+            git checkout -b gh-pages
+            touch .nojekyll
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .nojekyll
+            git commit -m "chore: initialize gh-pages branch"
+            git push -u origin gh-pages
+          fi
+
+      - name: Deploy preview to dev/<hash>
+        id: deploy
+        shell: bash
+        run: |
+          set -euxo pipefail
+          HASH="${{ steps.hash.outputs.hash }}"
+          DEV_DIR="gh-pages/dev/${HASH}"
+          mkdir -p "${DEV_DIR}"
+          rsync -a --delete preview/ "${DEV_DIR}/"
+          touch gh-pages/.nojekyll
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep .; then
+            git add -A
+            git commit -m "ci: deploy PR #${{ github.event.pull_request.number }} preview to dev/${HASH}"
+            git push origin HEAD:gh-pages
+          else
+            echo "No changes to commit to gh-pages for preview."
+          fi
+          echo "preview_path=dev/${HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment or update preview link on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const hash = `${{ steps.hash.outputs.hash }}`;
+            const body = `Preview: https://botc.party/dev/${hash}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const existing = comments.find(c => c.user && c.user.login === 'github-actions[bot]' && c.body && c.body.startsWith('Preview: https://botc.party/dev/'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }
