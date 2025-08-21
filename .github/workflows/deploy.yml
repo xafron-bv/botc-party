@@ -28,8 +28,7 @@ jobs:
           fetch-depth: 0
         continue-on-error: true
 
-      - name: Ensure gh-pages branch exists (fallback)
-        if: ${{ failure() }}
+      - name: Ensure gh-pages branch exists (create if missing)
         shell: bash
         run: |
           set -euxo pipefail

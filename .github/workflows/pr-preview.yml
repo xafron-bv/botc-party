@@ -45,6 +45,7 @@ jobs:
           ref: gh-pages
           path: gh-pages
           fetch-depth: 0
+        continue-on-error: true
 
       - name: Initialize gh-pages if needed
         shell: bash
