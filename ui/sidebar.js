@@ -1,4 +1,5 @@
 // Sidebar behaviors: resizer and toggle (browser-native ES module)
+import { prefersOverlaySidebar, isTouchDevice } from '../constants.js';
 
 export function initSidebarResize(sidebarResizer, sidebarEl) {
   if (!sidebarResizer || !sidebarEl) return;
@@ -73,8 +74,6 @@ export function initSidebarToggle({
   sidebarBackdrop,
   sidebarEl,
   sidebarResizer,
-  prefersOverlaySidebar,
-  isTouchDevice,
   repositionPlayers
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;

@@ -1,7 +1,8 @@
 import { saveHistories, history } from "./index.js";
 import { generateId } from "../../utils.js";
+import { saveAppState, renderSetupInfo } from "../grimoire.js";
 
-export async function handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
+export async function handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -53,8 +54,8 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, processSc
     await processScriptData(entry.data, false);
     scriptMetaName = entry.name || scriptMetaName || '';
     displayScript(scriptData);
-    saveAppState();
-    renderSetupInfo();
+    saveAppState({ grimoireState });
+    renderSetupInfo({ grimoireState });
   } catch (err) { console.error(err); }
 } export function handleScriptHistoryOnDown({ e }) {
   const li = e.target.closest('li.history-item');
@@ -81,8 +82,8 @@ export function handleScriptHistoryOnKeyDown({ e, scriptHistoryList }) {
     }
   }
 }
-export function addScriptHistoryListListeners({ scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
-  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }));
+export function addScriptHistoryListListeners({ scriptHistoryList, processScriptData, displayScript }) {
+  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript }));
   scriptHistoryList.addEventListener('pointerdown', (e) => handleScriptHistoryOnDown({ e }));
   scriptHistoryList.addEventListener('pointerup', () => handleScriptHistoryOnClear());
   scriptHistoryList.addEventListener('pointercancel', () => handleScriptHistoryOnClear());
