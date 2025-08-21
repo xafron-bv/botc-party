@@ -1,13 +1,14 @@
+"use strict";
 import './pwa.js';
-import { generateId, formatDateName, isExcludedScriptName, resolveAssetPath, normalizeKey } from './utils.js';
-import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
+import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from "./ui/history/grimoire.js";
+import { loadHistories } from './ui/history/index.js';
+import { addScriptHistoryListListeners, addScriptToHistory, renderScriptHistory } from "./ui/history/script.js";
+import { positionRadialStack as positionRadialStackLayout, repositionPlayers as repositionPlayersLayout } from './ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
+import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { initInAppTour } from './ui/tour.js';
-import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
-import { saveHistories, loadHistories } from './ui/history/index.js';
-import { renderScriptHistory, addScriptHistoryListListeners, addScriptToHistory, handleScriptHistoryOnKeyDown } from "./ui/history/script.js";
-import { renderGrimoireHistory, snapshotCurrentGrimoire, handleGrimoireHistoryClick, addGrimoireHistoryListListeners, handleGrimoireHistoryOnKeyDown } from "./ui/history/grimoire.js";
+import { isExcludedScriptName, normalizeKey, resolveAssetPath } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -54,16 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const includeTravellersCheckbox = document.getElementById('include-travellers');
   // Travellers toggle state key and default
   const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
-  let includeTravellers = false;
 
-  // Player context menu elements
-  let playerContextMenu = null;
-  let contextMenuTargetIndex = -1;
-  let longPressTimer = null;
-
-  // Reminder context menu elements (for touch long-press on reminders)
-  let reminderContextMenu = null;
-  let reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
+  const grimoireState = {
+    includeTravellers: false,
+    // Player context menu elements
+    playerContextMenu: null,
+    contextMenuTargetIndex: -1,
+    longPressTimer: null,
+    // Reminder context menu elements (for touch long-press on reminders)
+    reminderContextMenu: null,
+    reminderContextTarget: { playerIndex: -1, reminderIndex: -1 },
+    scriptData: null,
+    scriptMetaName: '',
+    playerSetupTable: [],
+    allRoles: {},
+    // Roles separation for traveller toggle
+    baseRoles: {},
+    extraTravellerRoles: {},
+    players: [],
+    selectedPlayerIndex: -1,
+    editingReminder: { playerIndex: -1, reminderIndex: -1 },
+    isRestoringState: false,
+    outsideCollapseHandlerInstalled: false
+  };
 
   const BG_STORAGE_KEY = 'grimoireBackgroundV1';
   function applyGrimoireBackground(value) {
@@ -95,37 +109,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize travellers toggle from localStorage
   try {
-    includeTravellers = (localStorage.getItem(INCLUDE_TRAVELLERS_KEY) === '1');
-  } catch (_) { includeTravellers = false; }
+    grimoireState.includeTravellers = (localStorage.getItem(INCLUDE_TRAVELLERS_KEY) === '1');
+  } catch (_) { grimoireState.includeTravellers = false; }
   if (includeTravellersCheckbox) {
-    includeTravellersCheckbox.checked = includeTravellers;
+    includeTravellersCheckbox.checked = grimoireState.includeTravellers;
     includeTravellersCheckbox.addEventListener('change', () => {
-      includeTravellers = !!includeTravellersCheckbox.checked;
+      grimoireState.includeTravellers = !!includeTravellersCheckbox.checked;
       applyTravellerToggleAndRefresh();
       saveAppState();
     });
   }
 
-  let scriptData = null;
-  let scriptMetaName = '';
-  let playerSetupTable = [];
-  let allRoles = {};
-  // Roles separation for traveller toggle
-  let baseRoles = {};
-  let extraTravellerRoles = {};
-  let players = [];
-  let selectedPlayerIndex = -1;
-  let editingReminder = { playerIndex: -1, reminderIndex: -1 };
   const isTouchDevice = (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const TOUCH_EXPAND_SUPPRESS_MS = 350;
   const CLICK_EXPAND_SUPPRESS_MS = 250;
-  let outsideCollapseHandlerInstalled = false;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
   const history = {
     scriptHistory: [],
     grimoireHistory: []
   };
-  let isRestoringState = false;
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
   function rebuildPlayerCircleUiPreserveState() {
@@ -133,9 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
     playerCircle.innerHTML = '';
     // Keep sidebar input in sync with current number of players
     if (playerCountInput) {
-      try { playerCountInput.value = String(players.length); } catch (_) { }
+      try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
     }
-    players.forEach((player, i) => {
+    grimoireState.players.forEach((player, i) => {
       const listItem = document.createElement('li');
       listItem.innerHTML = `
           <div class="reminders"></div>
@@ -161,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const newName = prompt("Enter player name:", player.name);
         if (newName) {
-          players[i].name = newName;
+          grimoireState.players[i].name = newName;
           updateGrimoire();
           saveAppState();
         }
@@ -178,13 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
               someoneExpanded = true;
               el.dataset.expanded = '0';
               const idx = Array.from(allLis).indexOf(el);
-              positionRadialStack(el, (players[idx]?.reminders || []).length);
+              positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
             }
           });
           if (someoneExpanded) {
             thisLi.dataset.expanded = '1';
             thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(thisLi, players[i].reminders.length);
+            positionRadialStack(thisLi, grimoireState.players[i].reminders.length);
             return;
           }
         }
@@ -206,16 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
           if (el !== listItem && el.dataset.expanded === '1') {
             el.dataset.expanded = '0';
             const idx = Array.from(allLis).indexOf(el);
-            positionRadialStack(el, (players[idx]?.reminders || []).length);
+            positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
           }
         });
         listItem.dataset.expanded = '1';
         if (isTouchDevice && !wasExpanded) {
           listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
         }
-        positionRadialStack(listItem, players[i].reminders.length);
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
       };
-      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
+      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
       if (!isTouchDevice) {
         listItem.addEventListener('mouseenter', expand);
         listItem.addEventListener('mouseleave', collapse);
@@ -230,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
         }
         expand();
-        positionRadialStack(listItem, players[i].reminders.length);
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
       }, { passive: false });
 
       // Player context menu: right-click
@@ -243,20 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
       tokenEl.addEventListener('pointerdown', (e) => {
         if (!isTouchDevice) return;
         try { e.preventDefault(); } catch (_) { }
-        clearTimeout(longPressTimer);
+        clearTimeout(grimoireState.longPressTimer);
         const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
         const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-        longPressTimer = setTimeout(() => {
+        grimoireState.longPressTimer = setTimeout(() => {
           showPlayerContextMenu(x, y, i);
         }, 600);
       });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-        tokenEl.addEventListener(evt, () => { clearTimeout(longPressTimer); });
+        tokenEl.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
       });
 
       // Install one-time outside collapse handler for touch devices
-      if (isTouchDevice && !outsideCollapseHandlerInstalled) {
-        outsideCollapseHandlerInstalled = true;
+      if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+        grimoireState.outsideCollapseHandlerInstalled = true;
         const maybeCollapseOnOutside = (ev) => {
           const target = ev.target;
           // If the tap/click is anywhere inside the player circle, do not auto-collapse here.
@@ -274,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
           allLis.forEach(el => {
             if (el.dataset.expanded === '1') {
               el.dataset.expanded = '0';
-              positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+              positionRadialStack(el, (grimoireState.players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
             }
           });
         };
@@ -295,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function ensurePlayerContextMenu() {
-    if (playerContextMenu) return playerContextMenu;
+    if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
     const menu = document.createElement('div');
     menu.id = 'player-context-menu';
     const addBeforeBtn = document.createElement('button');
@@ -309,31 +311,31 @@ document.addEventListener('DOMContentLoaded', () => {
     removeBtn.textContent = 'Remove Player';
 
     addBeforeBtn.addEventListener('click', () => {
-      const idx = contextMenuTargetIndex;
+      const idx = grimoireState.contextMenuTargetIndex;
       hidePlayerContextMenu();
       if (idx < 0) return;
-      if (players.length >= 20) return; // clamp to max
-      const newName = `Player ${players.length + 1}`;
+      if (grimoireState.players.length >= 20) return; // clamp to max
+      const newName = `Player ${grimoireState.players.length + 1}`;
       const newPlayer = { name: newName, character: null, reminders: [], dead: false };
-      players.splice(idx, 0, newPlayer);
+      grimoireState.players.splice(idx, 0, newPlayer);
       rebuildPlayerCircleUiPreserveState();
     });
     addAfterBtn.addEventListener('click', () => {
-      const idx = contextMenuTargetIndex;
+      const idx = grimoireState.contextMenuTargetIndex;
       hidePlayerContextMenu();
       if (idx < 0) return;
-      if (players.length >= 20) return; // clamp to max
-      const newName = `Player ${players.length + 1}`;
+      if (grimoireState.players.length >= 20) return; // clamp to max
+      const newName = `Player ${grimoireState.players.length + 1}`;
       const newPlayer = { name: newName, character: null, reminders: [], dead: false };
-      players.splice(idx + 1, 0, newPlayer);
+      grimoireState.players.splice(idx + 1, 0, newPlayer);
       rebuildPlayerCircleUiPreserveState();
     });
     removeBtn.addEventListener('click', () => {
-      const idx = contextMenuTargetIndex;
+      const idx = grimoireState.contextMenuTargetIndex;
       hidePlayerContextMenu();
       if (idx < 0) return;
-      if (players.length <= 5) return; // keep within 5..20
-      players.splice(idx, 1);
+      if (grimoireState.players.length <= 5) return; // keep within 5..20
+      grimoireState.players.splice(idx, 1);
       rebuildPlayerCircleUiPreserveState();
     });
 
@@ -349,16 +351,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') hidePlayerContextMenu();
     });
-    playerContextMenu = menu;
+    grimoireState.playerContextMenu = menu;
     return menu;
   }
 
   function showPlayerContextMenu(x, y, playerIndex) {
     const menu = ensurePlayerContextMenu();
-    contextMenuTargetIndex = playerIndex;
+    grimoireState.contextMenuTargetIndex = playerIndex;
     // Enable/disable buttons based on limits
-    const canAdd = players.length < 20;
-    const canRemove = players.length > 5;
+    const canAdd = grimoireState.players.length < 20;
+    const canRemove = grimoireState.players.length > 5;
     const addBeforeBtn = menu.querySelector('#player-menu-add-before');
     const addAfterBtn = menu.querySelector('#player-menu-add-after');
     const removeBtn = menu.querySelector('#player-menu-remove');
@@ -383,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function ensureReminderContextMenu() {
-    if (reminderContextMenu) return reminderContextMenu;
+    if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;
     const menu = document.createElement('div');
     menu.id = 'reminder-context-menu';
     const editBtn = document.createElement('button');
@@ -394,10 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteBtn.textContent = 'Delete Reminder';
 
     editBtn.addEventListener('click', () => {
-      const { playerIndex, reminderIndex } = reminderContextTarget;
+      const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
       hideReminderContextMenu();
       if (playerIndex < 0 || reminderIndex < 0) return;
-      const rem = (players[playerIndex] && players[playerIndex].reminders && players[playerIndex].reminders[reminderIndex]) || null;
+      const rem = (grimoireState.players[playerIndex] && grimoireState.players[playerIndex].reminders && grimoireState.players[playerIndex].reminders[reminderIndex]) || null;
       if (!rem) return;
       const current = rem.label || rem.value || '';
       const next = prompt('Edit reminder', current);
@@ -415,11 +417,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     deleteBtn.addEventListener('click', () => {
-      const { playerIndex, reminderIndex } = reminderContextTarget;
+      const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
       hideReminderContextMenu();
       if (playerIndex < 0 || reminderIndex < 0) return;
-      if (!players[playerIndex] || !players[playerIndex].reminders) return;
-      players[playerIndex].reminders.splice(reminderIndex, 1);
+      if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
+      grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
       updateGrimoire();
       saveAppState();
     });
@@ -436,13 +438,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'Escape') hideReminderContextMenu();
     });
 
-    reminderContextMenu = menu;
+    grimoireState.reminderContextMenu = menu;
     return menu;
   }
 
   function showReminderContextMenu(x, y, playerIndex, reminderIndex) {
     const menu = ensureReminderContextMenu();
-    reminderContextTarget = { playerIndex, reminderIndex };
+    grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
     menu.style.display = 'block';
     const margin = 6;
     requestAnimationFrame(() => {
@@ -457,27 +459,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function hideReminderContextMenu() {
-    if (reminderContextMenu) reminderContextMenu.style.display = 'none';
-    reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
-    clearTimeout(longPressTimer);
+    if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
+    grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
+    clearTimeout(grimoireState.longPressTimer);
   }
 
   function hidePlayerContextMenu() {
-    if (playerContextMenu) playerContextMenu.style.display = 'none';
-    contextMenuTargetIndex = -1;
-    clearTimeout(longPressTimer);
+    if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
+    grimoireState.contextMenuTargetIndex = -1;
+    clearTimeout(grimoireState.longPressTimer);
   }
 
   async function restoreGrimoireFromEntry({ entry }) {
     if (!entry) return;
     try {
-      isRestoringState = true;
+      grimoireState.isRestoringState = true;
       if (entry.scriptData) {
         await processScriptData(entry.scriptData, false);
-        scriptMetaName = entry.scriptName || scriptMetaName;
+        grimoireState.scriptMetaName = entry.scriptName || grimoireState.scriptMetaName;
       }
       setupGrimoire((entry.players || []).length || 0);
-      players = JSON.parse(JSON.stringify(entry.players || []));
+      grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
       updateGrimoire();
       repositionPlayers();
       saveAppState();
@@ -485,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.error('Failed to restore grimoire from history:', e);
     } finally {
-      isRestoringState = false;
+      grimoireState.isRestoringState = false;
     }
   }
 
@@ -500,30 +502,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveAppState() {
     try {
-      const state = { scriptData, players, scriptName: scriptMetaName };
+      const state = { scriptData: grimoireState.scriptData, players: grimoireState.players, scriptName: grimoireState.scriptMetaName };
       localStorage.setItem('botcAppStateV1', JSON.stringify(state));
-      try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, includeTravellers ? '1' : '0'); } catch (_) { }
+      try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
     } catch (_) { }
   }
 
   async function loadAppState() {
     try {
-      isRestoringState = true;
+      grimoireState.isRestoringState = true;
       const raw = localStorage.getItem('botcAppStateV1');
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
         await processScriptData(saved.scriptData, false);
-        if (saved.scriptName) { scriptMetaName = String(saved.scriptName); }
+        if (saved.scriptMetaName) { grimoireState.scriptMetaName = String(saved.scriptMetaName); }
+        if (saved.includeTravellers) { grimoireState.includeTravellers = saved.includeTravellers; }
       }
       if (saved && Array.isArray(saved.players) && saved.players.length) {
         setupGrimoire(saved.players.length);
-        players = saved.players;
+        grimoireState.players = saved.players;
         updateGrimoire();
         repositionPlayers();
         renderSetupInfo();
       }
-    } catch (_) { } finally { isRestoringState = false; }
+    } catch (_) { } finally { grimoireState.isRestoringState = false; }
   }
 
   // Path and key helpers imported from utils.js
@@ -543,9 +546,9 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Loading all characters from characters.json');
 
       // Reset role maps
-      allRoles = {};
-      baseRoles = {};
-      extraTravellerRoles = {};
+      grimoireState.allRoles = {};
+      grimoireState.baseRoles = {};
+      grimoireState.extraTravellerRoles = {};
       const roleLookup = {};
 
       // Process flat characters array (includes townsfolk, outsider, minion, demon, traveller, fabled)
@@ -558,23 +561,23 @@ document.addEventListener('DOMContentLoaded', () => {
           const canonical = { ...role, image, team: teamName };
           roleLookup[role.id] = canonical;
           if (teamName === 'traveller') {
-            extraTravellerRoles[role.id] = canonical;
+            grimoireState.extraTravellerRoles[role.id] = canonical;
           } else {
-            baseRoles[role.id] = canonical;
+            grimoireState.baseRoles[role.id] = canonical;
           }
           characterIds.push(role.id);
         });
       }
 
-      console.log(`Loaded ${Object.keys(allRoles).length} characters from all teams`);
+      console.log(`Loaded ${Object.keys(grimoireState.allRoles).length} characters from all teams`);
 
       // Create a pseudo-script data array with all character IDs
-      scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
+      grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
       // Apply traveller toggle to compute allRoles and render
       applyTravellerToggleAndRefresh();
       saveAppState();
 
-      loadStatus.textContent = `Loaded ${Object.keys(allRoles).length} characters successfully`;
+      loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;
       loadStatus.className = 'status';
 
     } catch (error) {
@@ -593,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const match = String(path).match(/([^/]+)\.json$/i);
         if (match) {
           const base = match[1].replace(/\s*&\s*/g, ' & ');
-          scriptMetaName = base;
+          grimoireState.scriptMetaName = base;
           renderSetupInfo();
         }
       } catch (_) { }
@@ -609,10 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
       loadStatus.className = 'error';
     }
   }
-  loadTbBtn && loadTbBtn.addEventListener('click', () => { scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
-  loadBmrBtn && loadBmrBtn.addEventListener('click', () => { scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
-  loadSavBtn && loadSavBtn.addEventListener('click', () => { scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
-  loadAllCharsBtn && loadAllCharsBtn.addEventListener('click', () => { scriptMetaName = 'All Characters'; renderSetupInfo(); loadAllCharacters(); });
+  loadTbBtn && loadTbBtn.addEventListener('click', () => { grimoireState.scriptMetaName = 'Trouble Brewing'; renderSetupInfo(); loadScriptFromFile('./Trouble Brewing.json'); });
+  loadBmrBtn && loadBmrBtn.addEventListener('click', () => { grimoireState.scriptMetaName = 'Bad Moon Rising'; renderSetupInfo(); loadScriptFromFile('./Bad Moon Rising.json'); });
+  loadSavBtn && loadSavBtn.addEventListener('click', () => { grimoireState.scriptMetaName = 'Sects & Violets'; renderSetupInfo(); loadScriptFromFile('./Sects and Violets.json'); });
+  loadAllCharsBtn && loadAllCharsBtn.addEventListener('click', () => { grimoireState.scriptMetaName = 'All Characters'; renderSetupInfo(); loadAllCharacters(); });
 
   scriptFileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -652,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('./player-setup.json', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
+      grimoireState.playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
       renderSetupInfo();
     } catch (e) {
       console.error('Failed to load player-setup.json', e);
@@ -660,19 +663,19 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   function lookupCountsForPlayers(count) {
-    if (!Array.isArray(playerSetupTable)) return null;
-    const row = playerSetupTable.find(r => Number(r.players) === Number(count));
+    if (!Array.isArray(grimoireState.playerSetupTable)) return null;
+    const row = grimoireState.playerSetupTable.find(r => Number(r.players) === Number(count));
     return row || null;
   }
 
   function renderSetupInfo() {
     if (!setupInfoEl) return;
-    const count = players.length;
+    const count = grimoireState.players.length;
     const row = lookupCountsForPlayers(count);
     // Prefer parsed meta name; otherwise keep any existing hint
-    let scriptName = scriptMetaName || '';
-    if (!scriptName && Array.isArray(scriptData)) {
-      const meta = scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
+    let scriptName = grimoireState.scriptMetaName || '';
+    if (!scriptName && Array.isArray(grimoireState.scriptData)) {
+      const meta = grimoireState.scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
       if (meta && meta.name) scriptName = String(meta.name);
     }
     if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
@@ -684,15 +687,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function processScriptData(data, addToHistory = false) {
     console.log('Processing script data:', data);
-    scriptData = data;
-    allRoles = {};
-    baseRoles = {};
-    extraTravellerRoles = {};
+    grimoireState.scriptData = data;
+    grimoireState.allRoles = {};
+    grimoireState.baseRoles = {};
+    grimoireState.extraTravellerRoles = {};
     // Extract metadata name if present
     try {
       const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
-      scriptMetaName = meta && meta.name ? String(meta.name) : '';
-    } catch (_) { scriptMetaName = ''; }
+      grimoireState.scriptMetaName = meta && meta.name ? String(meta.name) : '';
+    } catch (_) { grimoireState.scriptMetaName = ''; }
 
     if (Array.isArray(data)) {
       console.log('Processing script with', data.length, 'characters');
@@ -702,13 +705,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    console.log('Total roles processed:', Object.keys(allRoles).length);
+    console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
     // After processing into baseRoles/extraTravellerRoles, apply toggle
     applyTravellerToggleAndRefresh();
     saveAppState();
     renderSetupInfo();
     if (addToHistory) {
-      const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
+      const histName = grimoireState.scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
       if (!isExcludedScriptName(histName)) {
         addScriptToHistory({ name: histName, data, history, scriptHistoryList });
       }
@@ -747,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Pre-populate extraTravellerRoles with all traveller roles from the dataset
       Object.values(roleLookup).forEach(role => {
         if ((role.team || '').toLowerCase() === 'traveller') {
-          extraTravellerRoles[role.id] = role;
+          grimoireState.extraTravellerRoles[role.id] = role;
         }
       });
 
@@ -759,9 +762,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (canonicalId && roleLookup[canonicalId]) {
             const role = roleLookup[canonicalId];
             if (role.team === 'traveller') {
-              extraTravellerRoles[canonicalId] = role;
+              grimoireState.extraTravellerRoles[canonicalId] = role;
             } else {
-              baseRoles[canonicalId] = role;
+              grimoireState.baseRoles[canonicalId] = role;
             }
             console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
           } else {
@@ -774,9 +777,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (canonicalId && roleLookup[canonicalId]) {
             const role = roleLookup[canonicalId];
             if (role.team === 'traveller') {
-              extraTravellerRoles[canonicalId] = role;
+              grimoireState.extraTravellerRoles[canonicalId] = role;
             } else {
-              baseRoles[canonicalId] = role;
+              grimoireState.baseRoles[canonicalId] = role;
             }
             console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
           } else if (characterItem.name && characterItem.team && characterItem.ability) {
@@ -792,9 +795,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
             if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
             if (customRole.team === 'traveller') {
-              extraTravellerRoles[characterItem.id] = customRole;
+              grimoireState.extraTravellerRoles[characterItem.id] = customRole;
             } else {
-              baseRoles[characterItem.id] = customRole;
+              grimoireState.baseRoles[characterItem.id] = customRole;
             }
             console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
           } else {
@@ -809,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error processing script:', error);
       characterIds.forEach((characterItem) => {
         if (typeof characterItem === 'string' && characterItem !== '_meta') {
-          baseRoles[characterItem] = {
+          grimoireState.baseRoles[characterItem] = {
             id: characterItem,
             name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
             image: './assets/img/token-BqDQdWeO.webp',
@@ -826,9 +829,9 @@ document.addEventListener('DOMContentLoaded', () => {
               image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
             };
             if (customFallback.team === 'traveller') {
-              extraTravellerRoles[characterItem.id] = customFallback;
+              grimoireState.extraTravellerRoles[characterItem.id] = customFallback;
             } else {
-              baseRoles[characterItem.id] = customFallback;
+              grimoireState.baseRoles[characterItem.id] = customFallback;
             }
           }
         }
@@ -847,20 +850,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupGrimoire(count) {
     try {
-      if (!isRestoringState && Array.isArray(players) && players.length > 0) {
-        snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, history, grimoireHistoryList });
+      if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+        snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, history, grimoireHistoryList });
       }
     } catch (_) { }
     console.log('Setting up grimoire with', count, 'players');
     playerCircle.innerHTML = '';
-    players = Array.from({ length: count }, (_, i) => ({
+    grimoireState.players = Array.from({ length: count }, (_, i) => ({
       name: `Player ${i + 1}`,
       character: null,
       reminders: [],
       dead: false
     }));
 
-    players.forEach((player, i) => {
+    grimoireState.players.forEach((player, i) => {
       const listItem = document.createElement('li');
       listItem.innerHTML = `
               <div class="reminders"></div>
@@ -892,21 +895,21 @@ document.addEventListener('DOMContentLoaded', () => {
       tokenForMenu.addEventListener('pointerdown', (e) => {
         if (!isTouchDevice) return;
         try { e.preventDefault(); } catch (_) { }
-        clearTimeout(longPressTimer);
+        clearTimeout(grimoireState.longPressTimer);
         const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
         const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-        longPressTimer = setTimeout(() => {
+        grimoireState.longPressTimer = setTimeout(() => {
           showPlayerContextMenu(x, y, i);
         }, 600);
       });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-        tokenForMenu.addEventListener(evt, () => { clearTimeout(longPressTimer); });
+        tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
       });
       listItem.querySelector('.player-name').onclick = (e) => {
         e.stopPropagation();
         const newName = prompt("Enter player name:", player.name);
         if (newName) {
-          players[i].name = newName;
+          grimoireState.players[i].name = newName;
           updateGrimoire();
           saveAppState();
         }
@@ -922,13 +925,13 @@ document.addEventListener('DOMContentLoaded', () => {
               someoneExpanded = true;
               el.dataset.expanded = '0';
               const idx = Array.from(allLis).indexOf(el);
-              positionRadialStack(el, (players[idx]?.reminders || []).length);
+              positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
             }
           });
           if (someoneExpanded) {
             thisLi.dataset.expanded = '1';
             thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(thisLi, players[i].reminders.length);
+            positionRadialStack(thisLi, grimoireState.players[i].reminders.length);
             return;
           }
         }
@@ -950,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (el !== listItem && el.dataset.expanded === '1') {
             el.dataset.expanded = '0';
             const idx = Array.from(allLis).indexOf(el);
-            positionRadialStack(el, (players[idx]?.reminders || []).length);
+            positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
           }
         });
         listItem.dataset.expanded = '1';
@@ -958,9 +961,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTouchDevice && !wasExpanded) {
           listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
         }
-        positionRadialStack(listItem, players[i].reminders.length);
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
       };
-      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, players[i].reminders.length); };
+      const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
       if (!isTouchDevice) {
         listItem.addEventListener('mouseenter', expand);
         listItem.addEventListener('mouseleave', collapse);
@@ -977,14 +980,14 @@ document.addEventListener('DOMContentLoaded', () => {
           listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
         }
         expand();
-        positionRadialStack(listItem, players[i].reminders.length);
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
       }, { passive: false });
 
       // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
 
       // Install one-time outside click/tap collapse for touch devices
-      if (isTouchDevice && !outsideCollapseHandlerInstalled) {
-        outsideCollapseHandlerInstalled = true;
+      if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+        grimoireState.outsideCollapseHandlerInstalled = true;
         const maybeCollapseOnOutside = (ev) => {
           const target = ev.target;
           // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
@@ -1003,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
           allLis.forEach(el => {
             if (el.dataset.expanded === '1') {
               el.dataset.expanded = '0';
-              positionRadialStack(el, (players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+              positionRadialStack(el, (grimoireState.players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
             }
           });
         };
@@ -1023,12 +1026,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function repositionPlayers() { repositionPlayersLayout(players); }
+  function repositionPlayers() { repositionPlayersLayout(grimoireState.players); }
 
   function updateGrimoire() {
     const listItems = playerCircle.querySelectorAll('li');
     listItems.forEach((li, i) => {
-      const player = players[i];
+      const player = grimoireState.players[i];
       const playerNameEl = li.querySelector('.player-name');
       playerNameEl.textContent = player.name;
 
@@ -1140,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ribbon.classList.add('death-ribbon');
       const handleRibbonToggle = (e) => {
         e.stopPropagation();
-        players[i].dead = !players[i].dead;
+        grimoireState.players[i].dead = !grimoireState.players[i].dead;
         updateGrimoire();
         saveAppState();
       };
@@ -1180,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', () => {
               try { e.preventDefault(); } catch (_) { }
               parentLi.dataset.expanded = '1';
               parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-              positionRadialStack(parentLi, players[i].reminders.length);
+              positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
             }
           }, true);
 
@@ -1226,15 +1229,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (parentLi.dataset.expanded !== '1') {
                     parentLi.dataset.expanded = '1';
                     parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                    positionRadialStack(parentLi, players[i].reminders.length);
+                    positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
                   }
                   return;
                 }
               }
-              const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+              const current = grimoireState.players[i].reminders[idx]?.label || grimoireState.players[i].reminders[idx]?.value || '';
               const next = prompt('Edit reminder', current);
               if (next !== null) {
-                players[i].reminders[idx].label = next;
+                grimoireState.players[i].reminders[idx].label = next;
                 updateGrimoire();
                 saveAppState();
               }
@@ -1255,12 +1258,12 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (parentLi.dataset.expanded !== '1') {
                     parentLi.dataset.expanded = '1';
                     parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                    positionRadialStack(parentLi, players[i].reminders.length);
+                    positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
                   }
                   return;
                 }
               }
-              players[i].reminders.splice(idx, 1);
+              grimoireState.players[i].reminders.splice(idx, 1);
               updateGrimoire();
               saveAppState();
             });
@@ -1271,16 +1274,16 @@ document.addEventListener('DOMContentLoaded', () => {
           if (isTouchDevice) {
             const onPressStart = (e) => {
               try { e.preventDefault(); } catch (_) { }
-              clearTimeout(longPressTimer);
+              clearTimeout(grimoireState.longPressTimer);
               try { iconEl.classList.add('press-feedback'); } catch (_) { }
               const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
               const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-              longPressTimer = setTimeout(() => {
+              grimoireState.longPressTimer = setTimeout(() => {
                 try { iconEl.classList.remove('press-feedback'); } catch (_) { }
                 showReminderContextMenu(x, y, i, idx);
               }, 600);
             };
-            const onPressEnd = () => { clearTimeout(longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch (_) { } };
+            const onPressEnd = () => { clearTimeout(grimoireState.longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch (_) { } };
             iconEl.addEventListener('pointerdown', onPressStart);
             iconEl.addEventListener('pointerup', onPressEnd);
             iconEl.addEventListener('pointercancel', onPressEnd);
@@ -1326,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(parentLi, players[i].reminders.length);
+                  positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
                 }
                 return;
               }
@@ -1349,17 +1352,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (parentLi.dataset.expanded !== '1') {
                     parentLi.dataset.expanded = '1';
                     parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                    positionRadialStack(parentLi, players[i].reminders.length);
+                    positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
                   }
                   return;
                 }
               }
-              const current = players[i].reminders[idx]?.label || players[i].reminders[idx]?.value || '';
+              const current = grimoireState.players[i].reminders[idx]?.label || grimoireState.players[i].reminders[idx]?.value || '';
               const next = prompt('Edit reminder', current);
               if (next !== null) {
-                players[i].reminders[idx].value = next;
-                if (players[i].reminders[idx].label !== undefined) {
-                  players[i].reminders[idx].label = next;
+                grimoireState.players[i].reminders[idx].value = next;
+                if (grimoireState.players[i].reminders[idx].label !== undefined) {
+                  grimoireState.players[i].reminders[idx].label = next;
                 }
                 updateGrimoire();
                 saveAppState();
@@ -1381,12 +1384,12 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (parentLi.dataset.expanded !== '1') {
                     parentLi.dataset.expanded = '1';
                     parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                    positionRadialStack(parentLi, players[i].reminders.length);
+                    positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
                   }
                   return;
                 }
               }
-              players[i].reminders.splice(idx, 1);
+              grimoireState.players[i].reminders.splice(idx, 1);
               updateGrimoire();
               saveAppState();
             });
@@ -1396,16 +1399,16 @@ document.addEventListener('DOMContentLoaded', () => {
           if (isTouchDevice) {
             const onPressStart2 = (e) => {
               try { e.preventDefault(); } catch (_) { }
-              clearTimeout(longPressTimer);
+              clearTimeout(grimoireState.longPressTimer);
               try { reminderEl.classList.add('press-feedback'); } catch (_) { }
               const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
               const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-              longPressTimer = setTimeout(() => {
+              grimoireState.longPressTimer = setTimeout(() => {
                 try { reminderEl.classList.remove('press-feedback'); } catch (_) { }
                 showReminderContextMenu(x, y, i, idx);
               }, 600);
             };
-            const onPressEnd2 = () => { clearTimeout(longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch (_) { } };
+            const onPressEnd2 = () => { clearTimeout(grimoireState.longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch (_) { } };
             reminderEl.addEventListener('pointerdown', onPressStart2);
             reminderEl.addEventListener('pointerup', onPressEnd2);
             reminderEl.addEventListener('pointercancel', onPressEnd2);
@@ -1431,17 +1434,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Arrange reminders and plus button along the line from token center to circle center
-  function positionRadialStack(li, count) { positionRadialStackLayout(li, count, players); }
+  function positionRadialStack(li, count) { positionRadialStackLayout(li, count, grimoireState.players); }
 
   // ensureGuidesSvg and drawRadialGuides moved to ui/guides.js
 
   function openCharacterModal(playerIndex) {
-    if (!scriptData) {
+    if (!grimoireState.scriptData) {
       alert("Please load a script first.");
       return;
     }
-    selectedPlayerIndex = playerIndex;
-    characterModalPlayerName.textContent = players[playerIndex].name;
+    grimoireState.selectedPlayerIndex = playerIndex;
+    characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
     populateCharacterGrid();
     characterModal.style.display = 'flex';
     characterSearch.value = '';
@@ -1452,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     characterGrid.innerHTML = '';
     const filter = characterSearch.value.toLowerCase();
 
-    const filteredRoles = Object.values(allRoles)
+    const filteredRoles = Object.values(grimoireState.allRoles)
       .filter(role => role.name.toLowerCase().includes(filter));
 
     console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
@@ -1474,9 +1477,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function assignCharacter(roleId) {
-    if (selectedPlayerIndex > -1) {
-      players[selectedPlayerIndex].character = roleId;
-      console.log(`Assigned character ${roleId} to player ${selectedPlayerIndex}`);
+    if (grimoireState.selectedPlayerIndex > -1) {
+      grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
+      console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
       updateGrimoire();
       characterModal.style.display = 'none';
       saveAppState();
@@ -1484,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openTextReminderModal(playerIndex, reminderIndex = -1, existingText = '') {
-    editingReminder = { playerIndex, reminderIndex };
+    grimoireState.editingReminder = { playerIndex, reminderIndex };
     reminderTextInput.value = existingText;
     textReminderModal.style.display = 'flex';
     reminderTextInput.focus();
@@ -1492,19 +1495,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   saveReminderBtn.onclick = () => {
     const text = reminderTextInput.value.trim();
-    const { playerIndex, reminderIndex } = editingReminder;
+    const { playerIndex, reminderIndex } = grimoireState.editingReminder;
     if (text) {
       if (reminderIndex > -1) {
         // Update existing reminder - preserve label if it exists
-        players[playerIndex].reminders[reminderIndex].value = text;
-        if (players[playerIndex].reminders[reminderIndex].label !== undefined) {
-          players[playerIndex].reminders[reminderIndex].label = text;
+        grimoireState.players[playerIndex].reminders[reminderIndex].value = text;
+        if (grimoireState.players[playerIndex].reminders[reminderIndex].label !== undefined) {
+          grimoireState.players[playerIndex].reminders[reminderIndex].label = text;
         }
       } else {
-        players[playerIndex].reminders.push({ type: 'text', value: text });
+        grimoireState.players[playerIndex].reminders.push({ type: 'text', value: text });
       }
     } else if (reminderIndex > -1) {
-      players[playerIndex].reminders.splice(reminderIndex, 1);
+      grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
     }
     updateGrimoire();
     saveAppState();
@@ -1532,8 +1535,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // createDeathRibbonSvg moved to ui/svg.js
 
   function openReminderTokenModal(playerIndex) {
-    selectedPlayerIndex = playerIndex;
-    if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = players[playerIndex].name;
+    grimoireState.selectedPlayerIndex = playerIndex;
+    if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = grimoireState.players[playerIndex].name;
     reminderTokenModal.style.display = 'flex';
     if (reminderTokenSearch) reminderTokenSearch.value = '';
     populateReminderTokenGrid();
@@ -1551,7 +1554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Build per-character reminders from the current script: use the character's icon and reminder text as label
       const scriptReminderTokens = [];
       try {
-        Object.values(allRoles || {}).forEach(role => {
+        Object.values(grimoireState.allRoles || {}).forEach(role => {
           const roleImage = resolveAssetPath(role.image);
           if (role && Array.isArray(role.reminders) && role.reminders.length) {
             role.reminders.forEach(rem => {
@@ -1615,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (input === null) return;
             label = input;
           }
-          players[selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
+          grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
           updateGrimoire();
           saveAppState();
           reminderTokenModal.style.display = 'none';
@@ -1643,7 +1646,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let resizeObserver;
   if ('ResizeObserver' in window) {
     resizeObserver = new ResizeObserver((entries) => {
-      if (players.length > 0) {
+      if (grimoireState.players.length > 0) {
         console.log('Container resized, repositioning players...');
         requestAnimationFrame(repositionPlayers);
       }
@@ -1660,7 +1663,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        if (players.length > 0) {
+        if (grimoireState.players.length > 0) {
           console.log('Window resized, repositioning players...');
           requestAnimationFrame(repositionPlayers);
         }
@@ -1670,7 +1673,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && players.length > 0) {
+    if (!document.hidden && grimoireState.players.length > 0) {
       requestAnimationFrame(repositionPlayers);
     }
   });
@@ -1681,7 +1684,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Group characters by team if we have resolved role data
     const teamGroups = {};
-    Object.values(allRoles).forEach(role => {
+    Object.values(grimoireState.allRoles).forEach(role => {
       if (!teamGroups[role.team]) {
         teamGroups[role.team] = [];
       }
@@ -1786,12 +1789,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Compute visible roles from baseRoles and extraTravellerRoles based on toggle
   function applyTravellerToggleAndRefresh() {
-    allRoles = { ...(baseRoles || {}) };
-    if (includeTravellers) {
-      allRoles = { ...allRoles, ...(extraTravellerRoles || {}) };
+    grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
+    if (grimoireState.includeTravellers) {
+      grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
     }
     // Re-render character sheet and, if modal is open, the character grid
-    if (Array.isArray(scriptData)) displayScript(scriptData);
+    if (Array.isArray(grimoireState.scriptData)) displayScript(grimoireState.scriptData);
     if (characterModal && characterModal.style.display === 'flex') {
       populateCharacterGrid();
     }
@@ -1799,7 +1802,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Helper to get role by id respecting traveller toggle
   function getRoleById(roleId) {
-    return allRoles[roleId] || baseRoles[roleId] || extraTravellerRoles[roleId] || null;
+    return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
   }
 
   // Sidebar resizer
