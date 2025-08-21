@@ -58,3 +58,90 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, h
     renderGrimoireHistory({ grimoireHistoryList, history });
   } catch (_) { }
 }
+
+export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryList, restoreGrimoireFromEntry }) {
+  const li = e.target.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+  const entry = history.grimoireHistory.find(x => x.id === id);
+  if (!entry) return;
+  const clickedDelete = e.target.closest('.icon-btn.delete');
+  const clickedRename = e.target.closest('.icon-btn.rename');
+  const clickedSave = e.target.closest('.icon-btn.save');
+  const clickedInput = e.target.closest('.history-edit-input');
+  if (clickedDelete) {
+    if (confirm('Delete this grimoire snapshot?')) {
+      history.grimoireHistory = history.grimoireHistory.filter(x => x.id !== id);
+      saveHistories(history);
+      renderGrimoireHistory({ grimoireHistoryList, history });
+    }
+    return;
+  }
+  if (clickedRename) {
+    const nameSpan = li.querySelector('.history-name');
+    const input = li.querySelector('.history-edit-input');
+    const renameBtn = li.querySelector('.icon-btn.rename');
+    const saveBtn = li.querySelector('.icon-btn.save');
+    nameSpan.style.display = 'none';
+    input.style.display = 'inline-block';
+    renameBtn.style.display = 'none';
+    saveBtn.style.display = 'inline-block';
+    li.classList.add('editing');
+    input.focus();
+    input.setSelectionRange(0, input.value.length);
+    return;
+  }
+  if (clickedSave) {
+    const input = li.querySelector('.history-edit-input');
+    const newName = (input.value || '').trim();
+    if (newName) {
+      entry.name = newName;
+      entry.updatedAt = Date.now();
+      saveHistories(history);
+      renderGrimoireHistory({ grimoireHistoryList, history });
+    }
+    li.classList.remove('editing');
+    return;
+  }
+  if (clickedInput) return; // don't load when clicking into input
+  if (li.classList.contains('editing')) return; // avoid loading while editing
+  // Default: clicking the item or name loads the grimoire
+  await restoreGrimoireFromEntry({ entry });
+}
+
+export function handleGrimoireHistoryOnDown(e) {
+  const li = e.target.closest('li.history-item');
+  if (!li) return;
+  if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
+  li.classList.add('pressed');
+}
+
+export function handleGrimoireHistoryOnClear() {
+  document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
+}
+
+export function handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList }) {
+  if (!e.target.classList.contains('history-edit-input')) return;
+  const li = e.target.closest('li');
+  const id = li && li.dataset.id;
+  const entry = history.grimoireHistory.find(x => x.id === id);
+  if (!entry) return;
+  if (e.key === 'Enter') {
+    const newName = (e.target.value || '').trim();
+    if (newName) {
+      entry.name = newName;
+      entry.updatedAt = Date.now();
+      saveHistories(history);
+      renderGrimoireHistory({ grimoireHistoryList, history });
+    }
+  }
+}
+
+export function addGrimoireHistoryListListeners({ grimoireHistoryList, history, restoreGrimoireFromEntry }) {
+  grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown);
+  grimoireHistoryList.addEventListener('pointerup', handleGrimoireHistoryOnClear);
+  grimoireHistoryList.addEventListener('pointercancel', handleGrimoireHistoryOnClear);
+  grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);
+  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, history, grimoireHistoryList, restoreGrimoireFromEntry }));
+  grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList }));
+}
