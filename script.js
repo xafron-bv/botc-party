@@ -5,7 +5,7 @@ import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
-import { renderScriptHistory } from './ui/history.js';
+import { renderScriptHistory, saveHistories, loadHistories } from './ui/history.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -119,32 +119,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   let outsideCollapseHandlerInstalled = false;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
-  let scriptHistory = [];
-  let grimoireHistory = [];
+  const history = {
+    scriptHistory: [],
+    grimoireHistory: []
+  };
   let isRestoringState = false;
-
-  // Helpers now imported from utils.js
-
-  function saveHistories() {
-    try { localStorage.setItem('botcScriptHistoryV1', JSON.stringify(scriptHistory)); } catch (_) { }
-    try { localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify(grimoireHistory)); } catch (_) { }
-  }
-
-  function loadHistories() {
-    try {
-      const sRaw = localStorage.getItem('botcScriptHistoryV1');
-      if (sRaw) scriptHistory = JSON.parse(sRaw) || [];
-    } catch (_) { scriptHistory = []; }
-    try {
-      const gRaw = localStorage.getItem('botcGrimoireHistoryV1');
-      if (gRaw) grimoireHistory = JSON.parse(gRaw) || [];
-    } catch (_) { grimoireHistory = []; }
-  }
 
   function renderGrimoireHistory() {
     if (!grimoireHistoryList) return;
     grimoireHistoryList.innerHTML = '';
-    grimoireHistory.forEach(entry => {
+    history.grimoireHistory.forEach(entry => {
       const li = document.createElement('li');
       li.dataset.id = entry.id;
       li.className = 'history-item';
@@ -183,15 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function addScriptToHistory(name, data) {
     const entryName = (name && String(name).trim()) || 'Custom Script';
     // Update existing by name if found, else add new
-    const idx = scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
+    const idx = history.scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
     if (idx >= 0) {
-      scriptHistory[idx].data = data;
-      scriptHistory[idx].updatedAt = Date.now();
+      history.scriptHistory[idx].data = data;
+      history.scriptHistory[idx].updatedAt = Date.now();
     } else {
-      scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
+      history.scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
     }
-    saveHistories();
-    renderScriptHistory({ scriptHistoryList, scriptHistory });
+    saveHistories(history);
+    renderScriptHistory({ scriptHistoryList, history });
   }
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
@@ -548,8 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
         scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
         scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
       };
-      grimoireHistory.unshift(entry);
-      saveHistories();
+      history.grimoireHistory.unshift(entry);
+      saveHistories(history);
       renderGrimoireHistory();
     } catch (_) { }
   }
@@ -582,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = e.target.closest('li');
       if (!li) return;
       const id = li.dataset.id;
-      const entry = scriptHistory.find(x => x.id === id);
+      const entry = history.scriptHistory.find(x => x.id === id);
       if (!entry) return;
       const clickedDelete = e.target.closest('.icon-btn.delete');
       const clickedRename = e.target.closest('.icon-btn.rename');
@@ -590,9 +574,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const clickedInput = e.target.closest('.history-edit-input');
       if (clickedDelete) {
         if (confirm('Delete this script from history?')) {
-          scriptHistory = scriptHistory.filter(x => x.id !== id);
-          saveHistories();
-          renderScriptHistory({ scriptHistoryList, scriptHistory });
+          history.scriptHistory = history.scriptHistory.filter(x => x.id !== id);
+          saveHistories(history);
+          renderScriptHistory({ scriptHistoryList, history });
         }
         return;
       }
@@ -616,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newName) {
           entry.name = newName;
           entry.updatedAt = Date.now();
-          saveHistories();
-          renderScriptHistory({ scriptHistoryList, scriptHistory });
+          saveHistories(history);
+          renderScriptHistory({ scriptHistoryList, history });
         }
         li.classList.remove('editing');
         return;
@@ -655,15 +639,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!e.target.classList.contains('history-edit-input')) return;
       const li = e.target.closest('li');
       const id = li && li.dataset.id;
-      const entry = scriptHistory.find(x => x.id === id);
+      const entry = history.scriptHistory.find(x => x.id === id);
       if (!entry) return;
       if (e.key === 'Enter') {
         const newName = (e.target.value || '').trim();
         if (newName) {
           entry.name = newName;
           entry.updatedAt = Date.now();
-          saveHistories();
-          renderScriptHistory({ scriptHistoryList, scriptHistory });
+          saveHistories(history);
+          renderScriptHistory({ scriptHistoryList, history });
         }
       }
     });
@@ -675,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = e.target.closest('li');
       if (!li) return;
       const id = li.dataset.id;
-      const entry = grimoireHistory.find(x => x.id === id);
+      const entry = history.grimoireHistory.find(x => x.id === id);
       if (!entry) return;
       const clickedDelete = e.target.closest('.icon-btn.delete');
       const clickedRename = e.target.closest('.icon-btn.rename');
@@ -683,8 +667,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const clickedInput = e.target.closest('.history-edit-input');
       if (clickedDelete) {
         if (confirm('Delete this grimoire snapshot?')) {
-          grimoireHistory = grimoireHistory.filter(x => x.id !== id);
-          saveHistories();
+          history.grimoireHistory = history.grimoireHistory.filter(x => x.id !== id);
+          saveHistories(history);
           renderGrimoireHistory();
         }
         return;
@@ -709,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newName) {
           entry.name = newName;
           entry.updatedAt = Date.now();
-          saveHistories();
+          saveHistories(history);
           renderGrimoireHistory();
         }
         li.classList.remove('editing');
@@ -742,14 +726,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!e.target.classList.contains('history-edit-input')) return;
       const li = e.target.closest('li');
       const id = li && li.dataset.id;
-      const entry = grimoireHistory.find(x => x.id === id);
+      const entry = history.grimoireHistory.find(x => x.id === id);
       if (!entry) return;
       if (e.key === 'Enter') {
         const newName = (e.target.value || '').trim();
         if (newName) {
           entry.name = newName;
           entry.updatedAt = Date.now();
-          saveHistories();
+          saveHistories(history);
           renderGrimoireHistory();
         }
       }
@@ -2076,8 +2060,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Load histories and render lists
-  loadHistories();
-  renderScriptHistory({ scriptHistoryList, scriptHistory });
+  loadHistories(history);
+  renderScriptHistory({ scriptHistoryList, history });
   renderGrimoireHistory();
 
   // Restore previous session (script and grimoire)
