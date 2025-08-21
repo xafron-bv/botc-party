@@ -4,51 +4,76 @@ A Progressive Web App (PWA) version of the Blood on the Clocktower Grimoire that
 
 ## Features
 
-- **Offline First**: Works completely offline after initial load for in-person games
-- **Default Token Library**: Includes comprehensive character tokens from the official BOTC game
-- **Custom Script Support**: Upload custom JSON scripts for specific game scenarios
-- **Player Management**: Set up games with 5-20 players
+- **Offline First**: Works completely offline after initial load via service worker caching
+- **Base Scripts Included**: One-click load for Trouble Brewing, Bad Moon Rising, and Sects & Violets
+- **All Characters Mode**: Load the entire character library for custom setups
+- **Custom Script Support**: Upload custom JSON scripts using the same schema as `characters.json`
+- **Player Management**: Set up games with 5–20 players
 - **Character Assignment**: Drag and drop character tokens to players
-- **Reminder System**: Add text reminders to player tokens
+- **Reminders**: Add text reminders and choose reminder tokens
+- **Travellers Toggle**: Optionally include Traveller roles in the character sheet
+- **History**: Script history and Grimoire history with rename/delete
+- **Backgrounds**: Select from built-in backgrounds or disable
 - **Responsive Design**: Works on desktop and mobile devices
 - **PWA Installation**: Can be installed as a native app on supported devices
 
 ## Usage
 
-1. **Load Default Tokens**: Click "Load Default Tokens" to load the built-in character library
-2. **Set Player Count**: Choose the number of players (5-20)
+1. **Set Player Count**: Choose the number of players (5–20)
+2. **Load a Script**:
+   - Click one of: "Trouble Brewing", "Bad Moon Rising", "Sects & Violets", or "Load All Characters"
+   - Or upload a custom JSON script (same schema as `characters.json`)
 3. **Start Game**: Click "Start Game" to create the player circle
-4. **Assign Characters**: Click on player tokens to assign characters from the loaded script
-5. **Add Reminders**: Click the "+" button on players to add text reminders
-6. **Custom Scripts**: Upload custom JSON scripts in the same format as characters.json
+4. **Assign Characters**: Click player tokens to assign characters from the loaded script
+5. **Add Reminders**: Use the + button on players for text or token-based reminders
+6. **Optional**:
+   - Toggle "Include Travellers" to show Traveller roles
+   - Pick a background in "Background" settings
+   - Use the tutorial for a quick tour
+   - Manage past setups in Script History and Grimoire History
 
 ## File Structure
 
-- `index.html` - Main application interface
-- `characters.json` - Default character library with all official BOTC roles
-- `service-worker.js` - Service worker for offline functionality and caching
-- `manifest.json` - PWA manifest for app installation
-- `tb.json` - Example script file (Trouble Brewing)
+- `index.html` – Main application interface
+- `script.js` – Main application logic (imports `pwa.js` and UI modules)
+- `utils.js` – Shared utility functions
+- `ui/` – UI modules (`tooltip.js`, `svg.js`, `guides.js`, `sidebar.js`, `tour.js`, `layout.js`)
+- `characters.json` – Default character library
+- `Trouble Brewing.json`, `Bad Moon Rising.json`, `Sects and Violets.json` – Base scripts
+- `service-worker.js` – Offline functionality and caching strategy
+- `pwa.js` – Service worker registration and update handling
+- `manifest.json` – PWA manifest
+- `assets/` – Fonts, icons, backgrounds, reminder assets
+- `build/img/icons/` – Character token images (cached on demand)
+- `tests/` – Cypress E2E tests and configuration
+- `terms.html` – Terms of Use
+- `LICENSE.md` – License
 
 ## Offline Functionality
 
-The app uses a service worker to cache:
-- All HTML, CSS, and JavaScript files
-- Character token images
-- Default token data
-- External resources (Font Awesome, background images)
+The service worker caches core assets and data for reliable offline usage. Notable behavior:
+- Caches HTML, CSS, JS, and manifest assets
+- Caches base scripts and `characters.json` (with background refresh)
+- Caches token images on first fetch after `characters.json` loads
+- Uses network-first for app shell files (falls back to cache)
 
 ## Installation
 
 ### As PWA
 1. Open the app in a supported browser (Chrome, Edge, Safari)
-2. Look for the install prompt or use the browser's menu
-3. Install the app for offline access
+2. Look for the install prompt or use the browser menu to install
 
-### Manual Setup
+### Manual Setup (local or hosted)
 1. Clone or download the repository
-2. Serve the files from a web server (local or hosted)
-3. Access via browser
+2. Serve the directory with any static web server (required for service workers):
+
+```bash
+npx --yes http-server -p 5173 -c- .
+```
+
+3. Open `http://127.0.0.1:5173` in your browser
+
+> Note: Opening via `file://` will prevent the service worker from registering. Use an HTTP server.
 
 ## Browser Support
 
@@ -60,22 +85,29 @@ The app uses a service worker to cache:
 
 ## Development
 
-The app is built with vanilla HTML, CSS, and JavaScript. No build process or dependencies required.
+The app is built with vanilla HTML, CSS, and JavaScript. No build process or dependencies are required.
 
 ## Tests (Cypress)
 
-- Tests live under `tests/` and are written in JavaScript.
-- You don't need to install Cypress locally; run it via npx. This command will serve the app on a local port and execute the tests headlessly:
+- Tests live under `tests/` and are written in JavaScript
+- You can run Cypress via `npx` without installing it globally. This command serves the app and runs headlessly:
 
 ```bash
 npx --yes http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
 ```
 
-- Or to open the interactive test runner:
+- Or open the interactive test runner:
 
 ```bash
 npx --yes http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress open --config-file tests/cypress.config.js ; kill %1 || true
 ```
+
+## Deployment
+
+- **GitHub Pages**: Pushes to `main` are deployed to GitHub Pages via `.github/workflows/deploy.yml`.
+- **CI**: Pull requests run Cypress tests via `.github/workflows/pr-tests.yml`.
+- **Cache Busting**: On PR merge to `main`, `.github/workflows/bump-cache.yml` auto-increments the `CACHE_NAME` in `service-worker.js` to ensure clients fetch the latest assets.
+- **Other Hosts**: This is a static site—host the repo contents on any static hosting provider.
 
 ## License
 
