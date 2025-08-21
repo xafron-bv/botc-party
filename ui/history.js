@@ -91,3 +91,59 @@ export function renderGrimoireHistory({ grimoireHistoryList, history }) {
     grimoireHistoryList.appendChild(li);
   });
 }
+
+export async function handleScriptHistoryClick({ e, history, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
+  const li = e.target.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+  const entry = history.scriptHistory.find(x => x.id === id);
+  if (!entry) return;
+  const clickedDelete = e.target.closest('.icon-btn.delete');
+  const clickedRename = e.target.closest('.icon-btn.rename');
+  const clickedSave = e.target.closest('.icon-btn.save');
+  const clickedInput = e.target.closest('.history-edit-input');
+  if (clickedDelete) {
+    if (confirm('Delete this script from history?')) {
+      history.scriptHistory = history.scriptHistory.filter(x => x.id !== id);
+      saveHistories(history);
+      renderScriptHistory({ scriptHistoryList, history });
+    }
+    return;
+  }
+  if (clickedRename) {
+    const nameSpan = li.querySelector('.history-name');
+    const input = li.querySelector('.history-edit-input');
+    const renameBtn = li.querySelector('.icon-btn.rename');
+    const saveBtn = li.querySelector('.icon-btn.save');
+    nameSpan.style.display = 'none';
+    input.style.display = 'inline-block';
+    renameBtn.style.display = 'none';
+    saveBtn.style.display = 'inline-block';
+    li.classList.add('editing');
+    input.focus();
+    input.setSelectionRange(0, input.value.length);
+    return;
+  }
+  if (clickedSave) {
+    const input = li.querySelector('.history-edit-input');
+    const newName = (input.value || '').trim();
+    if (newName) {
+      entry.name = newName;
+      entry.updatedAt = Date.now();
+      saveHistories(history);
+      renderScriptHistory({ scriptHistoryList, history });
+    }
+    li.classList.remove('editing');
+    return;
+  }
+  if (clickedInput) return; // don't load when clicking into input
+  if (li.classList.contains('editing')) return; // avoid loading while editing
+  // Default: clicking the item or name loads the script
+  try {
+    await processScriptData(entry.data, false);
+    scriptMetaName = entry.name || scriptMetaName || '';
+    displayScript(scriptData);
+    saveAppState();
+    renderSetupInfo();
+  } catch (err) { console.error(err); }
+}
