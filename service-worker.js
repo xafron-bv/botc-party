@@ -14,6 +14,9 @@ const urlsToCache = [
   './ui/sidebar.js',
   './ui/tour.js',
   './ui/layout.js',
+  './ui/history/index.js',
+  './ui/history/script.js',
+  './ui/history/grimoire.js',
   './characters.json',
   './Trouble Brewing.json',
   './Bad Moon Rising.json',
@@ -43,7 +46,7 @@ const networkFirstFiles = [
 self.addEventListener('install', event => {
   // Skip waiting to activate immediately
   self.skipWaiting();
-  
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -64,7 +67,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  const isNetworkFirst = networkFirstFiles.some(file => 
+  const isNetworkFirst = networkFirstFiles.some(file =>
     url.pathname.endsWith(file) || url.pathname === '/' || url.pathname === '/workspace/'
   );
 
@@ -114,7 +117,7 @@ self.addEventListener('fetch', event => {
                   });
                 }
               })
-              .catch(() => {});
+              .catch(() => { });
             return response;
           }
           return fetch(event.request)
@@ -207,7 +210,7 @@ self.addEventListener('fetch', event => {
           .catch(() => {
             // Return cached response for navigation requests
             if (event.request.mode === 'navigate') {
-               return caches.match('./index.html');
+              return caches.match('./index.html');
             }
             return null;
           });
@@ -218,17 +221,17 @@ self.addEventListener('fetch', event => {
 async function cacheAllTokenImages() {
   try {
     const cache = await caches.open(CACHE_NAME);
-    
+
     // Get characters.json from cache instead of fetching again
     const cachedResponse = await cache.match('./characters.json');
     if (!cachedResponse) {
       console.log('characters.json not found in cache, skipping image caching');
       return;
     }
-    
+
     const characters = await cachedResponse.json();
     const imageUrls = [];
-    
+
     // Extract all image URLs from the characters list
     if (Array.isArray(characters)) {
       characters.forEach(role => {
@@ -237,9 +240,9 @@ async function cacheAllTokenImages() {
         }
       });
     }
-    
+
     console.log(`Found ${imageUrls.length} token images to cache`);
-    
+
     // Cache all token images
     const cachePromises = imageUrls.map(async (imageUrl) => {
       try {
@@ -252,10 +255,10 @@ async function cacheAllTokenImages() {
         console.log(`Failed to cache image: ${imageUrl}`, error);
       }
     });
-    
+
     await Promise.allSettled(cachePromises);
     console.log('Token image caching completed');
-    
+
   } catch (error) {
     console.error('Error caching token images:', error);
   }

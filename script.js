@@ -5,7 +5,9 @@ import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { initInAppTour } from './ui/tour.js';
 import { repositionPlayers as repositionPlayersLayout, positionRadialStack as positionRadialStackLayout } from './ui/layout.js';
-import { renderScriptHistory, saveHistories, loadHistories, renderGrimoireHistory, addScriptHistoryListListeners } from './ui/history.js';
+import { saveHistories, loadHistories } from './ui/history/index.js';
+import { renderScriptHistory, addScriptHistoryListListeners, addScriptToHistory } from "./ui/history/script.js";
+import { renderGrimoireHistory } from "./ui/history/grimoire.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -124,20 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     grimoireHistory: []
   };
   let isRestoringState = false;
-
-  function addScriptToHistory(name, data) {
-    const entryName = (name && String(name).trim()) || 'Custom Script';
-    // Update existing by name if found, else add new
-    const idx = history.scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
-    if (idx >= 0) {
-      history.scriptHistory[idx].data = data;
-      history.scriptHistory[idx].updatedAt = Date.now();
-    } else {
-      history.scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
-    }
-    saveHistories(history);
-    renderScriptHistory({ scriptHistoryList, history });
-  }
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
   function rebuildPlayerCircleUiPreserveState() {
@@ -824,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addToHistory) {
       const histName = scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
       if (!isExcludedScriptName(histName)) {
-        addScriptToHistory(histName, data);
+        addScriptToHistory({ name: histName, data, history, scriptHistoryList });
       }
     }
   }
