@@ -29,8 +29,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # 6-char hash derived from PR SHA to avoid collisions
-          HASH=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-6)
+          # Stable 6-char hash derived from PR number
+          HASH=$(printf "pr-%s" "${{ github.event.pull_request.number }}" | sha1sum | cut -c1-6)
           echo "hash=${HASH}" >> "$GITHUB_OUTPUT"
 
       - name: Prepare preview directory content
@@ -90,52 +90,32 @@ jobs:
           fi
           echo "preview_path=dev/${HASH}" >> "$GITHUB_OUTPUT"
 
-      - name: Determine Pages URL
-        id: pages
-        shell: bash
-        run: |
-          set -euo pipefail
-          # GitHub Pages base URL for org/user sites is <owner>.github.io/<repo>
-          OWNER_REPO="${{ github.repository }}"
-          OWNER=${OWNER_REPO%%/*}
-          REPO=${OWNER_REPO#*/}
-          BASE="https://${OWNER}.github.io/${REPO}"
-          echo "base_url=${BASE}" >> "$GITHUB_OUTPUT"
-
-      - name: Post link as commit on PR branch (same-repo only)
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euxo pipefail
-          HASH="${{ steps.hash.outputs.hash }}"
-          MESSAGE="Preview: https://botc.party/dev/${HASH}"
-          BRANCH="${{ github.event.pull_request.head.ref }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Fetch and checkout the PR branch
-          git fetch origin "${BRANCH}:${BRANCH}"
-          git checkout "${BRANCH}"
-          if git log -n 1 --pretty=%B | grep -F "${MESSAGE}"; then
-            echo "Preview commit already exists; skipping."
-            exit 0
-          fi
-          # Create an empty commit with the preview link
-          git commit --allow-empty -m "${MESSAGE}"
-          git push origin "HEAD:${BRANCH}"
-
-      - name: Comment link on PR (forks or if commit not possible)
-        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+      - name: Comment or update preview link on PR
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const hash = process.env.HASH || "${{ steps.hash.outputs.hash }}";
+            const hash = `${{ steps.hash.outputs.hash }}`;
             const body = `Preview: https://botc.party/dev/${hash}`;
-            await github.rest.issues.createComment({
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
-              body
+              per_page: 100,
             });
+            const existing = comments.find(c => c.user && c.user.login === 'github-actions[bot]' && c.body && c.body.startsWith('Preview: https://botc.party/dev/'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }
