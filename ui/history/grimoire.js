@@ -1,7 +1,7 @@
 import { generateId, formatDateName } from "../../utils.js";
-import { saveHistories } from "./index.js";
+import { saveHistories, history } from "./index.js";
 
-export function renderGrimoireHistory({ grimoireHistoryList, history }) {
+export function renderGrimoireHistory({ grimoireHistoryList }) {
   if (!grimoireHistoryList) return;
   grimoireHistoryList.innerHTML = '';
   history.grimoireHistory.forEach(entry => {
@@ -40,7 +40,7 @@ export function renderGrimoireHistory({ grimoireHistoryList, history }) {
   });
 }
 
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, history, grimoireHistoryList }) {
+export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
     const snapPlayers = JSON.parse(JSON.stringify(players));
@@ -54,12 +54,12 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, h
       scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
     };
     history.grimoireHistory.unshift(entry);
-    saveHistories(history);
-    renderGrimoireHistory({ grimoireHistoryList, history });
+    saveHistories();
+    renderGrimoireHistory({ grimoireHistoryList });
   } catch (_) { }
 }
 
-export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
+export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -72,8 +72,8 @@ export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryLi
   if (clickedDelete) {
     if (confirm('Delete this grimoire snapshot?')) {
       history.grimoireHistory = history.grimoireHistory.filter(x => x.id !== id);
-      saveHistories(history);
-      renderGrimoireHistory({ grimoireHistoryList, history });
+      saveHistories();
+      renderGrimoireHistory({ grimoireHistoryList });
     }
     return;
   }
@@ -97,8 +97,8 @@ export async function handleGrimoireHistoryClick({ e, history, grimoireHistoryLi
     if (newName) {
       entry.name = newName;
       entry.updatedAt = Date.now();
-      saveHistories(history);
-      renderGrimoireHistory({ grimoireHistoryList, history });
+      saveHistories();
+      renderGrimoireHistory({ grimoireHistoryList });
     }
     li.classList.remove('editing');
     return;
@@ -120,7 +120,7 @@ export function handleGrimoireHistoryOnClear() {
   document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
 }
 
-export function handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList }) {
+export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
   if (!e.target.classList.contains('history-edit-input')) return;
   const li = e.target.closest('li');
   const id = li && li.dataset.id;
@@ -131,8 +131,8 @@ export function handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList
     if (newName) {
       entry.name = newName;
       entry.updatedAt = Date.now();
-      saveHistories(history);
-      renderGrimoireHistory({ grimoireHistoryList, history });
+      saveHistories();
+      renderGrimoireHistory({ grimoireHistoryList });
     }
   }
 }
@@ -158,11 +158,11 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, processSc
   }
 }
 
-export function addGrimoireHistoryListListeners({ grimoireHistoryList, history, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
+export function addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }) {
   grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown);
   grimoireHistoryList.addEventListener('pointerup', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointercancel', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);
-  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, history, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }));
-  grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, history, grimoireHistoryList }));
+  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo }));
+  grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }));
 }

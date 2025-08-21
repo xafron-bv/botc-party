@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ability tooltip elements
   const abilityTooltip = document.getElementById('ability-tooltip');
-  const touchAbilityPopup = document.getElementById('touch-ability-popup');
   const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
@@ -124,10 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const TOUCH_EXPAND_SUPPRESS_MS = 350;
   const CLICK_EXPAND_SUPPRESS_MS = 250;
   const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
-  const history = {
-    scriptHistory: [],
-    grimoireHistory: []
-  };
 
   // Build player circle UI from current players WITHOUT snapshotting or resetting players
   function rebuildPlayerCircleUiPreserveState() {
@@ -472,11 +467,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Event delegation for history lists
   if (scriptHistoryList) {
-    addScriptHistoryListListeners({ scriptHistoryList, history, processScriptData, displayScript, saveAppState, renderSetupInfo });
+    addScriptHistoryListListeners({ scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo });
   }
 
   if (grimoireHistoryList) {
-    addGrimoireHistoryListListeners({ grimoireHistoryList, history, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo });
+    addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState, processScriptData, setupGrimoire, updateGrimoire, repositionPlayers, saveAppState, renderSetupInfo });
   }
 
   function saveAppState() {
@@ -692,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addToHistory) {
       const histName = grimoireState.scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
       if (!isExcludedScriptName(histName)) {
-        addScriptToHistory({ name: histName, data, history, scriptHistoryList });
+        addScriptToHistory({ name: histName, data, scriptHistoryList });
       }
     }
   }
@@ -830,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupGrimoire(count) {
     try {
       if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-        snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, history, grimoireHistoryList });
+        snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
       }
     } catch (_) { }
     console.log('Setting up grimoire with', count, 'players');
@@ -1800,9 +1795,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Load histories and render lists
-  loadHistories(history);
-  renderScriptHistory({ scriptHistoryList, history });
-  renderGrimoireHistory({ grimoireHistoryList, history });
+  loadHistories();
+  renderScriptHistory({ scriptHistoryList });
+  renderGrimoireHistory({ grimoireHistoryList });
 
   // Restore previous session (script and grimoire)
   loadAppState();

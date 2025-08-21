@@ -1,7 +1,7 @@
-import { saveHistories } from "./index.js";
+import { saveHistories, history } from "./index.js";
 import { generateId } from "../../utils.js";
 
-export async function handleScriptHistoryClick({ e, history, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
+export async function handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -14,8 +14,8 @@ export async function handleScriptHistoryClick({ e, history, scriptHistoryList, 
   if (clickedDelete) {
     if (confirm('Delete this script from history?')) {
       history.scriptHistory = history.scriptHistory.filter(x => x.id !== id);
-      saveHistories(history);
-      renderScriptHistory({ scriptHistoryList, history });
+      saveHistories();
+      renderScriptHistory({ scriptHistoryList });
     }
     return;
   }
@@ -39,8 +39,8 @@ export async function handleScriptHistoryClick({ e, history, scriptHistoryList, 
     if (newName) {
       entry.name = newName;
       entry.updatedAt = Date.now();
-      saveHistories(history);
-      renderScriptHistory({ scriptHistoryList, history });
+      saveHistories();
+      renderScriptHistory({ scriptHistoryList });
     }
     li.classList.remove('editing');
     return;
@@ -65,7 +65,7 @@ export async function handleScriptHistoryClick({ e, history, scriptHistoryList, 
 export function handleScriptHistoryOnClear() {
   document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed'));
 }
-export function handleScriptHistoryOnKeyDown({ e, history, scriptHistoryList }) {
+export function handleScriptHistoryOnKeyDown({ e, scriptHistoryList }) {
   if (!e.target.classList.contains('history-edit-input')) return;
   const li = e.target.closest('li');
   const id = li && li.dataset.id;
@@ -76,20 +76,20 @@ export function handleScriptHistoryOnKeyDown({ e, history, scriptHistoryList }) 
     if (newName) {
       entry.name = newName;
       entry.updatedAt = Date.now();
-      saveHistories(history);
-      renderScriptHistory({ scriptHistoryList, history });
+      saveHistories();
+      renderScriptHistory({ scriptHistoryList });
     }
   }
 }
-export function addScriptHistoryListListeners({ scriptHistoryList, history, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
-  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, history, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }));
+export function addScriptHistoryListListeners({ scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }) {
+  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript, saveAppState, renderSetupInfo }));
   scriptHistoryList.addEventListener('pointerdown', (e) => handleScriptHistoryOnDown({ e }));
   scriptHistoryList.addEventListener('pointerup', () => handleScriptHistoryOnClear());
   scriptHistoryList.addEventListener('pointercancel', () => handleScriptHistoryOnClear());
   scriptHistoryList.addEventListener('pointerleave', () => handleScriptHistoryOnClear());
-  scriptHistoryList.addEventListener('keydown', (e) => handleScriptHistoryOnKeyDown({ e, history, scriptHistoryList }));
+  scriptHistoryList.addEventListener('keydown', (e) => handleScriptHistoryOnKeyDown({ e, scriptHistoryList }));
 }
-export function renderScriptHistory({ scriptHistoryList, history }) {
+export function renderScriptHistory({ scriptHistoryList }) {
   if (!scriptHistoryList) return;
   scriptHistoryList.innerHTML = '';
   history.scriptHistory.forEach(entry => {
@@ -128,7 +128,7 @@ export function renderScriptHistory({ scriptHistoryList, history }) {
   });
 }
 
-export function addScriptToHistory({ name, data, history, scriptHistoryList }) {
+export function addScriptToHistory({ name, data, scriptHistoryList }) {
   const entryName = (name && String(name).trim()) || 'Custom Script';
   // Update existing by name if found, else add new
   const idx = history.scriptHistory.findIndex(e => (e.name || '').toLowerCase() === entryName.toLowerCase());
@@ -138,6 +138,6 @@ export function addScriptToHistory({ name, data, history, scriptHistoryList }) {
   } else {
     history.scriptHistory.unshift({ id: generateId('script'), name: entryName, data, createdAt: Date.now(), updatedAt: Date.now() });
   }
-  saveHistories(history);
-  renderScriptHistory({ scriptHistoryList, history });
+  saveHistories();
+  renderScriptHistory({ scriptHistoryList });
 }
