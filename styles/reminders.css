@@ -304,3 +304,7 @@
     transform: translate(-50%, -50%) scale(1.2);
     box-shadow: 0 4px 12px rgba(0,0,0,0.7);
 }
+
+#player-circle li[data-expanded="1"] {
+    z-index: 100;
+}
