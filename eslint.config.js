@@ -56,14 +56,6 @@ export default [
         prompt: 'readonly',
         // Crypto API
         crypto: 'readonly',
-        // Cypress global
-        cy: 'readonly',
-        Cypress: 'readonly',
-        // Cypress test globals
-        describe: 'readonly',
-        it: 'readonly',
-        beforeEach: 'readonly',
-        expect: 'readonly',
         // Browser API
         getBoundingClientRect: 'readonly',
         getComputedStyle: 'readonly',
