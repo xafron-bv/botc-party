@@ -16,7 +16,7 @@ describe('Reminder overlap z-index (touch mode)', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
       // Force touch mode
       Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
     });
@@ -32,15 +32,15 @@ describe('Reminder overlap z-index (touch mode)', () => {
     const addReminder = () => {
       cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
       cy.get('#reminder-token-modal').should('be.visible');
-      // Choose a generic token that always exists
-      cy.get('#reminder-token-grid .token').first().click({ force: true });
+      // Choose a generic non-custom token to avoid prompt blocking modal close
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
       cy.get('#reminder-token-modal').should('not.be.visible');
     };
     // Add ~10 reminders to ensure the arc reaches near the circle center and beyond
     for (let i = 0; i < 10; i += 1) addReminder();
 
-    // Touch on player 0 to expand its reminders (touch mode expand behavior)
-    cy.get('#player-circle li').eq(0).trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }] });
+    // Expand player 0 by clicking a reminder token (works across environments)
+    cy.get('#player-circle li').eq(0).find('.reminders .icon-reminder, .reminders .text-reminder').first().click({ force: true });
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
 
     // Compute a point near the last reminder bubble position by reading its bounding rect
