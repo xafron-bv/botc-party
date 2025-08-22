@@ -7,8 +7,9 @@ import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { initInAppTour } from './ui/tour.js';
 import { isExcludedScriptName, normalizeKey, resolveAssetPath } from './utils.js';
-import { saveAppState, renderSetupInfo, loadAppState, startGame, updateGrimoire, initGrimoireBackground, handleGrimoireBackgroundChange } from './ui/grimoire.js';
+import { renderSetupInfo, startGame, updateGrimoire, initGrimoireBackground, handleGrimoireBackgroundChange } from './ui/grimoire.js';
 import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY } from './constants.js';
+import { loadAppState, saveAppState } from './ui/app.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');

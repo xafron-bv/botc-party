@@ -1,6 +1,7 @@
 import { saveHistories, history } from "./index.js";
 import { generateId } from "../../utils.js";
-import { saveAppState, renderSetupInfo } from "../grimoire.js";
+import { renderSetupInfo } from "../grimoire.js";
+import { saveAppState } from "../app.js";
 
 export async function handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript }) {
   const li = e.target.closest('li');

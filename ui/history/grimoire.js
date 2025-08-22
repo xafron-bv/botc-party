@@ -1,6 +1,7 @@
 import { generateId, formatDateName } from "../../utils.js";
 import { saveHistories, history } from "./index.js";
-import { updateGrimoire, saveAppState, renderSetupInfo } from "../grimoire.js";
+import { updateGrimoire, renderSetupInfo } from "../grimoire.js";
+import { saveAppState } from "../app.js";
 import { setupGrimoire } from "../grimoire.js";
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {
