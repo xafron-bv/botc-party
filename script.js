@@ -1,4 +1,4 @@
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice } from './constants.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice } from './src/constants.js';
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';

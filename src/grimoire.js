@@ -1,6 +1,6 @@
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { repositionPlayers, positionRadialStack } from './ui/layout.js';
-import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from '../constants.js';
+import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from './constants.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { resolveAssetPath } from '../utils.js';
 import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';

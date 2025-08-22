@@ -1,44 +1,30 @@
 const CACHE_NAME = 'botc-party-grimoire-v23';
-const urlsToCache = [
-  './',
-  './index.html',
-  './terms.html',
-  './LICENSE.md',
-  './styles.css',
-  './script.js',
-  './utils.js',
-  './pwa.js',
-  './ui/tooltip.js',
-  './ui/svg.js',
-  './ui/guides.js',
-  './ui/sidebar.js',
-  './ui/tour.js',
-  './ui/layout.js',
-  './ui/history/index.js',
-  './ui/history/script.js',
-  './ui/history/grimoire.js',
-  './characters.json',
-  './Trouble Brewing.json',
-  './Bad Moon Rising.json',
-  './Sects and Violets.json',
-  './manifest.json',
-  './assets/fontawesome/css/all.min.css',
-  './assets/fontawesome/webfonts/fa-solid-900.woff2',
-  './assets/fontawesome/webfonts/fa-regular-400.woff2',
-  './assets/fontawesome/webfonts/fa-brands-400.woff2',
-  './assets/img/background4-C7TzDZ7M.webp',
-  './assets/img/background4-X8jQb4tv.webp',
-  './assets/img/background-bJ1INm6Z.webp',
-  './assets/img/token-BqDQdWeO.webp',
-  './assets/icons/android-chrome-192x192.png',
-  './assets/icons/android-chrome-512x512.png'
-];
+
+// Dynamic caching patterns instead of hardcoded file lists
+const CACHE_PATTERNS = {
+  // Core app files - always cache
+  core: [
+    './',
+    './index.html',
+    './terms.html',
+    './LICENSE.md',
+    './manifest.json'
+  ],
+  // File extensions to cache
+  extensions: ['.css', '.js', '.json', '.woff2', '.png', '.webp'],
+  // Directories to cache
+  directories: [
+    './assets/',
+    './src/',
+    './build/'
+  ]
+};
 
 // Files that should always be fetched from network first
 const networkFirstFiles = [
   'index.html',
   'styles.css',
-  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js', 'ui/sidebar.js', 'ui/tour.js', 'ui/layout.js',
+  'script.js', 'utils.js', 'pwa.js', 'src/ui/tooltip.js', 'src/ui/svg.js', 'src/ui/guides.js', 'src/ui/sidebar.js', 'src/ui/tour.js', 'src/ui/layout.js',
   'service-worker.js',
   'manifest.json'
 ];
@@ -51,13 +37,12 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        // First cache the basic files
-        return cache.addAll(urlsToCache);
+        // Cache only core files during install
+        return cache.addAll(CACHE_PATTERNS.core);
       })
       .then(() => {
-        console.log('Basic files cached successfully');
-        // Don't cache token images during install to avoid circular dependency
-        // They will be cached on first fetch
+        console.log('Core files cached successfully');
+        // Cache other assets dynamically on first fetch
       })
       .catch(error => {
         console.error('Service worker installation failed:', error);
@@ -190,7 +175,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle other requests - cache first
+  // Handle other requests - dynamic cache first based on patterns
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -200,10 +185,14 @@ self.addEventListener('fetch', event => {
         return fetch(event.request)
           .then(response => {
             if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, responseClone);
-              });
+              // Check if this request should be cached based on patterns
+              if (shouldCacheRequest(event.request)) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseClone);
+                  console.log(`Dynamically cached: ${event.request.url}`);
+                });
+              }
             }
             return response;
           })
@@ -284,6 +273,34 @@ self.addEventListener('activate', event => {
     ])
   );
 });
+
+// Helper function to determine if a request should be cached based on patterns
+function shouldCacheRequest(request) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  // Always cache core files
+  if (CACHE_PATTERNS.core.some(corePath => pathname.endsWith(corePath.replace('./', '')))) {
+    return true;
+  }
+
+  // Cache files with specified extensions
+  if (CACHE_PATTERNS.extensions.some(ext => pathname.endsWith(ext))) {
+    return true;
+  }
+
+  // Cache files in specified directories
+  if (CACHE_PATTERNS.directories.some(dir => pathname.startsWith(dir.replace('./', '/')))) {
+    return true;
+  }
+
+  // Cache JSON files (scripts and character data)
+  if (pathname.endsWith('.json')) {
+    return true;
+  }
+
+  return false;
+}
 
 // Handle background sync for offline functionality
 self.addEventListener('sync', event => {
