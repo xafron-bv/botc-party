@@ -15,7 +15,7 @@ const CACHE_PATTERNS = {
   // Directories to cache
   directories: [
     './assets/',
-    './src/',
+    './ui/',
     './build/'
   ]
 };
@@ -24,7 +24,7 @@ const CACHE_PATTERNS = {
 const networkFirstFiles = [
   'index.html',
   'styles.css',
-  'script.js', 'utils.js', 'pwa.js', 'src/ui/tooltip.js', 'src/ui/svg.js', 'src/ui/guides.js', 'src/ui/sidebar.js', 'src/ui/tour.js', 'src/ui/layout.js',
+  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js', 'ui/sidebar.js', 'ui/tour.js', 'ui/layout.js',
   'service-worker.js',
   'manifest.json'
 ];
@@ -55,6 +55,39 @@ self.addEventListener('fetch', event => {
   const isNetworkFirst = networkFirstFiles.some(file =>
     url.pathname.endsWith(file) || url.pathname === '/' || url.pathname === '/workspace/'
   );
+
+  // Only handle GET requests; pass others through to network
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Optimize navigations with navigation preload and robust fallbacks
+  if (event.request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const preloaded = await event.preloadResponse;
+        if (preloaded) {
+          const clone = preloaded.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
+          return preloaded;
+        }
+      } catch (_) {}
+
+      try {
+        const networkResponse = await fetch(event.request);
+        if (networkResponse && networkResponse.ok) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
+        }
+        return networkResponse;
+      } catch (_) {
+        const cached = await caches.match('./index.html');
+        if (cached) return cached;
+        return Response.redirect('./index.html');
+      }
+    })());
+    return;
+  }
 
   // Handle character image requests - cache first
   if (event.request.url.includes('/build/img/icons/')) {
@@ -87,7 +120,7 @@ self.addEventListener('fetch', event => {
   // Handle characters.json requests - cache first
   if (event.request.url.includes('/characters.json') || event.request.url.endsWith('characters.json')) {
     event.respondWith(
-      caches.match(event.request)
+      caches.match(event.request, { ignoreSearch: true })
         .then(response => {
           if (response) {
             // Try to fetch fresh version in background
@@ -98,7 +131,7 @@ self.addEventListener('fetch', event => {
                   caches.open(CACHE_NAME).then(cache => {
                     cache.put(event.request, responseClone);
                     // Cache all token images after successfully caching characters.json
-                    cacheAllTokenImages();
+                    event.waitUntil(cacheAllTokenImages());
                   });
                 }
               })
@@ -112,7 +145,7 @@ self.addEventListener('fetch', event => {
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);
                   // Cache all token images after successfully caching characters.json
-                  cacheAllTokenImages();
+                  event.waitUntil(cacheAllTokenImages());
                 });
               }
               return response;
@@ -128,20 +161,24 @@ self.addEventListener('fetch', event => {
   }
 
   // Cache base script JSON files on fetch as well - cache first
-  if (event.request.url.endsWith('Trouble%20Brewing.json') || event.request.url.endsWith('Bad%20Moon%20Rising.json') || event.request.url.endsWith('Sects%20and%20Violets.json')) {
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        if (response) return response;
-        return fetch(event.request).then(res => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          }
-          return res;
-        });
-      })
-    );
-    return;
+  {
+    const decodedPath = decodeURIComponent(url.pathname);
+    const baseScriptNames = ['Trouble Brewing.json', 'Bad Moon Rising.json', 'Sects and Violets.json'];
+    if (baseScriptNames.some(name => decodedPath.endsWith(name))) {
+      event.respondWith(
+        caches.match(event.request, { ignoreSearch: true }).then(response => {
+          if (response) return response;
+          return fetch(event.request).then(res => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+            return res;
+          });
+        })
+      );
+      return;
+    }
   }
 
   // Handle network-first files (HTML, CSS, JS)
@@ -159,7 +196,7 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           // Fall back to cache if network fails
-          return caches.match(event.request)
+          return caches.match(event.request, { ignoreSearch: true })
             .then(response => {
               if (response) {
                 return response;
@@ -177,7 +214,7 @@ self.addEventListener('fetch', event => {
 
   // Handle other requests - dynamic cache first based on patterns
   event.respondWith(
-    caches.match(event.request)
+    caches.match(event.request, { ignoreSearch: true })
       .then(response => {
         if (response) {
           return response;
@@ -212,7 +249,7 @@ async function cacheAllTokenImages() {
     const cache = await caches.open(CACHE_NAME);
 
     // Get characters.json from cache instead of fetching again
-    const cachedResponse = await cache.match('./characters.json');
+    const cachedResponse = await cache.match('./characters.json', { ignoreSearch: true });
     if (!cachedResponse) {
       console.log('characters.json not found in cache, skipping image caching');
       return;
@@ -269,7 +306,9 @@ self.addEventListener('activate', event => {
         );
       }),
       // Take control of all clients immediately
-      self.clients.claim()
+      self.clients.claim(),
+      // Enable navigation preload when supported
+      (self.registration && self.registration.navigationPreload && self.registration.navigationPreload.enable()) || Promise.resolve()
     ])
   );
 });
@@ -313,3 +352,11 @@ function doBackgroundSync() {
   // Perform any background sync tasks
   console.log('Background sync completed');
 }
+
+// Allow clients to trigger immediate activation of a waiting service worker
+self.addEventListener('message', event => {
+  if (!event || !event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
