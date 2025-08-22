@@ -2,7 +2,7 @@ import './pwa.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory } from "./ui/history/grimoire.js";
 import { loadHistories } from './ui/history/index.js';
 import { addScriptHistoryListListeners, addScriptToHistory, renderScriptHistory } from "./ui/history/script.js";
-import { positionRadialStack as positionRadialStackLayout, repositionPlayers as repositionPlayersLayout } from './ui/layout.js';
+import { positionRadialStack as positionRadialStackLayout, repositionPlayers } from './ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { initInAppTour } from './ui/tour.js';
@@ -251,13 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     // Apply layout and state immediately for deterministic testing and UX
-    repositionPlayers(grimoireState.players);
+    repositionPlayers({ players: grimoireState.players });
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
     // Also after paint to ensure positions stabilize
     requestAnimationFrame(() => {
-      repositionPlayers(grimoireState.players);
+      repositionPlayers({ players: grimoireState.players });
       updateGrimoire({ grimoireState });
     });
   }
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (grimoireHistoryList) {
-    addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData, repositionPlayers });
+    addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData });
   }
 
   async function loadAllCharacters() {
@@ -732,8 +732,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   startGameBtn.addEventListener('click', () => startGame({ grimoireState, grimoireHistoryList, playerCountInput, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal }));
 
-  function repositionPlayers() { repositionPlayersLayout(grimoireState.players); }
-
   // Arrange reminders and plus button along the line from token center to circle center
   function positionRadialStack(li, count) { positionRadialStackLayout(li, count, grimoireState.players); }
 
@@ -945,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeObserver = new ResizeObserver((entries) => {
       if (grimoireState.players.length > 0) {
         console.log('Container resized, repositioning players...');
-        requestAnimationFrame(() => repositionPlayers(grimoireState.players));
+        requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
       }
     });
 
@@ -962,7 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resizeTimeout = setTimeout(() => {
         if (grimoireState.players.length > 0) {
           console.log('Window resized, repositioning players...');
-          requestAnimationFrame(() => repositionPlayers(grimoireState.players));
+          requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
         }
       }, 250);
     });
@@ -971,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && grimoireState.players.length > 0) {
-      requestAnimationFrame(() => repositionPlayers(grimoireState.players));
+      requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
     }
   });
 
@@ -1108,7 +1106,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarEl,
     sidebarResizer,
     isTouchDevice,
-    repositionPlayers
+    repositionPlayers,
+    players: grimoireState.players
   });
 
   // Load histories and render lists
@@ -1117,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderGrimoireHistory({ grimoireHistoryList });
 
   // Restore previous session (script and grimoire)
-  loadAppState({ grimoireState, grimoireHistoryList, processScriptData, repositionPlayers, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal });
+  loadAppState({ grimoireState, grimoireHistoryList, processScriptData, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal });
 
   // In-app tour
   initInAppTour();

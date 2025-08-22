@@ -1,5 +1,6 @@
 import { setupGrimoire, updateGrimoire } from './grimoire.js';
 import { INCLUDE_TRAVELLERS_KEY } from '../constants.js';
+import { repositionPlayers } from './layout.js';
 
 export function saveAppState({ grimoireState }) {
   try {
@@ -9,7 +10,7 @@ export function saveAppState({ grimoireState }) {
   } catch (_) { }
 }
 
-export async function loadAppState({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData, repositionPlayers }) {
+export async function loadAppState({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData }) {
   try {
     grimoireState.isRestoringState = true;
     const raw = localStorage.getItem('botcAppStateV1');
@@ -24,7 +25,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList, openCha
       setupGrimoire({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, count: saved.players.length });
       grimoireState.players = saved.players;
       updateGrimoire({ grimoireState });
-      repositionPlayers(grimoireState.players);
+      repositionPlayers({ players: grimoireState.players });
       renderSetupInfo({ grimoireState });
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }

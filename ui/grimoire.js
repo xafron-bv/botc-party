@@ -183,7 +183,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacte
 
   // Use requestAnimationFrame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
-    repositionPlayers(grimoireState.players);
+    repositionPlayers({ players: grimoireState.players });
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });

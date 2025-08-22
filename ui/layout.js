@@ -2,7 +2,7 @@
 
 import { positionInfoIcons } from './tooltip.js';
 
-export function repositionPlayers(players) {
+export function repositionPlayers({ players }) {
   const count = players.length;
   if (count === 0) return;
   const circle = document.getElementById('player-circle');

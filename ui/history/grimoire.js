@@ -3,6 +3,7 @@ import { saveHistories, history } from "./index.js";
 import { updateGrimoire, renderSetupInfo } from "../grimoire.js";
 import { saveAppState } from "../app.js";
 import { setupGrimoire } from "../grimoire.js";
+import { repositionPlayers } from "../layout.js";
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {
   if (!grimoireHistoryList) return;
@@ -62,7 +63,7 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
   } catch (_) { }
 }
 
-export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData, repositionPlayers }) {
+export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -109,7 +110,7 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
   // Default: clicking the item or name loads the grimoire
-  await restoreGrimoireFromEntry({ entry, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, grimoireState, grimoireHistoryList, processScriptData, repositionPlayers });
+  await restoreGrimoireFromEntry({ entry, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, grimoireState, grimoireHistoryList, processScriptData });
 }
 
 export function handleGrimoireHistoryOnDown(e) {
@@ -140,7 +141,7 @@ export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
   }
 }
 
-export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData, repositionPlayers }) {
+export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
   if (!entry) return;
   try {
@@ -152,7 +153,7 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     setupGrimoire({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
     updateGrimoire({ grimoireState });
-    repositionPlayers();
+    repositionPlayers({ players: grimoireState.players });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   } catch (e) {
@@ -162,11 +163,11 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
   }
 }
 
-export function addGrimoireHistoryListListeners({ grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, grimoireState, processScriptData, repositionPlayers }) {
+export function addGrimoireHistoryListListeners({ grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, grimoireState, processScriptData }) {
   grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown);
   grimoireHistoryList.addEventListener('pointerup', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointercancel', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);
-  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData, repositionPlayers }));
+  grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData }));
   grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }));
 }
