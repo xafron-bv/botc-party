@@ -21,7 +21,7 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
   // Truncate display on token to avoid overcrowding, but keep tooltip full
   const full = String(labelText || '');
   const maxChars = 14;
-  const display = full.length > maxChars ? full.slice(0, maxChars - 1) + '…' : full;
+  const display = full.length > maxChars ? `${full.slice(0, maxChars - 1)  }…` : full;
   const len = display.length;
   // Dynamic font size based on length
   let fontSize = 12;

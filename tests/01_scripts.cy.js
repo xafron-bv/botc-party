@@ -32,7 +32,7 @@ describe('Scripts', () => {
       const entry = {
         id: 'script_seed_1',
         name: 'Test Script',
-        data: [ { id: '_meta', name: 'Test Script', author: 'cypress' }, 'chef', 'librarian' ],
+        data: [{ id: '_meta', name: 'Test Script', author: 'cypress' }, 'chef', 'librarian'],
         createdAt: Date.now(),
         updatedAt: Date.now()
       };

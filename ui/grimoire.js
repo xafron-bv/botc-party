@@ -1,17 +1,18 @@
-import { snapshotCurrentGrimoire } from "./history/grimoire.js";
-import { repositionPlayers, positionRadialStack } from "./layout.js";
-import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from "../constants.js";
-import { createCurvedLabelSvg } from "./svg.js";
-import { resolveAssetPath } from "../utils.js";
-import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from "./tooltip.js";
-import { createDeathRibbonSvg } from "./svg.js";
-import { saveAppState } from "./app.js";
+import { snapshotCurrentGrimoire } from './history/grimoire.js';
+import { repositionPlayers, positionRadialStack } from './layout.js';
+import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from '../constants.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg } from './svg.js';
+import { resolveAssetPath } from '../utils.js';
+import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './tooltip.js';
+import { saveAppState } from './app.js';
+import { openCharacterModal, showPlayerContextMenu } from './character.js';
+import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
 
-export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, count }) {
+export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
@@ -47,12 +48,12 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacte
       if (target && target.classList.contains('ability-info-icon')) {
         return; // handled by info icon
       }
-      openCharacterModal(i);
+      openCharacterModal({ grimoireState, playerIndex: i });
     };
     // Player context menu: right-click
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      showPlayerContextMenu(e.clientX, e.clientY, i);
+      showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
     });
     // Long-press on token to open context menu on touch devices
     const tokenForMenu = listItem.querySelector('.player-token');
@@ -63,7 +64,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacte
       const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
       const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
       grimoireState.longPressTimer = setTimeout(() => {
-        showPlayerContextMenu(x, y, i);
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
       }, 600);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
@@ -71,7 +72,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacte
     });
     listItem.querySelector('.player-name').onclick = (e) => {
       e.stopPropagation();
-      const newName = prompt("Enter player name:", player.name);
+      const newName = prompt('Enter player name:', player.name);
       if (newName) {
         grimoireState.players[i].name = newName;
         updateGrimoire({ grimoireState });
@@ -100,11 +101,11 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, openCharacte
         }
       }
       if (isTouchDevice) {
-        openReminderTokenModal(i);
+        openReminderTokenModal({ grimoireState, playerIndex: i });
       } else if (e.altKey) {
-        openTextReminderModal(i);
+        openTextReminderModal({ grimoireState, playerIndex: i });
       } else {
-        openReminderTokenModal(i);
+        openReminderTokenModal({ grimoireState, playerIndex: i });
       }
     };
 
@@ -194,6 +195,86 @@ function lookupCountsForPlayers({ grimoireState, count }) {
   if (!Array.isArray(grimoireState.playerSetupTable)) return null;
   const row = grimoireState.playerSetupTable.find(r => Number(r.players) === Number(count));
   return row || null;
+}
+
+export function ensureReminderContextMenu({ grimoireState }) {
+  if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;
+  const menu = document.createElement('div');
+  menu.id = 'reminder-context-menu';
+  const editBtn = document.createElement('button');
+  editBtn.id = 'reminder-menu-edit';
+  editBtn.textContent = 'Edit Reminder';
+  const deleteBtn = document.createElement('button');
+  deleteBtn.id = 'reminder-menu-delete';
+  deleteBtn.textContent = 'Delete Reminder';
+
+  editBtn.addEventListener('click', () => {
+    const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
+    hideReminderContextMenu({ grimoireState });
+    if (playerIndex < 0 || reminderIndex < 0) return;
+    const rem = (grimoireState.players[playerIndex] && grimoireState.players[playerIndex].reminders && grimoireState.players[playerIndex].reminders[reminderIndex]) || null;
+    if (!rem) return;
+    const current = rem.label || rem.value || '';
+    const next = prompt('Edit reminder', current);
+    if (next !== null) {
+      if (rem.type === 'icon') {
+        rem.label = next;
+      } else {
+        // Text reminder
+        rem.value = next;
+        if (rem.label !== undefined) rem.label = next;
+      }
+      updateGrimoire({ grimoireState });
+      saveAppState({ grimoireState });
+    }
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
+    hideReminderContextMenu({ grimoireState });
+    if (playerIndex < 0 || reminderIndex < 0) return;
+    if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
+    grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
+    updateGrimoire({ grimoireState });
+    saveAppState({ grimoireState });
+  });
+
+  menu.appendChild(editBtn);
+  menu.appendChild(deleteBtn);
+  document.body.appendChild(menu);
+
+  // Hide on outside click or Escape
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideReminderContextMenu({ grimoireState });
+  });
+
+  grimoireState.reminderContextMenu = menu;
+  return menu;
+}
+
+export function hideReminderContextMenu({ grimoireState }) {
+  if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
+  grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
+  clearTimeout(grimoireState.longPressTimer);
+}
+
+export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
+  const menu = ensureReminderContextMenu({ grimoireState });
+  grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
+  menu.style.display = 'block';
+  const margin = 6;
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+    let left = x;
+    let top = y;
+    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
+    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  });
 }
 
 export function renderSetupInfo({ grimoireState }) {
@@ -468,7 +549,7 @@ export function updateGrimoire({ grimoireState }) {
             const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
             grimoireState.longPressTimer = setTimeout(() => {
               try { iconEl.classList.remove('press-feedback'); } catch (_) { }
-              showReminderContextMenu(x, y, i, idx);
+              showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
             }, 600);
           };
           const onPressEnd = () => { clearTimeout(grimoireState.longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch (_) { } };
@@ -519,7 +600,7 @@ export function updateGrimoire({ grimoireState }) {
                 parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
                 positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
               }
-              return;
+
             }
           }
           // No-op on desktop; use hover edit icon instead
@@ -593,7 +674,7 @@ export function updateGrimoire({ grimoireState }) {
             const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
             grimoireState.longPressTimer = setTimeout(() => {
               try { reminderEl.classList.remove('press-feedback'); } catch (_) { }
-              showReminderContextMenu(x, y, i, idx);
+              showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
             }, 600);
           };
           const onPressEnd2 = () => { clearTimeout(grimoireState.longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch (_) { } };
@@ -620,10 +701,10 @@ export function updateGrimoire({ grimoireState }) {
     positionInfoIcons();
   }
 }
-export function startGame({ grimoireState, grimoireHistoryList, playerCountInput, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal }) {
+export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);
   if (playerCount >= 5 && playerCount <= 20) {
-    setupGrimoire({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, count: playerCount });
+    setupGrimoire({ grimoireState, grimoireHistoryList, count: playerCount });
   } else {
     alert('Player count must be an integer from 5 to 20.');
   }
@@ -658,4 +739,172 @@ export function handleGrimoireBackgroundChange() {
   const val = backgroundSelect.value;
   applyGrimoireBackground(val);
   try { localStorage.setItem(BG_STORAGE_KEY, val); } catch (_) { }
+}
+
+export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
+  const playerCircle = document.getElementById('player-circle');
+  const playerCountInput = document.getElementById('player-count');
+  if (!playerCircle) return;
+  playerCircle.innerHTML = '';
+  // Keep sidebar input in sync with current number of players
+  if (playerCountInput) {
+    try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
+  }
+  grimoireState.players.forEach((player, i) => {
+    const listItem = document.createElement('li');
+    listItem.innerHTML = `
+          <div class="reminders"></div>
+          <div class="player-token" title="Assign character"></div>
+           <div class="character-name" aria-live="polite"></div>
+          <div class="player-name" title="Edit name">${player.name}</div>
+          <div class="reminder-placeholder" title="Add text reminder">+</div>
+      `;
+    playerCircle.appendChild(listItem);
+
+    // Open character modal on token click (unless clicking ribbon/info icon)
+    listItem.querySelector('.player-token').onclick = (e) => {
+      const target = e.target;
+      if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+        return;
+      }
+      if (target && target.classList.contains('ability-info-icon')) {
+        return;
+      }
+      openCharacterModal({ grimoireState, playerIndex: i });
+    };
+    listItem.querySelector('.player-name').onclick = (e) => {
+      e.stopPropagation();
+      const newName = prompt('Enter player name:', player.name);
+      if (newName) {
+        grimoireState.players[i].name = newName;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
+      }
+    };
+    listItem.querySelector('.reminder-placeholder').onclick = (e) => {
+      e.stopPropagation();
+      const thisLi = listItem;
+      // If another player's stack is expanded and this one is collapsed, first expand this one
+      if (thisLi.dataset.expanded !== '1') {
+        const allLis = document.querySelectorAll('#player-circle li');
+        let someoneExpanded = false;
+        allLis.forEach(el => {
+          if (el !== thisLi && el.dataset.expanded === '1') {
+            someoneExpanded = true;
+            el.dataset.expanded = '0';
+            const idx = Array.from(allLis).indexOf(el);
+            positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
+          }
+        });
+        if (someoneExpanded) {
+          thisLi.dataset.expanded = '1';
+          thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+          positionRadialStack(thisLi, grimoireState.players[i].reminders.length);
+          return;
+        }
+      }
+      if (isTouchDevice) {
+        openReminderTokenModal({ grimoireState, playerIndex: i });
+      } else if (e.altKey) {
+        openTextReminderModal({ grimoireState, playerIndex: i });
+      } else {
+        openReminderTokenModal({ grimoireState, playerIndex: i });
+      }
+    };
+
+    // Hover expand/collapse for reminder stack positioning
+    listItem.dataset.expanded = '0';
+    const expand = () => {
+      const wasExpanded = listItem.dataset.expanded === '1';
+      const allLis = document.querySelectorAll('#player-circle li');
+      allLis.forEach(el => {
+        if (el !== listItem && el.dataset.expanded === '1') {
+          el.dataset.expanded = '0';
+          const idx = Array.from(allLis).indexOf(el);
+          positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
+        }
+      });
+      listItem.dataset.expanded = '1';
+      if (isTouchDevice && !wasExpanded) {
+        listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+      }
+      positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+    };
+    const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
+    if (!isTouchDevice) {
+      listItem.addEventListener('mouseenter', expand);
+      listItem.addEventListener('mouseleave', collapse);
+      listItem.addEventListener('pointerenter', expand);
+      listItem.addEventListener('pointerleave', collapse);
+    }
+    listItem.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      const tappedReminders = !!(target && target.closest('.reminders'));
+      if (tappedReminders) {
+        try { e.preventDefault(); } catch (_) { }
+        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+      }
+      expand();
+      positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+    }, { passive: false });
+
+    // Player context menu: right-click
+    listItem.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
+    });
+    // Long-press on token to open context menu on touch devices
+    const tokenEl = listItem.querySelector('.player-token');
+    tokenEl.addEventListener('pointerdown', (e) => {
+      if (!isTouchDevice) return;
+      try { e.preventDefault(); } catch (_) { }
+      clearTimeout(grimoireState.longPressTimer);
+      const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
+      const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
+      grimoireState.longPressTimer = setTimeout(() => {
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+      }, 600);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+      tokenEl.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
+    });
+
+    // Install one-time outside collapse handler for touch devices
+    if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+      grimoireState.outsideCollapseHandlerInstalled = true;
+      const maybeCollapseOnOutside = (ev) => {
+        const target = ev.target;
+        // If the tap/click is anywhere inside the player circle, do not auto-collapse here.
+        // This allows reminder + gating to expand the tapped stack first.
+        const playerCircleEl = document.getElementById('player-circle');
+        if (playerCircleEl && playerCircleEl.contains(target)) return;
+        const allLis = document.querySelectorAll('#player-circle li');
+        let clickedInsideExpanded = false;
+        allLis.forEach(el => {
+          if (el.dataset.expanded === '1' && el.contains(target)) {
+            clickedInsideExpanded = true;
+          }
+        });
+        if (clickedInsideExpanded) return;
+        allLis.forEach(el => {
+          if (el.dataset.expanded === '1') {
+            el.dataset.expanded = '0';
+            positionRadialStack(el, (grimoireState.players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+          }
+        });
+      };
+      document.addEventListener('click', maybeCollapseOnOutside, true);
+      document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
+    }
+  });
+  // Apply layout and state immediately for deterministic testing and UX
+  repositionPlayers({ players: grimoireState.players });
+  updateGrimoire({ grimoireState });
+  saveAppState({ grimoireState });
+  renderSetupInfo({ grimoireState });
+  // Also after paint to ensure positions stabilize
+  requestAnimationFrame(() => {
+    repositionPlayers({ players: grimoireState.players });
+    updateGrimoire({ grimoireState });
+  });
 }

@@ -1,9 +1,10 @@
-import { saveHistories, history } from "./index.js";
-import { generateId } from "../../utils.js";
-import { renderSetupInfo } from "../grimoire.js";
-import { saveAppState } from "../app.js";
+import { saveHistories, history } from './index.js';
+import { generateId } from '../../utils.js';
+import { renderSetupInfo } from '../grimoire.js';
+import { saveAppState } from '../app.js';
+import { displayScript, processScriptData } from '../script.js';
 
-export async function handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript }) {
+export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireState }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -52,9 +53,9 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, processSc
 
   // Default: clicking the item or name loads the script
   try {
-    await processScriptData(entry.data, false);
-    scriptMetaName = entry.name || scriptMetaName || '';
-    displayScript(scriptData);
+    await processScriptData({ data: entry.data, addToHistory: false, grimoireState });
+    grimoireState.scriptMetaName = entry.name || grimoireState.scriptMetaName || '';
+    displayScript({ data: grimoireState.scriptData, grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   } catch (err) { console.error(err); }
@@ -83,8 +84,8 @@ export function handleScriptHistoryOnKeyDown({ e, scriptHistoryList }) {
     }
   }
 }
-export function addScriptHistoryListListeners({ scriptHistoryList, processScriptData, displayScript }) {
-  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, scriptHistoryList, processScriptData, displayScript }));
+export function addScriptHistoryListListeners({ scriptHistoryList, grimoireState }) {
+  scriptHistoryList.addEventListener('click', (e) => handleScriptHistoryClick({ e, scriptHistoryList, grimoireState }));
   scriptHistoryList.addEventListener('pointerdown', (e) => handleScriptHistoryOnDown({ e }));
   scriptHistoryList.addEventListener('pointerup', () => handleScriptHistoryOnClear());
   scriptHistoryList.addEventListener('pointercancel', () => handleScriptHistoryOnClear());

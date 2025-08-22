@@ -75,7 +75,7 @@ export function initSidebarToggle({
   sidebarEl,
   sidebarResizer,
   repositionPlayers,
-  players,
+  players
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';

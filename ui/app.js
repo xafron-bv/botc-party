@@ -1,6 +1,7 @@
-import { setupGrimoire, updateGrimoire } from './grimoire.js';
 import { INCLUDE_TRAVELLERS_KEY } from '../constants.js';
+import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
 import { repositionPlayers } from './layout.js';
+import { processScriptData } from './script.js';
 
 export function saveAppState({ grimoireState }) {
   try {
@@ -10,19 +11,19 @@ export function saveAppState({ grimoireState }) {
   } catch (_) { }
 }
 
-export async function loadAppState({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, processScriptData }) {
+export async function loadAppState({ grimoireState, grimoireHistoryList }) {
   try {
     grimoireState.isRestoringState = true;
     const raw = localStorage.getItem('botcAppStateV1');
     if (!raw) return;
     const saved = JSON.parse(raw);
     if (saved && Array.isArray(saved.scriptData) && saved.scriptData.length) {
-      await processScriptData(saved.scriptData, false);
+      await processScriptData({ data: saved.scriptData, addToHistory: false, grimoireState });
       if (saved.scriptMetaName) { grimoireState.scriptMetaName = String(saved.scriptMetaName); }
       if (saved.includeTravellers) { grimoireState.includeTravellers = saved.includeTravellers; }
     }
     if (saved && Array.isArray(saved.players) && saved.players.length) {
-      setupGrimoire({ grimoireState, grimoireHistoryList, openCharacterModal, showPlayerContextMenu, openReminderTokenModal, openTextReminderModal, count: saved.players.length });
+      setupGrimoire({ grimoireState, grimoireHistoryList, count: saved.players.length });
       grimoireState.players = saved.players;
       updateGrimoire({ grimoireState });
       repositionPlayers({ players: grimoireState.players });

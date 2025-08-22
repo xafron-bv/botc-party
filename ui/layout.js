@@ -13,15 +13,15 @@ export function repositionPlayers({ players }) {
   const tokenDiameter = sampleToken.offsetWidth || 100;
   const tokenRadius = tokenDiameter / 2;
   const chordNeeded = tokenDiameter * 1.25;
-  let radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
+  const radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
   const margin = 24;
   const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
   const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
   const containerSize = Math.min(requiredContainerSize, maxSize);
   const effectiveRadius = Math.max(80, containerSize / 2 - tokenRadius - 12);
-  circle.style.width = containerSize + 'px';
-  circle.style.height = containerSize + 'px';
+  circle.style.width = `${containerSize}px`;
+  circle.style.height = `${containerSize}px`;
   const circleWidth = containerSize;
   const circleHeight = containerSize;
   const angleStep = (2 * Math.PI) / count;
@@ -51,15 +51,14 @@ export function repositionPlayers({ players }) {
       }
     }
     const count = players[i] && players[i].reminders ? players[i].reminders.length : 0;
-    positionRadialStack(listItem, count, players);
+    positionRadialStack(listItem, count);
   });
   positionInfoIcons();
 }
 
-export function positionRadialStack(li, count, players) {
+export function positionRadialStack(li, count) {
   const tokenEl = li.querySelector('.player-token') || li;
   const tokenRadiusPx = tokenEl.offsetWidth / 2;
-  const angle = parseFloat(li.dataset.angle || '0');
   const isExpanded = li.dataset.expanded === '1';
   const remindersContainer = li.querySelector('.reminders');
   if (remindersContainer) {
