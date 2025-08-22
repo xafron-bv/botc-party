@@ -6,7 +6,7 @@ const specs = [
   { name: 'ipad-pro', viewport: [1024, 1366], touch: true }
 ];
 
-specs.forEach(({ name, viewport, touch }) => {
+specs.forEach(({ name, viewport }) => {
   describe(`Viewport: ${name}`, () => {
     beforeEach(() => {
       cy.visit('/');

@@ -58,7 +58,7 @@ export function initInAppTour() {
         } else {
           setTimeout(finish, Math.max(250, fallbackMs));
         }
-      } catch(_) { setTimeout(finish, Math.max(250, fallbackMs)); }
+      } catch (_) { setTimeout(finish, Math.max(250, fallbackMs)); }
     });
   }
 
@@ -103,7 +103,7 @@ export function initInAppTour() {
   let idx = 0;
   function renderStep() {
     ensureVisibilityForStep(steps[idx]);
-    if (steps[idx].onEnter) { try { steps[idx].onEnter(); } catch(_) {} }
+    if (steps[idx].onEnter) { try { steps[idx].onEnter(); } catch (_) {} }
     const targetEl = steps[idx].target && steps[idx].target();
     const doRender = () => {
       const rect = targetEl ? targetEl.getBoundingClientRect() : { left: 16, top: 16, width: 300, height: 60, right: 316, bottom: 76 };
@@ -115,7 +115,7 @@ export function initInAppTour() {
       const actions = document.createElement('div'); actions.className = 'actions';
       const skipBtn = document.createElement('button'); skipBtn.className = 'button'; skipBtn.textContent = 'Skip'; skipBtn.onclick = endTour;
       const prevBtn = document.createElement('button'); prevBtn.className = 'button'; prevBtn.textContent = 'Back'; prevBtn.disabled = idx === 0; prevBtn.onclick = () => { idx = Math.max(0, idx - 1); renderStep(); };
-      const nextBtn = document.createElement('button'); nextBtn.className = 'button'; nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next'; nextBtn.onclick = () => { if (steps[idx].onBeforeNext) { try { steps[idx].onBeforeNext(); } catch(_) {} } if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); } };
+      const nextBtn = document.createElement('button'); nextBtn.className = 'button'; nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next'; nextBtn.onclick = () => { if (steps[idx].onBeforeNext) { try { steps[idx].onBeforeNext(); } catch (_) {} } if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); } };
       const progress = document.createElement('div'); progress.className = 'progress'; progress.textContent = `Step ${idx + 1} of ${steps.length}`;
       actions.appendChild(skipBtn); actions.appendChild(prevBtn); actions.appendChild(nextBtn);
       pop.appendChild(title); pop.appendChild(body); pop.appendChild(actions); pop.appendChild(progress);
@@ -123,7 +123,7 @@ export function initInAppTour() {
       positionPopoverNear(rect);
     };
     if (targetEl && sidebar.contains(targetEl)) {
-      try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch(_) {}
+      try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (_) {}
     }
     waitForAnimationsToFinish(targetEl, 400).then(() => requestAnimationFrame(() => requestAnimationFrame(doRender)));
   }

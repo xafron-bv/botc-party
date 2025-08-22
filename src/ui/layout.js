@@ -1,10 +1,8 @@
 // Layout and grimoire rendering helpers (browser-native ES module)
 
-import { resolveAssetPath } from '../utils.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg } from './svg.js';
-import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './tooltip.js';
+import { positionInfoIcons } from './tooltip.js';
 
-export function repositionPlayers(players) {
+export function repositionPlayers({ players }) {
   const count = players.length;
   if (count === 0) return;
   const circle = document.getElementById('player-circle');
@@ -15,15 +13,15 @@ export function repositionPlayers(players) {
   const tokenDiameter = sampleToken.offsetWidth || 100;
   const tokenRadius = tokenDiameter / 2;
   const chordNeeded = tokenDiameter * 1.25;
-  let radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
+  const radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
   const margin = 24;
   const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
   const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
   const containerSize = Math.min(requiredContainerSize, maxSize);
   const effectiveRadius = Math.max(80, containerSize / 2 - tokenRadius - 12);
-  circle.style.width = containerSize + 'px';
-  circle.style.height = containerSize + 'px';
+  circle.style.width = `${containerSize}px`;
+  circle.style.height = `${containerSize}px`;
   const circleWidth = containerSize;
   const circleHeight = containerSize;
   const angleStep = (2 * Math.PI) / count;
@@ -53,117 +51,14 @@ export function repositionPlayers(players) {
       }
     }
     const count = players[i] && players[i].reminders ? players[i].reminders.length : 0;
-    positionRadialStack(listItem, count, players);
+    positionRadialStack(listItem, count);
   });
   positionInfoIcons();
 }
 
-export function updateGrimoire(players, allRoles, isTouchDevice) {
-  const playerCircle = document.getElementById('player-circle');
-  const listItems = playerCircle.querySelectorAll('li');
-  listItems.forEach((li, i) => {
-    const player = players[i];
-    const playerNameEl = li.querySelector('.player-name');
-    playerNameEl.textContent = player.name;
-    const angle = parseFloat(li.dataset.angle || '0');
-    const y = Math.sin(angle);
-    const isNorthQuadrant = y < 0;
-    if (isNorthQuadrant) {
-      playerNameEl.classList.add('top-half');
-      li.classList.add('is-north');
-      li.classList.remove('is-south');
-    } else {
-      playerNameEl.classList.remove('top-half');
-      li.classList.add('is-south');
-      li.classList.remove('is-north');
-    }
-    const tokenDiv = li.querySelector('.player-token');
-    const charNameDiv = li.querySelector('.character-name');
-    const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
-    if (existingArc) existingArc.remove();
-    const oldCircle = tokenDiv.querySelector('.death-overlay');
-    if (oldCircle) oldCircle.remove();
-    const oldRibbon = tokenDiv.querySelector('.death-ribbon');
-    if (oldRibbon) oldRibbon.remove();
-    if (player.character && allRoles[player.character]) {
-      const role = allRoles[player.character];
-      tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-      tokenDiv.style.backgroundSize = '68% 68%, cover';
-      tokenDiv.style.backgroundColor = 'transparent';
-      tokenDiv.classList.add('has-character');
-      if (charNameDiv) charNameDiv.textContent = role.name;
-      const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
-      tokenDiv.appendChild(svg);
-      if (!('ontouchstart' in window)) {
-        tokenDiv.addEventListener('mouseenter', (e) => {
-          if (role.ability) {
-            const abilityTooltip = document.getElementById('ability-tooltip');
-            abilityTooltip.textContent = role.ability;
-            abilityTooltip.classList.add('show');
-            positionTooltip(e.target, abilityTooltip);
-          }
-        });
-        tokenDiv.addEventListener('mouseleave', () => {
-          const abilityTooltip = document.getElementById('ability-tooltip');
-          abilityTooltip.classList.remove('show');
-        });
-      } else if (role.ability) {
-        const infoIcon = document.createElement('div');
-        infoIcon.className = 'ability-info-icon';
-        infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-        infoIcon.dataset.playerIndex = i;
-        const handleInfoClick = (e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          showTouchAbilityPopup(infoIcon, role.ability);
-        };
-        infoIcon.onclick = handleInfoClick;
-        infoIcon.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); handleInfoClick(e); });
-        li.appendChild(infoIcon);
-      }
-    } else {
-      tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-      tokenDiv.style.backgroundSize = 'cover';
-      tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
-      tokenDiv.classList.remove('has-character');
-      if (charNameDiv) charNameDiv.textContent = '';
-      const arc = tokenDiv.querySelector('.icon-reminder-svg');
-      if (arc) arc.remove();
-    }
-    const remindersDiv = li.querySelector('.reminders');
-    remindersDiv.innerHTML = '';
-    player.reminders.forEach((reminder, idx) => {
-      if (reminder.type === 'icon') {
-        const iconEl = document.createElement('div');
-        iconEl.className = 'icon-reminder';
-        iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-        iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-        iconEl.title = reminder.label || '';
-        remindersDiv.appendChild(iconEl);
-      } else {
-        const reminderEl = document.createElement('div');
-        reminderEl.className = 'text-reminder';
-        const displayText = reminder.label || reminder.value || '';
-        const textSpan = document.createElement('span');
-        textSpan.className = 'text-reminder-content';
-        textSpan.textContent = displayText;
-        const textLength = displayText.length;
-        if (textLength > 40) textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
-        else if (textLength > 20) textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
-        reminderEl.appendChild(textSpan);
-        reminderEl.style.transform = 'translate(-50%, -50%)';
-        remindersDiv.appendChild(reminderEl);
-      }
-    });
-    positionRadialStack(li, player.reminders.length, players);
-  });
-  if ('ontouchstart' in window) positionInfoIcons();
-}
-
-export function positionRadialStack(li, count, players) {
+export function positionRadialStack(li, count) {
   const tokenEl = li.querySelector('.player-token') || li;
   const tokenRadiusPx = tokenEl.offsetWidth / 2;
-  const angle = parseFloat(li.dataset.angle || '0');
   const isExpanded = li.dataset.expanded === '1';
   const remindersContainer = li.querySelector('.reminders');
   if (remindersContainer) {

@@ -3,7 +3,7 @@
 export function generateId(prefix) {
   try {
     if (crypto && crypto.randomUUID) return `${prefix || 'id'}_${crypto.randomUUID()}`;
-  } catch (_) {}
+  } catch (_) { }
   return `${prefix || 'id'}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 }
 
