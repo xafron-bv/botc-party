@@ -23,8 +23,8 @@
     border: 2px solid #D4AF37;
     width: calc(var(--token-size) * 0.4);
     height: calc(var(--token-size) * 0.4);
-    min-width: 40px;
-    min-height: 40px;
+    min-width: var(--min-reminder-size);
+    min-height: var(--min-reminder-size);
     border-radius: 50%; /* circular reminder */
     display: flex;
     align-items: center;
@@ -65,8 +65,8 @@
 .icon-reminder {
     width: calc(var(--token-size) * 0.4);
     height: calc(var(--token-size) * 0.4);
-    min-width: 40px;
-    min-height: 40px;
+    min-width: var(--min-reminder-size);
+    min-height: var(--min-reminder-size);
     border-radius: 50%;
     background-size: cover;
     background-position: center;
