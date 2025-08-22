@@ -1,6 +1,6 @@
 import { displayScript } from './script.js';
 import { resolveAssetPath, normalizeKey } from '../utils.js';
-import { createCurvedLabelSvg } from './svg.js';
+import { createCurvedLabelSvg } from './ui/svg.js';
 import { updateGrimoire, rebuildPlayerCircleUiPreserveState } from './grimoire.js';
 import { saveAppState } from './app.js';
 

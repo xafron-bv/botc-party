@@ -1,9 +1,9 @@
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
-import { repositionPlayers, positionRadialStack } from './layout.js';
+import { repositionPlayers, positionRadialStack } from './ui/layout.js';
 import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from '../constants.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg } from './svg.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { resolveAssetPath } from '../utils.js';
-import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './tooltip.js';
+import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';
 import { saveAppState } from './app.js';
 import { openCharacterModal, showPlayerContextMenu } from './character.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
@@ -907,4 +907,16 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     repositionPlayers({ players: grimoireState.players });
     updateGrimoire({ grimoireState });
   });
+}
+
+export async function loadPlayerSetupTable({ grimoireState }) {
+  try {
+    const res = await fetch('./player-setup.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    grimoireState.playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
+    renderSetupInfo({ grimoireState });
+  } catch (e) {
+    console.error('Failed to load player-setup.json', e);
+  }
 }

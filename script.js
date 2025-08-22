@@ -1,16 +1,16 @@
 import { INCLUDE_TRAVELLERS_KEY, isTouchDevice } from './constants.js';
 import './pwa.js';
-import { loadAppState, saveAppState } from './ui/app.js';
-import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './ui/character.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground, renderSetupInfo, startGame, updateGrimoire } from './ui/grimoire.js';
-import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './ui/history/grimoire.js';
-import { loadHistories } from './ui/history/index.js';
-import { addScriptHistoryListListeners, renderScriptHistory } from './ui/history/script.js';
-import { positionRadialStack as positionRadialStackLayout, repositionPlayers } from './ui/layout.js';
-import { loadScriptFile, loadScriptFromFile } from './ui/script.js';
-import { initSidebarResize, initSidebarToggle } from './ui/sidebar.js';
-import { initInAppTour } from './ui/tour.js';
-import { populateReminderTokenGrid } from './ui/reminder.js';
+import { loadAppState, saveAppState } from './src/app.js';
+import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, startGame, updateGrimoire } from './src/grimoire.js';
+import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
+import { loadHistories } from './src/history/index.js';
+import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
+import { repositionPlayers } from './src/ui/layout.js';
+import { loadScriptFile, loadScriptFromFile } from './src/script.js';
+import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
+import { initInAppTour } from './src/ui/tour.js';
+import { populateReminderTokenGrid } from './src/reminder.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -35,9 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
-  const reminderTokenGrid = document.getElementById('reminder-token-grid');
   const reminderTokenSearch = document.getElementById('reminder-token-search');
-  const reminderTokenModalPlayerName = document.getElementById('reminder-token-modal-player-name');
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
   const sidebarCloseBtn = document.getElementById('sidebar-close');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
@@ -126,18 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   scriptFileInput.addEventListener('change', (event) => loadScriptFile({ event, grimoireState }));
 
-  // Load player setup JSON once
-  (async function loadPlayerSetupTable() {
-    try {
-      const res = await fetch('./player-setup.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      grimoireState.playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
-      renderSetupInfo({ grimoireState });
-    } catch (e) {
-      console.error('Failed to load player-setup.json', e);
-    }
-  })();
+  loadPlayerSetupTable({ grimoireState });
 
   startGameBtn.addEventListener('click', () => startGame({ grimoireState, grimoireHistoryList, playerCountInput }));
 
@@ -187,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle container resize to reposition players
   let resizeObserver;
   if ('ResizeObserver' in window) {
-    resizeObserver = new ResizeObserver((entries) => {
+    resizeObserver = new ResizeObserver(() => {
       if (grimoireState.players.length > 0) {
         console.log('Container resized, repositioning players...');
         requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));

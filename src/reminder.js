@@ -1,7 +1,7 @@
 import { resolveAssetPath } from '../utils.js';
 import { updateGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
-import { createCurvedLabelSvg } from './svg.js';
+import { createCurvedLabelSvg } from './ui/svg.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');

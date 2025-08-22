@@ -2,7 +2,7 @@ import { generateId, formatDateName } from '../../utils.js';
 import { saveHistories, history } from './index.js';
 import { updateGrimoire, renderSetupInfo, setupGrimoire } from '../grimoire.js';
 import { saveAppState } from '../app.js';
-import { repositionPlayers } from '../layout.js';
+import { repositionPlayers } from '../ui/layout.js';
 import { processScriptData } from '../script.js';
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {

@@ -1,6 +1,6 @@
 import { INCLUDE_TRAVELLERS_KEY } from '../constants.js';
 import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
-import { repositionPlayers } from './layout.js';
+import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 
 export function saveAppState({ grimoireState }) {
