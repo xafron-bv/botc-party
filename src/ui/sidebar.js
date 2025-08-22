@@ -1,4 +1,5 @@
 // Sidebar behaviors: resizer and toggle (browser-native ES module)
+import { prefersOverlaySidebar, isTouchDevice } from '../constants.js';
 
 export function initSidebarResize(sidebarResizer, sidebarEl) {
   if (!sidebarResizer || !sidebarEl) return;
@@ -73,9 +74,8 @@ export function initSidebarToggle({
   sidebarBackdrop,
   sidebarEl,
   sidebarResizer,
-  prefersOverlaySidebar,
-  isTouchDevice,
-  repositionPlayers
+  repositionPlayers,
+  players
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';
@@ -88,7 +88,7 @@ export function initSidebarToggle({
     sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
     sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
     localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
-    requestAnimationFrame(() => repositionPlayers && repositionPlayers());
+    requestAnimationFrame(() => repositionPlayers && repositionPlayers({ players }));
   };
   const stored = localStorage.getItem(COLLAPSE_KEY);
   const startCollapsed = stored === '1' || prefersOverlaySidebar.matches;

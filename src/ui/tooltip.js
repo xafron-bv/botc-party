@@ -20,8 +20,8 @@ export function positionTooltip(targetElement, tooltip) {
     left = window.innerWidth - tooltipRect.width - 10;
   }
 
-  tooltip.style.top = top + 'px';
-  tooltip.style.left = left + 'px';
+  tooltip.style.top = `${top}px`;
+  tooltip.style.left = `${left}px`;
 }
 
 export function showTouchAbilityPopup(targetElement, ability) {
@@ -53,8 +53,8 @@ export function showTouchAbilityPopup(targetElement, ability) {
     left = window.innerWidth - popupRect.width - 10;
   }
 
-  popup.style.top = top + 'px';
-  popup.style.left = left + 'px';
+  popup.style.top = `${top}px`;
+  popup.style.left = `${left}px`;
 }
 
 export function hideTouchAbilityPopup() {
@@ -75,11 +75,6 @@ document.addEventListener('click', (e) => {
 export function positionInfoIcons() {
   const circle = document.getElementById('player-circle');
   if (!circle) return;
-
-  const circleWidth = circle.offsetWidth;
-  const circleHeight = circle.offsetHeight;
-  const centerX = circleWidth / 2;
-  const centerY = circleHeight / 2;
 
   // Get all info icons
   const infoIcons = circle.querySelectorAll('.ability-info-icon');
