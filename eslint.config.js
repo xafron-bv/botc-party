@@ -65,7 +65,7 @@ export default [
     },
     rules: {
       // Possible Problems
-      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_$|^_', 'varsIgnorePattern': '^_$|^_' }],
+      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_$|^_', 'varsIgnorePattern': '^_$|^_', 'caughtErrors': 'all', 'caughtErrorsIgnorePattern': '^_$|^_' }],
       'no-undef': 'error',
       'no-unreachable': 'error',
       'no-constant-condition': 'error',
