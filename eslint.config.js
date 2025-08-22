@@ -1,6 +1,6 @@
 export default [
   {
-    ignores: ['**/*.config.js'],
+    ignores: ['**/*.config.js', 'build/**', 'assets/**'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
@@ -130,6 +130,8 @@ export default [
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
       'brace-style': ['error', '1tbs', { 'allowSingleLine': true }],
+      'no-mixed-spaces-and-tabs': 'error',
+      'eol-last': ['error', 'always'],
 
       // ES6
       'no-var': 'error',
@@ -141,6 +143,26 @@ export default [
       'no-useless-rename': 'error',
       'object-shorthand': 'error',
       'prefer-template': 'error'
+    }
+  },
+  {
+    files: ['tests/**/*.cy.js', 'tests/support/**/*.js', 'tests/cypress.config.js'],
+    languageOptions: {
+      globals: {
+        cy: 'readonly',
+        Cypress: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        before: 'readonly',
+        beforeEach: 'readonly',
+        after: 'readonly',
+        afterEach: 'readonly',
+        expect: 'readonly'
+      }
+    },
+    rules: {
+      // Allow Chai assertion patterns like: expect(x).to.be.true
+      'no-unused-expressions': 'off'
     }
   }
 ];
