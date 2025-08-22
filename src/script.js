@@ -53,7 +53,7 @@ export function displayScript({ data, grimoireState }) {
     header.className = 'team-townsfolk';
     characterSheet.appendChild(header);
 
-    data.forEach((characterItem, index) => {
+    data.forEach((characterItem) => {
       if (typeof characterItem === 'string' && characterItem !== '_meta') {
         const roleEl = document.createElement('div');
         roleEl.className = 'role';

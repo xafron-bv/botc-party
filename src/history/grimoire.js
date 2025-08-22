@@ -142,7 +142,6 @@ export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
 }
 
 export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList }) {
-  const abilityTooltip = document.getElementById('ability-tooltip');
   if (!entry) return;
   try {
     grimoireState.isRestoringState = true;

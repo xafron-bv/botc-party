@@ -1,12 +1,12 @@
-import { snapshotCurrentGrimoire } from './history/grimoire.js';
-import { repositionPlayers, positionRadialStack } from './ui/layout.js';
-import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice, INCLUDE_TRAVELLERS_KEY, BG_STORAGE_KEY } from './constants.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { resolveAssetPath } from '../utils.js';
-import { positionTooltip, showTouchAbilityPopup, positionInfoIcons } from './ui/tooltip.js';
 import { saveAppState } from './app.js';
 import { openCharacterModal, showPlayerContextMenu } from './character.js';
+import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
+import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
+import { positionRadialStack, repositionPlayers } from './ui/layout.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
+import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
@@ -307,11 +307,8 @@ export function updateGrimoire({ grimoireState }) {
     // Check if player is in NW or NE quadrant
     const angle = parseFloat(li.dataset.angle || '0');
 
-    // Calculate the actual x,y position to determine quadrant
-    const x = Math.cos(angle);
+    // Calculate the actual y position to determine quadrant
     const y = Math.sin(angle);
-
-    // Names go on top for NW (x<0, y<0) and NE (x>0, y<0) quadrants
     const isNorthQuadrant = y < 0;
 
     if (isNorthQuadrant) {
