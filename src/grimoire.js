@@ -166,7 +166,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
-      if (target && (target.classList && target.classList.contains('player-name'))) {
+      const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
+      if (tappedPlayerName) {
         return; // do not expand when tapping the player name; handled separately
       }
       if (tappedReminders) {
@@ -911,7 +912,8 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
-      if (target && (target.classList && target.classList.contains('player-name'))) {
+      const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
+      if (tappedPlayerName) {
         return;
       }
       if (tappedReminders) {
