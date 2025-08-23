@@ -74,25 +74,39 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
       tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
     });
-    listItem.querySelector('.player-name').onclick = (e) => {
-      e.stopPropagation();
-      if (isTouchDevice) {
+    const playerNameElInitial = listItem.querySelector('.player-name');
+    if (playerNameElInitial) {
+      playerNameElInitial.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        try { e.preventDefault(); } catch (_) { }
         const li = listItem;
         if (li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
           li.dataset.expanded = '1';
+          try { playerNameElInitial.style.zIndex = '200'; } catch (_) { }
           positionRadialStack(li, grimoireState.players[i].reminders.length, grimoireState.players);
           return;
         }
         delete li.dataset.nameTapArmed;
-      }
-      const newName = prompt('Enter player name:', player.name);
-      if (newName) {
-        grimoireState.players[i].name = newName;
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-      }
-    };
+        try { playerNameElInitial.style.zIndex = ''; } catch (_) { }
+        const newName = prompt('Enter player name:', player.name);
+        if (newName) {
+          grimoireState.players[i].name = newName;
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        }
+      }, { passive: false });
+      playerNameElInitial.onclick = (e) => {
+        e.stopPropagation();
+        if (isTouchDevice) return;
+        const newName = prompt('Enter player name:', player.name);
+        if (newName) {
+          grimoireState.players[i].name = newName;
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        }
+      };
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -154,6 +168,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
+      if (target && (target.classList && target.classList.contains('player-name'))) {
+        return; // do not expand when tapping the player name; handled separately
+      }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
         listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
@@ -806,25 +823,39 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
-    listItem.querySelector('.player-name').onclick = (e) => {
-      e.stopPropagation();
-      if (isTouchDevice) {
+    const playerNameEl = listItem.querySelector('.player-name');
+    if (playerNameEl) {
+      playerNameEl.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        try { e.preventDefault(); } catch (_) { }
         const li = listItem;
         if (li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
           li.dataset.expanded = '1';
+          try { playerNameEl.style.zIndex = '200'; } catch (_) { }
           positionRadialStack(li, grimoireState.players[i].reminders.length);
           return;
         }
         delete li.dataset.nameTapArmed;
-      }
-      const newName = prompt('Enter player name:', player.name);
-      if (newName) {
-        grimoireState.players[i].name = newName;
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-      }
-    };
+        try { playerNameEl.style.zIndex = ''; } catch (_) { }
+        const newName = prompt('Enter player name:', player.name);
+        if (newName) {
+          grimoireState.players[i].name = newName;
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        }
+      }, { passive: false });
+      playerNameEl.onclick = (e) => {
+        e.stopPropagation();
+        if (isTouchDevice) return;
+        const newName = prompt('Enter player name:', player.name);
+        if (newName) {
+          grimoireState.players[i].name = newName;
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        }
+      };
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -884,6 +915,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
+      if (target && (target.classList && target.classList.contains('player-name'))) {
+        return;
+      }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
         listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);

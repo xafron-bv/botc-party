@@ -123,6 +123,21 @@ describe('Ability UI - Touch', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
   });
 
+  it('player name: first tap only raises/expands, second tap edits (no modal)', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Ensure no modal initially
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Stub prompt for rename
+    cy.window().then((win) => { cy.stub(win, 'prompt').returns('Zed'); });
+    // First tap: should NOT open reminder token modal
+    cy.get('#player-circle li .player-name').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Second tap: should perform rename
+    cy.get('#player-circle li .player-name').first().click({ force: true });
+    cy.get('#player-circle li .player-name').first().should('contain', 'Zed');
+  });
+
   it('shows press feedback on long-press capable reminder tokens on touch', () => {
     cy.viewport('iphone-6');
     // Add one reminder to first player to have a token
