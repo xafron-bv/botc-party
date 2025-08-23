@@ -14,6 +14,7 @@ function getRoleById({ grimoireState, roleId }) {
 
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
+  const playerCountInput = document.getElementById('player-count');
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
@@ -27,6 +28,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     reminders: [],
     dead: false
   }));
+  if (playerCountInput) {
+    try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
+  }
 
   grimoireState.players.forEach((player, i) => {
     const listItem = document.createElement('li');
