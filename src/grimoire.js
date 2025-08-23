@@ -76,6 +76,18 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     });
     listItem.querySelector('.player-name').onclick = (e) => {
       e.stopPropagation();
+      if (isTouchDevice) {
+        const li = listItem;
+        const suppressUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
+        if (li.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+          if (li.dataset.expanded !== '1') {
+            li.dataset.expanded = '1';
+            li.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(li, grimoireState.players[i].reminders.length, grimoireState.players);
+          }
+          return;
+        }
+      }
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
         grimoireState.players[i].name = newName;
@@ -798,6 +810,18 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     listItem.querySelector('.player-name').onclick = (e) => {
       e.stopPropagation();
+      if (isTouchDevice) {
+        const li = listItem;
+        const suppressUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
+        if (li.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+          if (li.dataset.expanded !== '1') {
+            li.dataset.expanded = '1';
+            li.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(li, grimoireState.players[i].reminders.length);
+          }
+          return;
+        }
+      }
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
         grimoireState.players[i].name = newName;
