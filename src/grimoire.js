@@ -76,16 +76,67 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     });
     const playerNameElInitial = listItem.querySelector('.player-name');
     if (playerNameElInitial) {
+      // Clear armed name-tap when touching anywhere outside a player name
+      if (isTouchDevice && !grimoireState.nameTapOutsideHandlerInstalled) {
+        grimoireState.nameTapOutsideHandlerInstalled = true;
+        const clearNameTap = (ev) => {
+          const t = ev.target;
+          if (t && t.closest && t.closest('.player-name')) return;
+          const allLis = document.querySelectorAll('#player-circle li');
+          allLis.forEach((el) => {
+            if (el.dataset && el.dataset.nameTapArmed === '1') delete el.dataset.nameTapArmed;
+            try { el.style.zIndex = ''; } catch (_) { }
+            const nm = el.querySelector('.player-name');
+            try { if (nm) nm.style.zIndex = ''; } catch (_) { }
+          });
+        };
+        document.addEventListener('touchstart', clearNameTap, { capture: true, passive: true });
+        document.addEventListener('click', clearNameTap, true);
+      }
+
       playerNameElInitial.addEventListener('touchstart', (e) => {
         e.stopPropagation();
         try { e.preventDefault(); } catch (_) { }
         const li = listItem;
-        if (li.dataset.nameTapArmed !== '1') {
+        const isCovered = (() => {
+          const rect = playerNameElInitial.getBoundingClientRect();
+          const samples = [
+            [rect.left + rect.width / 2, rect.top + rect.height / 2],
+            [rect.left + 4, rect.top + 4],
+            [rect.right - 4, rect.top + 4],
+            [rect.left + 4, rect.bottom - 4],
+            [rect.right - 4, rect.bottom - 4]
+          ];
+          for (const [x, y] of samples) {
+            const el = document.elementFromPoint(x, y);
+            if (!el) continue;
+            if (el === playerNameElInitial || (el.closest && el.closest('.player-name') === playerNameElInitial)) continue;
+            return true;
+          }
+          return false;
+        })();
+
+        if (isCovered && li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
+          try { li.style.zIndex = '200'; } catch (_) { }
           try { playerNameElInitial.style.zIndex = '200'; } catch (_) { }
           return;
         }
+        if (isCovered && li.dataset.nameTapArmed === '1') {
+          delete li.dataset.nameTapArmed;
+          try { li.style.zIndex = ''; } catch (_) { }
+          try { playerNameElInitial.style.zIndex = ''; } catch (_) { }
+          const newName = prompt('Enter player name:', player.name);
+          if (newName) {
+            grimoireState.players[i].name = newName;
+            updateGrimoire({ grimoireState });
+            saveAppState({ grimoireState });
+          }
+          return;
+        }
+        // Not covered: edit immediately
         delete li.dataset.nameTapArmed;
+        try { li.style.zIndex = ''; } catch (_) { }
         try { playerNameElInitial.style.zIndex = ''; } catch (_) { }
         const newName = prompt('Enter player name:', player.name);
         if (newName) {

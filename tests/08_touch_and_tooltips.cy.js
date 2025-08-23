@@ -130,7 +130,7 @@ describe('Ability UI - Touch', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     // Stub prompt for rename
     cy.window().then((win) => { cy.stub(win, 'prompt').returns('Zed'); });
-    // First tap: should NOT open reminder token modal
+    // First tap: if covered, should NOT open reminder token modal, only raise name
     cy.get('#player-circle li .player-name').first().click({ force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
     // Second tap: should perform rename
