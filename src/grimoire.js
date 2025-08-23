@@ -14,6 +14,7 @@ function getRoleById({ grimoireState, roleId }) {
 
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
+  const playerCountInput = document.getElementById('player-count');
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
@@ -27,6 +28,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     reminders: [],
     dead: false
   }));
+  if (playerCountInput) {
+    try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
+  }
 
   grimoireState.players.forEach((player, i) => {
     const listItem = document.createElement('li');
@@ -700,10 +704,33 @@ export function updateGrimoire({ grimoireState }) {
 }
 export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);
-  if (playerCount >= 5 && playerCount <= 20) {
-    setupGrimoire({ grimoireState, grimoireHistoryList, count: playerCount });
-  } else {
+  if (!(playerCount >= 5 && playerCount <= 20)) {
     alert('Player count must be an integer from 5 to 20.');
+    return;
+  }
+
+  try {
+    if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
+    }
+  } catch (_) { }
+
+  const existingPlayers = Array.isArray(grimoireState.players) ? grimoireState.players : [];
+  const newPlayers = Array.from({ length: playerCount }, (_, i) => {
+    const existing = existingPlayers[i];
+    const name = existing && existing.name ? existing.name : `Player ${i + 1}`;
+    return { name, character: null, reminders: [], dead: false };
+  });
+  grimoireState.players = newPlayers;
+
+  rebuildPlayerCircleUiPreserveState({ grimoireState });
+
+  const gameStatusEl = document.getElementById('game-status');
+  if (gameStatusEl) {
+    gameStatusEl.textContent = `New game started (${playerCount} players)`;
+    gameStatusEl.className = 'status';
+    try { clearTimeout(grimoireState._gameStatusTimer); } catch (_) { }
+    grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
   }
 }
 
