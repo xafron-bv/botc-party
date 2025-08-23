@@ -100,20 +100,11 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         const li = listItem;
         const isCovered = (() => {
           const rect = playerNameElInitial.getBoundingClientRect();
-          const samples = [
-            [rect.left + rect.width / 2, rect.top + rect.height / 2],
-            [rect.left + 4, rect.top + 4],
-            [rect.right - 4, rect.top + 4],
-            [rect.left + 4, rect.bottom - 4],
-            [rect.right - 4, rect.bottom - 4]
-          ];
-          for (const [x, y] of samples) {
-            const el = document.elementFromPoint(x, y);
-            if (!el) continue;
-            if (el === playerNameElInitial || (el.closest && el.closest('.player-name') === playerNameElInitial)) continue;
-            return true;
-          }
-          return false;
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          const el = document.elementFromPoint(x, y);
+          if (!el) return false;
+          return !(el === playerNameElInitial || (el.closest && el.closest('.player-name') === playerNameElInitial));
         })();
 
         if (isCovered && li.dataset.nameTapArmed !== '1') {
@@ -903,20 +894,11 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         const li = listItem;
         const isCovered = (() => {
           const rect = playerNameEl.getBoundingClientRect();
-          const samples = [
-            [rect.left + rect.width / 2, rect.top + rect.height / 2],
-            [rect.left + 4, rect.top + 4],
-            [rect.right - 4, rect.top + 4],
-            [rect.left + 4, rect.bottom - 4],
-            [rect.right - 4, rect.bottom - 4]
-          ];
-          for (const [x, y] of samples) {
-            const el = document.elementFromPoint(x, y);
-            if (!el) continue;
-            if (el === playerNameEl || (el.closest && el.closest('.player-name') === playerNameEl)) continue;
-            return true;
-          }
-          return false;
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          const el = document.elementFromPoint(x, y);
+          if (!el) return false;
+          return !(el === playerNameEl || (el.closest && el.closest('.player-name') === playerNameEl));
         })();
         if (isCovered && li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
