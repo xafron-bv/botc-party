@@ -166,6 +166,25 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
   });
 
+  it('touch: tapping character circle does not expand collapsed reminders', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Add a reminder so there is a stack to expand
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Ensure collapsed
+    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+    // Tap the character circle to open character modal
+    cy.get('#player-circle li .player-token').first()
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true })
+      .click({ force: true });
+    // Reminders should remain collapsed
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+  });
+
   it('shows press feedback on long-press capable reminder tokens on touch', () => {
     cy.viewport('iphone-6');
     // Add one reminder to first player to have a token

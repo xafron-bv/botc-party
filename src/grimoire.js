@@ -222,11 +222,15 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
       const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
+      const tappedToken = !!(target && target.closest && target.closest('.player-token'));
       if (tappedPlayerName) {
         return; // do not expand when tapping the player name; handled separately
       }
       if (tappedDeathRibbon) {
         return; // do not expand when tapping death ribbon
+      }
+      if (tappedToken) {
+        return; // do not expand when tapping character circle
       }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
@@ -1024,11 +1028,15 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
       const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
+      const tappedToken = !!(target && target.closest && target.closest('.player-token'));
       if (tappedPlayerName) {
         return;
       }
       if (tappedDeathRibbon) {
         return; // do not expand when tapping death ribbon
+      }
+      if (tappedToken) {
+        return; // do not expand when tapping character circle
       }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
