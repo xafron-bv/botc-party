@@ -97,8 +97,8 @@ describe('Game', () => {
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
 
-    // Expand/collapse reminders stack using hover events
-    cy.get('#player-circle li').eq(0).trigger('mouseenter');
+    // Expand/collapse reminders stack using hover events (hover reminders region only)
+    cy.get('#player-circle li').eq(0).find('.reminders').trigger('mouseenter', { force: true });
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
 
     // Delete one reminder via hover delete icon (no confirmation expected)
@@ -110,7 +110,7 @@ describe('Game', () => {
     });
 
     // Collapse stack
-    cy.get('#player-circle li').eq(0).trigger('mouseleave');
+    cy.get('#player-circle li').eq(0).find('.reminders').trigger('mouseleave', { force: true });
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // Add custom text reminder via reminder token modal custom option

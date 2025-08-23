@@ -16,7 +16,7 @@ describe('Death & Reminders', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -77,8 +77,8 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
 
-    // Expand stack for hover actions
-    cy.get('#player-circle li').first().trigger('mouseenter');
+    // Expand stack for hover actions (hover reminders region only)
+    cy.get('#player-circle li').first().find('.reminders').trigger('mouseenter', { force: true });
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
 
     // Edit the icon reminder label to a very short string 'hi'
@@ -149,7 +149,7 @@ describe('Death & Reminders', () => {
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     // Start game
