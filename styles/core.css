@@ -1,6 +1,6 @@
 :root {
   --token-size: clamp(64px, 14vmin, 140px);
-  --reminder-size: clamp(28px, 4vmin, 48px);
+  --min-reminder-size: clamp(28px, 4vmin, 48px);
 }
 
 body {

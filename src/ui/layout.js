@@ -1,5 +1,6 @@
 // Layout and grimoire rendering helpers (browser-native ES module)
 
+import { minReminderSize } from '../constants.js';
 import { positionInfoIcons } from './tooltip.js';
 
 export function repositionPlayers({ players }) {
@@ -81,7 +82,7 @@ export function positionRadialStack(li, count) {
   const runtimeRadius = Math.hypot(vx, vy);
   const ux = vx / (runtimeRadius || 1);
   const uy = vy / (runtimeRadius || 1);
-  const reminderDiameter = Math.max(40, tokenEl.offsetWidth * 0.4);
+  const reminderDiameter = Math.max(minReminderSize, tokenEl.offsetWidth * 0.4);
   const reminderRadius = reminderDiameter / 2;
   const plusRadius = (tokenEl.offsetWidth * 0.3) / 2;
   const edgeGap = Math.max(8, tokenRadiusPx * 0.08);

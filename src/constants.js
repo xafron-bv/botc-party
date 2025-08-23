@@ -4,3 +4,4 @@ export const isTouchDevice = (window.matchMedia && window.matchMedia('(hover: no
 export const prefersOverlaySidebar = window.matchMedia('(max-width: 900px)');
 export const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
 export const BG_STORAGE_KEY = 'grimoireBackgroundV1';
+export const minReminderSize = 28;

@@ -155,5 +155,5 @@
 #player-circle li {
     position: relative;
     overflow: visible;
-    max-width: calc(var(--token-size) + 40px);
+    max-width: calc(var(--token-size) + var(--min-reminder-size));
 }
