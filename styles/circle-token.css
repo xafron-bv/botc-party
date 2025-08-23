@@ -171,3 +171,6 @@
   overflow: visible;
   max-width: calc(var(--token-size) + var(--min-reminder-size));
 }
+
+/* Keep hovered player (and its name) above siblings on desktop */
+#player-circle li:hover { z-index: 50; }
