@@ -82,9 +82,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         const li = listItem;
         if (li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
-          li.dataset.expanded = '1';
           try { playerNameElInitial.style.zIndex = '200'; } catch (_) { }
-          positionRadialStack(li, grimoireState.players[i].reminders.length, grimoireState.players);
           return;
         }
         delete li.dataset.nameTapArmed;
@@ -831,9 +829,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         const li = listItem;
         if (li.dataset.nameTapArmed !== '1') {
           li.dataset.nameTapArmed = '1';
-          li.dataset.expanded = '1';
           try { playerNameEl.style.zIndex = '200'; } catch (_) { }
-          positionRadialStack(li, grimoireState.players[i].reminders.length);
           return;
         }
         delete li.dataset.nameTapArmed;
