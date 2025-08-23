@@ -137,6 +137,30 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .player-name').first().should('contain', 'Zed');
   });
 
+  it('player name: partially covered => first tap raises only; second tap edits', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Ensure no modal initially
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Move the first player's name under the token to simulate partial coverage
+    cy.get('#player-circle li .player-name').first().then(($el) => {
+      const el = $el[0];
+      el.style.top = '50%';
+      el.style.left = '50%';
+      el.style.transform = 'translate(-50%, -50%)';
+    });
+    // Stub prompt and track call count
+    cy.window().then((win) => { cy.stub(win, 'prompt').as('namePrompt').returns('Yara'); });
+    // First tap on the name
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('@namePrompt').should('have.callCount', 0);
+    // Second tap should rename
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 6, clientY: 6 }], force: true });
+    cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
+  });
+
   it('shows press feedback on long-press capable reminder tokens on touch', () => {
     cy.viewport('iphone-6');
     // Add one reminder to first player to have a token

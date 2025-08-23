@@ -173,4 +173,6 @@
 }
 
 /* Keep hovered player (and its name) above siblings on desktop */
-#player-circle li:hover { z-index: 50; }
+#player-circle li:hover {
+  z-index: 50;
+}
