@@ -5,7 +5,8 @@
   position: relative;
   width: min(90vmin, calc(100vw - 32px));
   height: min(90vmin, calc(100vh - 140px));
-  z-index: 2; /* Above setup-info */
+  z-index: 2;
+  /* Above setup-info */
   overflow: visible;
 }
 
@@ -22,30 +23,33 @@
 }
 
 .player-token {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    background-size: cover;
-    background-position: center;
-    border-radius: 50%; /* ensure perfect circle */
-    aspect-ratio: 1 / 1; /* prevent oval scaling */
-    border: 4px solid #D4AF37;
-    box-shadow: 
-      0 0 20px rgba(212, 175, 55, 0.6),
-      inset 0 0 20px rgba(0,0,0,0.3);
-    cursor: pointer;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-    background-image: url('/assets/img/token-BqDQdWeO.webp');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    overflow: visible; /* ensure reminder overlays are not clipped by the token */
-    z-index: 5;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  /* ensure perfect circle */
+  aspect-ratio: 1 / 1;
+  /* prevent oval scaling */
+  border: 4px solid #D4AF37;
+  box-shadow:
+    0 0 20px rgba(212, 175, 55, 0.6),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow: visible;
+  /* ensure reminder overlays are not clipped by the token */
+  z-index: 5;
 }
 
 /* Debug: line from token center to circle center */
@@ -54,28 +58,33 @@
   left: 50%;
   top: 50%;
   width: 3px;
-  height: 0; /* set dynamically */
+  height: 0;
+  /* set dynamically */
   background: rgba(0, 255, 255, 0.7);
-  box-shadow: 0 0 6px rgba(0,255,255,0.8);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.8);
   transform: translateX(-50%) rotate(0deg);
   transform-origin: 50% 0%;
   pointer-events: none;
-  z-index: 20; /* ensure above background */
-  display: none; /* Hide debug lines */
+  z-index: 20;
+  /* ensure above background */
+  display: none;
+  /* Hide debug lines */
 }
 
 /* Global overlay debug lines anchored to #center */
 .alignment-line-global {
   position: absolute;
-  width: 0; /* set dynamically */
+  width: 0;
+  /* set dynamically */
   height: 3px;
   background: rgba(0, 255, 255, 0.9);
-  box-shadow: 0 0 6px rgba(0,255,255,0.9);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.9);
   transform: translate(0, -50%) rotate(0deg);
   transform-origin: 0% 50%;
   pointer-events: none;
   z-index: 25;
-  display: none; /* Hide debug lines */
+  display: none;
+  /* Hide debug lines */
 }
 
 .center-dot,
@@ -84,76 +93,81 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(0,255,255,0.95);
-  box-shadow: 0 0 8px rgba(0,255,255,0.95);
+  background: rgba(0, 255, 255, 0.95);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.95);
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 26;
-  display: none; /* Hide debug dots */
+  display: none;
+  /* Hide debug dots */
 }
 
 .player-token:hover {
-    box-shadow: 
-      0 0 30px rgba(212, 175, 55, 0.8),
-      inset 0 0 20px rgba(0,0,0,0.3);
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.8),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .player-token.has-character {
-    background-size: cover;
-    background-color: transparent;
-    border-color: #D4AF37;
-    box-shadow: 
-      0 0 25px rgba(212, 175, 55, 0.8),
-      inset 0 0 15px rgba(0,0,0,0.2);
+  background-size: cover;
+  background-color: transparent;
+  border-color: #D4AF37;
+  box-shadow:
+    0 0 25px rgba(212, 175, 55, 0.8),
+    inset 0 0 15px rgba(0, 0, 0, 0.2);
 }
 
-.character-name { display: none; }
+.character-name {
+  display: none;
+}
 
 .player-name {
-    background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(40,40,40,0.9) 100%);
-    padding: 0.8vmin 2vmin;
-    border-radius: 20px;
-    font-size: clamp(12px, 2.2vmin, 18px);
-    text-align: center;
-    color: white;
-    cursor: pointer;
-    white-space: nowrap;
-    border: 2px solid #D4AF37;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-    position: absolute;
-    left: 50%;
-    top: calc(50% + var(--token-size) * 0.8);
-    transform: translate(-50%, -50%);
-    z-index: 0; /* Below all other game elements */
-    transition: all 0.3s ease;
-    opacity: 0.3;
-    pointer-events: auto;
-    filter: blur(0.5px);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(40, 40, 40, 0.9) 100%);
+  padding: 0.8vmin 2vmin;
+  border-radius: 20px;
+  font-size: clamp(12px, 2.2vmin, 18px);
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 2px solid #D4AF37;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--token-size) * 0.8);
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  /* Below all other game elements */
+  transition: all 0.3s ease;
+  opacity: 0.3;
+  pointer-events: auto;
+  filter: blur(0.5px);
 }
 
 .player-name:hover {
-    background: linear-gradient(135deg, rgba(40,40,40,0.9) 0%, rgba(60,60,60,0.9) 100%);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
-    transform: translate(-50%, -50%) translateY(-2px);
+  background: linear-gradient(135deg, rgba(40, 40, 40, 0.9) 0%, rgba(60, 60, 60, 0.9) 100%);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%) translateY(-2px);
 }
 
 /* Position player names above tokens for top half of circle */
 .player-name.top-half {
-    top: calc(50% - var(--token-size) * 0.8);
+  top: calc(50% - var(--token-size) * 0.8);
 }
 
 /* Hover effect on the list item to reveal and position the name tag */
 #player-circle li:hover .player-name {
-    opacity: 1;
-    z-index: 10; /* Raise above token/reminders on desktop hover for clickability */
-    filter: blur(0px);
+  opacity: 1;
+  z-index: 10;
+  /* Raise above token/reminders on desktop hover for clickability */
+  filter: blur(0px);
 }
 
 /* Ensure the list item has proper positioning for hover effects */
 #player-circle li {
-    position: relative;
-    overflow: visible;
-    max-width: calc(var(--token-size) + var(--min-reminder-size));
+  position: relative;
+  overflow: visible;
+  max-width: calc(var(--token-size) + var(--min-reminder-size));
 }
