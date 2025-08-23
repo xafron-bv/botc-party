@@ -265,6 +265,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // In-app tour
   initInAppTour();
+
+  // Click center to open sidebar when collapsed and no game started
+  const centerEl = document.getElementById('center');
+  if (centerEl) {
+    centerEl.addEventListener('click', (e) => {
+      const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+      const noPlayers = !Array.isArray(grimoireState.players) || grimoireState.players.length === 0;
+      if (isCollapsed && noPlayers) {
+        try { e.preventDefault(); } catch (_) {}
+        try { e.stopPropagation(); } catch (_) {}
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        if (toggleBtn) toggleBtn.click();
+      }
+    }, true);
+  }
 });
 
 // Tooltip and info icon helpers are imported from ui/tooltip.js
