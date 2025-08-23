@@ -1,0 +1,106 @@
+/* Ability tooltip styles */
+.ability-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #D4AF37;
+  font-size: 13px;
+  max-width: min(300px, 90vw);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
+
+.ability-tooltip.show {
+  opacity: 1;
+}
+
+/* Touch mode ability popup */
+.touch-ability-popup {
+  position: absolute;
+  background: rgba(20, 20, 20, 0.98);
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 2px solid #D4AF37;
+  font-size: 14px;
+  max-width: min(320px, 90vw);
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  line-height: 1.5;
+  display: none;
+}
+
+.touch-ability-popup.show {
+  display: block;
+}
+
+/* Character sheet ability display */
+.role .ability {
+  font-size: clamp(11px, 1.5vmin, 13px);
+  color: #bbb;
+  margin-top: 8px;
+  margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
+  font-style: italic;
+  line-height: 1.4;
+  display: none;
+  width: calc(100% - 44px);
+  flex-basis: 100%;
+}
+
+.role.show-ability .ability {
+  display: block;
+}
+
+/* Player token hover for ability tooltip */
+.player-token {
+  position: relative;
+  overflow: visible;
+}
+
+/* Ability info icon for touch mode */
+.ability-info-icon {
+  position: absolute;
+  width: calc(var(--token-size) * 0.25);
+  height: calc(var(--token-size) * 0.25);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  pointer-events: auto;
+  box-sizing: border-box;
+  /* Position will be set dynamically by JavaScript */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ability-info-icon i {
+  color: #D4AF37;
+  font-size: calc(var(--token-size) * 0.18);
+  line-height: 1;
+  display: block;
+  pointer-events: none; /* Ensure clicks pass through to parent */
+}
+
+.ability-info-icon:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Only show info icon on touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .ability-info-icon {
+    display: none;
+  }
+}

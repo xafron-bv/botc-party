@@ -1,0 +1,18 @@
+@media (max-width: 600px) {
+  :root {
+    --token-size: clamp(56px, 16vmin, 120px);
+  }
+  #character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 18px 12px;
+  }
+  .modal-content {
+    padding: 20px;
+    max-width: 92%;
+    max-height: 92%;
+  }
+  #reminder-token-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 12px;
+  }
+}

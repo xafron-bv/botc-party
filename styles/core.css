@@ -1,0 +1,95 @@
+:root {
+  --token-size: clamp(64px, 14vmin, 140px);
+  --reminder-size: clamp(28px, 4vmin, 48px);
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #fff;
+  font-family: 'Verdana', sans-serif;
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+}
+
+#grimoire {
+  flex-grow: 1;
+  position: relative;
+  background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: auto !important; /* Override the 100% width from .button class */
+  text-align: left !important; /* Override center alignment from .button class */
+}
+
+/* Close button inside sidebar header */
+#sidebar .sidebar-close {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 5;
+  margin: 0 0 10px 0;
+}
+@media (max-width: 900px) {
+  #sidebar .sidebar-close {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sidebar-toggle {
+    padding: 14px 16px;
+    font-size: 16px;
+    width: auto !important; /* Maintain auto width in touch mode */
+  }
+}
+
+#center {
+  background-size: cover;
+  background-position: center;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px; /* give breathing room on small screens */
+  box-sizing: border-box;
+}
+
+/* Center overlay with script name and role counts */
+#setup-info {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  padding: 12px 16px;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.45);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  z-index: 1; /* Above background, below all game elements */
+  pointer-events: none; /* non-interactive overlay */
+  font-weight: bold;
+}
+
+/* Simple single-line display */
+#setup-info { font-size: clamp(12px, 1.8vmin, 18px); }
