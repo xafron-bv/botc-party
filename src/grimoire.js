@@ -210,19 +210,25 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      // Pointer events for broader device support
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      const remindersContainer = listItem.querySelector('.reminders');
+      if (remindersContainer) {
+        remindersContainer.addEventListener('mouseenter', expand);
+        remindersContainer.addEventListener('mouseleave', collapse);
+        remindersContainer.addEventListener('pointerenter', expand);
+        remindersContainer.addEventListener('pointerleave', collapse);
+      }
     }
     // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
+      const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
       if (tappedPlayerName) {
         return; // do not expand when tapping the player name; handled separately
+      }
+      if (tappedDeathRibbon) {
+        return; // do not expand when tapping death ribbon
       }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
@@ -1009,17 +1015,24 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      const remindersContainer = listItem.querySelector('.reminders');
+      if (remindersContainer) {
+        remindersContainer.addEventListener('mouseenter', expand);
+        remindersContainer.addEventListener('mouseleave', collapse);
+        remindersContainer.addEventListener('pointerenter', expand);
+        remindersContainer.addEventListener('pointerleave', collapse);
+      }
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
+      const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
       if (tappedPlayerName) {
         return;
+      }
+      if (tappedDeathRibbon) {
+        return; // do not expand when tapping death ribbon
       }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
