@@ -78,15 +78,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       e.stopPropagation();
       if (isTouchDevice) {
         const li = listItem;
-        const suppressUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
-        if (li.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-          if (li.dataset.expanded !== '1') {
-            li.dataset.expanded = '1';
-            li.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(li, grimoireState.players[i].reminders.length, grimoireState.players);
-          }
+        if (li.dataset.nameTapArmed !== '1') {
+          li.dataset.nameTapArmed = '1';
+          li.dataset.expanded = '1';
+          positionRadialStack(li, grimoireState.players[i].reminders.length, grimoireState.players);
           return;
         }
+        delete li.dataset.nameTapArmed;
       }
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
@@ -812,15 +810,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       e.stopPropagation();
       if (isTouchDevice) {
         const li = listItem;
-        const suppressUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
-        if (li.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-          if (li.dataset.expanded !== '1') {
-            li.dataset.expanded = '1';
-            li.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(li, grimoireState.players[i].reminders.length);
-          }
+        if (li.dataset.nameTapArmed !== '1') {
+          li.dataset.nameTapArmed = '1';
+          li.dataset.expanded = '1';
+          positionRadialStack(li, grimoireState.players[i].reminders.length);
           return;
         }
+        delete li.dataset.nameTapArmed;
       }
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
