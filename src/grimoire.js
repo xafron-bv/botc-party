@@ -99,6 +99,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         try { e.preventDefault(); } catch (_) { }
         const li = listItem;
         const isCovered = (() => {
+          if (e && e.target && (e.target === playerNameElInitial || (e.target.closest && e.target.closest('.player-name') === playerNameElInitial))) {
+            return false;
+          }
           const rect = playerNameElInitial.getBoundingClientRect();
           const samples = [
             [rect.left + rect.width / 2, rect.top + rect.height / 2],
@@ -896,6 +899,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         try { e.preventDefault(); } catch (_) { }
         const li = listItem;
         const isCovered = (() => {
+          if (e && e.target && (e.target === playerNameEl || (e.target.closest && e.target.closest('.player-name') === playerNameEl))) {
+            return false;
+          }
           const rect = playerNameEl.getBoundingClientRect();
           const samples = [
             [rect.left + rect.width / 2, rect.top + rect.height / 2],
