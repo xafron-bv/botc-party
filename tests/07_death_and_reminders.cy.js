@@ -16,7 +16,7 @@ describe('Death & Reminders', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -77,8 +77,8 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
 
-    // Expand stack for hover actions
-    cy.get('#player-circle li').first().trigger('mouseenter');
+    // Expand stack for hover actions (hover reminders region only)
+    cy.get('#player-circle li').first().find('.reminders').trigger('mouseenter', { force: true });
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
 
     // Edit the icon reminder label to a very short string 'hi'
@@ -139,6 +139,52 @@ describe('Death & Reminders', () => {
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
+  });
+
+  it('touch: tapping death ribbon does not expand a collapsed reminder stack', () => {
+    // Reload in touch mode to ensure touch paths
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
+        Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
+      }
+    });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.get('#load-tb').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    // Start game
+    cy.get('#player-count').then(($el) => { const el = $el[0]; el.value = '5'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
+    cy.get('#start-game').click();
+    // Add one reminder to first player so there is a collapsed stack
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Ensure stack is collapsed
+    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+    // Tap death ribbon (simulate touch)
+    cy.get('#player-circle li').first().find('.death-ribbon')
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true })
+      .trigger('touchend', { force: true });
+    // Should remain collapsed
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+  });
+
+  it('desktop: hovering over character circle does not expand collapsed reminders', () => {
+    // Desktop default visit already done in beforeEach
+    // Add one reminder to first player
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Ensure collapsed
+    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+    // Hover over token
+    cy.get('#player-circle li').first().find('.player-token').trigger('mouseenter');
+    // Should remain collapsed
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
   });
 });
 

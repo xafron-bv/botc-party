@@ -15,7 +15,7 @@ describe('Ability UI - Desktop', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -44,7 +44,7 @@ describe('Ability UI - Touch', () => {
       }
     });
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -121,6 +121,68 @@ describe('Ability UI - Touch', () => {
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
+  });
+
+  it('player name: visible => single tap edits; no reminder modal', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Ensure no modal initially
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Stub prompt for rename
+    cy.window().then((win) => { cy.stub(win, 'prompt').returns('Zed'); });
+    // Ensure the name is unobstructed for this test
+    cy.get('#player-circle li .player-name').first().then(($el) => {
+      const el = $el[0];
+      el.style.zIndex = '200';
+    });
+    // Single tap via touchstart should rename when visible (not covered)
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    cy.get('#player-circle li .player-name').first().should('contain', 'Zed');
+  });
+
+  it('player name: partially covered => first tap raises only; second tap edits', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Ensure no modal initially
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Move the first player's name under the token to simulate partial coverage
+    cy.get('#player-circle li .player-name').first().then(($el) => {
+      const el = $el[0];
+      el.style.top = '50%';
+      el.style.left = '50%';
+      el.style.transform = 'translate(-50%, -50%)';
+    });
+    // Stub prompt and track call count
+    cy.window().then((win) => { cy.stub(win, 'prompt').as('namePrompt').returns('Yara'); });
+    // First tap on the name
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('@namePrompt').should('have.callCount', 0);
+    // Second tap should rename
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 6, clientY: 6 }], force: true });
+    cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
+  });
+
+  it('touch: tapping character circle does not expand collapsed reminders', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    // Add a reminder so there is a stack to expand
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Ensure collapsed
+    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
+    // Tap the character circle to open character modal
+    cy.get('#player-circle li .player-token').first()
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true })
+      .click({ force: true });
+    // Reminders should remain collapsed
+    cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
   });
 
   it('shows press feedback on long-press capable reminder tokens on touch', () => {
