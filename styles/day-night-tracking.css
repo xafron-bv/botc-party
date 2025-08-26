@@ -34,65 +34,47 @@
 /* Day/Night History Slider Drawer */
 .day-night-slider {
   position: fixed;
-  bottom: 80px; /* Position above the toggle button */
-  right: 20px;
-  width: 400px;
-  max-width: calc(100vw - 40px);
-  background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.9) 100%);
+  bottom: 20px; /* Same as toggle button */
+  right: 65px; /* Position to seamlessly connect with toggle button */
+  height: 50px; /* Same height as toggle button */
+  width: 320px;
+  max-width: calc(100vw - 100px);
+  background: #1a1a1a;
   border: 2px solid #D4AF37;
-  border-radius: 15px;
-  padding: 20px;
-  z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.7);
-  transform-origin: bottom right;
+  border-right: none; /* Remove right border for seamless connection */
+  border-radius: 25px 0 0 25px; /* Round only left side */
+  padding: 0 15px 0 20px;
+  z-index: 999; /* Slightly below toggle button */
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.4);
+  transform-origin: center right;
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
-  transform: scale(0.1) translateY(20px);
+  transform: scaleX(0.1);
   pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 
 .day-night-slider.open {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: scaleX(1);
   pointer-events: auto;
-}
-
-/* Arrow/connector from drawer to button */
-.day-night-slider::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  right: 15px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #D4AF37;
 }
 
 .slider-container {
   display: flex;
   align-items: center;
-  gap: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
 }
 
 .phase-labels {
-  position: absolute;
-  top: 10px;
-  left: 20px;
-  right: 80px;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
+  display: none; /* Hide labels in horizontal layout */
 }
 
 .phase-label {
-  color: #D4AF37;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
+  display: none;
 }
 
 .phase-slider {
@@ -139,21 +121,21 @@
 
 .current-phase {
   color: #D4AF37;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
-  min-width: 40px;
+  min-width: 35px;
   text-align: center;
 }
 
 .add-phase-button {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border-radius: 50%;
   background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
   color: white;
   border: 2px solid #7a4ba8;
-  font-size: 24px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -192,10 +174,11 @@
   }
   
   .day-night-slider {
-    width: calc(100vw - 30px);
-    right: 15px;
-    bottom: 70px;
-    padding: 15px;
+    width: calc(100vw - 80px);
+    right: 60px;
+    bottom: 15px;
+    height: 45px;
+    padding: 0 10px 0 15px;
   }
   
   .slider-container {

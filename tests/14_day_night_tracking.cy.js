@@ -84,6 +84,23 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="phase-labels"]').should('contain', 'N2');
       cy.get('[data-testid="phase-labels"]').should('contain', 'D2');
     });
+    
+    it('should update toggle icon based on current phase', () => {
+      // Initially N1 - should show moon icon
+      cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-moon');
+      
+      // Add D1 - should show sun icon
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-sun');
+      
+      // Add N2 - should show moon icon
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-moon');
+      
+      // Navigate back to D1 - should show sun icon
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 1).trigger('input');
+      cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-sun');
+    });
   });
 
   describe('Reminder Timestamps', () => {
@@ -173,10 +190,11 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
     });
 
-    it('should show slider as drawer above toggle button when enabled', () => {
+    it('should show slider as seamless extension of toggle button when enabled', () => {
       cy.get('[data-testid="day-night-slider"]').should('be.visible');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '80px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '50px');
       cy.get('[data-testid="day-night-slider"]').should('have.class', 'open');
     });
 
@@ -215,33 +233,38 @@ describe('Day/Night Tracking Feature', () => {
   });
 
   describe('UI Integration', () => {
-    it('should position slider as drawer near toggle button without interfering with grimoire', () => {
+    it('should position slider seamlessly with toggle button without interfering with grimoire', () => {
       cy.get('[data-testid="day-night-toggle"]').click();
       
-      // Slider should be positioned above toggle button
+      // Slider should be positioned at same level as toggle button
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '80px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '20px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'width', '400px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '65px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '50px');
       
       // Player circle should still be visible and not overlapped
       cy.get('#player-circle').should('be.visible');
       cy.get('#center').should('be.visible');
     });
 
-    it('should properly style the phase labels and slider', () => {
+    it('should properly style the horizontal slider layout', () => {
       cy.get('[data-testid="day-night-toggle"]').click();
       
       // Add multiple phases
       cy.get('[data-testid="add-phase-button"]').click(); // D1
       cy.get('[data-testid="add-phase-button"]').click(); // N2
       
-      // Check slider styling
+      // Check slider styling for horizontal layout
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'background-color');
-      cy.get('[data-testid="phase-labels"]').should('be.visible');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '50px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'border-radius', '25px 0px 0px 25px');
       
-      // Phase labels should be evenly distributed
-      cy.get('[data-testid="phase-labels"] .phase-label').should('have.length', 3);
+      // Phase labels should be hidden in horizontal layout
+      cy.get('[data-testid="phase-labels"]').should('have.css', 'display', 'none');
+      
+      // Current phase should be visible
+      cy.get('[data-testid="current-phase"]').should('be.visible');
+      cy.get('[data-testid="current-phase"]').should('contain', 'N2');
     });
   });
 

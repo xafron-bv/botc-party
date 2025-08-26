@@ -94,10 +94,12 @@ export function updateDayNightUI(grimoireState) {
   toggle.classList.toggle('active', enabled);
   toggle.setAttribute('aria-pressed', enabled);
   
-  // Update icon
+  // Update icon to show current phase
   const icon = toggle.querySelector('i');
   if (icon) {
-    icon.className = enabled ? 'fas fa-sun' : 'fas fa-moon';
+    const currentPhase = phases[currentPhaseIndex];
+    const isNight = currentPhase && currentPhase.startsWith('N');
+    icon.className = isNight ? 'fas fa-moon' : 'fas fa-sun';
   }
   
   // Show/hide slider with animation
