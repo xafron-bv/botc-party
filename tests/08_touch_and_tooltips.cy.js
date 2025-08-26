@@ -312,5 +312,96 @@ describe('Ability UI - Touch', () => {
       .trigger('touchend', { force: true });
     cy.get('#player-circle li').first().find('.icon-reminder.press-feedback, .text-reminder.press-feedback').should('not.exist');
   });
+
+  it('player name: comprehensive touch behavior - raise, edit, restore', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    
+    // Stub prompt but it should NOT be called on first touch
+    cy.window().then((win) => { 
+      cy.stub(win, 'prompt').as('promptStub').returns('NewName'); 
+    });
+    
+    // Get initial z-index of first player name
+    cy.get('#player-circle li').first().find('.player-name').then(($name) => {
+      const initialZIndex = $name[0].style.zIndex || window.getComputedStyle($name[0]).zIndex || '0';
+      cy.wrap(initialZIndex).as('initialZIndex');
+    });
+    
+    // FIRST TOUCH: Should only raise the name, NOT open prompt
+    cy.get('#player-circle li').first().find('.player-name')
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
+    
+    // Verify prompt was NOT called
+    cy.get('@promptStub').should('have.callCount', 0);
+    
+    // Verify name was raised (z-index increased)
+    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
+      const currentZIndex = parseInt($name[0].style.zIndex) || 0;
+      expect(currentZIndex).to.be.greaterThan(5); // Should be raised above token
+    });
+    
+    // Verify raised state is set
+    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
+      expect($name[0].dataset.raised).to.equal('true');
+    });
+    
+    // SECOND TOUCH ON SAME NAME: Should open prompt
+    cy.get('#player-circle li').first().find('.player-name')
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
+    
+    // Verify prompt was called
+    cy.get('@promptStub').should('have.callCount', 1);
+    
+    // Verify name was changed
+    cy.get('#player-circle li').first().find('.player-name').should('contain', 'NewName');
+    
+    // Restore the prompt stub for next part of test
+    cy.get('@promptStub').invoke('restore');
+    
+    // Create new stub
+    cy.window().then((win) => { 
+      cy.stub(win, 'prompt').as('promptStub2').returns('AnotherName'); 
+    });
+    
+    // Touch first name again to raise it
+    cy.get('#player-circle li').first().find('.player-name')
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
+    
+    // Verify it's raised again
+    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
+      expect($name[0].dataset.raised).to.equal('true');
+    });
+    
+    // SECOND TOUCH ON DIFFERENT PLAYER: Should restore first name and raise second
+    cy.get('#player-circle li').eq(1).find('.player-name')
+      .trigger('touchstart', { touches: [{ clientX: 20, clientY: 20 }], force: true });
+    
+    // Verify first name is restored to original z-index
+    cy.get('@initialZIndex').then((initialZIndex) => {
+      cy.get('#player-circle li').first().find('.player-name').should(($name) => {
+        expect($name[0].style.zIndex).to.equal(initialZIndex.toString());
+        expect($name[0].dataset.raised).to.be.undefined;
+      });
+    });
+    
+    // Verify second name is now raised
+    cy.get('#player-circle li').eq(1).find('.player-name').should(($name) => {
+      expect($name[0].dataset.raised).to.equal('true');
+      const currentZIndex = parseInt($name[0].style.zIndex) || 0;
+      expect(currentZIndex).to.be.greaterThan(5);
+    });
+    
+    // Verify no prompts were called
+    cy.get('@promptStub2').should('have.callCount', 0);
+    
+    // TOUCH OUTSIDE: Should restore all raised names
+    cy.get('#center-marker').click({ force: true });
+    
+    // Verify all names are restored
+    cy.get('#player-circle li .player-name').each(($name) => {
+      expect($name[0].dataset.raised).to.be.undefined;
+    });
+  });
 });
 

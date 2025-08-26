@@ -12,6 +12,7 @@ function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
 
+// A lot of similar code in rebuildPlayerCircleUiPreserveState
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
@@ -74,7 +75,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
       tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
     });
-    
+
     // Player name click handler as a named function
     const handlePlayerNameClick = (e) => {
       e.stopPropagation();
@@ -86,15 +87,15 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         saveAppState({ grimoireState });
       }
     };
-    
+
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
-    
+
     // Add touchstart handler for touch devices
     if ('ontouchstart' in window) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
-        
+
         // Clear any other raised player names first
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
@@ -104,25 +105,25 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
             delete el.dataset.originalZIndex;
           }
         });
-        
+
         // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
         const tokenEl = playerNameEl.closest('li').querySelector('.player-token');
-        
+
         // Get computed styles
         const nameStyles = window.getComputedStyle(playerNameEl);
         const nameZIndex = parseInt(nameStyles.zIndex) || 0;
-        
+
         // Get token z-index (typically 5)
         const tokenStyles = tokenEl ? window.getComputedStyle(tokenEl) : null;
         const tokenZIndex = tokenStyles ? (parseInt(tokenStyles.zIndex) || 5) : 5;
-        
+
         // In touch mode, names are partially covered if they're below the token
         const isPartiallyCovered = nameZIndex < tokenZIndex;
-        
+
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
-        
+
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
@@ -130,10 +131,10 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           playerNameEl.style.zIndex = '20'; // Raise above other elements
           return; // Don't trigger rename
         }
-        
+
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick(e);
-        
+
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
@@ -196,14 +197,14 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
-      
+
       if (remindersEl) {
         remindersEl.addEventListener('mouseenter', expand);
         remindersEl.addEventListener('mouseleave', collapse);
         remindersEl.addEventListener('pointerenter', expand);
         remindersEl.addEventListener('pointerleave', collapse);
       }
-      
+
       if (placeholderEl) {
         placeholderEl.addEventListener('mouseenter', expand);
         placeholderEl.addEventListener('mouseleave', collapse);
@@ -214,26 +215,26 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      
+
       // Check if tapped on death ribbon
       if (target && target.closest('.death-ribbon')) {
         return; // Don't expand for death ribbon taps
       }
-      
+
       // Check if tapped on player token (character circle)
       if (target && target.closest('.player-token')) {
         return; // Don't expand for character circle taps
       }
-      
+
       // Check if tapped on player name
       if (target && target.closest('.player-name')) {
         return; // Don't expand for player name taps
       }
-      
+
       // Only expand if tapped on reminders or reminder placeholder
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
-      
+
       if (tappedReminders || tappedPlaceholder) {
         if (tappedReminders) {
           try { e.preventDefault(); } catch (_) { }
@@ -285,7 +286,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   });
-  
+
   // Register global touch handler for clearing raised states (only once)
   if ('ontouchstart' in window && !grimoireState.raisedStateClearHandlerInstalled) {
     grimoireState.raisedStateClearHandlerInstalled = true;
@@ -904,7 +905,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
-    
+
     // Player name click handler as a named function
     const handlePlayerNameClick2 = (e) => {
       e.stopPropagation();
@@ -916,15 +917,15 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         saveAppState({ grimoireState });
       }
     };
-    
+
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
-    
+
     // Add touchstart handler for touch devices
     if ('ontouchstart' in window) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
-        
+
         // Clear any other raised player names first
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
@@ -934,25 +935,25 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
             delete el.dataset.originalZIndex;
           }
         });
-        
+
         // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
         const tokenEl = playerNameEl.closest('li').querySelector('.player-token');
-        
+
         // Get computed styles
         const nameStyles = window.getComputedStyle(playerNameEl);
         const nameZIndex = parseInt(nameStyles.zIndex) || 0;
-        
+
         // Get token z-index (typically 5)
         const tokenStyles = tokenEl ? window.getComputedStyle(tokenEl) : null;
         const tokenZIndex = tokenStyles ? (parseInt(tokenStyles.zIndex) || 5) : 5;
-        
+
         // In touch mode, names are partially covered if they're below the token
         const isPartiallyCovered = nameZIndex < tokenZIndex;
-        
+
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
-        
+
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
@@ -960,10 +961,10 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           playerNameEl.style.zIndex = '20'; // Raise above other elements
           return; // Don't trigger rename
         }
-        
+
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick2(e);
-        
+
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
@@ -1026,14 +1027,14 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
-      
+
       if (remindersEl) {
         remindersEl.addEventListener('mouseenter', expand);
         remindersEl.addEventListener('mouseleave', collapse);
         remindersEl.addEventListener('pointerenter', expand);
         remindersEl.addEventListener('pointerleave', collapse);
       }
-      
+
       if (placeholderEl) {
         placeholderEl.addEventListener('mouseenter', expand);
         placeholderEl.addEventListener('mouseleave', collapse);
@@ -1043,26 +1044,26 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      
+
       // Check if tapped on death ribbon
       if (target && target.closest('.death-ribbon')) {
         return; // Don't expand for death ribbon taps
       }
-      
+
       // Check if tapped on player token (character circle)
       if (target && target.closest('.player-token')) {
         return; // Don't expand for character circle taps
       }
-      
+
       // Check if tapped on player name
       if (target && target.closest('.player-name')) {
         return; // Don't expand for player name taps
       }
-      
+
       // Only expand if tapped on reminders or reminder placeholder
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
-      
+
       if (tappedReminders || tappedPlaceholder) {
         if (tappedReminders) {
           try { e.preventDefault(); } catch (_) { }
