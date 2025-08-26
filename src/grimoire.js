@@ -74,89 +74,15 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
       tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
     });
-    const playerNameElInitial = listItem.querySelector('.player-name');
-    if (playerNameElInitial) {
-      // Clear armed name-tap when touching anywhere outside a player name
-      if (isTouchDevice && !grimoireState.nameTapOutsideHandlerInstalled) {
-        grimoireState.nameTapOutsideHandlerInstalled = true;
-        const clearNameTap = (ev) => {
-          const t = ev.target;
-          if (t && t.closest && t.closest('.player-name')) return;
-          const allLis = document.querySelectorAll('#player-circle li');
-          allLis.forEach((el) => {
-            if (el.dataset && el.dataset.nameTapArmed === '1') delete el.dataset.nameTapArmed;
-            try { el.style.zIndex = ''; } catch (_) { }
-            const nm = el.querySelector('.player-name');
-            try { if (nm) nm.style.zIndex = ''; } catch (_) { }
-          });
-        };
-        document.addEventListener('touchstart', clearNameTap, { capture: true, passive: true });
-        document.addEventListener('click', clearNameTap, true);
+    listItem.querySelector('.player-name').onclick = (e) => {
+      e.stopPropagation();
+      const newName = prompt('Enter player name:', player.name);
+      if (newName) {
+        grimoireState.players[i].name = newName;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
       }
-
-      playerNameElInitial.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        try { e.preventDefault(); } catch (_) { }
-        const li = listItem;
-        const isCovered = (() => {
-          const rect = playerNameElInitial.getBoundingClientRect();
-          const samples = [
-            [rect.left + rect.width / 2, rect.top + rect.height / 2],
-            [rect.left + 4, rect.top + 4],
-            [rect.right - 4, rect.top + 4],
-            [rect.left + 4, rect.bottom - 4],
-            [rect.right - 4, rect.bottom - 4]
-          ];
-          for (const [sx, sy] of samples) {
-            const el = document.elementFromPoint(sx, sy);
-            if (!el) continue;
-            if (!(el === playerNameElInitial || (el.closest && el.closest('.player-name') === playerNameElInitial))) {
-              return true;
-            }
-          }
-          return false;
-        })();
-
-        if (isCovered && li.dataset.nameTapArmed !== '1') {
-          li.dataset.nameTapArmed = '1';
-          try { li.style.zIndex = '200'; } catch (_) { }
-          try { playerNameElInitial.style.zIndex = '200'; } catch (_) { }
-          return;
-        }
-        if (isCovered && li.dataset.nameTapArmed === '1') {
-          delete li.dataset.nameTapArmed;
-          try { li.style.zIndex = ''; } catch (_) { }
-          try { playerNameElInitial.style.zIndex = ''; } catch (_) { }
-          const newName = prompt('Enter player name:', player.name);
-          if (newName) {
-            grimoireState.players[i].name = newName;
-            updateGrimoire({ grimoireState });
-            saveAppState({ grimoireState });
-          }
-          return;
-        }
-        // Not covered: edit immediately
-        delete li.dataset.nameTapArmed;
-        try { li.style.zIndex = ''; } catch (_) { }
-        try { playerNameElInitial.style.zIndex = ''; } catch (_) { }
-        const newName = prompt('Enter player name:', player.name);
-        if (newName) {
-          grimoireState.players[i].name = newName;
-          updateGrimoire({ grimoireState });
-          saveAppState({ grimoireState });
-        }
-      }, { passive: false });
-      playerNameElInitial.onclick = (e) => {
-        e.stopPropagation();
-        if (isTouchDevice) return;
-        const newName = prompt('Enter player name:', player.name);
-        if (newName) {
-          grimoireState.players[i].name = newName;
-          updateGrimoire({ grimoireState });
-          saveAppState({ grimoireState });
-        }
-      };
-    }
+    };
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -208,30 +134,16 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players); };
     if (!isTouchDevice) {
-      const remindersContainer = listItem.querySelector('.reminders');
-      if (remindersContainer) {
-        remindersContainer.addEventListener('mouseenter', expand);
-        remindersContainer.addEventListener('mouseleave', collapse);
-        remindersContainer.addEventListener('pointerenter', expand);
-        remindersContainer.addEventListener('pointerleave', collapse);
-      }
+      listItem.addEventListener('mouseenter', expand);
+      listItem.addEventListener('mouseleave', collapse);
+      // Pointer events for broader device support
+      listItem.addEventListener('pointerenter', expand);
+      listItem.addEventListener('pointerleave', collapse);
     }
     // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
-      const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
-      const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
-      const tappedToken = !!(target && target.closest && target.closest('.player-token'));
-      if (tappedPlayerName) {
-        return; // do not expand when tapping the player name; handled separately
-      }
-      if (tappedDeathRibbon) {
-        return; // do not expand when tapping death ribbon
-      }
-      if (tappedToken) {
-        return; // do not expand when tapping character circle
-      }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
         listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
@@ -884,86 +796,15 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
-    const playerNameEl = listItem.querySelector('.player-name');
-    if (playerNameEl) {
-      if (isTouchDevice && !grimoireState.nameTapOutsideHandlerInstalled) {
-        grimoireState.nameTapOutsideHandlerInstalled = true;
-        const clearNameTap = (ev) => {
-          const t = ev.target;
-          if (t && t.closest && t.closest('.player-name')) return;
-          const allLis = document.querySelectorAll('#player-circle li');
-          allLis.forEach((el) => {
-            if (el.dataset && el.dataset.nameTapArmed === '1') delete el.dataset.nameTapArmed;
-            try { el.style.zIndex = ''; } catch (_) { }
-            const nm = el.querySelector('.player-name');
-            try { if (nm) nm.style.zIndex = ''; } catch (_) { }
-          });
-        };
-        document.addEventListener('touchstart', clearNameTap, { capture: true, passive: true });
-        document.addEventListener('click', clearNameTap, true);
+    listItem.querySelector('.player-name').onclick = (e) => {
+      e.stopPropagation();
+      const newName = prompt('Enter player name:', player.name);
+      if (newName) {
+        grimoireState.players[i].name = newName;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
       }
-      playerNameEl.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        try { e.preventDefault(); } catch (_) { }
-        const li = listItem;
-        const isCovered = (() => {
-          const rect = playerNameEl.getBoundingClientRect();
-          const samples = [
-            [rect.left + rect.width / 2, rect.top + rect.height / 2],
-            [rect.left + 4, rect.top + 4],
-            [rect.right - 4, rect.top + 4],
-            [rect.left + 4, rect.bottom - 4],
-            [rect.right - 4, rect.bottom - 4]
-          ];
-          for (const [sx, sy] of samples) {
-            const el = document.elementFromPoint(sx, sy);
-            if (!el) continue;
-            if (!(el === playerNameEl || (el.closest && el.closest('.player-name') === playerNameEl))) {
-              return true;
-            }
-          }
-          return false;
-        })();
-        if (isCovered && li.dataset.nameTapArmed !== '1') {
-          li.dataset.nameTapArmed = '1';
-          try { li.style.zIndex = '200'; } catch (_) { }
-          try { playerNameEl.style.zIndex = '200'; } catch (_) { }
-          return;
-        }
-        if (isCovered && li.dataset.nameTapArmed === '1') {
-          delete li.dataset.nameTapArmed;
-          try { li.style.zIndex = ''; } catch (_) { }
-          try { playerNameEl.style.zIndex = ''; } catch (_) { }
-          const newName = prompt('Enter player name:', player.name);
-          if (newName) {
-            grimoireState.players[i].name = newName;
-            updateGrimoire({ grimoireState });
-            saveAppState({ grimoireState });
-          }
-          return;
-        }
-        // Not covered: edit immediately
-        delete li.dataset.nameTapArmed;
-        try { li.style.zIndex = ''; } catch (_) { }
-        try { playerNameEl.style.zIndex = ''; } catch (_) { }
-        const newName = prompt('Enter player name:', player.name);
-        if (newName) {
-          grimoireState.players[i].name = newName;
-          updateGrimoire({ grimoireState });
-          saveAppState({ grimoireState });
-        }
-      }, { passive: false });
-      playerNameEl.onclick = (e) => {
-        e.stopPropagation();
-        if (isTouchDevice) return;
-        const newName = prompt('Enter player name:', player.name);
-        if (newName) {
-          grimoireState.players[i].name = newName;
-          updateGrimoire({ grimoireState });
-          saveAppState({ grimoireState });
-        }
-      };
-    }
+    };
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -1015,29 +856,14 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
     if (!isTouchDevice) {
-      const remindersContainer = listItem.querySelector('.reminders');
-      if (remindersContainer) {
-        remindersContainer.addEventListener('mouseenter', expand);
-        remindersContainer.addEventListener('mouseleave', collapse);
-        remindersContainer.addEventListener('pointerenter', expand);
-        remindersContainer.addEventListener('pointerleave', collapse);
-      }
+      listItem.addEventListener('mouseenter', expand);
+      listItem.addEventListener('mouseleave', collapse);
+      listItem.addEventListener('pointerenter', expand);
+      listItem.addEventListener('pointerleave', collapse);
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
       const tappedReminders = !!(target && target.closest('.reminders'));
-      const tappedPlayerName = !!(target && target.closest && target.closest('.player-name'));
-      const tappedDeathRibbon = !!(target && target.closest && target.closest('.death-ribbon'));
-      const tappedToken = !!(target && target.closest && target.closest('.player-token'));
-      if (tappedPlayerName) {
-        return;
-      }
-      if (tappedDeathRibbon) {
-        return; // do not expand when tapping death ribbon
-      }
-      if (tappedToken) {
-        return; // do not expand when tapping character circle
-      }
       if (tappedReminders) {
         try { e.preventDefault(); } catch (_) { }
         listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
