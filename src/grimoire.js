@@ -99,7 +99,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
             delete el.dataset.raised;
-            el.style.zIndex = '';
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalZIndex || '';
+            delete el.dataset.originalZIndex;
           }
         });
         
@@ -124,17 +126,19 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
+          playerNameEl.dataset.originalZIndex = playerNameEl.style.zIndex || '0';
           playerNameEl.style.zIndex = '20'; // Raise above other elements
-          return;
+          return; // Don't trigger rename
         }
         
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick(e);
         
-        // Reset raised state after rename
+        // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
-          playerNameEl.style.zIndex = '';
+          playerNameEl.style.zIndex = playerNameEl.dataset.originalZIndex || '';
+          delete playerNameEl.dataset.originalZIndex;
         }
       });
     }
@@ -290,7 +294,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       if (!target.closest('.player-name')) {
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           delete el.dataset.raised;
-          el.style.zIndex = '';
+          // Restore original z-index
+          el.style.zIndex = el.dataset.originalZIndex || '';
+          delete el.dataset.originalZIndex;
         });
       }
     }, { passive: true });
@@ -923,7 +929,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
             delete el.dataset.raised;
-            el.style.zIndex = '';
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalZIndex || '';
+            delete el.dataset.originalZIndex;
           }
         });
         
@@ -948,17 +956,19 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
+          playerNameEl.dataset.originalZIndex = playerNameEl.style.zIndex || '0';
           playerNameEl.style.zIndex = '20'; // Raise above other elements
-          return;
+          return; // Don't trigger rename
         }
         
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick2(e);
         
-        // Reset raised state after rename
+        // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
-          playerNameEl.style.zIndex = '';
+          playerNameEl.style.zIndex = playerNameEl.dataset.originalZIndex || '';
+          delete playerNameEl.dataset.originalZIndex;
         }
       });
     }
