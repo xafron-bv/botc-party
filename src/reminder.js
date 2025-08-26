@@ -2,6 +2,7 @@ import { resolveAssetPath } from '../utils.js';
 import { updateGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
+import { generateReminderId, addReminderTimestamp } from './dayNightTracking.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -82,7 +83,16 @@ export async function populateReminderTokenGrid({ grimoireState }) {
           if (input === null) return;
           label = input;
         }
-        grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({ type: 'icon', id: token.id, image: token.image, label, rotation: 0 });
+        const reminderId = generateReminderId();
+        grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({ 
+          type: 'icon', 
+          id: token.id, 
+          image: token.image, 
+          label, 
+          rotation: 0,
+          reminderId 
+        });
+        addReminderTimestamp(grimoireState, reminderId);
         updateGrimoire({ grimoireState });
         saveAppState({ grimoireState });
         reminderTokenModal.style.display = 'none';

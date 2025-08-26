@@ -1,0 +1,170 @@
+/* Day/Night Tracking Toggle Button */
+.day-night-toggle {
+  position: fixed;
+  top: 20px;
+  right: 170px;
+  width: auto;
+  padding: 10px 16px;
+  z-index: 1001;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.day-night-toggle.active {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5D247 100%);
+  color: #1a1a1a;
+  border-color: #D4AF37;
+}
+
+/* Day/Night History Slider */
+.day-night-slider {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.95) 100%);
+  border-top: 2px solid #D4AF37;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+  display: none;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.phase-labels {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  right: 80px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.phase-label {
+  color: #D4AF37;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.phase-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  outline: none;
+  position: relative;
+}
+
+.phase-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #D4AF37;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.phase-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.phase-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #D4AF37;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: none;
+  transition: transform 0.2s;
+}
+
+.phase-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.current-phase {
+  color: #D4AF37;
+  font-size: 18px;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+}
+
+.add-phase-button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
+  color: white;
+  border: 2px solid #7a4ba8;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.add-phase-button:hover {
+  background: linear-gradient(135deg, #7a4ba8 0%, #9a6bc8 100%);
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+/* Reminder Timestamps */
+.reminder-timestamp {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #D4AF37;
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .day-night-toggle {
+    right: 150px;
+    font-size: 12px;
+    min-width: 120px;
+    padding: 8px 12px;
+  }
+  
+  .day-night-slider {
+    padding: 15px;
+  }
+  
+  .slider-container {
+    gap: 15px;
+  }
+  
+  .current-phase {
+    font-size: 16px;
+  }
+  
+  .add-phase-button {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+}

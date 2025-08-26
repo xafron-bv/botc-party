@@ -11,6 +11,7 @@ import { loadScriptFile, loadScriptFromFile } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
+import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const startGameBtn = document.getElementById('start-game');
@@ -139,7 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
           grimoireState.players[playerIndex].reminders[reminderIndex].label = text;
         }
       } else {
-        grimoireState.players[playerIndex].reminders.push({ type: 'text', value: text });
+        const reminderId = generateReminderId();
+        grimoireState.players[playerIndex].reminders.push({ type: 'text', value: text, reminderId });
+        addReminderTimestamp(grimoireState, reminderId);
       }
     } else if (reminderIndex > -1) {
       grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
@@ -262,6 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore previous session (script and grimoire)
   loadAppState({ grimoireState, grimoireHistoryList });
+
+  // Initialize day/night tracking
+  initDayNightTracking(grimoireState);
 
   // In-app tour
   initInAppTour();

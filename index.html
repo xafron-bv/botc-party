@@ -7,6 +7,7 @@
   <title>Blood on the Clocktower - Party Grimoire</title>
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles/day-night-tracking.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/android-chrome-192x192.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -85,10 +86,19 @@
 
     <div id="grimoire">
       <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Toggle sidebar" aria-pressed="false">Close Sidebar</button>
+      <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle" aria-label="Toggle day/night tracking" aria-pressed="false">Day/Night Tracking</button>
       <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
       <div id="center">
         <div id="setup-info" aria-live="polite"></div>
         <ul id="player-circle" class="circle"></ul>
+      </div>
+      <div id="day-night-slider" data-testid="day-night-slider" class="day-night-slider">
+        <div class="slider-container">
+          <div id="phase-labels" data-testid="phase-labels" class="phase-labels"></div>
+          <input type="range" min="0" max="0" value="0" class="phase-slider" id="phase-slider">
+          <div id="current-phase" data-testid="current-phase" class="current-phase">N1</div>
+          <button id="add-phase-button" data-testid="add-phase-button" class="add-phase-button" aria-label="Add next phase">+</button>
+        </div>
       </div>
     </div>
   </div>
@@ -106,7 +116,7 @@
     <div class="modal-content">
       <h3>Add/Edit Reminder</h3>
       <input type="text" id="reminder-text-input" placeholder="Enter reminder text...">
-      <button class="button" id="save-reminder-btn">Save</button>
+      <button class="button" id="save-reminder-btn" data-testid="save-text-reminder">Save</button>
       <button class="button" id="cancel-reminder-btn">Cancel</button>
     </div>
   </div>
