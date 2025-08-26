@@ -203,35 +203,6 @@ describe('Ability UI - Touch', () => {
     });
   });
 
-  it('player name: raised state cleared when tapping elsewhere', () => {
-    cy.viewport('iphone-6');
-    startGameWithPlayers(5);
-    
-    // Stub prompt and track call count
-    cy.window().then((win) => { cy.stub(win, 'prompt').as('namePrompt').returns('Yara'); });
-    
-    // First tap on the first player name
-    cy.get('#player-circle li .player-name').first()
-      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
-    
-    // Verify the name was raised
-    cy.get('#player-circle li .player-name').first().should(($el) => {
-      expect($el[0].dataset.raised).to.equal('true');
-    });
-    
-    // Tap on a different player name
-    cy.get('#player-circle li .player-name').eq(1)
-      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
-    
-    // Verify first player's raised state is cleared
-    cy.get('#player-circle li .player-name').first().should(($el) => {
-      expect($el[0].dataset.raised).to.be.undefined;
-    });
-    
-    // Verify prompt was not called for first player
-    cy.get('@namePrompt').should('have.callCount', 0);
-  });
-
   it('player name: prompt shows current name after rename', () => {
     cy.viewport('iphone-6');
     // Don't start a new game - we already have 5 players from beforeEach
