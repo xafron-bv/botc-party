@@ -126,6 +126,14 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           playerNameEl.dataset.raised = 'true';
           playerNameEl.dataset.originalZIndex = currentZIndex.toString();
           playerNameEl.style.setProperty('z-index', '60', 'important'); // Raise above other elements with !important to override touch.css
+          
+          // Also raise the parent li to ensure the whole container is above others
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi) {
+            parentLi.dataset.originalZIndex = parentLi.style.zIndex || '';
+            parentLi.style.setProperty('z-index', '200', 'important');
+          }
+          
           return; // Don't trigger rename
         }
         
@@ -1138,6 +1146,13 @@ document.addEventListener('DOMContentLoaded', () => {
           // Restore original z-index
           el.style.zIndex = el.dataset.originalZIndex || '';
           delete el.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = el.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
         });
       }
     }, { passive: true });
