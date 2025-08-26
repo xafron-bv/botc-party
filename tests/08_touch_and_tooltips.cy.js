@@ -396,7 +396,7 @@ describe('Ability UI - Touch', () => {
     cy.get('@promptStub2').should('have.callCount', 0);
     
     // TOUCH OUTSIDE: Should restore all raised names
-    cy.get('#center-marker').click({ force: true });
+    cy.get('body').trigger('touchstart', { touches: [{ clientX: 0, clientY: 0 }] });
     
     // Verify all names are restored
     cy.get('#player-circle li .player-name').each(($name) => {
