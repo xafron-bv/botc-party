@@ -239,7 +239,7 @@ describe('Day/Night Tracking Feature', () => {
       // Slider should be positioned at same level as toggle button
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '65px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '75px');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '50px');
       
       // Player circle should still be visible and not overlapped
@@ -257,7 +257,7 @@ describe('Day/Night Tracking Feature', () => {
       // Check slider styling for horizontal layout
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'background-color');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '50px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'border-radius', '25px 0px 0px 25px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'border-radius', '25px');
       
       // Phase labels should be hidden in horizontal layout
       cy.get('[data-testid="phase-labels"]').should('have.css', 'display', 'none');

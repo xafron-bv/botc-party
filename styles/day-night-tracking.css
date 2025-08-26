@@ -35,17 +35,16 @@
 .day-night-slider {
   position: fixed;
   bottom: 20px; /* Same as toggle button */
-  right: 65px; /* Position to seamlessly connect with toggle button */
+  right: 75px; /* Small gap from toggle button */
   height: 50px; /* Same height as toggle button */
   width: 320px;
   max-width: calc(100vw - 100px);
   background: #1a1a1a;
   border: 2px solid #D4AF37;
-  border-right: none; /* Remove right border for seamless connection */
-  border-radius: 25px 0 0 25px; /* Round only left side */
-  padding: 0 15px 0 20px;
+  border-radius: 25px; /* Full rounded corners */
+  padding: 0 20px;
   z-index: 999; /* Slightly below toggle button */
-  box-shadow: -4px 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   transform-origin: center right;
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
@@ -175,10 +174,10 @@
   
   .day-night-slider {
     width: calc(100vw - 80px);
-    right: 60px;
+    right: 70px;
     bottom: 15px;
     height: 45px;
-    padding: 0 10px 0 15px;
+    padding: 0 15px;
   }
   
   .slider-container {
