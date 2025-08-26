@@ -125,7 +125,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
           playerNameEl.dataset.originalZIndex = currentZIndex.toString();
-          playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
+          playerNameEl.style.setProperty('z-index', '60', 'important'); // Raise above other elements with !important to override touch.css
           return; // Don't trigger rename
         }
         
