@@ -7,6 +7,7 @@ import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
+import { getReminderTimestamp, isReminderVisible } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
@@ -544,7 +545,15 @@ export function updateGrimoire({ grimoireState }) {
     remindersDiv.innerHTML = '';
 
     // Create reminder elements; positions are handled by positionRadialStack()
+    // Filter reminders based on visibility and add visible count
+    let visibleRemindersCount = 0;
     player.reminders.forEach((reminder, idx) => {
+      // Check if reminder should be visible based on day/night tracking
+      if (!isReminderVisible(grimoireState, reminder.reminderId)) {
+        return; // Skip this reminder
+      }
+      visibleRemindersCount++;
+      
       if (reminder.type === 'icon') {
         const iconEl = document.createElement('div');
         iconEl.className = 'icon-reminder';
@@ -670,6 +679,15 @@ export function updateGrimoire({ grimoireState }) {
           iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
         }
 
+        // Add timestamp if day/night tracking is enabled
+        const timestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
+        if (timestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          const timestampEl = document.createElement('span');
+          timestampEl.className = 'reminder-timestamp';
+          timestampEl.textContent = timestamp;
+          iconEl.appendChild(timestampEl);
+        }
+        
         remindersDiv.appendChild(iconEl);
       } else {
         const reminderEl = document.createElement('div');
@@ -795,12 +813,22 @@ export function updateGrimoire({ grimoireState }) {
           reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
         }
 
+        // Add timestamp if day/night tracking is enabled
+        const textTimestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
+        if (textTimestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          const timestampEl = document.createElement('span');
+          timestampEl.className = 'reminder-timestamp';
+          timestampEl.textContent = textTimestamp;
+          reminderEl.appendChild(timestampEl);
+        }
+        
         remindersDiv.appendChild(reminderEl);
       }
     });
 
     // After rendering, position all reminders and the plus button in a radial stack
-    positionRadialStack(li, player.reminders.length);
+    // Use visible reminders count instead of total reminders
+    positionRadialStack(li, visibleRemindersCount);
   });
 
   // Position info icons after updating grimoire
