@@ -1153,6 +1153,10 @@ document.addEventListener('DOMContentLoaded', () => {
             parentLi.style.zIndex = parentLi.dataset.originalZIndex;
             delete parentLi.dataset.originalZIndex;
           }
+          
+          // Force the player name to go back behind the token
+          // In touch mode, CSS sets z-index: 0, but we need to ensure inline style is removed
+          el.style.removeProperty('z-index');
         });
       }
     }, { passive: true });
