@@ -12,6 +12,7 @@ function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
 
+// A lot of similar code in rebuildPlayerCircleUiPreserveState
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
@@ -74,15 +75,87 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
       tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
     });
-    listItem.querySelector('.player-name').onclick = (e) => {
+
+    // Player name click handler as a named function
+    const handlePlayerNameClick = (e) => {
       e.stopPropagation();
-      const newName = prompt('Enter player name:', player.name);
+      const currentName = grimoireState.players[i].name;
+      const newName = prompt('Enter player name:', currentName);
       if (newName) {
         grimoireState.players[i].name = newName;
         updateGrimoire({ grimoireState });
         saveAppState({ grimoireState });
       }
     };
+
+    // Add click handler
+    listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
+
+    // Add touchstart handler for touch devices
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        e.preventDefault(); // Prevent any default behavior
+        
+        // Clear any other raised player names first
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          if (el !== e.currentTarget) {
+            delete el.dataset.raised;
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalZIndex || '';
+            delete el.dataset.originalZIndex;
+          }
+        });
+        
+        // Check if player name is partially covered (behind token)
+        const playerNameEl = e.currentTarget;
+        
+        // Track if this element has been "raised" (first tap occurred)
+        const wasRaised = playerNameEl.dataset.raised === 'true';
+        
+        // Get computed styles to check z-index
+        const nameStyles = window.getComputedStyle(playerNameEl);
+        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        
+        // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
+        // If z-index is less than 10, it's considered partially covered
+        const isPartiallyCovered = currentZIndex < 10;
+        
+        if (isPartiallyCovered && !wasRaised) {
+          // First tap on partially covered name: just raise it
+          playerNameEl.dataset.raised = 'true';
+          playerNameEl.dataset.originalZIndex = currentZIndex.toString();
+          playerNameEl.style.setProperty('z-index', '60', 'important'); // Raise above other elements with !important to override touch.css
+          
+          // Also raise the parent li to ensure the whole container is above others
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi) {
+            parentLi.dataset.originalZIndex = parentLi.style.zIndex || '';
+            parentLi.style.setProperty('z-index', '200', 'important');
+          }
+          
+          return; // Don't trigger rename
+        }
+        
+        // Either not partially covered, or already raised - trigger rename
+        handlePlayerNameClick(e);
+        
+        // After rename, reset the raised state
+        if (playerNameEl.dataset.raised) {
+          delete playerNameEl.dataset.raised;
+          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
+          playerNameEl.style.removeProperty('z-index');
+          delete playerNameEl.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
+        }
+      });
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -134,22 +207,55 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      // Pointer events for broader device support
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      // Only expand on hover over reminders and placeholder elements
+      const remindersEl = listItem.querySelector('.reminders');
+      const placeholderEl = listItem.querySelector('.reminder-placeholder');
+
+      if (remindersEl) {
+        remindersEl.addEventListener('mouseenter', expand);
+        remindersEl.addEventListener('mouseleave', collapse);
+        remindersEl.addEventListener('pointerenter', expand);
+        remindersEl.addEventListener('pointerleave', collapse);
+      }
+
+      if (placeholderEl) {
+        placeholderEl.addEventListener('mouseenter', expand);
+        placeholderEl.addEventListener('mouseleave', collapse);
+        placeholderEl.addEventListener('pointerenter', expand);
+        placeholderEl.addEventListener('pointerleave', collapse);
+      }
     }
     // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      const tappedReminders = !!(target && target.closest('.reminders'));
-      if (tappedReminders) {
-        try { e.preventDefault(); } catch (_) { }
-        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+
+      // Check if tapped on death ribbon
+      if (target && target.closest('.death-ribbon')) {
+        return; // Don't expand for death ribbon taps
       }
-      expand();
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+
+      // Check if tapped on player token (character circle)
+      if (target && target.closest('.player-token')) {
+        return; // Don't expand for character circle taps
+      }
+
+      // Check if tapped on player name
+      if (target && target.closest('.player-name')) {
+        return; // Don't expand for player name taps
+      }
+
+      // Only expand if tapped on reminders or reminder placeholder
+      const tappedReminders = !!(target && target.closest('.reminders'));
+      const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+
+      if (tappedReminders || tappedPlaceholder) {
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch (_) { }
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+      }
     }, { passive: false });
 
     // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
@@ -796,15 +902,79 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
-    listItem.querySelector('.player-name').onclick = (e) => {
+
+    // Player name click handler as a named function
+    const handlePlayerNameClick2 = (e) => {
       e.stopPropagation();
-      const newName = prompt('Enter player name:', player.name);
+      const currentName = grimoireState.players[i].name;
+      const newName = prompt('Enter player name:', currentName);
       if (newName) {
         grimoireState.players[i].name = newName;
         updateGrimoire({ grimoireState });
         saveAppState({ grimoireState });
       }
     };
+
+    // Add click handler
+    listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
+
+        // Add touchstart handler for touch devices
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        e.preventDefault(); // Prevent any default behavior
+        
+        // Clear any other raised player names first
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          if (el !== e.currentTarget) {
+            delete el.dataset.raised;
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalZIndex || '';
+            delete el.dataset.originalZIndex;
+          }
+        });
+        
+        // Check if player name is partially covered (behind token)
+        const playerNameEl = e.currentTarget;
+        
+        // Track if this element has been "raised" (first tap occurred)
+        const wasRaised = playerNameEl.dataset.raised === 'true';
+        
+        // Get computed styles to check z-index
+        const nameStyles = window.getComputedStyle(playerNameEl);
+        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        
+        // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
+        // If z-index is less than 10, it's considered partially covered
+        const isPartiallyCovered = currentZIndex < 10;
+        
+        if (isPartiallyCovered && !wasRaised) {
+          // First tap on partially covered name: just raise it
+          playerNameEl.dataset.raised = 'true';
+          playerNameEl.dataset.originalZIndex = currentZIndex.toString();
+          playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
+          return; // Don't trigger rename
+        }
+        
+        // Either not partially covered, or already raised - trigger rename
+        handlePlayerNameClick2(e);
+        
+        // After rename, reset the raised state
+        if (playerNameEl.dataset.raised) {
+          delete playerNameEl.dataset.raised;
+          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
+          playerNameEl.style.removeProperty('z-index');
+          delete playerNameEl.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
+        }
+      });
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -856,20 +1026,54 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      // Only expand on hover over reminders and placeholder elements
+      const remindersEl = listItem.querySelector('.reminders');
+      const placeholderEl = listItem.querySelector('.reminder-placeholder');
+
+      if (remindersEl) {
+        remindersEl.addEventListener('mouseenter', expand);
+        remindersEl.addEventListener('mouseleave', collapse);
+        remindersEl.addEventListener('pointerenter', expand);
+        remindersEl.addEventListener('pointerleave', collapse);
+      }
+
+      if (placeholderEl) {
+        placeholderEl.addEventListener('mouseenter', expand);
+        placeholderEl.addEventListener('mouseleave', collapse);
+        placeholderEl.addEventListener('pointerenter', expand);
+        placeholderEl.addEventListener('pointerleave', collapse);
+      }
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      const tappedReminders = !!(target && target.closest('.reminders'));
-      if (tappedReminders) {
-        try { e.preventDefault(); } catch (_) { }
-        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+
+      // Check if tapped on death ribbon
+      if (target && target.closest('.death-ribbon')) {
+        return; // Don't expand for death ribbon taps
       }
-      expand();
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+
+      // Check if tapped on player token (character circle)
+      if (target && target.closest('.player-token')) {
+        return; // Don't expand for character circle taps
+      }
+
+      // Check if tapped on player name
+      if (target && target.closest('.player-name')) {
+        return; // Don't expand for player name taps
+      }
+
+      // Only expand if tapped on reminders or reminder placeholder
+      const tappedReminders = !!(target && target.closest('.reminders'));
+      const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+
+      if (tappedReminders || tappedPlaceholder) {
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch (_) { }
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+      }
     }, { passive: false });
 
     // Player context menu: right-click
@@ -944,3 +1148,33 @@ export async function loadPlayerSetupTable({ grimoireState }) {
     console.error('Failed to load player-setup.json', e);
   }
 }
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Register global touch handler for clearing raised states (only once)
+  if ('ontouchstart' in window) {
+    document.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      // If not tapping on a player name, clear all raised states
+      if (!target.closest('.player-name')) {
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          delete el.dataset.raised;
+          // Restore original z-index
+          el.style.zIndex = el.dataset.originalZIndex || '';
+          delete el.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = el.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
+          
+          // Force the player name to go back behind the token
+          // In touch mode, CSS sets z-index: 0, but we need to ensure inline style is removed
+          el.style.removeProperty('z-index');
+        });
+      }
+    }, { passive: true });
+  }
+});
