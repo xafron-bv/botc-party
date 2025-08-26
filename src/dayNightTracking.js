@@ -87,6 +87,12 @@ export function updateDayNightUI(grimoireState) {
   toggle.classList.toggle('active', enabled);
   toggle.setAttribute('aria-pressed', enabled);
   
+  // Update icon
+  const icon = toggle.querySelector('i');
+  if (icon) {
+    icon.className = enabled ? 'fas fa-sun' : 'fas fa-moon';
+  }
+  
   // Show/hide slider
   sliderContainer.style.display = enabled ? 'block' : 'none';
   
