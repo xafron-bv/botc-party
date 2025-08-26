@@ -5,4 +5,11 @@
     filter: blur(0);
     z-index: 0; /* Keep below all other game elements */
   }
+  
+  /* Override for raised player names - must be above token z-index: 5 */
+  #player-circle li .player-name[data-raised="true"] {
+    z-index: 9999 !important; /* Maximum z-index to ensure it's on top */
+    position: absolute !important; /* Keep absolute positioning */
+    /* The transform is needed for centering, so we keep it */
+  }
 }
