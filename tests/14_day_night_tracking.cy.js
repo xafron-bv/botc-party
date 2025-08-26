@@ -1,16 +1,22 @@
 describe('Day/Night Tracking Feature', () => {
   beforeEach(() => {
     cy.visit('/?test=true');
-    cy.wait(1000);
+    
+    // Wait for page to load
+    cy.get('#player-count').should('be.visible');
     
     // Setup a game with 5 players
     cy.get('#player-count').clear().type('5');
     cy.get('#setup').click();
-    cy.wait(500);
+    
+    // Wait for player circle to be set up
+    cy.get('#player-circle li').should('have.length', 5);
     
     // Select Trouble Brewing script
     cy.get('.script-button').first().click();
-    cy.wait(500);
+    
+    // Wait for script to be loaded
+    cy.get('#grimoire').should('have.class', 'trouble-brewing');
   });
 
   describe('Toggle Button', () => {
@@ -86,8 +92,11 @@ describe('Day/Night Tracking Feature', () => {
       
       // Assign a character to first player
       cy.get('.player-token').first().click();
+      cy.get('.character-grid .token').should('be.visible');
       cy.get('.character-grid .token').first().click();
-      cy.wait(500);
+      
+      // Wait for character to be assigned
+      cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
     });
 
     it('should add timestamps to reminder tokens when tracking is enabled', () => {
@@ -234,7 +243,9 @@ describe('Day/Night Tracking Feature', () => {
       
       // Reload page
       cy.reload();
-      cy.wait(1000);
+      
+      // Wait for page to load and state to be restored
+      cy.get('#player-circle li').should('have.length', 5);
       
       // Day/night tracking should still be enabled
       cy.get('[data-testid="day-night-toggle"]').should('have.class', 'active');
