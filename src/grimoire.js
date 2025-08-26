@@ -143,8 +143,16 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
-          playerNameEl.style.zIndex = playerNameEl.dataset.originalZIndex || '';
+          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
+          playerNameEl.style.removeProperty('z-index');
           delete playerNameEl.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
         }
       });
     }
@@ -954,8 +962,16 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
-          playerNameEl.style.zIndex = playerNameEl.dataset.originalZIndex || '';
+          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
+          playerNameEl.style.removeProperty('z-index');
           delete playerNameEl.dataset.originalZIndex;
+          
+          // Also restore parent li z-index
+          const parentLi = playerNameEl.closest('li');
+          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
+            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
+            delete parentLi.dataset.originalZIndex;
+          }
         }
       });
     }
