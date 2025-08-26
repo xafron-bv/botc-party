@@ -130,11 +130,6 @@ describe('Ability UI - Touch', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     // Stub prompt for rename
     cy.window().then((win) => { cy.stub(win, 'prompt').returns('Zed'); });
-    // Ensure the name is unobstructed for this test
-    cy.get('#player-circle li .player-name').first().then(($el) => {
-      const el = $el[0];
-      el.style.zIndex = '200';
-    });
     // Single tap via touchstart should rename when visible (not covered)
     cy.get('#player-circle li .player-name').first()
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
