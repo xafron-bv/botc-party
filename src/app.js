@@ -2,10 +2,16 @@ import { INCLUDE_TRAVELLERS_KEY } from './constants.js';
 import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
+import { updateDayNightUI } from './dayNightTracking.js';
 
 export function saveAppState({ grimoireState }) {
   try {
-    const state = { scriptData: grimoireState.scriptData, players: grimoireState.players, scriptName: grimoireState.scriptMetaName };
+    const state = { 
+      scriptData: grimoireState.scriptData, 
+      players: grimoireState.players, 
+      scriptName: grimoireState.scriptMetaName,
+      dayNightTracking: grimoireState.dayNightTracking
+    };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
   } catch (_) { }
@@ -28,6 +34,11 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       updateGrimoire({ grimoireState });
       repositionPlayers({ players: grimoireState.players });
       renderSetupInfo({ grimoireState });
+    }
+    if (saved && saved.dayNightTracking) {
+      grimoireState.dayNightTracking = saved.dayNightTracking;
+      // Update the UI after loading state
+      updateDayNightUI(grimoireState);
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }

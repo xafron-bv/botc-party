@@ -1,0 +1,196 @@
+/* Day/Night Tracking Toggle Button */
+.day-night-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  z-index: 1001;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
+}
+
+.day-night-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+
+.day-night-toggle.active {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5D247 100%);
+  color: #1a1a1a;
+  border-color: #D4AF37;
+}
+
+.day-night-toggle.active:hover {
+  background: linear-gradient(135deg, #F5D247 0%, #D4AF37 100%);
+}
+
+/* Day/Night History Slider Drawer */
+.day-night-slider {
+  position: fixed;
+  bottom: 20px; /* Same as toggle button */
+  right: 75px; /* Small gap from toggle button */
+  height: 50px; /* Same height as toggle button */
+  width: 320px;
+  max-width: calc(100vw - 100px);
+  background: #1a1a1a;
+  border: 2px solid #D4AF37;
+  border-radius: 25px; /* Full rounded corners */
+  padding: 0 20px;
+  z-index: 999; /* Slightly below toggle button */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transform-origin: center right;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  transform: scaleX(0.1);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.day-night-slider.open {
+  opacity: 1;
+  transform: scaleX(1);
+  pointer-events: auto;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+}
+
+.phase-labels {
+  display: none; /* Hide labels in horizontal layout */
+}
+
+.phase-label {
+  display: none;
+}
+
+.phase-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  outline: none;
+  position: relative;
+}
+
+.phase-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #D4AF37;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.phase-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.phase-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #D4AF37;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: none;
+  transition: transform 0.2s;
+}
+
+.phase-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.current-phase {
+  color: #D4AF37;
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 35px;
+  text-align: center;
+}
+
+.add-phase-button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
+  color: white;
+  border: 2px solid #7a4ba8;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.add-phase-button:hover {
+  background: linear-gradient(135deg, #7a4ba8 0%, #9a6bc8 100%);
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+/* Reminder Timestamps */
+.reminder-timestamp {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #D4AF37;
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .day-night-toggle {
+    bottom: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  .day-night-slider {
+    width: calc(100vw - 80px);
+    right: 70px;
+    bottom: 15px;
+    height: 45px;
+    padding: 0 15px;
+  }
+  
+  .slider-container {
+    gap: 15px;
+  }
+  
+  .current-phase {
+    font-size: 16px;
+  }
+  
+  .add-phase-button {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+}
