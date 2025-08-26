@@ -74,7 +74,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
       tokenForMenu.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
     });
-    listItem.querySelector('.player-name').onclick = (e) => {
+    
+    // Player name click handler as a named function
+    const handlePlayerNameClick = (e) => {
       e.stopPropagation();
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
@@ -83,6 +85,39 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         saveAppState({ grimoireState });
       }
     };
+    
+    // Add click handler
+    listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
+    
+    // Add touchstart handler for touch devices
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        
+        // Check if player name is partially covered (positioned under token)
+        const playerNameEl = e.currentTarget;
+        const isPartiallyCovered = playerNameEl.style.transform && 
+                                   playerNameEl.style.transform.includes('translate');
+        
+        // Track if this element has been "raised" (first tap occurred)
+        const wasRaised = playerNameEl.dataset.raised === 'true';
+        
+        if (isPartiallyCovered && !wasRaised) {
+          // First tap on partially covered name: just raise it
+          playerNameEl.dataset.raised = 'true';
+          // Optionally, you could add visual feedback here like z-index change
+          return;
+        }
+        
+        // Either not partially covered, or already raised - trigger rename
+        handlePlayerNameClick(e);
+        
+        // Reset raised state after rename
+        if (playerNameEl.dataset.raised) {
+          delete playerNameEl.dataset.raised;
+        }
+      });
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -134,22 +169,55 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      // Pointer events for broader device support
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      // Only expand on hover over reminders and placeholder elements
+      const remindersEl = listItem.querySelector('.reminders');
+      const placeholderEl = listItem.querySelector('.reminder-placeholder');
+      
+      if (remindersEl) {
+        remindersEl.addEventListener('mouseenter', expand);
+        remindersEl.addEventListener('mouseleave', collapse);
+        remindersEl.addEventListener('pointerenter', expand);
+        remindersEl.addEventListener('pointerleave', collapse);
+      }
+      
+      if (placeholderEl) {
+        placeholderEl.addEventListener('mouseenter', expand);
+        placeholderEl.addEventListener('mouseleave', collapse);
+        placeholderEl.addEventListener('pointerenter', expand);
+        placeholderEl.addEventListener('pointerleave', collapse);
+      }
     }
     // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      const tappedReminders = !!(target && target.closest('.reminders'));
-      if (tappedReminders) {
-        try { e.preventDefault(); } catch (_) { }
-        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+      
+      // Check if tapped on death ribbon
+      if (target && target.closest('.death-ribbon')) {
+        return; // Don't expand for death ribbon taps
       }
-      expand();
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+      
+      // Check if tapped on player token (character circle)
+      if (target && target.closest('.player-token')) {
+        return; // Don't expand for character circle taps
+      }
+      
+      // Check if tapped on player name
+      if (target && target.closest('.player-name')) {
+        return; // Don't expand for player name taps
+      }
+      
+      // Only expand if tapped on reminders or reminder placeholder
+      const tappedReminders = !!(target && target.closest('.reminders'));
+      const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+      
+      if (tappedReminders || tappedPlaceholder) {
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch (_) { }
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+      }
     }, { passive: false });
 
     // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
@@ -796,7 +864,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
-    listItem.querySelector('.player-name').onclick = (e) => {
+    
+    // Player name click handler as a named function
+    const handlePlayerNameClick2 = (e) => {
       e.stopPropagation();
       const newName = prompt('Enter player name:', player.name);
       if (newName) {
@@ -805,6 +875,39 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         saveAppState({ grimoireState });
       }
     };
+    
+    // Add click handler
+    listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
+    
+    // Add touchstart handler for touch devices
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        
+        // Check if player name is partially covered (positioned under token)
+        const playerNameEl = e.currentTarget;
+        const isPartiallyCovered = playerNameEl.style.transform && 
+                                   playerNameEl.style.transform.includes('translate');
+        
+        // Track if this element has been "raised" (first tap occurred)
+        const wasRaised = playerNameEl.dataset.raised === 'true';
+        
+        if (isPartiallyCovered && !wasRaised) {
+          // First tap on partially covered name: just raise it
+          playerNameEl.dataset.raised = 'true';
+          // Optionally, you could add visual feedback here like z-index change
+          return;
+        }
+        
+        // Either not partially covered, or already raised - trigger rename
+        handlePlayerNameClick2(e);
+        
+        // Reset raised state after rename
+        if (playerNameEl.dataset.raised) {
+          delete playerNameEl.dataset.raised;
+        }
+      });
+    }
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -856,20 +959,54 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
     if (!isTouchDevice) {
-      listItem.addEventListener('mouseenter', expand);
-      listItem.addEventListener('mouseleave', collapse);
-      listItem.addEventListener('pointerenter', expand);
-      listItem.addEventListener('pointerleave', collapse);
+      // Only expand on hover over reminders and placeholder elements
+      const remindersEl = listItem.querySelector('.reminders');
+      const placeholderEl = listItem.querySelector('.reminder-placeholder');
+      
+      if (remindersEl) {
+        remindersEl.addEventListener('mouseenter', expand);
+        remindersEl.addEventListener('mouseleave', collapse);
+        remindersEl.addEventListener('pointerenter', expand);
+        remindersEl.addEventListener('pointerleave', collapse);
+      }
+      
+      if (placeholderEl) {
+        placeholderEl.addEventListener('mouseenter', expand);
+        placeholderEl.addEventListener('mouseleave', collapse);
+        placeholderEl.addEventListener('pointerenter', expand);
+        placeholderEl.addEventListener('pointerleave', collapse);
+      }
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-      const tappedReminders = !!(target && target.closest('.reminders'));
-      if (tappedReminders) {
-        try { e.preventDefault(); } catch (_) { }
-        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+      
+      // Check if tapped on death ribbon
+      if (target && target.closest('.death-ribbon')) {
+        return; // Don't expand for death ribbon taps
       }
-      expand();
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+      
+      // Check if tapped on player token (character circle)
+      if (target && target.closest('.player-token')) {
+        return; // Don't expand for character circle taps
+      }
+      
+      // Check if tapped on player name
+      if (target && target.closest('.player-name')) {
+        return; // Don't expand for player name taps
+      }
+      
+      // Only expand if tapped on reminders or reminder placeholder
+      const tappedReminders = !!(target && target.closest('.reminders'));
+      const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+      
+      if (tappedReminders || tappedPlaceholder) {
+        if (tappedReminders) {
+          try { e.preventDefault(); } catch (_) { }
+          listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
+        }
+        expand();
+        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+      }
     }, { passive: false });
 
     // Player context menu: right-click
