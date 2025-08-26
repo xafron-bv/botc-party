@@ -60,8 +60,8 @@ describe('Grimoire history preservation', () => {
     // Click on the newest history item (the 6-player game we just saved)
     cy.get('#grimoire-history-list .history-item').first().click();
     
-    // Should now have 3 history items
-    cy.get('#grimoire-history-list .history-item').should('have.length', 3);
+    // Should still have 2 history items (no duplicate created because the 5-player state already exists)
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2);
     
     // Should be back to 6 players with the name we set
     cy.get('#player-circle li').should('have.length', 6);
@@ -97,9 +97,16 @@ describe('Grimoire history preservation', () => {
     cy.get('#grimoire-history-list .history-item').should('have.length.lte', 4);
   });
 
-  it('does not create infinite history when switching between two states', () => {
+  it('does not create duplicate history when switching between two states', () => {
     // Start with 5 players (State A)
     startGameWithPlayers(5);
+    
+    // Give a distinct name to State A
+    cy.window().then((win) => { 
+      cy.stub(win, 'prompt').returns('State A Player');
+    });
+    cy.get('#player-circle li').eq(0).find('.player-name').click();
+    cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'State A Player');
     
     // Start new game with 6 players to create history (State A saved)
     startGameWithPlayers(6);
@@ -110,33 +117,27 @@ describe('Grimoire history preservation', () => {
     cy.get('#grimoire-history-list .history-item').should('have.length', 2);
     cy.get('#player-circle li').should('have.length', 5);
     
-    // Switch back to State B (6 players)
+    // Now we have two unique states in history
+    // Switching between them should NOT create any new history items
+    
+    // Switch back to State B (6 players) - should NOT create new history
     cy.get('#grimoire-history-list .history-item').first().click();
-    cy.get('#grimoire-history-list .history-item').should('have.length', 3);
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2); // Still 2
     cy.get('#player-circle li').should('have.length', 6);
     
-    // Get the current count of history items
-    cy.get('#grimoire-history-list .history-item').then($items => {
-      const initialCount = $items.length;
-      
-      // Switch back and forth a few times
-      // This should NOT keep creating new history items indefinitely
-      
-      // Back to 5 players
-      cy.get('#grimoire-history-list .history-item').eq(1).click();
-      cy.get('#player-circle li').should('have.length', 5);
-      
-      // Back to 6 players
-      cy.get('#grimoire-history-list .history-item').first().click();
-      cy.get('#player-circle li').should('have.length', 6);
-      
-      // Back to 5 players again
-      cy.get('#grimoire-history-list .history-item').eq(1).click();
-      cy.get('#player-circle li').should('have.length', 5);
-      
-      // Check that we haven't created too many extra history items
-      // Some growth is acceptable but it shouldn't grow infinitely
-      cy.get('#grimoire-history-list .history-item').should('have.length.lte', initialCount + 2);
-    });
+    // Switch to State A again - should NOT create new history
+    cy.get('#grimoire-history-list .history-item').last().click();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2); // Still 2
+    cy.get('#player-circle li').should('have.length', 5);
+    
+    // Switch multiple more times - count should remain stable
+    cy.get('#grimoire-history-list .history-item').first().click();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2);
+    
+    cy.get('#grimoire-history-list .history-item').last().click();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2);
+    
+    cy.get('#grimoire-history-list .history-item').first().click();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 2);
   });
 });

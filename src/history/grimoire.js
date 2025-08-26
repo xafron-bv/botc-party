@@ -78,22 +78,23 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
   try {
     if (!Array.isArray(players) || players.length === 0) return;
     
-    // Check if the current state is identical to the most recent history entry
-    if (history.grimoireHistory.length > 0) {
-      const mostRecent = history.grimoireHistory[0];
-      const currentState = {
-        players: players,
-        scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-        scriptData: scriptData
-      };
-      const recentState = {
-        players: mostRecent.players,
-        scriptName: mostRecent.scriptName,
-        scriptData: mostRecent.scriptData
+    // Check if the current state already exists in any history entry
+    const currentState = {
+      players: players,
+      scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
+      scriptData: scriptData
+    };
+    
+    // Check against ALL history entries, not just the most recent
+    for (const historyEntry of history.grimoireHistory) {
+      const historyState = {
+        players: historyEntry.players,
+        scriptName: historyEntry.scriptName,
+        scriptData: historyEntry.scriptData
       };
       
-      if (isGrimoireStateEqual(currentState, recentState)) {
-        // State is identical to most recent snapshot, don't create a duplicate
+      if (isGrimoireStateEqual(currentState, historyState)) {
+        // This exact state already exists in history, don't create a duplicate
         return;
       }
     }
