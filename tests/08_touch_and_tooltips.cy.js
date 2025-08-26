@@ -131,7 +131,7 @@ describe('Ability UI - Touch', () => {
     
     // Make the player name visible by raising its z-index (simulating it was previously raised)
     cy.get('#player-circle li .player-name').first().then(($el) => {
-      $el[0].style.zIndex = '20';
+      $el[0].style.zIndex = '60';
     });
     
     // Wait a bit to ensure the style is applied

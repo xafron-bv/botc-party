@@ -125,7 +125,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
           playerNameEl.dataset.originalZIndex = currentZIndex.toString();
-          playerNameEl.style.zIndex = '20'; // Raise above other elements
+          playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
           return; // Don't trigger rename
         }
         
@@ -936,7 +936,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
           playerNameEl.dataset.originalZIndex = currentZIndex.toString();
-          playerNameEl.style.zIndex = '20'; // Raise above other elements
+          playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
           return; // Don't trigger rename
         }
         
