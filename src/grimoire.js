@@ -78,7 +78,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // Player name click handler as a named function
     const handlePlayerNameClick = (e) => {
       e.stopPropagation();
-      const newName = prompt('Enter player name:', player.name);
+      const currentName = grimoireState.players[i].name;
+      const newName = prompt('Enter player name:', currentName);
       if (newName) {
         grimoireState.players[i].name = newName;
         updateGrimoire({ grimoireState });
@@ -94,10 +95,28 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
         
-        // Check if player name is partially covered (positioned under token)
+        // Clear any other raised player names first
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          if (el !== e.currentTarget) {
+            delete el.dataset.raised;
+            el.style.zIndex = '';
+          }
+        });
+        
+        // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
-        const isPartiallyCovered = playerNameEl.style.transform && 
-                                   playerNameEl.style.transform.includes('translate');
+        const tokenEl = playerNameEl.closest('li').querySelector('.player-token');
+        
+        // Get computed styles
+        const nameStyles = window.getComputedStyle(playerNameEl);
+        const nameZIndex = parseInt(nameStyles.zIndex) || 0;
+        
+        // Get token z-index (typically 5)
+        const tokenStyles = tokenEl ? window.getComputedStyle(tokenEl) : null;
+        const tokenZIndex = tokenStyles ? (parseInt(tokenStyles.zIndex) || 5) : 5;
+        
+        // In touch mode, names are partially covered if they're below the token
+        const isPartiallyCovered = nameZIndex < tokenZIndex;
         
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
@@ -105,7 +124,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
-          // Optionally, you could add visual feedback here like z-index change
+          playerNameEl.style.zIndex = '20'; // Raise above other elements
           return;
         }
         
@@ -115,6 +134,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         // Reset raised state after rename
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
+          playerNameEl.style.zIndex = '';
         }
       });
     }
@@ -261,6 +281,20 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   });
+  
+  // Register global touch handler for clearing raised states (only once)
+  if ('ontouchstart' in window && !grimoireState.raisedStateClearHandlerInstalled) {
+    grimoireState.raisedStateClearHandlerInstalled = true;
+    document.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      if (!target.closest('.player-name')) {
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          delete el.dataset.raised;
+          el.style.zIndex = '';
+        });
+      }
+    }, { passive: true });
+  }
 }
 
 function lookupCountsForPlayers({ grimoireState, count }) {
@@ -868,7 +902,8 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Player name click handler as a named function
     const handlePlayerNameClick2 = (e) => {
       e.stopPropagation();
-      const newName = prompt('Enter player name:', player.name);
+      const currentName = grimoireState.players[i].name;
+      const newName = prompt('Enter player name:', currentName);
       if (newName) {
         grimoireState.players[i].name = newName;
         updateGrimoire({ grimoireState });
@@ -884,10 +919,28 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
         
-        // Check if player name is partially covered (positioned under token)
+        // Clear any other raised player names first
+        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+          if (el !== e.currentTarget) {
+            delete el.dataset.raised;
+            el.style.zIndex = '';
+          }
+        });
+        
+        // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
-        const isPartiallyCovered = playerNameEl.style.transform && 
-                                   playerNameEl.style.transform.includes('translate');
+        const tokenEl = playerNameEl.closest('li').querySelector('.player-token');
+        
+        // Get computed styles
+        const nameStyles = window.getComputedStyle(playerNameEl);
+        const nameZIndex = parseInt(nameStyles.zIndex) || 0;
+        
+        // Get token z-index (typically 5)
+        const tokenStyles = tokenEl ? window.getComputedStyle(tokenEl) : null;
+        const tokenZIndex = tokenStyles ? (parseInt(tokenStyles.zIndex) || 5) : 5;
+        
+        // In touch mode, names are partially covered if they're below the token
+        const isPartiallyCovered = nameZIndex < tokenZIndex;
         
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
@@ -895,7 +948,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
-          // Optionally, you could add visual feedback here like z-index change
+          playerNameEl.style.zIndex = '20'; // Raise above other elements
           return;
         }
         
@@ -905,6 +958,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         // Reset raised state after rename
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
+          playerNameEl.style.zIndex = '';
         }
       });
     }

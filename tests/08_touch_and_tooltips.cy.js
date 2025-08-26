@@ -128,11 +128,27 @@ describe('Ability UI - Touch', () => {
     startGameWithPlayers(5);
     // Ensure no modal initially
     cy.get('#reminder-token-modal').should('not.be.visible');
+    
+    // Make the player name visible by raising its z-index (simulating it was previously raised)
+    cy.get('#player-circle li .player-name').first().then(($el) => {
+      $el[0].style.zIndex = '20';
+    });
+    
+    // Wait a bit to ensure the style is applied
+    cy.wait(100);
+    
     // Stub prompt for rename
-    cy.window().then((win) => { cy.stub(win, 'prompt').returns('Zed'); });
+    cy.window().then((win) => { 
+      cy.stub(win, 'prompt').as('promptStub').returns('Zed'); 
+    });
+    
     // Single tap via touchstart should rename when visible (not covered)
     cy.get('#player-circle li .player-name').first()
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    
+    // Verify prompt was called
+    cy.get('@promptStub').should('have.been.called');
+    
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li .player-name').first().should('contain', 'Zed');
   });
@@ -142,23 +158,106 @@ describe('Ability UI - Touch', () => {
     startGameWithPlayers(5);
     // Ensure no modal initially
     cy.get('#reminder-token-modal').should('not.be.visible');
-    // Move the first player's name under the token to simulate partial coverage
-    cy.get('#player-circle li .player-name').first().then(($el) => {
-      const el = $el[0];
-      el.style.top = '50%';
-      el.style.left = '50%';
-      el.style.transform = 'translate(-50%, -50%)';
+    
+    // Get the player name and token elements to check their positions
+    cy.get('#player-circle li').first().within(() => {
+      cy.get('.player-name').then(($name) => {
+        cy.get('.player-token').then(($token) => {
+          // Check if player name is actually behind the token (lower z-index or overlapping position)
+          const nameRect = $name[0].getBoundingClientRect();
+          const tokenRect = $token[0].getBoundingClientRect();
+          
+          // Calculate if there's overlap
+          const overlap = !(nameRect.right < tokenRect.left || 
+                           nameRect.left > tokenRect.right || 
+                           nameRect.bottom < tokenRect.top || 
+                           nameRect.top > tokenRect.bottom);
+          
+          // Store original position for verification
+          cy.wrap($name[0].style.zIndex || '').as('originalZIndex');
+        });
+      });
     });
+    
     // Stub prompt and track call count
     cy.window().then((win) => { cy.stub(win, 'prompt').as('namePrompt').returns('Yara'); });
+    
     // First tap on the name
     cy.get('#player-circle li .player-name').first()
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('@namePrompt').should('have.callCount', 0);
+    
+    // Verify the name was raised (z-index changed or raised state set)
+    cy.get('#player-circle li .player-name').first().should(($el) => {
+      expect($el[0].dataset.raised).to.equal('true');
+    });
+    
     // Second tap should rename
     cy.get('#player-circle li .player-name').first()
       .trigger('touchstart', { touches: [{ clientX: 6, clientY: 6 }], force: true });
     cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
+    
+    // Verify raised state is cleared after rename
+    cy.get('#player-circle li .player-name').first().should(($el) => {
+      expect($el[0].dataset.raised).to.be.undefined;
+    });
+  });
+
+  it('player name: raised state cleared when tapping elsewhere', () => {
+    cy.viewport('iphone-6');
+    startGameWithPlayers(5);
+    
+    // Stub prompt and track call count
+    cy.window().then((win) => { cy.stub(win, 'prompt').as('namePrompt').returns('Yara'); });
+    
+    // First tap on the first player name
+    cy.get('#player-circle li .player-name').first()
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    
+    // Verify the name was raised
+    cy.get('#player-circle li .player-name').first().should(($el) => {
+      expect($el[0].dataset.raised).to.equal('true');
+    });
+    
+    // Tap on a different player name
+    cy.get('#player-circle li .player-name').eq(1)
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
+    
+    // Verify first player's raised state is cleared
+    cy.get('#player-circle li .player-name').first().should(($el) => {
+      expect($el[0].dataset.raised).to.be.undefined;
+    });
+    
+    // Verify prompt was not called for first player
+    cy.get('@namePrompt').should('have.callCount', 0);
+  });
+
+  it('player name: prompt shows current name after rename', () => {
+    cy.viewport('iphone-6');
+    // Don't start a new game - we already have 5 players from beforeEach
+    
+    // Set up the stub to handle both calls
+    cy.window().then((win) => { 
+      let callCount = 0;
+      cy.stub(win, 'prompt').callsFake((msg, defaultValue) => {
+        callCount++;
+        if (callCount === 1) {
+          // First call - should have default value 'Player 1'
+          expect(defaultValue).to.equal('Player 1');
+          return 'Chris';
+        } else if (callCount === 2) {
+          // Second call - should have default value 'Chris'
+          expect(defaultValue).to.equal('Chris');
+          return 'Christopher';
+        }
+      }).as('namePrompt');
+    });
+    
+    cy.get('#player-circle li .player-name').first().click({ force: true });
+    cy.get('#player-circle li .player-name').first().should('contain', 'Chris');
+    
+    cy.get('#player-circle li .player-name').first().click({ force: true });
+    cy.get('#player-circle li .player-name').first().should('contain', 'Christopher');
   });
 
   it('touch: tapping character circle does not expand collapsed reminders', () => {
