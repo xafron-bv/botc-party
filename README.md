@@ -52,6 +52,7 @@ A Progressive Web App (PWA) version of the Blood on the Clocktower Grimoire that
 ## Offline Functionality
 
 The service worker caches core assets and data for reliable offline usage. Notable behavior:
+
 - Caches HTML, CSS, JS, and manifest assets
 - Caches base scripts and `characters.json` (with background refresh)
 - Caches token images on first fetch after `characters.json` loads
@@ -60,10 +61,12 @@ The service worker caches core assets and data for reliable offline usage. Notab
 ## Installation
 
 ### As PWA
+
 1. Open the app in a supported browser (Chrome, Edge, Safari)
 2. Look for the install prompt or use the browser menu to install
 
 ### Manual Setup (local or hosted)
+
 1. Clone or download the repository
 2. Serve the directory with any static web server (required for service workers):
 
@@ -112,3 +115,10 @@ npx --yes http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx
 ## License
 
 This project is for educational and personal use. Blood on the Clocktower is a trademark of The Pandemonium Institute.
+
+## Acknowledgments
+
+Some of the assets including the jinxes and the character info are from the [pocket-grimoire](https://github.com/Skateside/pocket-grimoire) project.
+
+- [Blood on the Clocktower](https://bloodontheclocktower.com/)
+- [pocket-grimoire](https://github.com/Skateside/pocket-grimoire)
