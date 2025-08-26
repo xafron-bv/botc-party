@@ -44,9 +44,61 @@ export function renderGrimoireHistory({ grimoireHistoryList }) {
   });
 }
 
+function isGrimoireStateEqual(state1, state2) {
+  // Handle null/undefined cases
+  if (!state1.players || !state2.players) return false;
+  
+  // Compare player count first for quick rejection
+  if (state1.players.length !== state2.players.length) return false;
+  
+  // Compare players
+  for (let i = 0; i < state1.players.length; i++) {
+    const p1 = state1.players[i];
+    const p2 = state2.players[i];
+    if (p1.name !== p2.name || p1.character !== p2.character || p1.dead !== p2.dead) return false;
+    
+    // Compare reminders
+    const r1 = p1.reminders || [];
+    const r2 = p2.reminders || [];
+    if (r1.length !== r2.length) return false;
+    for (let j = 0; j < r1.length; j++) {
+      if (r1[j].type !== r2[j].type || r1[j].token !== r2[j].token || 
+          r1[j].text !== r2[j].text || r1[j].label !== r2[j].label) return false;
+    }
+  }
+  
+  // Compare script data
+  if (state1.scriptName !== state2.scriptName) return false;
+  if (JSON.stringify(state1.scriptData) !== JSON.stringify(state2.scriptData)) return false;
+  
+  return true;
+}
+
 export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
+    
+    // Check if the current state already exists in any history entry
+    const currentState = {
+      players: players,
+      scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
+      scriptData: scriptData
+    };
+    
+    // Check against ALL history entries, not just the most recent
+    for (const historyEntry of history.grimoireHistory) {
+      const historyState = {
+        players: historyEntry.players,
+        scriptName: historyEntry.scriptName,
+        scriptData: historyEntry.scriptData
+      };
+      
+      if (isGrimoireStateEqual(currentState, historyState)) {
+        // This exact state already exists in history, don't create a duplicate
+        return;
+      }
+    }
+    
     const snapPlayers = JSON.parse(JSON.stringify(players));
     const name = formatDateName(new Date());
     const entry = {
@@ -110,6 +162,34 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
   // Default: clicking the item or name loads the grimoire
+  
+  // Check if the entry we're about to load is different from current state
+  const currentState = {
+    players: grimoireState.players,
+    scriptName: grimoireState.scriptMetaName || '',
+    scriptData: grimoireState.scriptData
+  };
+  const entryState = {
+    players: entry.players,
+    scriptName: entry.scriptName || '',
+    scriptData: entry.scriptData
+  };
+  
+  // Only snapshot if we're loading a different state
+  if (!isGrimoireStateEqual(currentState, entryState)) {
+    // Snapshot current game before loading history item (same as startGame does)
+    try {
+      if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+        snapshotCurrentGrimoire({ 
+          players: grimoireState.players, 
+          scriptMetaName: grimoireState.scriptMetaName, 
+          scriptData: grimoireState.scriptData, 
+          grimoireHistoryList 
+        });
+      }
+    } catch (_) { }
+  }
+  
   await restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList });
 }
 
