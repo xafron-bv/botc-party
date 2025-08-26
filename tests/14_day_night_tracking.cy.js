@@ -173,10 +173,11 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
     });
 
-    it('should show slider at bottom of screen when enabled', () => {
+    it('should show slider as drawer above toggle button when enabled', () => {
       cy.get('[data-testid="day-night-slider"]').should('be.visible');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '0px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '80px');
+      cy.get('[data-testid="day-night-slider"]').should('have.class', 'open');
     });
 
     it('should allow navigating through day/night history', () => {
@@ -214,14 +215,14 @@ describe('Day/Night Tracking Feature', () => {
   });
 
   describe('UI Integration', () => {
-    it('should position slider at bottom without interfering with grimoire', () => {
+    it('should position slider as drawer near toggle button without interfering with grimoire', () => {
       cy.get('[data-testid="day-night-toggle"]').click();
       
-      // Slider should be at bottom
+      // Slider should be positioned above toggle button
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '0px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'left', '0px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '0px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '80px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '20px');
+      cy.get('[data-testid="day-night-slider"]').should('have.css', 'width', '400px');
       
       // Player circle should still be visible and not overlapped
       cy.get('#player-circle').should('be.visible');

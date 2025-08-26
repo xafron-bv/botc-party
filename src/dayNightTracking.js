@@ -12,6 +12,13 @@ export function initDayNightTracking(grimoireState) {
     };
   }
   
+  // Ensure slider starts hidden
+  const sliderContainer = document.getElementById('day-night-slider');
+  if (sliderContainer) {
+    sliderContainer.style.display = 'none';
+    sliderContainer.classList.remove('open');
+  }
+  
   setupDayNightEventListeners(grimoireState);
   updateDayNightUI(grimoireState);
 }
@@ -93,8 +100,21 @@ export function updateDayNightUI(grimoireState) {
     icon.className = enabled ? 'fas fa-sun' : 'fas fa-moon';
   }
   
-  // Show/hide slider
-  sliderContainer.style.display = enabled ? 'block' : 'none';
+  // Show/hide slider with animation
+  if (enabled) {
+    sliderContainer.style.display = 'block';
+    // Force reflow to ensure the display change is applied before adding the class
+    sliderContainer.offsetHeight;
+    sliderContainer.classList.add('open');
+  } else {
+    sliderContainer.classList.remove('open');
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+      if (!grimoireState.dayNightTracking.enabled) {
+        sliderContainer.style.display = 'none';
+      }
+    }, 300);
+  }
   
   if (enabled) {
     // Update slider
