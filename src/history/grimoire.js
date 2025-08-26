@@ -110,6 +110,19 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
   // Default: clicking the item or name loads the grimoire
+  
+  // Snapshot current game before loading history item (same as startGame does)
+  try {
+    if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ 
+        players: grimoireState.players, 
+        scriptMetaName: grimoireState.scriptMetaName, 
+        scriptData: grimoireState.scriptData, 
+        grimoireHistoryList 
+      });
+    }
+  } catch (_) { }
+  
   await restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList });
 }
 
