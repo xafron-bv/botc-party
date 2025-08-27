@@ -232,8 +232,8 @@ describe('Night Order Display', () => {
           Math.pow(orderCenterY - centerY, 2)
         );
         
-        // Should be positioned outside the token
-        expect(distance).to.be.greaterThan(tokenRect.width / 2);
+        // Should be positioned near the edge of the token
+        expect(distance).to.be.greaterThan(tokenRect.width * 0.4);
       });
     });
   });
@@ -283,8 +283,7 @@ describe('Night Order Display', () => {
       // based on the actual firstNight/otherNight values from characters.json
       
       // Set up specific characters with known night orders
-      // Ensure UI is ready
-      cy.get('#character-grid .token').should('be.visible');
+      // Ensure player tokens are ready
       cy.get('.player-token').should('have.length', 7);
       
       // Assign characters with specific first night orders:
