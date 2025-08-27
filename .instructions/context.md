@@ -10,14 +10,19 @@
    ```
    This will automatically fix any fixable linting issues and report any remaining errors.
 
-2. **Run the test suite**:
+2. **Run the test suite** (requires starting a local server):
    ```bash
-   # Run all tests
-   npx cypress run --config-file tests/cypress.config.js
+   # Start the http-server and run all tests
+   npx http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx cypress run --config-file tests/cypress.config.js ; kill %1
    
    # Or run specific test files if you only modified certain features
-   npx cypress run --config-file tests/cypress.config.js --spec tests/[specific-test-file].cy.js
+   npx http-server -p 5173 -c- . & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx cypress run --config-file tests/cypress.config.js --spec tests/[specific-test-file].cy.js ; kill %1
    ```
+   
+   Note: The commands above will:
+   - Start an http-server on port 5173 in the background
+   - Run the Cypress tests against that server
+   - Automatically stop the server when tests complete
 
 3. **Only commit if both ESLint and tests pass**. If there are any failures:
    - Fix the ESLint errors first
