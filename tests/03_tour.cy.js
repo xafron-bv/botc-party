@@ -40,10 +40,54 @@ describe('Tour', () => {
 
     // Advance to reminders
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
+    // Advance to day/night toggle
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to day-night-toggle
+    // Verify the tour highlights the day/night toggle button
+    cy.get('.tour-popover').should('be.visible');
+    cy.get('.tour-popover .title').should('contain', 'Day/Night Tracking');
+    cy.get('.tour-popover .body').should('contain', 'Track day and night phases');
     // Advance to offline
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to offline
     // Advance to finish
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to finish (button label becomes Finish)
+    // Finish the tour (no strict teardown assertion to avoid CI race conditions)
+    cy.contains('.tour-popover .actions .button', 'Finish').click({ force: true });
+  });
+
+  it('includes a day/night toggle step with proper content and positioning', () => {
+    // Start the tour
+    cy.get('#start-tour').click();
+    
+    // Navigate directly to the day/night toggle step
+    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> reminders -> day-night-toggle
+    for (let i = 0; i < 6; i++) {
+      cy.contains('.tour-popover .actions .button', 'Next').click();
+    }
+    
+    // Verify we're on the day/night toggle step
+    cy.get('.tour-popover').should('be.visible');
+    cy.get('.tour-popover .title').should('have.text', 'Day/Night Tracking');
+    cy.get('.tour-popover .body').should('contain', 'Track day and night phases');
+    cy.get('.tour-popover .body').should('contain', 'toggle button');
+    
+    // Verify the highlight is on the day/night toggle button
+    cy.get('#day-night-toggle').should('exist');
+    cy.get('.tour-highlight').should('exist');
+    
+    // Verify we can navigate back and forward
+    cy.contains('.tour-popover .actions .button', 'Back').click();
+    cy.get('.tour-popover .title').should('contain', 'Reminders');
+    
+    cy.contains('.tour-popover .actions .button', 'Next').click();
+    cy.get('.tour-popover .title').should('have.text', 'Day/Night Tracking');
+    
+    // Continue to the end and finish the tour
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to offline
+    cy.get('.tour-popover .title').should('contain', 'Use it offline');
+    
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to finish
+    cy.get('.tour-popover .title').should('contain', "You're ready!");
+    
     // Finish the tour (no strict teardown assertion to avoid CI race conditions)
     cy.contains('.tour-popover .actions .button', 'Finish').click({ force: true });
   });
