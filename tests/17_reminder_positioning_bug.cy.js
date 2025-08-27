@@ -24,7 +24,25 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
   });
 
   describe('Plus Button Positioning Bug Fix', () => {
+    beforeEach(() => {
+      // Assign characters to players to allow reminders
+      cy.get('.player-token').first().click();
+      cy.get('#character-grid .token').should('be.visible');
+      cy.get('#character-grid .token').first().click();
+      
+      // Wait for character to be assigned
+      cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
+      
+      // Assign to second player too
+      cy.get('.player-token').eq(1).click();
+      cy.get('#character-grid .token').should('be.visible');
+      cy.get('#character-grid .token').eq(1).click();
+    });
+    
     it('should position plus button correctly after refresh when viewing earlier phase', () => {
+      // Wait for slider to be visible
+      cy.get('[data-testid="day-night-slider"]').should('be.visible');
+      
       // Start at N1
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
       
@@ -35,11 +53,11 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
       
       // Move to D1
-      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').should('be.visible').click();
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
       
       // Move to N2
-      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').should('be.visible').click();
       cy.get('[data-testid="current-phase"]').should('contain', 'N2');
       
       // Add TWO reminders in N2 to player 1
@@ -122,7 +140,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
       
       // Move to N2
-      cy.get('[data-testid="add-phase-button"]').click(); // D1
+      cy.get('[data-testid="add-phase-button"]').should('be.visible').click(); // D1
       cy.get('[data-testid="add-phase-button"]').click(); // N2
       
       // Player 1: Add 2 more reminders in N2

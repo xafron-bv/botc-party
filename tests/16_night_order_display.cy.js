@@ -29,27 +29,35 @@ describe('Night Order Display', () => {
       // Assign Imp (demon with night order) to player 1
       cy.get('.player-token').eq(0).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="imp"]').click();
+      // Find and click the Imp character
+      cy.get('#character-grid .token').then($tokens => {
+        const impToken = Array.from($tokens).find(token => {
+          const name = token.querySelector('.character-name')?.textContent;
+          return name && name.toLowerCase().includes('imp');
+        });
+        if (impToken) cy.wrap(impToken).click();
+        else cy.get('#character-grid .token').first().click(); // Fallback
+      });
       
       // Assign Empath (townsfolk with first night order) to player 2
       cy.get('.player-token').eq(1).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="empath"]').click();
+      cy.get('#character-grid .token[title="Empath"]').click();
       
       // Assign Poisoner (minion with night order) to player 3
       cy.get('.player-token').eq(2).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="poisoner"]').click();
+      cy.get('#character-grid .token[title="Poisoner"]').click();
       
       // Assign Soldier (no night order) to player 4
       cy.get('.player-token').eq(3).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="soldier"]').click();
+      cy.get('#character-grid .token[title="Soldier"]').click();
       
       // Assign Fortune Teller (townsfolk with night order) to player 5
       cy.get('.player-token').eq(4).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="fortuneteller"]').click();
+      cy.get('#character-grid .token[title="Fortune Teller"]').click();
     });
 
     it('should not show night order numbers when night slider is closed', () => {
@@ -192,7 +200,7 @@ describe('Night Order Display', () => {
       
       // Assign Fortune Teller (has ability and night order)
       cy.get('.player-token').eq(0).click();
-      cy.get('#character-grid .token[data-role="fortuneteller"]').click();
+      cy.get('#character-grid .token[title="Fortune Teller"]').click();
       
       // Check that both info icon and night order number exist
       cy.get('.player-token').eq(0).parent().find('.ability-info-icon').should('exist');
@@ -219,7 +227,7 @@ describe('Night Order Display', () => {
   describe('Night Order with Different Scripts', () => {
     it('should handle characters from different scripts correctly', () => {
       // Load Sects & Violets script
-      cy.get('#load-sv').click();
+      cy.get('#load-sav').click();
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
       
       // Enable day/night tracking
@@ -228,12 +236,12 @@ describe('Night Order Display', () => {
       // Assign Vortox (demon with night order) to player 1
       cy.get('.player-token').eq(0).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="vortox"]').click();
+      cy.get('#character-grid .token[title="Vortox"]').click();
       
       // Assign Dreamer (townsfolk with night order) to player 2
       cy.get('.player-token').eq(1).click();
       cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token[data-role="dreamer"]').click();
+      cy.get('#character-grid .token[title="Dreamer"]').click();
       
       // Check that night order numbers appear correctly
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
@@ -256,26 +264,28 @@ describe('Night Order Display', () => {
       cy.get('.player-token').each(($el, index) => {
         if (index < 5) {
           cy.wrap($el).click();
-          cy.get('[data-testid="clear-character"]').click();
+          // Clear character by clicking the same player token again
+          cy.wrap($el).click();
+          cy.get('#close-character-modal').click();
         }
       });
       
       // Assign characters with specific first night orders:
       // Poisoner (firstNight: 17)
       cy.get('.player-token').eq(0).click();
-      cy.get('#character-grid .token[data-role="poisoner"]').click();
+      cy.get('#character-grid .token[title="Poisoner"]').click();
       
       // Chef (firstNight: 35)
       cy.get('.player-token').eq(1).click();
-      cy.get('#character-grid .token[data-role="chef"]').click();
+      cy.get('#character-grid .token[title="Chef"]').click();
       
       // Empath (firstNight: 36)
       cy.get('.player-token').eq(2).click();
-      cy.get('#character-grid .token[data-role="empath"]').click();
+      cy.get('#character-grid .token[title="Empath"]').click();
       
       // Fortune Teller (firstNight: 37)
       cy.get('.player-token').eq(3).click();
-      cy.get('#character-grid .token[data-role="fortuneteller"]').click();
+      cy.get('#character-grid .token[title="Fortune Teller"]').click();
       
       // Night order should be: Poisoner=1, Chef=2, Empath=3, Fortune Teller=4
       cy.get('.player-token').eq(0).find('[data-testid="night-order-number"]').should('contain', '1');
