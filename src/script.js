@@ -4,10 +4,21 @@ import { saveAppState } from './app.js';
 import { renderSetupInfo } from './grimoire.js';
 import { addScriptToHistory } from './history/script.js';
 
-export function displayScript({ data, grimoireState }) {
+export async function displayScript({ data, grimoireState }) {
   const characterSheet = document.getElementById('character-sheet');
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
+  
+  // Load jinx data
+  let jinxData = [];
+  try {
+    const jinxResponse = await fetch('./jinx.json');
+    if (jinxResponse.ok) {
+      jinxData = await jinxResponse.json();
+    }
+  } catch (e) {
+    console.warn('Failed to load jinx data:', e);
+  }
 
   // Group characters by team if we have resolved role data
   const teamGroups = {};
@@ -46,6 +57,9 @@ export function displayScript({ data, grimoireState }) {
         });
       }
     });
+    
+    // Display jinxes section after all teams
+    displayJinxes({ jinxData, grimoireState, characterSheet });
   } else {
     // Fallback: show all characters in a single list
     const header = document.createElement('h3');
@@ -174,4 +188,66 @@ export async function loadScriptFile({ event, grimoireState }) {
   };
 
   reader.readAsText(file);
+}
+
+function displayJinxes({ jinxData, grimoireState, characterSheet }) {
+  // Get all character IDs in the current script
+  const scriptCharacterIds = new Set();
+  Object.values(grimoireState.allRoles).forEach(role => {
+    scriptCharacterIds.add(role.id);
+  });
+  
+  // Find all applicable jinxes
+  const applicableJinxes = [];
+  
+  jinxData.forEach(character => {
+    if (scriptCharacterIds.has(character.id) && character.jinx) {
+      character.jinx.forEach(jinx => {
+        if (scriptCharacterIds.has(jinx.id)) {
+          // Both characters in the jinx are in the script
+          applicableJinxes.push({
+            char1: character.id,
+            char2: jinx.id,
+            reason: jinx.reason
+          });
+        }
+      });
+    }
+  });
+  
+  // Only display jinxes section if there are applicable jinxes
+  if (applicableJinxes.length > 0) {
+    // Add jinxes header
+    const jinxHeader = document.createElement('h3');
+    jinxHeader.textContent = 'Jinxes';
+    jinxHeader.className = 'team-jinxes';
+    characterSheet.appendChild(jinxHeader);
+    
+    // Display each jinx
+    applicableJinxes.forEach(jinx => {
+      const jinxEl = document.createElement('div');
+      jinxEl.className = 'jinx-entry';
+      
+      const char1Role = grimoireState.allRoles[jinx.char1];
+      const char2Role = grimoireState.allRoles[jinx.char2];
+      
+      jinxEl.innerHTML = `
+        <div class="jinx-characters">
+          <span class="icon" style="background-image: url('${char1Role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+          <span class="name">${char1Role.name}</span>
+          <span class="jinx-plus">+</span>
+          <span class="icon" style="background-image: url('${char2Role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+          <span class="name">${char2Role.name}</span>
+        </div>
+        <div class="jinx-reason">${jinx.reason}</div>
+      `;
+      
+      // Add click handler to toggle jinx reason display
+      jinxEl.addEventListener('click', () => {
+        jinxEl.classList.toggle('show-jinx-reason');
+      });
+      
+      characterSheet.appendChild(jinxEl);
+    });
+  }
 }
