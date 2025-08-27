@@ -45,7 +45,8 @@
   font-size: clamp(11px, 1.5vmin, 13px);
   color: #bbb;
   margin-top: 8px;
-  margin-left: 44px; /* Align with character name (32px icon + 12px margin) */
+  margin-left: 44px;
+  /* Align with character name (32px icon + 12px margin) */
   font-style: italic;
   line-height: 1.4;
   display: none;
@@ -91,7 +92,8 @@
   font-size: calc(var(--token-size) * 0.18);
   line-height: 1;
   display: block;
-  pointer-events: none; /* Ensure clicks pass through to parent */
+  pointer-events: none;
+  /* Ensure clicks pass through to parent */
 }
 
 .ability-info-icon:active {

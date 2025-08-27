@@ -33,8 +33,10 @@ body {
   z-index: 1000;
   padding: 10px 12px;
   font-size: 14px;
-  width: auto !important; /* Override the 100% width from .button class */
-  text-align: left !important; /* Override center alignment from .button class */
+  width: auto !important;
+  /* Override the 100% width from .button class */
+  text-align: left !important;
+  /* Override center alignment from .button class */
 }
 
 /* Close button inside sidebar header */
@@ -45,6 +47,7 @@ body {
   z-index: 5;
   margin: 0 0 10px 0;
 }
+
 @media (max-width: 900px) {
   #sidebar .sidebar-close {
     position: relative;
@@ -56,7 +59,8 @@ body {
   .sidebar-toggle {
     padding: 14px 16px;
     font-size: 16px;
-    width: auto !important; /* Maintain auto width in touch mode */
+    width: auto !important;
+    /* Maintain auto width in touch mode */
   }
 }
 
@@ -69,7 +73,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px; /* give breathing room on small screens */
+  padding: 12px;
+  /* give breathing room on small screens */
   box-sizing: border-box;
 }
 
@@ -84,12 +89,16 @@ body {
   padding: 12px 16px;
   border: 2px solid #D4AF37;
   border-radius: 10px;
-  background: rgba(0,0,0,0.45);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-  z-index: 1; /* Above background, below all game elements */
-  pointer-events: none; /* non-interactive overlay */
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  z-index: 1;
+  /* Above background, below all game elements */
+  pointer-events: none;
+  /* non-interactive overlay */
   font-weight: bold;
 }
 
 /* Simple single-line display */
-#setup-info { font-size: clamp(12px, 1.8vmin, 18px); }
+#setup-info {
+  font-size: clamp(12px, 1.8vmin, 18px);
+}
