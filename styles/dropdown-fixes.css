@@ -1,8 +1,7 @@
 /* Dropdown fixes for touch devices */
 
-/* Fix dropdown positioning for both selects */
-#night-phase-selector,
-#background-select {
+/* Fix dropdown positioning for night phase selector */
+#night-phase-selector {
   /* Force browser to use custom styling */
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -27,14 +26,12 @@
   cursor: pointer;
 }
 
-#night-phase-selector:hover,
-#background-select:hover {
+#night-phase-selector:hover {
   border-color: rgba(212, 175, 55, 0.5);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-#night-phase-selector:focus,
-#background-select:focus {
+#night-phase-selector:focus {
   outline: none;
   border-color: #D4AF37;
   background-color: rgba(255, 255, 255, 0.12);
@@ -67,16 +64,14 @@
 
 /* Touch-specific improvements */
 @media (hover: none) and (pointer: coarse) {
-  #night-phase-selector,
-  #background-select {
+  #night-phase-selector {
     /* Larger touch targets */
     padding: 12px 40px 12px 14px;
     font-size: 16px; /* Prevent zoom on iOS */
   }
   
   /* Fix dropdown menu positioning on iOS/Android */
-  #night-phase-selector option,
-  #background-select option {
+  #night-phase-selector option {
     background-color: #2a2a2a;
     color: #fff;
     padding: 10px;
@@ -85,21 +80,18 @@
 
 /* Dark mode for native dropdowns */
 @media (prefers-color-scheme: dark) {
-  #night-phase-selector,
-  #background-select {
+  #night-phase-selector {
     color-scheme: dark;
   }
 }
 
 /* Ensure dropdowns work well in the sidebar */
-#sidebar #night-phase-selector,
-#sidebar #background-select {
+#sidebar #night-phase-selector {
   box-sizing: border-box;
 }
 
 /* Override any conflicting styles from common-ui.css */
-#sidebar select#night-phase-selector,
-#sidebar select#background-select {
+#sidebar select#night-phase-selector {
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-color: rgba(255, 255, 255, 0.08);
 }
