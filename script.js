@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const backgroundSelect = document.getElementById('background-select');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
   const nightOrderSortCheckbox = document.getElementById('night-order-sort');
-  const nightPhaseSelector = document.getElementById('night-phase-selector');
   const nightOrderControls = document.querySelector('.night-order-controls');
   const firstNightBtn = document.getElementById('first-night-btn');
   const otherNightsBtn = document.getElementById('other-nights-btn');
@@ -103,9 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (nightOrderSortCheckbox) {
     nightOrderSortCheckbox.checked = grimoireState.nightOrderSort;
-    if (nightPhaseSelector) {
-      nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
-    }
     if (nightOrderControls) {
       nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
     }
@@ -116,9 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
       } catch (_) {}
       
-      if (nightPhaseSelector) {
-        nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
-      }
       if (nightOrderControls) {
         nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
       }
@@ -130,27 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-    if (nightPhaseSelector) {
-    nightPhaseSelector.value = grimoireState.nightPhase;
-
-    nightPhaseSelector.addEventListener('change', async () => {
-      grimoireState.nightPhase = nightPhaseSelector.value;
-      try {
-        localStorage.setItem('nightPhase', grimoireState.nightPhase);
-      } catch (_) {}
-      
-      // Sync with radio buttons
-      if (firstNightBtn) firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
-      if (otherNightsBtn) otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
-      
-      // Re-display the script with new phase
-      if (grimoireState.scriptData && grimoireState.nightOrderSort) {
-        await displayScript({ data: grimoireState.scriptData, grimoireState });
-      }
-    });
-  }
-  
-  // Set up radio buttons for mobile
+    // Set up radio buttons
   if (firstNightBtn && otherNightsBtn) {
     // Set initial state
     firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
@@ -161,9 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
       } catch (_) {}
-      
-      // Sync with select dropdown
-      if (nightPhaseSelector) nightPhaseSelector.value = grimoireState.nightPhase;
       
       // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {

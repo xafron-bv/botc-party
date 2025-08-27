@@ -55,8 +55,8 @@ describe('Night Order Sorting', () => {
       // Enable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
 
-      // Select first night
-      cy.get('[data-testid="night-phase-selector"]').select('first-night');
+      // First night is selected by default
+      cy.get('#first-night-btn').should('be.checked');
     });
 
     it('should display characters sorted by first night order', () => {
@@ -136,7 +136,7 @@ describe('Night Order Sorting', () => {
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
 
       // Select other nights
-      cy.get('[data-testid="night-phase-selector"]').select('other-nights');
+      cy.get('label[for="other-nights-btn"]').click();
     });
 
     it('should display characters sorted by other night order', () => {
@@ -171,7 +171,7 @@ describe('Night Order Sorting', () => {
     });
   });
 
-  describe('Night Phase Selector', () => {
+    describe('Night Phase Selector', () => {
     it('should show night phase selector only when night order sorting is enabled', () => {
       // Initially hidden
       cy.get('[data-testid="night-phase-selector"]').should('not.be.visible');
@@ -183,16 +183,18 @@ describe('Night Order Sorting', () => {
       cy.get('[data-testid="night-phase-selector"]').should('exist');
       cy.get('[data-testid="night-phase-selector"]').should('be.visible');
 
-      // Should have first night and other nights options
-      cy.get('[data-testid="night-phase-selector"] option[value="first-night"]').should('exist');
-      cy.get('[data-testid="night-phase-selector"] option[value="other-nights"]').should('exist');
+      // Should have first night and other nights radio buttons
+      cy.get('#first-night-btn').should('exist');
+      cy.get('#other-nights-btn').should('exist');
+      cy.get('label[for="first-night-btn"]').should('contain', 'First Night');
+      cy.get('label[for="other-nights-btn"]').should('contain', 'Other Nights');
 
       // Default to first night
-      cy.get('[data-testid="night-phase-selector"]').should('have.value', 'first-night');
+      cy.get('#first-night-btn').should('be.checked');
 
-            // Disable night order sorting
+      // Disable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
-      
+
       // Should be hidden again
       cy.get('[data-testid="night-phase-selector"]').should('not.be.visible');
     });
@@ -202,7 +204,7 @@ describe('Night Order Sorting', () => {
     it('should remember night order sorting preference across page reloads', () => {
       // Enable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
-      cy.get('[data-testid="night-phase-selector"]').select('other-nights');
+      cy.get('label[for="other-nights-btn"]').click();
 
       // Reload the page
       cy.reload();
@@ -212,7 +214,7 @@ describe('Night Order Sorting', () => {
 
       // Should still be in night order mode
       cy.get('[data-testid="night-order-sort-checkbox"]').should('be.checked');
-      cy.get('[data-testid="night-phase-selector"]').should('have.value', 'other-nights');
+      cy.get('#other-nights-btn').should('be.checked');
 
       // Team headers should not exist
       cy.get('#character-sheet h3.team-townsfolk').should('not.exist');
