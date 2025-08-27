@@ -120,7 +120,7 @@ export function positionNightOrderNumbers() {
       // In touch mode with info icon, position at different angle
       // Position 45 degrees counter-clockwise from the character's angle
       const offsetAngle = angle - Math.PI / 4;
-      const nightOrderRadius = tokenRadius * 1.2;
+      const nightOrderRadius = tokenRadius * 1.35;
       
       const x = nightOrderRadius * Math.cos(offsetAngle);
       const y = nightOrderRadius * Math.sin(offsetAngle);

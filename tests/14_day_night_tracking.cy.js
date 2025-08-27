@@ -270,9 +270,16 @@ describe('Day/Night Tracking Feature', () => {
 
   describe('Reminder Positioning After Reload', () => {
     beforeEach(() => {
-      // Day/night tracking should already be enabled from parent beforeEach
-      // Just wait for it to settle
-      cy.wait(100);
+      // Enable day/night tracking if not already enabled
+      cy.get('[data-testid="day-night-toggle"]').then($toggle => {
+        if (!$toggle.hasClass('active')) {
+          cy.wrap($toggle).click();
+        }
+      });
+      
+      // Ensure the UI is ready
+      cy.get('[data-testid="day-night-toggle"]').should('have.class', 'active');
+      cy.get('#day-night-slider').should('be.visible');
       
       // Assign a character to first player to allow reminders
       cy.get('.player-token').first().click();
@@ -285,7 +292,7 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
     });
     
-    it.skip('should position plus button correctly based on visible reminders after reload', () => {
+    it('should position plus button correctly based on visible reminders after reload', () => {
       
       // Add multiple reminders across phases
       cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
@@ -296,9 +303,8 @@ describe('Day/Night Tracking Feature', () => {
       // Move to N2
       // Click twice to go from N1 -> D1 -> N2
       cy.get('[data-testid="add-phase-button"]').click({ force: true }); // D1
-      cy.wait(500); // Wait for phase change
+      cy.get('[data-testid="current-phase"]').should('contain', 'D1');
       cy.get('[data-testid="add-phase-button"]').click({ force: true }); // N2
-      cy.wait(500); // Wait for phase change
       cy.get('[data-testid="current-phase"]').should('contain', 'N2');
       
       // Add 2 reminders in N2
