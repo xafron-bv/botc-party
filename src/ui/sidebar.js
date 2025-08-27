@@ -75,7 +75,6 @@ export function initSidebarToggle({
   sidebarEl,
   sidebarResizer,
   repositionPlayers,
-  players: _players,
   grimoireState
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;

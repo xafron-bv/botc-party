@@ -8,7 +8,7 @@ export async function displayScript({ data, grimoireState }) {
   const characterSheet = document.getElementById('character-sheet');
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
-  
+
   // Load jinx data
   let jinxData = [];
   try {
@@ -24,13 +24,13 @@ export async function displayScript({ data, grimoireState }) {
   if (grimoireState.nightOrderSort) {
     // Sort by night order
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
-    
+
     // Separate characters into different categories
     const nightOrderCharacters = [];
     const noNightOrderCharacters = [];
     const travellers = [];
     const fabled = [];
-    
+
     Object.values(grimoireState.allRoles).forEach(role => {
       if (role.team === 'traveller') {
         travellers.push(role);
@@ -42,13 +42,13 @@ export async function displayScript({ data, grimoireState }) {
         noNightOrderCharacters.push(role);
       }
     });
-    
+
     // Sort night order characters by their order
     nightOrderCharacters.sort((a, b) => a[nightOrderKey] - b[nightOrderKey]);
-    
+
     // Display all characters in order
     const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters, ...travellers, ...fabled];
-    
+
     allCharactersInOrder.forEach(role => {
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
@@ -63,10 +63,10 @@ export async function displayScript({ data, grimoireState }) {
       });
       characterSheet.appendChild(roleEl);
     });
-    
+
     // Display jinxes at the end
     displayJinxes({ jinxData, grimoireState, characterSheet });
-    
+
   } else {
     // Original team-based display logic
     // Group characters by team if we have resolved role data
@@ -105,7 +105,7 @@ export async function displayScript({ data, grimoireState }) {
             characterSheet.appendChild(roleEl);
           });
         }
-        
+
         // Display jinxes section specifically after demon team
         if (team === 'demon') {
           displayJinxes({ jinxData, grimoireState, characterSheet });
@@ -248,10 +248,10 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
   Object.values(grimoireState.allRoles).forEach(role => {
     scriptCharacterIds.add(role.id);
   });
-  
+
   // Find all applicable jinxes
   const applicableJinxes = [];
-  
+
   jinxData.forEach(character => {
     if (scriptCharacterIds.has(character.id) && character.jinx) {
       character.jinx.forEach(jinx => {
@@ -266,7 +266,7 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
       });
     }
   });
-  
+
   // Only display jinxes section if there are applicable jinxes
   if (applicableJinxes.length > 0) {
     // Add jinxes header
@@ -274,15 +274,15 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
     jinxHeader.textContent = 'Jinxes';
     jinxHeader.className = 'team-jinxes';
     characterSheet.appendChild(jinxHeader);
-    
+
     // Display each jinx
     applicableJinxes.forEach(jinx => {
       const jinxEl = document.createElement('div');
       jinxEl.className = 'jinx-entry';
-      
+
       const char1Role = grimoireState.allRoles[jinx.char1];
       const char2Role = grimoireState.allRoles[jinx.char2];
-      
+
       jinxEl.innerHTML = `
         <div class="jinx-characters">
           <span class="icon" style="background-image: url('${char1Role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
@@ -293,12 +293,12 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
         </div>
         <div class="jinx-reason">${jinx.reason}</div>
       `;
-      
+
       // Add click handler to toggle jinx reason display
       jinxEl.addEventListener('click', () => {
         jinxEl.classList.toggle('show-jinx-reason');
       });
-      
+
       characterSheet.appendChild(jinxEl);
     });
   }

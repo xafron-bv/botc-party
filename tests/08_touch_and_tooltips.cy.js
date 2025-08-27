@@ -162,16 +162,9 @@ describe('Ability UI - Touch', () => {
     // Get the player name and token elements to check their positions
     cy.get('#player-circle li').first().within(() => {
       cy.get('.player-name').then(($name) => {
-        cy.get('.player-token').then(($token) => {
+        cy.get('.player-token').then(() => {
           // Check if player name is actually behind the token (lower z-index or overlapping position)
-          const nameRect = $name[0].getBoundingClientRect();
-          const tokenRect = $token[0].getBoundingClientRect();
-
-          // Calculate if there's overlap
-          const _overlap = !(nameRect.right < tokenRect.left ||
-                           nameRect.left > tokenRect.right ||
-                           nameRect.bottom < tokenRect.top ||
-                           nameRect.top > tokenRect.bottom);
+          // Position calculations removed as they weren't being used
 
           // Store original position for verification
           cy.wrap($name[0].style.zIndex || '').as('originalZIndex');

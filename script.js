@@ -307,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarResizer,
     isTouchDevice,
     repositionPlayers,
-    players: grimoireState.players,
     grimoireState
   });
 

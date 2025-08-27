@@ -75,8 +75,8 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.get('li').first().find('.text-reminder').should('have.length', 3);
 
       // Get the position of the plus button when all reminders are visible
-      cy.get('li').first().find('.reminder-placeholder').then($plusN2 => {
-        const n2Position = $plusN2[0].getBoundingClientRect();
+      cy.get('li').first().find('.reminder-placeholder').then(() => {
+        // Position stored but comparison removed as it wasn't being used
 
         // Go back to N1
         cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 0).trigger('input');
@@ -91,8 +91,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
 
           // The plus button should be much closer to the token in N1
           // (when only 1 reminder is visible vs 3 reminders)
-          const _distanceN1 = Math.sqrt(Math.pow(n1Position.left - n1Position.right, 2) + Math.pow(n1Position.top - n1Position.bottom, 2));
-          const _distanceN2 = Math.sqrt(Math.pow(n2Position.left - n2Position.right, 2) + Math.pow(n2Position.top - n2Position.bottom, 2));
+          // Distance calculations removed as they weren't being used
 
           // Save current state and reload the page
           cy.reload();
@@ -175,12 +174,10 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.get('li').eq(1).find('.text-reminder').should('have.length', 2);
 
       // Check that plus buttons are positioned correctly for each player
-      cy.get('li').each(($li, _index) => {
+      cy.get('li').each(($li) => {
         cy.wrap($li).find('.reminder-placeholder').should('be.visible');
 
         // The plus button should be positioned based on visible reminder count
-        const reminders = $li.find('.text-reminder');
-        const _reminderCount = reminders.length;
 
         // Get plus button position
         cy.wrap($li).find('.reminder-placeholder').then($plus => {
@@ -190,7 +187,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
           // Distance from token center should increase with reminder count
           const distance = Math.sqrt(
             Math.pow(plusRect.left + plusRect.width / 2 - (tokenRect.left + tokenRect.width / 2), 2) +
-              Math.pow(plusRect.top + plusRect.height / 2 - (tokenRect.top + tokenRect.height / 2), 2)
+            Math.pow(plusRect.top + plusRect.height / 2 - (tokenRect.top + tokenRect.height / 2), 2)
           );
 
           // Basic check: plus button should be outside the token
@@ -233,7 +230,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
           const disabledPosition = $plusDisabled[0].getBoundingClientRect();
 
           // Plus button should be farther when all reminders are shown
-          const tokenRect = cy.get('li').first().find('.player-token').then($token => {
+          cy.get('li').first().find('.player-token').then($token => {
             const tokenCenter = {
               x: $token[0].getBoundingClientRect().left + $token[0].getBoundingClientRect().width / 2,
               y: $token[0].getBoundingClientRect().top + $token[0].getBoundingClientRect().height / 2
