@@ -7,7 +7,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/hi
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { repositionPlayers } from './src/ui/layout.js';
-import { loadScriptFile, loadScriptFromFile } from './src/script.js';
+import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
@@ -45,10 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const backgroundSelect = document.getElementById('background-select');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
+  const nightOrderSortCheckbox = document.getElementById('night-order-sort');
+  const nightOrderControls = document.querySelector('.night-order-controls');
+  const firstNightBtn = document.getElementById('first-night-btn');
+  const otherNightsBtn = document.getElementById('other-nights-btn');
   // Travellers toggle state key and default
 
   const grimoireState = {
     includeTravellers: false,
+    nightOrderSort: false,
+    nightPhase: 'first-night',
     // Player context menu elements
     playerContextMenu: null,
     contextMenuTargetIndex: -1,
@@ -83,6 +89,60 @@ document.addEventListener('DOMContentLoaded', () => {
   if (includeTravellersCheckbox) {
     includeTravellersCheckbox.checked = grimoireState.includeTravellers;
     includeTravellersCheckbox.addEventListener('change', () => onIncludeTravellersChange({ grimoireState, includeTravellersCheckbox }));
+  }
+
+  // Initialize night order sort from localStorage
+  try {
+    grimoireState.nightOrderSort = (localStorage.getItem('nightOrderSort') === '1');
+    grimoireState.nightPhase = localStorage.getItem('nightPhase') || 'first-night';
+  } catch (_) {
+    grimoireState.nightOrderSort = false;
+    grimoireState.nightPhase = 'first-night';
+  }
+
+    if (nightOrderSortCheckbox) {
+    nightOrderSortCheckbox.checked = grimoireState.nightOrderSort;
+    if (nightOrderControls) {
+      nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
+    }
+    
+    nightOrderSortCheckbox.addEventListener('change', async () => {
+      grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
+      try {
+        localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
+      } catch (_) {}
+      
+      if (nightOrderControls) {
+        nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
+      }
+
+      // Re-display the script with new sorting
+      if (grimoireState.scriptData) {
+        await displayScript({ data: grimoireState.scriptData, grimoireState });
+      }
+    });
+  }
+
+    // Set up radio buttons
+  if (firstNightBtn && otherNightsBtn) {
+    // Set initial state
+    firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
+    otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
+    
+    const handlePhaseChange = async (e) => {
+      grimoireState.nightPhase = e.target.value;
+      try {
+        localStorage.setItem('nightPhase', grimoireState.nightPhase);
+      } catch (_) {}
+      
+      // Re-display the script with new phase
+      if (grimoireState.scriptData && grimoireState.nightOrderSort) {
+        await displayScript({ data: grimoireState.scriptData, grimoireState });
+      }
+    };
+    
+    firstNightBtn.addEventListener('change', handlePhaseChange);
+    otherNightsBtn.addEventListener('change', handlePhaseChange);
   }
 
   // Event delegation for history lists
@@ -255,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarResizer,
     isTouchDevice,
     repositionPlayers,
-    players: grimoireState.players,
     grimoireState
   });
 

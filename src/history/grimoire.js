@@ -3,7 +3,7 @@ import { saveHistories, history } from './index.js';
 import { updateGrimoire, renderSetupInfo, setupGrimoire } from '../grimoire.js';
 import { saveAppState } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
-import { updateDayNightUI, initDayNightTracking } from '../dayNightTracking.js';
+import { initDayNightTracking } from '../dayNightTracking.js';
 import { processScriptData } from '../script.js';
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {
@@ -81,9 +81,9 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
 
     // Check if the current state already exists in any history entry
     const currentState = {
-      players: players,
+      players,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData: scriptData
+      scriptData
     };
 
     // Check against ALL history entries, not just the most recent
@@ -234,13 +234,13 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     }
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
-    
+
     // Restore day/night tracking state if present
     if (entry.dayNightTracking) {
       grimoireState.dayNightTracking = JSON.parse(JSON.stringify(entry.dayNightTracking));
       initDayNightTracking(grimoireState);
     }
-    
+
     updateGrimoire({ grimoireState });
     repositionPlayers({ grimoireState });
     saveAppState({ grimoireState });

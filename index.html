@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-GB">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,13 +8,13 @@
   <title>Blood on the Clocktower - Party Grimoire</title>
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="styles/day-night-tracking.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/android-chrome-192x192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#583286">
 </head>
+
 <body>
   <div id="app">
     <div id="sidebar">
@@ -61,7 +62,19 @@
       <div class="section">
         <h3>Character Sheet</h3>
         <div style="margin-bottom: 8px;">
-          <label><input type="checkbox" id="include-travellers"> Include Travellers</label>
+          <label><input type="checkbox" id="include-travellers" data-testid="include-travellers-checkbox"> Include
+            Travellers</label>
+        </div>
+        <div style="margin-bottom: 8px;" class="night-order-controls">
+          <label data-testid="night-order-sort-label">
+            <input type="checkbox" id="night-order-sort" data-testid="night-order-sort-checkbox"> Sort by night order
+          </label>
+          <div class="night-phase-buttons" data-testid="night-phase-selector">
+            <input type="radio" name="night-phase" id="first-night-btn" value="first-night" checked>
+            <label for="first-night-btn">First Night</label>
+            <input type="radio" name="night-phase" id="other-nights-btn" value="other-nights">
+            <label for="other-nights-btn">Other Nights</label>
+          </div>
         </div>
         <div id="character-sheet">
           <p>Load a script to see available characters.</p>
@@ -85,8 +98,10 @@
     <div id="sidebar-resizer" aria-label="Resize sidebar" role="separator"></div>
 
     <div id="grimoire">
-      <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Toggle sidebar" aria-pressed="false">Close Sidebar</button>
-      <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle" aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
+      <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Toggle sidebar" aria-pressed="false">Close
+        Sidebar</button>
+      <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle"
+        aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
         <i class="fas fa-moon"></i>
       </button>
       <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
@@ -99,7 +114,8 @@
           <div id="phase-labels" data-testid="phase-labels" class="phase-labels"></div>
           <input type="range" min="0" max="0" value="0" class="phase-slider" id="phase-slider">
           <div id="current-phase" data-testid="current-phase" class="current-phase">N1</div>
-          <button id="add-phase-button" data-testid="add-phase-button" class="add-phase-button" aria-label="Add next phase">+</button>
+          <button id="add-phase-button" data-testid="add-phase-button" class="add-phase-button"
+            aria-label="Add next phase">+</button>
         </div>
       </div>
     </div>
@@ -122,8 +138,8 @@
       <button class="button" id="cancel-reminder-btn">Cancel</button>
     </div>
   </div>
-  
-    <div id="reminder-token-modal" class="modal">
+
+  <div id="reminder-token-modal" class="modal">
     <div class="modal-content">
       <h3>Select Reminder Token for <span id="reminder-token-modal-player-name"></span></h3>
       <input type="text" id="reminder-token-search" placeholder="Search tokens or characters...">
@@ -134,10 +150,11 @@
 
   <!-- Ability tooltip for hover -->
   <div id="ability-tooltip" class="ability-tooltip"></div>
-  
+
   <!-- Touch ability popup -->
   <div id="touch-ability-popup" class="touch-ability-popup"></div>
 
   <script type="module" src="script.js"></script>
 </body>
+
 </html>

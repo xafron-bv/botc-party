@@ -112,19 +112,19 @@ export function positionNightOrderNumbers() {
     // Calculate radius for night order numbers
     const tokenEl = li.querySelector('.player-token');
     const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
-    
+
     // Check if there's an info icon for this player
     const hasInfoIcon = li.querySelector('.ability-info-icon');
-    
+
     if (hasInfoIcon && 'ontouchstart' in window) {
       // In touch mode with info icon, position at different angle
       // Position 45 degrees counter-clockwise from the character's angle
       const offsetAngle = angle - Math.PI / 4;
       const nightOrderRadius = tokenRadius * 1.35;
-      
+
       const x = nightOrderRadius * Math.cos(offsetAngle);
       const y = nightOrderRadius * Math.sin(offsetAngle);
-      
+
       orderDiv.style.left = `calc(50% + ${x}px)`;
       orderDiv.style.top = `calc(50% + ${y}px)`;
     } else {

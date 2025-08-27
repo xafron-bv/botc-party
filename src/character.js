@@ -37,12 +37,12 @@ export function assignCharacter({ grimoireState, roleId }) {
   if (grimoireState.selectedPlayerIndex > -1) {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
-    
+
     // Save phase state if day/night tracking is enabled
     if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
       saveCurrentPhaseState(grimoireState);
     }
-    
+
     updateGrimoire({ grimoireState });
     characterModal.style.display = 'none';
     saveAppState({ grimoireState });

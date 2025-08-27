@@ -129,7 +129,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
 
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered
@@ -359,12 +359,12 @@ export function ensureReminderContextMenu({ grimoireState }) {
     if (playerIndex < 0 || reminderIndex < 0) return;
     if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
     grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
-    
+
     // Save phase state if day/night tracking is enabled
     if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
       saveCurrentPhaseState(grimoireState);
     }
-    
+
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
   });
@@ -540,12 +540,12 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       grimoireState.players[i].dead = !grimoireState.players[i].dead;
-      
+
       // Save phase state if day/night tracking is enabled
       if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
         saveCurrentPhaseState(grimoireState);
       }
-      
+
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
@@ -1028,7 +1028,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
 
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
 
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered
