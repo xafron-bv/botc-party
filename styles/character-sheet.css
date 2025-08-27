@@ -165,3 +165,67 @@
 .team-fabled {
   color: #FFC107;
 }
+
+/* Jinx section styling */
+#character-sheet h3.team-jinxes {
+  background: rgba(255, 69, 0, 0.2);
+  color: #ff8c69;
+  border-left: 4px solid #ff4500;
+}
+
+/* Jinx entry styling */
+.jinx-entry {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.jinx-entry:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.jinx-characters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jinx-characters .icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  flex-shrink: 0;
+}
+
+.jinx-characters .name {
+  font-size: clamp(13px, 1.6vmin, 16px);
+  color: #e0e0e0;
+}
+
+.jinx-plus {
+  color: #ff8c69;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 0 4px;
+}
+
+.jinx-reason {
+  font-size: clamp(11px, 1.5vmin, 13px);
+  color: #bbb;
+  margin-top: 8px;
+  margin-left: 10px;
+  line-height: 1.4;
+  display: none;
+  width: calc(100% - 10px);
+}
+
+.jinx-entry.show-jinx-reason .jinx-reason {
+  display: block;
+}
