@@ -10,7 +10,7 @@
 }
 
 #character-sheet::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
 }
 
@@ -76,14 +76,14 @@
   align-items: flex-start;
   padding: 8px 12px;
   margin: 4px 0;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 #character-sheet .role:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   transform: translateX(4px);
 }
 
@@ -118,7 +118,7 @@
 .role:hover {
   background: linear-gradient(135deg, #555 0%, #444 100%);
   transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Character sheet icon thumbnail sizing */
@@ -133,7 +133,7 @@
   border-radius: 50%;
   margin-right: 15px;
   border: 2px solid #D4AF37;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .role .name {
@@ -142,9 +142,26 @@
   font-size: 14px;
 }
 
-.team-townsfolk { color: #4CAF50; }
-.team-outsider { color: #FF9800; }
-.team-minion { color: #F44336; }
-.team-demon { color: #9C27B0; }
-.team-travellers { color: #2196F3; }
-.team-fabled { color: #FFC107; }
+.team-townsfolk {
+  color: #4CAF50;
+}
+
+.team-outsider {
+  color: #FF9800;
+}
+
+.team-minion {
+  color: #F44336;
+}
+
+.team-demon {
+  color: #9C27B0;
+}
+
+.team-travellers {
+  color: #2196F3;
+}
+
+.team-fabled {
+  color: #FFC107;
+}
