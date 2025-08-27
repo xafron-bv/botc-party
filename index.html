@@ -63,6 +63,15 @@
         <div style="margin-bottom: 8px;">
           <label><input type="checkbox" id="include-travellers"> Include Travellers</label>
         </div>
+        <div style="margin-bottom: 8px;">
+          <label data-testid="night-order-sort-label">
+            <input type="checkbox" id="night-order-sort" data-testid="night-order-sort-checkbox"> Sort by night order
+          </label>
+          <select id="night-phase-selector" data-testid="night-phase-selector" style="margin-left: 10px; display: none;">
+            <option value="first-night">First Night</option>
+            <option value="other-nights">Other Nights</option>
+          </select>
+        </div>
         <div id="character-sheet">
           <p>Load a script to see available characters.</p>
         </div>

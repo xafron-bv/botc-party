@@ -84,21 +84,21 @@ export async function populateReminderTokenGrid({ grimoireState }) {
           label = input;
         }
         const reminderId = generateReminderId();
-        grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({ 
-          type: 'icon', 
-          id: token.id, 
-          image: token.image, 
-          label, 
+        grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({
+          type: 'icon',
+          id: token.id,
+          image: token.image,
+          label,
           rotation: 0,
-          reminderId 
+          reminderId
         });
         addReminderTimestamp(grimoireState, reminderId);
-        
+
         // Save phase state if day/night tracking is enabled
         if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
           saveCurrentPhaseState(grimoireState);
         }
-        
+
         updateGrimoire({ grimoireState });
         saveAppState({ grimoireState });
         reminderTokenModal.style.display = 'none';

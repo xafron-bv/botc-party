@@ -359,12 +359,12 @@ export function ensureReminderContextMenu({ grimoireState }) {
     if (playerIndex < 0 || reminderIndex < 0) return;
     if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
     grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
-    
+
     // Save phase state if day/night tracking is enabled
     if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
       saveCurrentPhaseState(grimoireState);
     }
-    
+
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
   });
@@ -540,12 +540,12 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       grimoireState.players[i].dead = !grimoireState.players[i].dead;
-      
+
       // Save phase state if day/night tracking is enabled
       if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
         saveCurrentPhaseState(grimoireState);
       }
-      
+
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };

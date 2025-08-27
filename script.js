@@ -7,7 +7,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/hi
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { repositionPlayers } from './src/ui/layout.js';
-import { loadScriptFile, loadScriptFromFile } from './src/script.js';
+import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
@@ -45,10 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const backgroundSelect = document.getElementById('background-select');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
+  const nightOrderSortCheckbox = document.getElementById('night-order-sort');
+  const nightPhaseSelector = document.getElementById('night-phase-selector');
   // Travellers toggle state key and default
 
   const grimoireState = {
     includeTravellers: false,
+    nightOrderSort: false,
+    nightPhase: 'first-night',
     // Player context menu elements
     playerContextMenu: null,
     contextMenuTargetIndex: -1,
@@ -83,6 +87,54 @@ document.addEventListener('DOMContentLoaded', () => {
   if (includeTravellersCheckbox) {
     includeTravellersCheckbox.checked = grimoireState.includeTravellers;
     includeTravellersCheckbox.addEventListener('change', () => onIncludeTravellersChange({ grimoireState, includeTravellersCheckbox }));
+  }
+
+  // Initialize night order sort from localStorage
+  try {
+    grimoireState.nightOrderSort = (localStorage.getItem('nightOrderSort') === '1');
+    grimoireState.nightPhase = localStorage.getItem('nightPhase') || 'first-night';
+  } catch (_) {
+    grimoireState.nightOrderSort = false;
+    grimoireState.nightPhase = 'first-night';
+  }
+
+  if (nightOrderSortCheckbox) {
+    nightOrderSortCheckbox.checked = grimoireState.nightOrderSort;
+    if (grimoireState.nightOrderSort && nightPhaseSelector) {
+      nightPhaseSelector.style.display = 'inline-block';
+    }
+
+    nightOrderSortCheckbox.addEventListener('change', async () => {
+      grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
+      try {
+        localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
+      } catch (_) {}
+
+      if (nightPhaseSelector) {
+        nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
+      }
+
+      // Re-display the script with new sorting
+      if (grimoireState.scriptData) {
+        await displayScript({ data: grimoireState.scriptData, grimoireState });
+      }
+    });
+  }
+
+  if (nightPhaseSelector) {
+    nightPhaseSelector.value = grimoireState.nightPhase;
+
+    nightPhaseSelector.addEventListener('change', async () => {
+      grimoireState.nightPhase = nightPhaseSelector.value;
+      try {
+        localStorage.setItem('nightPhase', grimoireState.nightPhase);
+      } catch (_) {}
+
+      // Re-display the script with new phase
+      if (grimoireState.scriptData && grimoireState.nightOrderSort) {
+        await displayScript({ data: grimoireState.scriptData, grimoireState });
+      }
+    });
   }
 
   // Event delegation for history lists
