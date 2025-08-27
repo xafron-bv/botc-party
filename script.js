@@ -106,6 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nightPhaseSelector) {
       nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
     }
+    if (nightOrderControls) {
+      nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
+    }
     
     nightOrderSortCheckbox.addEventListener('change', async () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
@@ -116,6 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (nightPhaseSelector) {
         nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
       }
+      if (nightOrderControls) {
+        nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
+      }
 
       // Re-display the script with new sorting
       if (grimoireState.scriptData) {
@@ -124,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (nightPhaseSelector) {
+    if (nightPhaseSelector) {
     nightPhaseSelector.value = grimoireState.nightPhase;
 
     nightPhaseSelector.addEventListener('change', async () => {
@@ -132,12 +138,41 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
       } catch (_) {}
-
+      
+      // Sync with radio buttons
+      if (firstNightBtn) firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
+      if (otherNightsBtn) otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
+      
       // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {
         await displayScript({ data: grimoireState.scriptData, grimoireState });
       }
     });
+  }
+  
+  // Set up radio buttons for mobile
+  if (firstNightBtn && otherNightsBtn) {
+    // Set initial state
+    firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
+    otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
+    
+    const handlePhaseChange = async (e) => {
+      grimoireState.nightPhase = e.target.value;
+      try {
+        localStorage.setItem('nightPhase', grimoireState.nightPhase);
+      } catch (_) {}
+      
+      // Sync with select dropdown
+      if (nightPhaseSelector) nightPhaseSelector.value = grimoireState.nightPhase;
+      
+      // Re-display the script with new phase
+      if (grimoireState.scriptData && grimoireState.nightOrderSort) {
+        await displayScript({ data: grimoireState.scriptData, grimoireState });
+      }
+    };
+    
+    firstNightBtn.addEventListener('change', handlePhaseChange);
+    otherNightsBtn.addEventListener('change', handlePhaseChange);
   }
 
   // Event delegation for history lists
