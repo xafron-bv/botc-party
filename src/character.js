@@ -56,7 +56,7 @@ export function applyTravellerToggleAndRefresh({ grimoireState }) {
     grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
   }
   // Re-render character sheet and, if modal is open, the character grid
-  if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState });
+  if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
   if (characterModal && characterModal.style.display === 'flex') {
     populateCharacterGrid({ grimoireState });
   }

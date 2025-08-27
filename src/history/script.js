@@ -55,7 +55,7 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireS
   try {
     await processScriptData({ data: entry.data, addToHistory: false, grimoireState });
     grimoireState.scriptMetaName = entry.name || grimoireState.scriptMetaName || '';
-    displayScript({ data: grimoireState.scriptData, grimoireState });
+    await displayScript({ data: grimoireState.scriptData, grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   } catch (err) { console.error(err); }
