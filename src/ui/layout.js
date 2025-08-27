@@ -1,9 +1,11 @@
 // Layout and grimoire rendering helpers (browser-native ES module)
 
 import { minReminderSize } from '../constants.js';
-import { positionInfoIcons } from './tooltip.js';
+import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
+import { isReminderVisible } from '../dayNightTracking.js';
 
-export function repositionPlayers({ players }) {
+export function repositionPlayers({ grimoireState }) {
+  const players = grimoireState.players;
   const count = players.length;
   if (count === 0) return;
   const circle = document.getElementById('player-circle');
@@ -51,10 +53,19 @@ export function repositionPlayers({ players }) {
         listItem.classList.remove('is-north');
       }
     }
-    const count = players[i] && players[i].reminders ? players[i].reminders.length : 0;
-    positionRadialStack(listItem, count);
+    let visibleCount = 0;
+    if (players[i] && players[i].reminders) {
+      players[i].reminders.forEach(reminder => {
+        if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
+          isReminderVisible(grimoireState, reminder.reminderId)) {
+          visibleCount++;
+        }
+      });
+    }
+    positionRadialStack(listItem, visibleCount);
   });
   positionInfoIcons();
+  positionNightOrderNumbers();
 }
 
 export function positionRadialStack(li, count) {

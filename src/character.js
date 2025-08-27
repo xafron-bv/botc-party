@@ -3,6 +3,7 @@ import { resolveAssetPath, normalizeKey } from '../utils.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { updateGrimoire, rebuildPlayerCircleUiPreserveState } from './grimoire.js';
 import { saveAppState } from './app.js';
+import { saveCurrentPhaseState } from './dayNightTracking.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -36,6 +37,12 @@ export function assignCharacter({ grimoireState, roleId }) {
   if (grimoireState.selectedPlayerIndex > -1) {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
+    
+    // Save phase state if day/night tracking is enabled
+    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+      saveCurrentPhaseState(grimoireState);
+    }
+    
     updateGrimoire({ grimoireState });
     characterModal.style.display = 'none';
     saveAppState({ grimoireState });

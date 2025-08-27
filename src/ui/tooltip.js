@@ -98,3 +98,40 @@ export function positionInfoIcons() {
   });
 }
 
+export function positionNightOrderNumbers() {
+  const circle = document.getElementById('player-circle');
+  if (!circle) return;
+
+  // Get all night order numbers
+  const nightOrders = circle.querySelectorAll('.night-order-number');
+
+  nightOrders.forEach((orderDiv) => {
+    const li = orderDiv.parentElement.parentElement; // parent is token, grandparent is li
+    const angle = parseFloat(li.dataset.angle || '0');
+
+    // Calculate radius for night order numbers
+    const tokenEl = li.querySelector('.player-token');
+    const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
+    
+    // Check if there's an info icon for this player
+    const hasInfoIcon = li.querySelector('.ability-info-icon');
+    
+    if (hasInfoIcon && 'ontouchstart' in window) {
+      // In touch mode with info icon, position at different angle
+      // Position 45 degrees counter-clockwise from the character's angle
+      const offsetAngle = angle - Math.PI / 4;
+      const nightOrderRadius = tokenRadius * 1.35;
+      
+      const x = nightOrderRadius * Math.cos(offsetAngle);
+      const y = nightOrderRadius * Math.sin(offsetAngle);
+      
+      orderDiv.style.left = `calc(50% + ${x}px)`;
+      orderDiv.style.top = `calc(50% + ${y}px)`;
+    } else {
+      // No info icon or not in touch mode, use default position
+      orderDiv.style.left = '';
+      orderDiv.style.top = '';
+    }
+  });
+}
+

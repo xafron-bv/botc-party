@@ -2,7 +2,7 @@ import { resolveAssetPath } from '../utils.js';
 import { updateGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
-import { generateReminderId, addReminderTimestamp } from './dayNightTracking.js';
+import { generateReminderId, addReminderTimestamp, saveCurrentPhaseState } from './dayNightTracking.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -93,6 +93,12 @@ export async function populateReminderTokenGrid({ grimoireState }) {
           reminderId 
         });
         addReminderTimestamp(grimoireState, reminderId);
+        
+        // Save phase state if day/night tracking is enabled
+        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          saveCurrentPhaseState(grimoireState);
+        }
+        
         updateGrimoire({ grimoireState });
         saveAppState({ grimoireState });
         reminderTokenModal.style.display = 'none';
