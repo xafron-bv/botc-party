@@ -1,7 +1,7 @@
 // Layout and grimoire rendering helpers (browser-native ES module)
 
 import { minReminderSize } from '../constants.js';
-import { positionInfoIcons } from './tooltip.js';
+import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 
 export function repositionPlayers({ players }) {
   const count = players.length;
@@ -55,6 +55,7 @@ export function repositionPlayers({ players }) {
     positionRadialStack(listItem, count);
   });
   positionInfoIcons();
+  positionNightOrderNumbers();
 }
 
 export function positionRadialStack(li, count) {

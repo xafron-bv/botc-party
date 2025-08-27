@@ -6,7 +6,7 @@ import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
-import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
+import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
@@ -552,6 +552,7 @@ export function updateGrimoire({ grimoireState }) {
         nightOrderDiv.setAttribute('data-testid', 'night-order-number');
         nightOrderDiv.className = 'night-order-number';
         nightOrderDiv.textContent = nightOrderMap[i];
+        nightOrderDiv.dataset.playerIndex = i;
         tokenDiv.appendChild(nightOrderDiv);
       }
     }
@@ -846,10 +847,11 @@ export function updateGrimoire({ grimoireState }) {
     positionRadialStack(li, visibleRemindersCount);
   });
 
-  // Position info icons after updating grimoire
+  // Position info icons and night order numbers after updating grimoire
   if ('ontouchstart' in window) {
     positionInfoIcons();
   }
+  positionNightOrderNumbers();
 }
 export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);

@@ -170,6 +170,50 @@ describe('Night Order Display', () => {
         expect(styles.borderRadius).to.exist;
       });
     });
+    
+    it('should position night order numbers to avoid overlap with ability info icons in touch mode', () => {
+      // Force touch mode
+      cy.window().then(win => {
+        // Mock touch support
+        Object.defineProperty(win, 'ontouchstart', {
+          value: () => {},
+          writable: true
+        });
+      });
+      
+      // Reload to apply touch mode
+      cy.reload();
+      cy.get('#load-tb').click();
+      cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+      cy.get('#player-count').clear().type('7');
+      cy.get('#start-game').click();
+      cy.get('#player-circle li').should('have.length', 7);
+      cy.get('[data-testid="day-night-toggle"]').click();
+      
+      // Assign Fortune Teller (has ability and night order)
+      cy.get('.player-token').eq(0).click();
+      cy.get('#character-grid .token[data-role="fortuneteller"]').click();
+      
+      // Check that both info icon and night order number exist
+      cy.get('.player-token').eq(0).parent().find('.ability-info-icon').should('exist');
+      cy.get('.player-token').eq(0).find('[data-testid="night-order-number"]').should('exist');
+      
+      // Get positions of both elements
+      cy.get('.player-token').eq(0).parent().find('.ability-info-icon').then($icon => {
+        cy.get('.player-token').eq(0).find('[data-testid="night-order-number"]').then($order => {
+          const iconRect = $icon[0].getBoundingClientRect();
+          const orderRect = $order[0].getBoundingClientRect();
+          
+          // They should not overlap - check that they're at least 10px apart
+          const distance = Math.sqrt(
+            Math.pow(iconRect.left - orderRect.left, 2) + 
+            Math.pow(iconRect.top - orderRect.top, 2)
+          );
+          
+          expect(distance).to.be.greaterThan(10);
+        });
+      });
+    });
   });
 
   describe('Night Order with Different Scripts', () => {
