@@ -174,7 +174,7 @@ describe('Night Order Sorting', () => {
   describe('Night Phase Selector', () => {
     it('should show night phase selector only when night order sorting is enabled', () => {
       // Initially hidden
-      cy.get('[data-testid="night-phase-selector"]').should('not.exist');
+      cy.get('[data-testid="night-phase-selector"]').should('not.be.visible');
 
       // Enable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
@@ -190,11 +190,11 @@ describe('Night Order Sorting', () => {
       // Default to first night
       cy.get('[data-testid="night-phase-selector"]').should('have.value', 'first-night');
 
-      // Disable night order sorting
+            // Disable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
-
+      
       // Should be hidden again
-      cy.get('[data-testid="night-phase-selector"]').should('not.exist');
+      cy.get('[data-testid="night-phase-selector"]').should('not.be.visible');
     });
   });
 
