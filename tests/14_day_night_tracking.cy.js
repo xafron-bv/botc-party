@@ -268,6 +268,59 @@ describe('Day/Night Tracking Feature', () => {
     });
   });
 
+  describe('Reminder Positioning After Reload', () => {
+    it('should position plus button correctly based on visible reminders after reload', () => {
+      // Add multiple reminders across phases
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N1 reminder');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      // Move to N2
+      cy.get('[data-testid="add-phase-button"]').click(); // D1
+      cy.get('[data-testid="add-phase-button"]').click(); // N2
+      
+      // Add 2 reminders in N2
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N2 reminder 1');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N2 reminder 2');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      // Go back to N1
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 0).trigger('input');
+      
+      // Store plus button position before reload
+      cy.get('li').first().find('.reminder-placeholder').then($plus => {
+        const beforeReload = {
+          left: $plus[0].offsetLeft,
+          top: $plus[0].offsetTop
+        };
+        
+        // Reload page
+        cy.reload();
+        
+        // Wait for restoration
+        cy.get('#player-circle li').should('have.length', 5);
+        cy.get('[data-testid="current-phase"]').should('contain', 'N1');
+        
+        // Only N1 reminder should be visible
+        cy.get('li').first().find('.text-reminder').should('have.length', 1);
+        
+        // Plus button should be in same position as before reload
+        cy.get('li').first().find('.reminder-placeholder').then($plusAfter => {
+          // Allow small tolerance for rendering differences
+          expect(Math.abs($plusAfter[0].offsetLeft - beforeReload.left)).to.be.lessThan(10);
+          expect(Math.abs($plusAfter[0].offsetTop - beforeReload.top)).to.be.lessThan(10);
+        });
+      });
+    });
+  });
+
   describe('Persistence', () => {
     it('should persist day/night state when reloading', () => {
       // Enable tracking and add phases

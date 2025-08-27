@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeObserver = new ResizeObserver(() => {
       if (grimoireState.players.length > 0) {
         console.log('Container resized, repositioning players...');
-        requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
+        requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players, grimoireState }));
       }
     });
 
@@ -280,8 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const isCollapsed = document.body.classList.contains('sidebar-collapsed');
       const noPlayers = !Array.isArray(grimoireState.players) || grimoireState.players.length === 0;
       if (isCollapsed && noPlayers) {
-        try { e.preventDefault(); } catch (_) {}
-        try { e.stopPropagation(); } catch (_) {}
+        try { e.preventDefault(); } catch (_) { }
+        try { e.stopPropagation(); } catch (_) { }
         const toggleBtn = document.getElementById('sidebar-toggle');
         if (toggleBtn) toggleBtn.click();
       }
