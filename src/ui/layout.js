@@ -4,7 +4,8 @@ import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
 
-export function repositionPlayers({ players, grimoireState }) {
+export function repositionPlayers({ grimoireState }) {
+  const players = grimoireState.players;
   const count = players.length;
   if (count === 0) return;
   const circle = document.getElementById('player-circle');
@@ -54,18 +55,12 @@ export function repositionPlayers({ players, grimoireState }) {
     }
     let visibleCount = 0;
     if (players[i] && players[i].reminders) {
-      // If grimoireState is not passed but day/night tracking might be enabled,
-      // we'll count all reminders to avoid the layout issue
-      if (!grimoireState) {
-        visibleCount = players[i].reminders.length;
-      } else {
-        players[i].reminders.forEach(reminder => {
-          if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled || 
-              isReminderVisible(grimoireState, reminder.reminderId)) {
-            visibleCount++;
-          }
-        });
-      }
+      players[i].reminders.forEach(reminder => {
+        if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
+          isReminderVisible(grimoireState, reminder.reminderId)) {
+          visibleCount++;
+        }
+      });
     }
     positionRadialStack(listItem, visibleCount);
   });

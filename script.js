@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeObserver = new ResizeObserver(() => {
       if (grimoireState.players.length > 0) {
         console.log('Container resized, repositioning players...');
-        requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players, grimoireState }));
+        requestAnimationFrame(() => repositionPlayers({ grimoireState }));
       }
     });
 
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resizeTimeout = setTimeout(() => {
         if (grimoireState.players.length > 0) {
           console.log('Window resized, repositioning players...');
-          requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
+          requestAnimationFrame(() => repositionPlayers({ grimoireState }));
         }
       }, 250);
     });
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && grimoireState.players.length > 0) {
-      requestAnimationFrame(() => repositionPlayers({ players: grimoireState.players }));
+      requestAnimationFrame(() => repositionPlayers({ grimoireState }));
     }
   });
 

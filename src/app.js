@@ -6,9 +6,9 @@ import { updateDayNightUI } from './dayNightTracking.js';
 
 export function saveAppState({ grimoireState }) {
   try {
-    const state = { 
-      scriptData: grimoireState.scriptData, 
-      players: grimoireState.players, 
+    const state = {
+      scriptData: grimoireState.scriptData,
+      players: grimoireState.players,
       scriptName: grimoireState.scriptMetaName,
       dayNightTracking: grimoireState.dayNightTracking
     };
@@ -32,7 +32,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       setupGrimoire({ grimoireState, grimoireHistoryList, count: saved.players.length });
       grimoireState.players = saved.players;
       updateGrimoire({ grimoireState });
-      repositionPlayers({ players: grimoireState.players, grimoireState });
+      repositionPlayers({ grimoireState });
       renderSetupInfo({ grimoireState });
     }
     if (saved && saved.dayNightTracking) {
