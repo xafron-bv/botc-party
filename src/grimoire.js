@@ -7,7 +7,7 @@ import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { getReminderTimestamp, isReminderVisible, updateDayNightUI } from './dayNightTracking.js';
+import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
@@ -539,6 +539,21 @@ export function updateGrimoire({ grimoireState }) {
       tokenDiv.classList.add('is-dead');
     } else {
       tokenDiv.classList.remove('is-dead');
+    }
+
+    // Add night order number if applicable
+    const existingNightOrder = tokenDiv.querySelector('[data-testid="night-order-number"]');
+    if (existingNightOrder) existingNightOrder.remove();
+    
+    if (shouldShowNightOrder(grimoireState)) {
+      const nightOrderMap = calculateNightOrder(grimoireState);
+      if (nightOrderMap[i]) {
+        const nightOrderDiv = document.createElement('div');
+        nightOrderDiv.setAttribute('data-testid', 'night-order-number');
+        nightOrderDiv.className = 'night-order-number';
+        nightOrderDiv.textContent = nightOrderMap[i];
+        tokenDiv.appendChild(nightOrderDiv);
+      }
     }
 
     const remindersDiv = li.querySelector('.reminders');

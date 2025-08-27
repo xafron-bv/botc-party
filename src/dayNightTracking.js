@@ -179,3 +179,50 @@ export function isReminderVisible(grimoireState, reminderId) {
 export function generateReminderId() {
   return `reminder-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
+
+// Calculate night order for all players
+export function calculateNightOrder(grimoireState) {
+  if (!grimoireState.dayNightTracking.enabled) return {};
+  
+  const currentPhase = getCurrentPhase(grimoireState);
+  if (!currentPhase || !currentPhase.startsWith('N')) return {};
+  
+  const isFirstNight = currentPhase === 'N1';
+  const nightOrderKey = isFirstNight ? 'firstNight' : 'otherNight';
+  
+  // Get all players with their night orders
+  const playersWithNightOrder = [];
+  grimoireState.players.forEach((player, index) => {
+    if (player.character) {
+      const role = grimoireState.allRoles[player.character] || 
+                   grimoireState.baseRoles[player.character] || 
+                   grimoireState.extraTravellerRoles[player.character];
+      if (role && role[nightOrderKey] && role[nightOrderKey] > 0) {
+        playersWithNightOrder.push({
+          playerIndex: index,
+          nightOrder: role[nightOrderKey],
+          characterId: player.character
+        });
+      }
+    }
+  });
+  
+  // Sort by night order value
+  playersWithNightOrder.sort((a, b) => a.nightOrder - b.nightOrder);
+  
+  // Assign sequential numbers starting from 1
+  const nightOrderMap = {};
+  playersWithNightOrder.forEach((item, index) => {
+    nightOrderMap[item.playerIndex] = index + 1;
+  });
+  
+  return nightOrderMap;
+}
+
+// Check if night order should be displayed
+export function shouldShowNightOrder(grimoireState) {
+  if (!grimoireState.dayNightTracking.enabled) return false;
+  
+  const currentPhase = getCurrentPhase(grimoireState);
+  return currentPhase && currentPhase.startsWith('N');
+}
