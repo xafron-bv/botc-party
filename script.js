@@ -98,18 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
     grimoireState.nightPhase = 'first-night';
   }
 
-  if (nightOrderSortCheckbox) {
+    if (nightOrderSortCheckbox) {
     nightOrderSortCheckbox.checked = grimoireState.nightOrderSort;
-    if (grimoireState.nightOrderSort && nightPhaseSelector) {
-      nightPhaseSelector.style.display = 'inline-block';
+    if (nightPhaseSelector) {
+      nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
     }
-
+    
     nightOrderSortCheckbox.addEventListener('change', async () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
       try {
         localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
       } catch (_) {}
-
+      
       if (nightPhaseSelector) {
         nightPhaseSelector.style.display = grimoireState.nightOrderSort ? 'inline-block' : 'none';
       }
