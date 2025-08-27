@@ -168,6 +168,41 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* Night Order Numbers */
+.night-order-number {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background: #583286;
+  color: white;
+  border: 2px solid #7a4ba8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+
+/* In touch mode, night order numbers have their position set dynamically */
+@media (hover: none) and (pointer: coarse) {
+  .night-order-number {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.player-token.is-dead .night-order-number {
+  opacity: 0.6;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .day-night-toggle {

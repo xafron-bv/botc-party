@@ -6,11 +6,24 @@ import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
-import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { getReminderTimestamp, isReminderVisible, updateDayNightUI } from './dayNightTracking.js';
+import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
+import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
+}
+
+function getVisibleRemindersCount({ grimoireState, playerIndex }) {
+  const player = grimoireState.players[playerIndex];
+  if (!player || !player.reminders) return 0;
+
+  let count = 0;
+  player.reminders.forEach(reminder => {
+    if (isReminderVisible(grimoireState, reminder.reminderId)) {
+      count++;
+    }
+  });
+  return count;
 }
 
 // A lot of similar code in rebuildPlayerCircleUiPreserveState
@@ -19,7 +32,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCountInput = document.getElementById('player-count');
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
     }
   } catch (_) { }
   console.log('Setting up grimoire with', count, 'players');
@@ -97,7 +110,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
         e.preventDefault(); // Prevent any default behavior
-        
+
         // Clear any other raised player names first
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
@@ -107,47 +120,47 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
             delete el.dataset.originalZIndex;
           }
         });
-        
+
         // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
-        
+
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
-        
+
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
         const currentZIndex = parseInt(nameStyles.zIndex) || 0;
-        
+
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered
         const isPartiallyCovered = currentZIndex < 10;
-        
+
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
           playerNameEl.dataset.originalZIndex = currentZIndex.toString();
           playerNameEl.style.setProperty('z-index', '60', 'important'); // Raise above other elements with !important to override touch.css
-          
+
           // Also raise the parent li to ensure the whole container is above others
           const parentLi = playerNameEl.closest('li');
           if (parentLi) {
             parentLi.dataset.originalZIndex = parentLi.style.zIndex || '';
             parentLi.style.setProperty('z-index', '200', 'important');
           }
-          
+
           return; // Don't trigger rename
         }
-        
+
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick(e);
-        
+
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
           // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
           playerNameEl.style.removeProperty('z-index');
           delete playerNameEl.dataset.originalZIndex;
-          
+
           // Also restore parent li z-index
           const parentLi = playerNameEl.closest('li');
           if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
@@ -168,13 +181,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
             someoneExpanded = true;
             el.dataset.expanded = '0';
             const idx = Array.from(allLis).indexOf(el);
-            positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length, grimoireState.players);
+            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }), grimoireState.players);
           }
         });
         if (someoneExpanded) {
           thisLi.dataset.expanded = '1';
           thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-          positionRadialStack(thisLi, grimoireState.players[i].reminders.length, grimoireState.players);
+          positionRadialStack(thisLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
           return;
         }
       }
@@ -196,7 +209,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         if (el !== listItem && el.dataset.expanded === '1') {
           el.dataset.expanded = '0';
           const idx = Array.from(allLis).indexOf(el);
-          positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length, grimoireState.players);
+          positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }), grimoireState.players);
         }
       });
       listItem.dataset.expanded = '1';
@@ -204,9 +217,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       if (isTouchDevice && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+      positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
     };
-    const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players); };
+    const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players); };
     if (!isTouchDevice) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
@@ -255,7 +268,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
         }
         expand();
-        positionRadialStack(listItem, grimoireState.players[i].reminders.length, grimoireState.players);
+        positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
       }
     }, { passive: false });
 
@@ -282,7 +295,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         allLis.forEach(el => {
           if (el.dataset.expanded === '1') {
             el.dataset.expanded = '0';
-            positionRadialStack(el, (grimoireState.players[Array.from(allLis).indexOf(el)]?.reminders || []).length, grimoireState.players);
+            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: Array.from(allLis).indexOf(el) }), grimoireState.players);
           }
         });
       };
@@ -295,7 +308,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
   // Use requestAnimationFrame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
-    repositionPlayers({ players: grimoireState.players });
+    repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
@@ -346,6 +359,12 @@ export function ensureReminderContextMenu({ grimoireState }) {
     if (playerIndex < 0 || reminderIndex < 0) return;
     if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
     grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
+    
+    // Save phase state if day/night tracking is enabled
+    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+      saveCurrentPhaseState(grimoireState);
+    }
+    
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
   });
@@ -521,6 +540,12 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       grimoireState.players[i].dead = !grimoireState.players[i].dead;
+      
+      // Save phase state if day/night tracking is enabled
+      if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        saveCurrentPhaseState(grimoireState);
+      }
+      
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
@@ -541,6 +566,22 @@ export function updateGrimoire({ grimoireState }) {
       tokenDiv.classList.remove('is-dead');
     }
 
+    // Add night order number if applicable
+    const existingNightOrder = tokenDiv.querySelector('[data-testid="night-order-number"]');
+    if (existingNightOrder) existingNightOrder.remove();
+
+    if (shouldShowNightOrder(grimoireState)) {
+      const nightOrderMap = calculateNightOrder(grimoireState);
+      if (nightOrderMap[i]) {
+        const nightOrderDiv = document.createElement('div');
+        nightOrderDiv.setAttribute('data-testid', 'night-order-number');
+        nightOrderDiv.className = 'night-order-number';
+        nightOrderDiv.textContent = nightOrderMap[i];
+        nightOrderDiv.dataset.playerIndex = i;
+        tokenDiv.appendChild(nightOrderDiv);
+      }
+    }
+
     const remindersDiv = li.querySelector('.reminders');
     remindersDiv.innerHTML = '';
 
@@ -553,7 +594,7 @@ export function updateGrimoire({ grimoireState }) {
         return; // Skip this reminder
       }
       visibleRemindersCount++;
-      
+
       if (reminder.type === 'icon') {
         const iconEl = document.createElement('div');
         iconEl.className = 'icon-reminder';
@@ -568,7 +609,7 @@ export function updateGrimoire({ grimoireState }) {
             try { e.preventDefault(); } catch (_) { }
             parentLi.dataset.expanded = '1';
             parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+            positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
           }
         }, true);
 
@@ -614,7 +655,7 @@ export function updateGrimoire({ grimoireState }) {
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+                  positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
                 }
                 return;
               }
@@ -643,7 +684,7 @@ export function updateGrimoire({ grimoireState }) {
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+                  positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
                 }
                 return;
               }
@@ -687,7 +728,7 @@ export function updateGrimoire({ grimoireState }) {
           timestampEl.textContent = timestamp;
           iconEl.appendChild(timestampEl);
         }
-        
+
         remindersDiv.appendChild(iconEl);
       } else {
         const reminderEl = document.createElement('div');
@@ -723,7 +764,7 @@ export function updateGrimoire({ grimoireState }) {
               if (parentLi.dataset.expanded !== '1') {
                 parentLi.dataset.expanded = '1';
                 parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+                positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
               }
 
             }
@@ -746,7 +787,7 @@ export function updateGrimoire({ grimoireState }) {
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+                  positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
                 }
                 return;
               }
@@ -778,7 +819,7 @@ export function updateGrimoire({ grimoireState }) {
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                  positionRadialStack(parentLi, grimoireState.players[i].reminders.length);
+                  positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
                 }
                 return;
               }
@@ -821,7 +862,7 @@ export function updateGrimoire({ grimoireState }) {
           timestampEl.textContent = textTimestamp;
           reminderEl.appendChild(timestampEl);
         }
-        
+
         remindersDiv.appendChild(reminderEl);
       }
     });
@@ -831,10 +872,11 @@ export function updateGrimoire({ grimoireState }) {
     positionRadialStack(li, visibleRemindersCount);
   });
 
-  // Position info icons after updating grimoire
+  // Position info icons and night order numbers after updating grimoire
   if ('ontouchstart' in window) {
     positionInfoIcons();
   }
+  positionNightOrderNumbers();
 }
 export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);
@@ -845,7 +887,7 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
 
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
     }
   } catch (_) { }
 
@@ -962,12 +1004,12 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
 
-        // Add touchstart handler for touch devices
+    // Add touchstart handler for touch devices
     if ('ontouchstart' in window) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
         e.stopPropagation();
         e.preventDefault(); // Prevent any default behavior
-        
+
         // Clear any other raised player names first
         document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
           if (el !== e.currentTarget) {
@@ -977,21 +1019,21 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
             delete el.dataset.originalZIndex;
           }
         });
-        
+
         // Check if player name is partially covered (behind token)
         const playerNameEl = e.currentTarget;
-        
+
         // Track if this element has been "raised" (first tap occurred)
         const wasRaised = playerNameEl.dataset.raised === 'true';
-        
+
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
         const currentZIndex = parseInt(nameStyles.zIndex) || 0;
-        
+
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered
         const isPartiallyCovered = currentZIndex < 10;
-        
+
         if (isPartiallyCovered && !wasRaised) {
           // First tap on partially covered name: just raise it
           playerNameEl.dataset.raised = 'true';
@@ -999,17 +1041,17 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
           return; // Don't trigger rename
         }
-        
+
         // Either not partially covered, or already raised - trigger rename
         handlePlayerNameClick2(e);
-        
+
         // After rename, reset the raised state
         if (playerNameEl.dataset.raised) {
           delete playerNameEl.dataset.raised;
           // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
           playerNameEl.style.removeProperty('z-index');
           delete playerNameEl.dataset.originalZIndex;
-          
+
           // Also restore parent li z-index
           const parentLi = playerNameEl.closest('li');
           if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
@@ -1031,13 +1073,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
             someoneExpanded = true;
             el.dataset.expanded = '0';
             const idx = Array.from(allLis).indexOf(el);
-            positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
+            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
           }
         });
         if (someoneExpanded) {
           thisLi.dataset.expanded = '1';
           thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-          positionRadialStack(thisLi, grimoireState.players[i].reminders.length);
+          positionRadialStack(thisLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
           return;
         }
       }
@@ -1059,16 +1101,16 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         if (el !== listItem && el.dataset.expanded === '1') {
           el.dataset.expanded = '0';
           const idx = Array.from(allLis).indexOf(el);
-          positionRadialStack(el, (grimoireState.players[idx]?.reminders || []).length);
+          positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
         }
       });
       listItem.dataset.expanded = '1';
       if (isTouchDevice && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
-      positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+      positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
     };
-    const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, grimoireState.players[i].reminders.length); };
+    const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i })); };
     if (!isTouchDevice) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
@@ -1116,7 +1158,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
         }
         expand();
-        positionRadialStack(listItem, grimoireState.players[i].reminders.length);
+        positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
       }
     }, { passive: false });
 
@@ -1161,7 +1203,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         allLis.forEach(el => {
           if (el.dataset.expanded === '1') {
             el.dataset.expanded = '0';
-            positionRadialStack(el, (grimoireState.players[Array.from(allLis).indexOf(el)]?.reminders || []).length);
+            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: Array.from(allLis).indexOf(el) }));
           }
         });
       };
@@ -1170,13 +1212,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     }
   });
   // Apply layout and state immediately for deterministic testing and UX
-  repositionPlayers({ players: grimoireState.players });
+  repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });
   saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
   // Also after paint to ensure positions stabilize
   requestAnimationFrame(() => {
-    repositionPlayers({ players: grimoireState.players });
+    repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
   });
 }
@@ -1206,14 +1248,14 @@ document.addEventListener('DOMContentLoaded', () => {
           // Restore original z-index
           el.style.zIndex = el.dataset.originalZIndex || '';
           delete el.dataset.originalZIndex;
-          
+
           // Also restore parent li z-index
           const parentLi = el.closest('li');
           if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
             parentLi.style.zIndex = parentLi.dataset.originalZIndex;
             delete parentLi.dataset.originalZIndex;
           }
-          
+
           // Force the player name to go back behind the token
           // In touch mode, CSS sets z-index: 0, but we need to ensure inline style is removed
           el.style.removeProperty('z-index');

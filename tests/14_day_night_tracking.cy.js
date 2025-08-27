@@ -119,7 +119,7 @@ describe('Day/Night Tracking Feature', () => {
 
     it('should add timestamps to reminder tokens when tracking is enabled', () => {
       // Add a reminder in N1 (Alt+click for text reminder)
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Test reminder N1');
       cy.get('[data-testid="save-text-reminder"]').click();
@@ -145,7 +145,7 @@ describe('Day/Night Tracking Feature', () => {
 
     it('should not show timestamps when tracking is disabled', () => {
       // Add a reminder
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Test reminder');
       cy.get('[data-testid="save-text-reminder"]').click();
@@ -169,7 +169,7 @@ describe('Day/Night Tracking Feature', () => {
       
       // Create multiple phases with reminders
       // N1 reminder
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
       // Wait for modal to be visible
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Reminder N1');
@@ -268,6 +268,86 @@ describe('Day/Night Tracking Feature', () => {
     });
   });
 
+  describe('Reminder Positioning After Reload', () => {
+    beforeEach(() => {
+      // Enable day/night tracking if not already enabled
+      cy.get('[data-testid="day-night-toggle"]').then($toggle => {
+        if (!$toggle.hasClass('active')) {
+          cy.wrap($toggle).click();
+        }
+      });
+      
+      // Ensure the UI is ready
+      cy.get('[data-testid="day-night-toggle"]').should('have.class', 'active');
+      cy.get('#day-night-slider').should('be.visible');
+      
+      // Assign a character to first player to allow reminders
+      cy.get('.player-token').first().click();
+      cy.get('#character-modal').should('be.visible');
+      cy.get('#character-grid .token').should('be.visible');
+      cy.get('#character-grid .token').first().click();
+      cy.get('#character-modal').should('not.be.visible');
+      
+      // Wait for character to be assigned
+      cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
+    });
+    
+    it('should position plus button correctly based on visible reminders after reload', () => {
+      
+      // Add multiple reminders across phases
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N1 reminder');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      // Move to N2
+      // Click twice to go from N1 -> D1 -> N2
+      cy.get('[data-testid="add-phase-button"]').click({ force: true }); // D1
+      cy.get('[data-testid="current-phase"]').should('contain', 'D1');
+      cy.get('[data-testid="add-phase-button"]').click({ force: true }); // N2
+      cy.get('[data-testid="current-phase"]').should('contain', 'N2');
+      
+      // Add 2 reminders in N2
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N2 reminder 1');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
+      cy.get('#text-reminder-modal').should('be.visible');
+      cy.get('#reminder-text-input').type('N2 reminder 2');
+      cy.get('[data-testid="save-text-reminder"]').click();
+      
+      // Go back to N1
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 0).trigger('input');
+      
+      // Store plus button position before reload
+      cy.get('li').first().find('.reminder-placeholder').then($plus => {
+        const beforeReload = {
+          left: $plus[0].offsetLeft,
+          top: $plus[0].offsetTop
+        };
+        
+        // Reload page
+        cy.reload();
+        
+        // Wait for restoration
+        cy.get('#player-circle li').should('have.length', 5);
+        cy.get('[data-testid="current-phase"]').should('contain', 'N1');
+        
+        // Only N1 reminder should be visible
+        cy.get('li').first().find('.text-reminder').should('have.length', 1);
+        
+        // Plus button should be positioned correctly after reload
+        cy.get('li').first().find('.reminder-placeholder').then($plusAfter => {
+          // Allow tolerance for positioning differences after reload
+          expect(Math.abs($plusAfter[0].offsetLeft - beforeReload.left)).to.be.lessThan(150);
+          expect(Math.abs($plusAfter[0].offsetTop - beforeReload.top)).to.be.lessThan(150);
+        });
+      });
+    });
+  });
+
   describe('Persistence', () => {
     it('should persist day/night state when reloading', () => {
       // Enable tracking and add phases
@@ -276,7 +356,7 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="add-phase-button"]').click(); // N2
       
       // Add reminders at different phases
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true });
+      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Persistent reminder');
       cy.get('[data-testid="save-text-reminder"]').click();
