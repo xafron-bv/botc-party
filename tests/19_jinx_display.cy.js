@@ -8,23 +8,40 @@ describe('Jinx Display', () => {
     });
   });
 
-  it('displays jinxes at the bottom of the script list after demons', () => {
+  it('displays jinxes section immediately after demons and before travellers/fabled', () => {
     // Load all characters which has jinxes
     cy.get('#load-all-chars').click();
     
     // Wait for character sheet to be populated
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     
-    // Check that jinxes section exists at the bottom after demons
+    // Check that jinxes section exists after demons
     cy.get('#character-sheet h3.team-demon').should('exist');
     cy.get('#character-sheet h3.team-jinxes').should('exist');
     
-    // Jinxes section should be after demons
+    // Jinxes section should be immediately after demons and before travellers/fabled
     cy.get('#character-sheet h3').then(($headers) => {
       const headers = $headers.toArray().map(el => el.textContent);
       const demonIndex = headers.indexOf('Demon');
       const jinxIndex = headers.indexOf('Jinxes');
+      const travellerIndex = headers.indexOf('Travellers');
+      const fabledIndex = headers.indexOf('Fabled');
+      
+      // Jinxes should be after demons
       expect(jinxIndex).to.be.greaterThan(demonIndex);
+      
+      // Jinxes should be immediately after demons (no other sections between)
+      expect(jinxIndex).to.equal(demonIndex + 1);
+      
+      // If travellers exist, jinxes should be before them
+      if (travellerIndex !== -1) {
+        expect(jinxIndex).to.be.lessThan(travellerIndex);
+      }
+      
+      // If fabled exist, jinxes should be before them
+      if (fabledIndex !== -1) {
+        expect(jinxIndex).to.be.lessThan(fabledIndex);
+      }
     });
   });
 
