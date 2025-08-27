@@ -56,10 +56,12 @@ export async function displayScript({ data, grimoireState }) {
           characterSheet.appendChild(roleEl);
         });
       }
+      
+      // Display jinxes section specifically after demon team
+      if (team === 'demon') {
+        displayJinxes({ jinxData, grimoireState, characterSheet });
+      }
     });
-    
-    // Display jinxes section after all teams
-    displayJinxes({ jinxData, grimoireState, characterSheet });
   } else {
     // Fallback: show all characters in a single list
     const header = document.createElement('h3');
