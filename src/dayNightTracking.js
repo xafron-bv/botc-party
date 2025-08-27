@@ -11,6 +11,11 @@ export function initDayNightTracking(grimoireState) {
       reminderTimestamps: {}, // Map of reminder IDs to phase when added
       phaseSnapshots: {} // Store complete grimoire state for each phase
     };
+  } else {
+    // Ensure phaseSnapshots exists for existing tracking data
+    if (!grimoireState.dayNightTracking.phaseSnapshots) {
+      grimoireState.dayNightTracking.phaseSnapshots = {};
+    }
   }
   
   // Ensure slider starts hidden
@@ -36,6 +41,10 @@ function setupDayNightEventListeners(grimoireState) {
       
       // When enabling, capture initial state for N1
       if (grimoireState.dayNightTracking.enabled) {
+        // Ensure phaseSnapshots exists before saving
+        if (!grimoireState.dayNightTracking.phaseSnapshots) {
+          grimoireState.dayNightTracking.phaseSnapshots = {};
+        }
         saveCurrentPhaseState(grimoireState);
       }
       
@@ -264,6 +273,11 @@ export function saveCurrentPhaseState(grimoireState) {
   const currentPhase = getCurrentPhase(grimoireState);
   if (!currentPhase) return;
   
+  // Ensure phaseSnapshots exists
+  if (!grimoireState.dayNightTracking.phaseSnapshots) {
+    grimoireState.dayNightTracking.phaseSnapshots = {};
+  }
+  
   // Save current state to the phase
   grimoireState.dayNightTracking.phaseSnapshots[currentPhase] = createPhaseSnapshot(grimoireState);
 }
@@ -271,6 +285,12 @@ export function saveCurrentPhaseState(grimoireState) {
 // Restore state from a specific phase
 export function restorePhaseState(grimoireState, phase) {
   if (!grimoireState.dayNightTracking.enabled) return;
+  
+  // Ensure phaseSnapshots exists
+  if (!grimoireState.dayNightTracking.phaseSnapshots) {
+    grimoireState.dayNightTracking.phaseSnapshots = {};
+    return;
+  }
   
   const snapshot = grimoireState.dayNightTracking.phaseSnapshots[phase];
   if (!snapshot) return;
