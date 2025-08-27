@@ -251,3 +251,9 @@ body.resizing {
 #sidebar .history-list .icon-btn.save:hover {
   color: #6bff8a;
 }
+
+/* Export button styling */
+#sidebar .export-history-btn {
+  font-size: 14px;
+  padding: 10px 16px;
+}

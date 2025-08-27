@@ -43,6 +43,17 @@ export function renderGrimoireHistory({ grimoireHistoryList }) {
     li.appendChild(deleteBtn);
     grimoireHistoryList.appendChild(li);
   });
+  
+  // Add export button if there are history entries
+  if (history.grimoireHistory.length > 0) {
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'button export-history-btn';
+    exportBtn.textContent = 'Export to Clocktracker CSV';
+    exportBtn.style.marginTop = '12px';
+    exportBtn.style.width = '100%';
+    exportBtn.addEventListener('click', exportGrimoireHistoryToCSV);
+    grimoireHistoryList.appendChild(exportBtn);
+  }
 }
 
 function isGrimoireStateEqual(state1, state2) {
@@ -259,4 +270,101 @@ export function addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireS
   grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('click', async (e) => handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState }));
   grimoireHistoryList.addEventListener('keydown', (e) => handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }));
+}
+
+function exportGrimoireHistoryToCSV() {
+  // CSV headers as specified by clocktracker.app
+  const headers = [
+    'Date',
+    'Script',
+    'Storyteller (say "me" if it was you)',
+    'Online/In Person',
+    'Location (if in person)',
+    'Community',
+    'Player count',
+    'Traveler count',
+    'Game Result (win/loss)',
+    'Starting Role',
+    'Starting Related Role',
+    'Starting Alignment (if not default)',
+    'Ending Role (if different)',
+    'Ending Related Role',
+    'Ending Alignment (if not default)',
+    'Notes'
+  ];
+  
+  const csvRows = [headers.map(h => escapeCSV(h)).join(',')];
+  
+  // Process each history entry
+  history.grimoireHistory.forEach(entry => {
+    const date = new Date(entry.createdAt || Date.now());
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    // Get script name
+    const scriptName = entry.scriptName || 'Unknown Script';
+    
+    // Count players and travelers
+    const players = entry.players || [];
+    const playerCount = players.length;
+    const travelerCount = players.filter(p => p.character && isCharacterTraveler(p.character, entry.scriptData)).length;
+    
+    // Create row data
+    const rowData = [
+      dateStr,
+      escapeCSV(scriptName),
+      'me', // Default to "me" as storyteller
+      'In Person', // Default value
+      '', // Location - empty
+      '', // Community - empty
+      playerCount.toString(),
+      travelerCount.toString(),
+      '', // Game Result - empty
+      '', // Starting Role - empty
+      '', // Starting Related Role - empty
+      '', // Starting Alignment - empty
+      '', // Ending Role - empty
+      '', // Ending Related Role - empty
+      '', // Ending Alignment - empty
+      escapeCSV(entry.name || '') // Use the entry name as notes
+    ];
+    
+    csvRows.push(rowData.join(','));
+  });
+  
+  // Create and download the CSV file
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', `clocktracker_history_${Date.now()}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function escapeCSV(str) {
+  if (str == null) return '';
+  str = String(str);
+  // If the string contains comma, double quote, or newline, wrap it in quotes
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    // Escape any double quotes by doubling them
+    str = str.replace(/"/g, '""');
+    return `"${str}"`;
+  }
+  return str;
+}
+
+function isCharacterTraveler(characterId, scriptData) {
+  if (!characterId || !scriptData) return false;
+  
+  // Find the character in the script data
+  const character = scriptData.find(item => item && item.id === characterId);
+  if (!character) return false;
+  
+  // Check if the character has the traveler team
+  return character.team === 'traveler' || character.team === 'traveller';
 }
