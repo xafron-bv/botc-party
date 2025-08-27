@@ -75,7 +75,8 @@ export function initSidebarToggle({
   sidebarEl,
   sidebarResizer,
   repositionPlayers,
-  players
+  players,
+  grimoireState
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';
@@ -88,7 +89,7 @@ export function initSidebarToggle({
     sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
     sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
     localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
-    requestAnimationFrame(() => repositionPlayers && repositionPlayers({ players }));
+    requestAnimationFrame(() => repositionPlayers && repositionPlayers({ players, grimoireState }));
   };
   const stored = localStorage.getItem(COLLAPSE_KEY);
   const startCollapsed = stored === '1' || prefersOverlaySidebar.matches;

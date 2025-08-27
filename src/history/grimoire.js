@@ -232,7 +232,7 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
     updateGrimoire({ grimoireState });
-    repositionPlayers({ players: grimoireState.players });
+    repositionPlayers({ players: grimoireState.players, grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   } catch (e) {

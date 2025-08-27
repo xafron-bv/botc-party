@@ -255,7 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarResizer,
     isTouchDevice,
     repositionPlayers,
-    players: grimoireState.players
+    players: grimoireState.players,
+    grimoireState
   });
 
   // Load histories and render lists

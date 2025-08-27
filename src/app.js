@@ -32,7 +32,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       setupGrimoire({ grimoireState, grimoireHistoryList, count: saved.players.length });
       grimoireState.players = saved.players;
       updateGrimoire({ grimoireState });
-      repositionPlayers({ players: grimoireState.players });
+      repositionPlayers({ players: grimoireState.players, grimoireState });
       renderSetupInfo({ grimoireState });
     }
     if (saved && saved.dayNightTracking) {
