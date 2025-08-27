@@ -7,7 +7,7 @@ import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { positionInfoIcons, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { getReminderTimestamp, isReminderVisible } from './dayNightTracking.js';
+import { getReminderTimestamp, isReminderVisible, updateDayNightUI } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
@@ -859,6 +859,19 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
 
+  // Reset day/night tracking when starting a new game
+  try {
+    if (!grimoireState.dayNightTracking) {
+      grimoireState.dayNightTracking = { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} };
+    } else {
+      grimoireState.dayNightTracking.enabled = false;
+      grimoireState.dayNightTracking.phases = ['N1'];
+      grimoireState.dayNightTracking.currentPhaseIndex = 0;
+      grimoireState.dayNightTracking.reminderTimestamps = {};
+    }
+    updateDayNightUI(grimoireState);
+  } catch (_) { }
+
   const gameStatusEl = document.getElementById('game-status');
   if (gameStatusEl) {
     gameStatusEl.textContent = `New game started (${playerCount} players)`;
@@ -866,6 +879,9 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
     try { clearTimeout(grimoireState._gameStatusTimer); } catch (_) { }
     grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
   }
+
+  // Persist reset state
+  try { saveAppState({ grimoireState }); } catch (_) { }
 }
 
 export function applyGrimoireBackground(value) {
