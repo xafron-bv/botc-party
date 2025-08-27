@@ -8,7 +8,8 @@ export function initDayNightTracking(grimoireState) {
       enabled: false,
       phases: ['N1'], // Always start with Night 1
       currentPhaseIndex: 0,
-      reminderTimestamps: {} // Map of reminder IDs to phase when added
+      reminderTimestamps: {}, // Map of reminder IDs to phase when added
+      phaseSnapshots: {} // Store complete grimoire state for each phase
     };
   }
   
@@ -32,6 +33,12 @@ function setupDayNightEventListeners(grimoireState) {
   if (toggle) {
     toggle.addEventListener('click', () => {
       grimoireState.dayNightTracking.enabled = !grimoireState.dayNightTracking.enabled;
+      
+      // When enabling, capture initial state for N1
+      if (grimoireState.dayNightTracking.enabled) {
+        saveCurrentPhaseState(grimoireState);
+      }
+      
       updateDayNightUI(grimoireState);
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
@@ -40,7 +47,16 @@ function setupDayNightEventListeners(grimoireState) {
   
   if (slider) {
     slider.addEventListener('input', (e) => {
+      // Save current phase state before switching
+      saveCurrentPhaseState(grimoireState);
+      
+      // Update phase index
       grimoireState.dayNightTracking.currentPhaseIndex = parseInt(e.target.value);
+      
+      // Restore state for the new phase
+      const newPhase = grimoireState.dayNightTracking.phases[grimoireState.dayNightTracking.currentPhaseIndex];
+      restorePhaseState(grimoireState, newPhase);
+      
       updateDayNightUI(grimoireState);
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
@@ -56,6 +72,9 @@ function setupDayNightEventListeners(grimoireState) {
 
 // Add next phase (alternates between day and night)
 function addNextPhase(grimoireState) {
+  // Save current phase state before adding new phase
+  saveCurrentPhaseState(grimoireState);
+  
   const phases = grimoireState.dayNightTracking.phases;
   const lastPhase = phases[phases.length - 1];
   
@@ -72,6 +91,9 @@ function addNextPhase(grimoireState) {
   
   phases.push(nextPhase);
   grimoireState.dayNightTracking.currentPhaseIndex = phases.length - 1;
+  
+  // Copy current state to new phase as initial state
+  saveCurrentPhaseState(grimoireState);
   
   updateDayNightUI(grimoireState);
   updateGrimoire({ grimoireState });
@@ -225,4 +247,34 @@ export function shouldShowNightOrder(grimoireState) {
   
   const currentPhase = getCurrentPhase(grimoireState);
   return currentPhase && currentPhase.startsWith('N');
+}
+
+// Create a snapshot of current grimoire state
+export function createPhaseSnapshot(grimoireState) {
+  // Deep clone the players array to capture current state
+  return {
+    players: JSON.parse(JSON.stringify(grimoireState.players))
+  };
+}
+
+// Save current state to current phase
+export function saveCurrentPhaseState(grimoireState) {
+  if (!grimoireState.dayNightTracking.enabled) return;
+  
+  const currentPhase = getCurrentPhase(grimoireState);
+  if (!currentPhase) return;
+  
+  // Save current state to the phase
+  grimoireState.dayNightTracking.phaseSnapshots[currentPhase] = createPhaseSnapshot(grimoireState);
+}
+
+// Restore state from a specific phase
+export function restorePhaseState(grimoireState, phase) {
+  if (!grimoireState.dayNightTracking.enabled) return;
+  
+  const snapshot = grimoireState.dayNightTracking.phaseSnapshots[phase];
+  if (!snapshot) return;
+  
+  // Restore players state from snapshot
+  grimoireState.players = JSON.parse(JSON.stringify(snapshot.players));
 }

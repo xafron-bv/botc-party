@@ -7,7 +7,7 @@ import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder } from './dayNightTracking.js';
+import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
@@ -32,7 +32,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCountInput = document.getElementById('player-count');
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
     }
   } catch (_) { }
   console.log('Setting up grimoire with', count, 'players');
@@ -359,6 +359,12 @@ export function ensureReminderContextMenu({ grimoireState }) {
     if (playerIndex < 0 || reminderIndex < 0) return;
     if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
     grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
+    
+    // Save phase state if day/night tracking is enabled
+    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+      saveCurrentPhaseState(grimoireState);
+    }
+    
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
   });
@@ -534,6 +540,12 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       grimoireState.players[i].dead = !grimoireState.players[i].dead;
+      
+      // Save phase state if day/night tracking is enabled
+      if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        saveCurrentPhaseState(grimoireState);
+      }
+      
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
@@ -875,7 +887,7 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
 
   try {
     if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList });
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
     }
   } catch (_) { }
 

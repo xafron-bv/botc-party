@@ -3,6 +3,7 @@ import { saveHistories, history } from './index.js';
 import { updateGrimoire, renderSetupInfo, setupGrimoire } from '../grimoire.js';
 import { saveAppState } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
+import { updateDayNightUI, initDayNightTracking } from '../dayNightTracking.js';
 import { processScriptData } from '../script.js';
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {
@@ -74,7 +75,7 @@ function isGrimoireStateEqual(state1, state2) {
   return true;
 }
 
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList }) {
+export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
 
@@ -107,7 +108,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       createdAt: Date.now(),
       players: snapPlayers,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null
+      scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null,
+      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null
     };
     history.grimoireHistory.unshift(entry);
     saveHistories();
@@ -184,7 +186,8 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
           players: grimoireState.players,
           scriptMetaName: grimoireState.scriptMetaName,
           scriptData: grimoireState.scriptData,
-          grimoireHistoryList
+          grimoireHistoryList,
+          dayNightTracking: grimoireState.dayNightTracking
         });
       }
     } catch (_) { }
@@ -231,6 +234,13 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     }
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
+    
+    // Restore day/night tracking state if present
+    if (entry.dayNightTracking) {
+      grimoireState.dayNightTracking = JSON.parse(JSON.stringify(entry.dayNightTracking));
+      initDayNightTracking(grimoireState);
+    }
+    
     updateGrimoire({ grimoireState });
     repositionPlayers({ grimoireState });
     saveAppState({ grimoireState });
