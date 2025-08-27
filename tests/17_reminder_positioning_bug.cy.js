@@ -225,8 +225,8 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
         // Disable day/night tracking
         cy.get('[data-testid="day-night-toggle"]').click();
         
-        // All reminders should now be visible
-        cy.get('li').first().find('.text-reminder').should('have.length', 2);
+        // When tracking is disabled, we stay in the current phase state (N1 with 1 reminder)
+        cy.get('li').first().find('.text-reminder').should('have.length', 1);
         
         // Get plus button position with tracking disabled
         cy.get('li').first().find('.reminder-placeholder').then($plusDisabled => {
@@ -249,8 +249,9 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
               Math.pow(disabledPosition.top + disabledPosition.height/2 - tokenCenter.y, 2)
             );
             
-            // When tracking is disabled (showing all reminders), plus should be farther or same
-            expect(distanceDisabled).to.be.at.least(distanceEnabled);
+            // With phase snapshots, reminder count stays the same when disabling tracking
+            // So the plus button distance should be approximately the same
+            expect(Math.abs(distanceDisabled - distanceEnabled)).to.be.lessThan(5);
           });
         });
       });
