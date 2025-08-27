@@ -3,7 +3,7 @@ import { saveHistories, history } from './index.js';
 import { updateGrimoire, renderSetupInfo, setupGrimoire } from '../grimoire.js';
 import { saveAppState } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
-import { updateDayNightUI, initDayNightTracking } from '../dayNightTracking.js';
+import { initDayNightTracking } from '../dayNightTracking.js';
 import { processScriptData } from '../script.js';
 
 export function renderGrimoireHistory({ grimoireHistoryList }) {

@@ -60,7 +60,7 @@ function setupDayNightEventListeners(grimoireState) {
       saveCurrentPhaseState(grimoireState);
 
       // Update phase index
-      grimoireState.dayNightTracking.currentPhaseIndex = parseInt(e.target.value);
+      grimoireState.dayNightTracking.currentPhaseIndex = parseInt(e.target.value, 10);
 
       // Restore state for the new phase
       const newPhase = grimoireState.dayNightTracking.phases[grimoireState.dayNightTracking.currentPhaseIndex];
@@ -90,11 +90,11 @@ function addNextPhase(grimoireState) {
   let nextPhase;
   if (lastPhase.startsWith('N')) {
     // After night comes day
-    const nightNumber = parseInt(lastPhase.substring(1));
+    const nightNumber = parseInt(lastPhase.substring(1), 10);
     nextPhase = `D${nightNumber}`;
   } else {
     // After day comes night
-    const dayNumber = parseInt(lastPhase.substring(1));
+    const dayNumber = parseInt(lastPhase.substring(1), 10);
     nextPhase = `N${dayNumber + 1}`;
   }
 
@@ -137,7 +137,7 @@ export function updateDayNightUI(grimoireState) {
   if (enabled) {
     sliderContainer.style.display = 'block';
     // Force reflow to ensure the display change is applied before adding the class
-    sliderContainer.offsetHeight;
+    void sliderContainer.offsetHeight;
     sliderContainer.classList.add('open');
   } else {
     sliderContainer.classList.remove('open');

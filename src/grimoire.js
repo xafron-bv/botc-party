@@ -129,7 +129,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
 
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered
@@ -1028,7 +1028,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
 
         // Get computed styles to check z-index
         const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex) || 0;
+        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
 
         // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
         // If z-index is less than 10, it's considered partially covered

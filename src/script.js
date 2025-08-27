@@ -112,38 +112,39 @@ export async function displayScript({ data, grimoireState }) {
         }
       });
     } else {
-    // Fallback: show all characters in a single list
-    const header = document.createElement('h3');
-    header.textContent = 'Characters';
-    header.className = 'team-townsfolk';
-    characterSheet.appendChild(header);
+      // Fallback: show all characters in a single list
+      const header = document.createElement('h3');
+      header.textContent = 'Characters';
+      header.className = 'team-townsfolk';
+      characterSheet.appendChild(header);
 
-    data.forEach((characterItem) => {
-      if (typeof characterItem === 'string' && characterItem !== '_meta') {
-        const roleEl = document.createElement('div');
-        roleEl.className = 'role';
-        roleEl.innerHTML = `
-                     <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
-                     <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
-                 `;
-        characterSheet.appendChild(roleEl);
-      } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-        // Display custom character objects
-        const roleEl = document.createElement('div');
-        roleEl.className = 'role';
-        const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
-        roleEl.innerHTML = `
-                    <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
-                    <span class="name">${characterItem.name || characterItem.id}</span>
-                    <div class="ability">${characterItem.ability || 'No ability description available'}</div>
-                `;
-        // Add click handler to toggle ability display
-        roleEl.addEventListener('click', () => {
-          roleEl.classList.toggle('show-ability');
-        });
-        characterSheet.appendChild(roleEl);
-      }
-    });
+      data.forEach((characterItem) => {
+        if (typeof characterItem === 'string' && characterItem !== '_meta') {
+          const roleEl = document.createElement('div');
+          roleEl.className = 'role';
+          roleEl.innerHTML = `
+                       <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
+                       <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
+                   `;
+          characterSheet.appendChild(roleEl);
+        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
+          // Display custom character objects
+          const roleEl = document.createElement('div');
+          roleEl.className = 'role';
+          const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
+          roleEl.innerHTML = `
+                      <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                      <span class="name">${characterItem.name || characterItem.id}</span>
+                      <div class="ability">${characterItem.ability || 'No ability description available'}</div>
+                  `;
+          // Add click handler to toggle ability display
+          roleEl.addEventListener('click', () => {
+            roleEl.classList.toggle('show-ability');
+          });
+          characterSheet.appendChild(roleEl);
+        }
+      });
+    }
   }
 }
 

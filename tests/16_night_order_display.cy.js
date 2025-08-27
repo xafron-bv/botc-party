@@ -93,7 +93,7 @@ describe('Night Order Display', () => {
       cy.get('[data-testid="night-order-number"]').then($numbers => {
         const numbers = [];
         $numbers.each((_, el) => {
-          numbers.push(parseInt(el.textContent));
+          numbers.push(parseInt(el.textContent, 10));
         });
 
         // Sort the numbers to check they're sequential

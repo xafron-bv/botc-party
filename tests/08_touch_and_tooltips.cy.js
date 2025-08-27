@@ -168,7 +168,7 @@ describe('Ability UI - Touch', () => {
           const tokenRect = $token[0].getBoundingClientRect();
 
           // Calculate if there's overlap
-          const overlap = !(nameRect.right < tokenRect.left ||
+          const _overlap = !(nameRect.right < tokenRect.left ||
                            nameRect.left > tokenRect.right ||
                            nameRect.bottom < tokenRect.top ||
                            nameRect.top > tokenRect.bottom);
@@ -308,7 +308,7 @@ describe('Ability UI - Touch', () => {
 
     // Verify name was raised (z-index increased)
     cy.get('#player-circle li').first().find('.player-name').should(($name) => {
-      const currentZIndex = parseInt($name[0].style.zIndex) || 0;
+      const currentZIndex = parseInt($name[0].style.zIndex, 10) || 0;
       expect(currentZIndex).to.be.greaterThan(5); // Should be raised above token
     });
 
@@ -359,7 +359,7 @@ describe('Ability UI - Touch', () => {
     // Verify second name is now raised
     cy.get('#player-circle li').eq(1).find('.player-name').should(($name) => {
       expect($name[0].dataset.raised).to.equal('true');
-      const currentZIndex = parseInt($name[0].style.zIndex) || 0;
+      const currentZIndex = parseInt($name[0].style.zIndex, 10) || 0;
       expect(currentZIndex).to.be.greaterThan(5);
     });
 
