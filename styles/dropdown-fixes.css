@@ -3,7 +3,7 @@
 /* Fix dropdown positioning for both selects */
 #night-phase-selector,
 #background-select {
-  /* Prevent browser from applying default mobile styles */
+  /* Force browser to use custom styling */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;

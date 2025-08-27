@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="styles/day-night-tracking.css">
   <link rel="stylesheet" href="styles/dropdown-fixes.css">
+  <link rel="stylesheet" href="styles/night-order-mobile.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/android-chrome-192x192.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -67,11 +68,17 @@
         <div style="margin-bottom: 8px;" class="night-order-controls">
           <label data-testid="night-order-sort-label">
             <input type="checkbox" id="night-order-sort" data-testid="night-order-sort-checkbox"> Sort by night order
-            <select id="night-phase-selector" data-testid="night-phase-selector">
-              <option value="first-night">First Night</option>
-              <option value="other-nights">Other Nights</option>
-            </select>
           </label>
+          <select id="night-phase-selector" data-testid="night-phase-selector">
+            <option value="first-night">First Night</option>
+            <option value="other-nights">Other Nights</option>
+          </select>
+          <div class="night-phase-buttons">
+            <input type="radio" name="night-phase" id="first-night-btn" value="first-night" checked>
+            <label for="first-night-btn">First Night</label>
+            <input type="radio" name="night-phase" id="other-nights-btn" value="other-nights">
+            <label for="other-nights-btn">Other Nights</label>
+          </div>
         </div>
         <div id="character-sheet">
           <p>Load a script to see available characters.</p>

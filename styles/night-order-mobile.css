@@ -1,0 +1,96 @@
+/* Mobile-specific night order controls */
+
+/* Hide the default select on mobile and show custom buttons */
+@media (hover: none) and (pointer: coarse), (max-width: 600px) {
+  /* Hide the select dropdown on mobile */
+  #night-phase-selector {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* Create custom button group for mobile */
+  .night-phase-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .night-phase-buttons input[type="radio"] {
+    position: absolute;
+    left: -9999px;
+  }
+  
+  .night-phase-buttons label {
+    flex: 1;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .night-phase-buttons input[type="radio"]:checked + label {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+    color: #D4AF37;
+    font-weight: 600;
+  }
+  
+  .night-phase-buttons label:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(212, 175, 55, 0.5);
+  }
+  
+  .night-phase-buttons label:active {
+    transform: scale(0.98);
+  }
+  
+  /* Ensure buttons are only shown when night order is enabled */
+  .night-order-controls:not(.active) .night-phase-buttons {
+    display: none;
+  }
+}
+
+/* Desktop retains the dropdown */
+@media (hover: hover) and (pointer: fine), (min-width: 601px) {
+  .night-phase-buttons {
+    display: none !important;
+  }
+}
+
+/* Update the night order controls container */
+.night-order-controls {
+  position: relative;
+}
+
+.night-order-controls.active #night-phase-selector {
+  display: inline-block;
+}
+
+/* Ensure the label flows properly */
+.night-order-controls label[data-testid="night-order-sort-label"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .night-order-controls label[data-testid="night-order-sort-label"] {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .night-order-controls label[data-testid="night-order-sort-label"] input[type="checkbox"] {
+    margin-right: 8px;
+  }
+}

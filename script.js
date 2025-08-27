@@ -47,6 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const includeTravellersCheckbox = document.getElementById('include-travellers');
   const nightOrderSortCheckbox = document.getElementById('night-order-sort');
   const nightPhaseSelector = document.getElementById('night-phase-selector');
+  const nightOrderControls = document.querySelector('.night-order-controls');
+  const firstNightBtn = document.getElementById('first-night-btn');
+  const otherNightsBtn = document.getElementById('other-nights-btn');
   // Travellers toggle state key and default
 
   const grimoireState = {
