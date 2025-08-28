@@ -223,6 +223,18 @@ export async function loadScriptFile({ event, grimoireState }) {
       const json = JSON.parse(e.target.result);
       console.log('Uploaded script parsed successfully:', json);
 
+      // Check if this is a history export file
+      if (json && typeof json === 'object' && !Array.isArray(json)) {
+        // Check for history file structure
+        if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
+          console.error('History export file detected in script upload');
+          loadStatus.textContent = 'This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.';
+          loadStatus.className = 'error';
+          alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
+          return;
+        }
+      }
+
       await processScriptData({ data: json, addToHistory: true, grimoireState });
       loadStatus.textContent = 'Custom script loaded successfully!';
       loadStatus.className = 'status';

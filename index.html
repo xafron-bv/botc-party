@@ -85,6 +85,15 @@
         <ul id="grimoire-history-list" class="history-list"></ul>
       </div>
       <div class="section">
+        <h3>History Management</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <button class="button" id="export-history-btn">Export History</button>
+          <button class="button" id="import-history-btn">Import History</button>
+          <input type="file" id="import-history-file" accept=".json" style="display: none;">
+        </div>
+        <div id="import-status" aria-live="polite"></div>
+      </div>
+      <div class="section">
         <h3>Tutorial</h3>
         <div id="tutorial-sidebar-content">
           <p>Quick tour: set players, load a script, assign characters, add reminders.</p>
