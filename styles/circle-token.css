@@ -138,8 +138,8 @@
   left: 50%;
   top: calc(50% + var(--token-size) * 0.8); /* Default, will be overridden by JS */
   transform: translate(-50%, -50%);
-  z-index: 1;
-  /* Above background but below all tokens */
+  z-index: 0;
+  /* Below all game elements */
   transition: all 0.3s ease;
   opacity: 0.3;
   pointer-events: auto;
@@ -170,6 +170,8 @@
   position: relative;
   overflow: visible;
   max-width: calc(var(--token-size) + var(--min-reminder-size));
+  z-index: 1;
+  /* Create stacking context */
 }
 
 /* Keep hovered player (and its name) above siblings on desktop */

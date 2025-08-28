@@ -3,8 +3,8 @@
   #player-circle li .player-name {
     opacity: 1;
     filter: blur(0);
-    z-index: 1;
-    /* Above background but below all tokens */
+    z-index: 0;
+    /* Below all game elements */
   }
 
   /* Ensure proper layering when a player is touched/selected */
