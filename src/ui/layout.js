@@ -3,7 +3,6 @@
 import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
-import { adjustPlayerNamePositions } from './namePositioning.js';
 
 export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
@@ -65,10 +64,6 @@ export function repositionPlayers({ grimoireState }) {
     }
     positionRadialStack(listItem, visibleCount);
   });
-  
-  // Adjust player name positions to prevent overlaps
-  adjustPlayerNamePositions(circle);
-  
   positionInfoIcons();
   positionNightOrderNumbers();
 }
