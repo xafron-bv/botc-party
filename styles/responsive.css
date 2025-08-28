@@ -20,3 +20,58 @@
     gap: 12px;
   }
 }
+
+/* Fix for landscape orientation - prevent player names from being cut off */
+@media (orientation: landscape) {
+  /* Adjust circle size to ensure player names fit within viewport */
+  .circle {
+    height: min(80vmin, calc(100vh - 160px));
+    width: min(80vmin, calc(100vw - 40px));
+  }
+  
+  /* Adjust player name positioning for better visibility on landscape */
+  .player-name.top-half {
+    /* Reduce the offset for top players to keep names visible */
+    top: calc(50% - var(--token-size) * 0.6);
+  }
+  
+  /* Also adjust bottom player names to maintain symmetry */
+  .player-name:not(.top-half) {
+    top: calc(50% + var(--token-size) * 0.6);
+  }
+  
+  /* Add some padding to the center container to ensure names don't get cut off */
+  #center {
+    padding: 20px 12px;
+  }
+}
+
+/* For very wide landscape viewports (tablets, desktops in landscape) */
+@media (orientation: landscape) and (min-aspect-ratio: 16/9) {
+  /* Further reduce offset for ultra-wide screens */
+  .player-name.top-half {
+    top: calc(50% - var(--token-size) * 0.5);
+  }
+  
+  .player-name:not(.top-half) {
+    top: calc(50% + var(--token-size) * 0.5);
+  }
+}
+
+/* For small landscape screens (phones in landscape) */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Further reduce circle size on very short landscape screens */
+  .circle {
+    height: min(75vmin, calc(100vh - 180px));
+    width: min(75vmin, calc(100vw - 40px));
+  }
+  
+  /* Even smaller offset for very limited vertical space */
+  .player-name.top-half {
+    top: calc(50% - var(--token-size) * 0.5);
+  }
+  
+  .player-name:not(.top-half) {
+    top: calc(50% + var(--token-size) * 0.5);
+  }
+}
