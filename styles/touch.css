@@ -3,8 +3,8 @@
   #player-circle li .player-name {
     opacity: 1;
     filter: blur(0);
-    z-index: 0;
-    /* Below all game elements */
+    z-index: 1;
+    /* Above background but below tokens */
   }
 
   /* Ensure proper layering when a player is touched/selected */
@@ -23,5 +23,10 @@
   #player-circle li .player-name[data-raised="true"] {
     z-index: 60 !important;
     position: absolute !important;
+  }
+  
+  /* But NEVER above other players' tokens */
+  #player-circle .player-token {
+    z-index: 1000 !important;
   }
 }

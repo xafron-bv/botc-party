@@ -8,6 +8,7 @@
   z-index: 2;
   /* Above setup-info */
   overflow: visible;
+
 }
 
 .circle li {
@@ -138,8 +139,8 @@
   left: 50%;
   top: calc(50% + var(--token-size) * 0.8); /* Default, will be overridden by JS */
   transform: translate(-50%, -50%);
-  z-index: 0;
-  /* Below all game elements */
+  z-index: 1;
+  /* Above background but below tokens */
   transition: all 0.3s ease;
   opacity: 0.3;
   pointer-events: auto;
@@ -170,11 +171,23 @@
   position: relative;
   overflow: visible;
   max-width: calc(var(--token-size) + var(--min-reminder-size));
-  z-index: 1;
-  /* Create stacking context to contain children */
+  isolation: isolate;
+  /* Create new stacking context to contain children */
 }
+
+
 
 /* Keep hovered player (and its name) above siblings on desktop */
 #player-circle li:hover {
   z-index: 50;
+}
+
+/* CRITICAL: Ensure all tokens are always above all player names */
+#player-circle .player-token {
+  z-index: 1000 !important;
+}
+
+/* Keep player names below tokens - already has position: absolute */
+#player-circle .player-name {
+  z-index: 1 !important;
 }
