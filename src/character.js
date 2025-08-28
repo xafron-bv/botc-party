@@ -1,7 +1,7 @@
 import { displayScript } from './script.js';
 import { resolveAssetPath, normalizeKey } from '../utils.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
-import { updateGrimoire, rebuildPlayerCircleUiPreserveState } from './grimoire.js';
+import { updateGrimoire, rebuildPlayerCircleUiPreserveState, renderSetupInfo } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 
@@ -10,6 +10,22 @@ export function populateCharacterGrid({ grimoireState }) {
   const characterSearch = document.getElementById('character-search');
   characterGrid.innerHTML = '';
   const filter = characterSearch.value.toLowerCase();
+
+  // Add empty token option first if filter is empty or matches "none", "clear", "empty"
+  if (!filter || ['none', 'clear', 'empty'].some(term => term.includes(filter))) {
+    const emptyToken = document.createElement('div');
+    emptyToken.className = 'token empty';
+    emptyToken.style.backgroundImage = `url('./assets/img/token-BqDQdWeO.webp')`;
+    emptyToken.style.backgroundSize = 'cover';
+    emptyToken.style.position = 'relative';
+    emptyToken.style.overflow = 'visible';
+    emptyToken.title = 'No character';
+    emptyToken.onclick = () => assignCharacter({ grimoireState, roleId: null });
+    // Add curved bottom text for empty token
+    const svg = createCurvedLabelSvg('picker-role-arc-empty', 'None');
+    emptyToken.appendChild(svg);
+    characterGrid.appendChild(emptyToken);
+  }
 
   const filteredRoles = Object.values(grimoireState.allRoles)
     .filter(role => role.name.toLowerCase().includes(filter));
@@ -44,6 +60,7 @@ export function assignCharacter({ grimoireState, roleId }) {
     }
 
     updateGrimoire({ grimoireState });
+    renderSetupInfo({ grimoireState });
     characterModal.style.display = 'none';
     saveAppState({ grimoireState });
   }
