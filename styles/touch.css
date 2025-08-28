@@ -25,8 +25,5 @@
     position: absolute !important;
   }
   
-  /* But NEVER above other players' tokens */
-  #player-circle .player-token {
-    z-index: 1000 !important;
-  }
+
 }

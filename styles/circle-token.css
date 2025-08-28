@@ -179,15 +179,6 @@
 
 /* Keep hovered player (and its name) above siblings on desktop */
 #player-circle li:hover {
-  z-index: 50;
+  z-index: 50 !important;
 }
 
-/* CRITICAL: Ensure all tokens are always above all player names */
-#player-circle .player-token {
-  z-index: 1000 !important;
-}
-
-/* Keep player names below tokens - already has position: absolute */
-#player-circle .player-name {
-  z-index: 1 !important;
-}
