@@ -49,9 +49,25 @@ export async function importHistory(file) {
     const text = await file.text();
     const data = JSON.parse(text);
 
+    // Check if this is a script file instead of a history file
+    if (Array.isArray(data)) {
+      // This is likely a script file (array of characters)
+      console.error('Script file detected in history import');
+      alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
+      return;
+    }
+
     // Validate the data structure
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid JSON format');
+    }
+
+    // Check for script-like object structures
+    if (!('version' in data) && !('scriptHistory' in data) && !('grimoireHistory' in data)) {
+      // This doesn't look like a history file
+      console.error('Non-history file detected in history import');
+      alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
+      return;
     }
 
     if (!data.scriptHistory || !data.grimoireHistory || !Array.isArray(data.scriptHistory) || !Array.isArray(data.grimoireHistory)) {

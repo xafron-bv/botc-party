@@ -124,3 +124,128 @@ describe('History File Validation', () => {
     });
   });
 });
+
+describe('Script File in History Import Validation', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.window().then((win) => {
+      try { win.localStorage.clear(); } catch (_) {}
+    });
+  });
+
+  it('should show error when trying to import a script file as history', () => {
+    // Create a regular script file
+    const scriptFile = [
+      { id: '_meta', name: 'Test Script', author: 'test' },
+      'chef',
+      'librarian',
+      'investigator'
+    ];
+
+    // Spy on alert
+    cy.on('window:alert', (str) => {
+      expect(str).to.match(/script.*file.*upload.*script/i);
+    });
+
+    // Try to import it as history
+    cy.get('#import-history-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(scriptFile)),
+      fileName: 'my-script.json',
+      mimeType: 'application/json'
+    }, { force: true });
+
+    // History should not be updated
+    cy.get('#script-history-list .history-item').should('have.length', 0);
+    cy.get('#grimoire-history-list .history-item').should('have.length', 0);
+  });
+
+  it('should detect various script file formats', () => {
+    const scriptFormats = [
+      {
+        // Array of character IDs (common format)
+        data: ['chef', 'librarian', 'mayor'],
+        isScript: true
+      },
+      {
+        // Array with meta object
+        data: [{ id: '_meta', name: 'Script' }, 'chef', 'librarian'],
+        isScript: true
+      },
+      {
+        // Array with character objects
+        data: [
+          { id: 'chef', name: 'Chef', team: 'townsfolk' },
+          { id: 'librarian', name: 'Librarian', team: 'townsfolk' }
+        ],
+        isScript: true
+      },
+      {
+        // Valid history file
+        data: { version: 1, scriptHistory: [], grimoireHistory: [] },
+        isScript: false
+      },
+      {
+        // Empty array (could be empty script)
+        data: [],
+        isScript: true
+      },
+      {
+        // Object that's not a history file
+        data: { characters: ['chef'], someField: 'value' },
+        isScript: true
+      }
+    ];
+
+    scriptFormats.forEach((format, index) => {
+      if (format.isScript) {
+        cy.on('window:alert', (str) => {
+          expect(str).to.match(/script.*file.*upload.*script/i);
+        });
+      }
+
+      cy.get('#import-history-file').selectFile({
+        contents: Cypress.Buffer.from(JSON.stringify(format.data)),
+        fileName: `test-${index}.json`,
+        mimeType: 'application/json'
+      }, { force: true });
+
+      if (format.isScript) {
+        // Should not add any history
+        cy.get('#script-history-list .history-item').should('have.length', 0);
+        cy.get('#grimoire-history-list .history-item').should('have.length', 0);
+      }
+
+      // Clear for next test
+      cy.reload();
+    });
+  });
+
+  it('should still allow valid history files', () => {
+    // Create a valid history file
+    const historyFile = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      scriptHistory: [
+        {
+          id: 'script_test',
+          name: 'Test Script',
+          data: ['chef'],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        }
+      ],
+      grimoireHistory: []
+    };
+
+    // Import it
+    cy.get('#import-history-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(historyFile)),
+      fileName: 'valid-history.json',
+      mimeType: 'application/json'
+    }, { force: true });
+
+    // Should successfully import
+    cy.get('#script-history-list .history-item').should('have.length', 1);
+    cy.contains('#script-history-list .history-item .history-name', 'Test Script').should('exist');
+  });
+});
