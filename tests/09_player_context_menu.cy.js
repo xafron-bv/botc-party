@@ -86,8 +86,7 @@ describe('Player context menu - touch long-press', () => {
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
       .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
-      .wait(650)
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
+      .trigger('pointerup', { force: true, clientX: 100, clientY: 100, delay: 650 });
     // Assert no selection occurred (window.getSelection empty)
     cy.window().then((win) => {
       const sel = win.getSelection && win.getSelection();
@@ -100,8 +99,7 @@ describe('Player context menu - touch long-press', () => {
     // Remove it back to 5 via long-press on the newly added last player
     cy.get('#player-circle li').last().find('.player-token')
       .trigger('pointerdown', { force: true })
-      .wait(650)
-      .trigger('pointerup', { force: true });
+      .trigger('pointerup', { force: true, delay: 650 });
     cy.get('#player-menu-remove').click();
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('#grimoire-history-list .history-item').should('have.length', 0);

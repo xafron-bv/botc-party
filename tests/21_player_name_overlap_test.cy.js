@@ -12,32 +12,26 @@ describe('Player Name Overlap Detection', () => {
     cy.get('body').then($body => {
       if ($body.hasClass('sidebar-collapsed')) {
         cy.get('#sidebar-toggle').should('be.visible').click();
-        cy.wait(300);
       }
     });
     
     // Setup game with 15 players
     cy.get('#load-tb').click(); // Load Trouble Brewing script
-    cy.wait(500); // Wait for script to load
     
     // Close sidebar if it's obscuring the controls
     cy.get('body').then($body => {
       if (!$body.hasClass('sidebar-collapsed')) {
         cy.get('#sidebar-close').click({ force: true });
-        cy.wait(300);
       }
     });
     
     cy.get('#player-count').clear({ force: true }).type('15', { force: true });
     cy.get('#start-game').click({ force: true });
     
-    // Wait for the game to be created
+    // Wait for the game to be created and check for overlaps
     cy.get('.player-name').should('have.length', 15);
     
-    // Wait for layout to fully stabilize (including animations and adjustments)
-    cy.wait(3000);
-    
-    // Now check for overlaps
+    // Now check for overlaps after names are positioned
     cy.window().then(win => {
       const playerNames = win.document.querySelectorAll('.player-name');
       const overlaps = [];

@@ -105,8 +105,7 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
     // Now tap plus on first player: should expand first (and not open modal yet)
     cy.get('#player-circle li .reminder-placeholder').eq(0).click({ force: true });
-    // Wait a beat for the expand to propagate
-    cy.wait(50);
+    // Check that the expand propagated
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
     // Ensure modal is closed before continuing
     cy.get('body').then(($body) => {
@@ -133,9 +132,6 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .player-name').first().then(($el) => {
       $el[0].style.zIndex = '60';
     });
-
-    // Wait a bit to ensure the style is applied
-    cy.wait(100);
 
     // Stub prompt for rename
     cy.window().then((win) => {

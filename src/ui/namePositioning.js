@@ -4,15 +4,10 @@ export function adjustPlayerNamePositions(playerCircle) {
   const listItems = playerCircle.querySelectorAll('li');
   if (listItems.length === 0) return;
   
-  // Skip async in test environment to avoid timing issues
-  if (window.Cypress) {
+  // Add a small delay to ensure DOM is ready
+  requestAnimationFrame(() => {
     adjustNamesImmediate(playerCircle, listItems);
-  } else {
-    // Add a small delay to ensure DOM is ready
-    requestAnimationFrame(() => {
-      adjustNamesImmediate(playerCircle, listItems);
-    });
-  }
+  });
 }
 
 function adjustNamesImmediate(playerCircle, listItems) {
