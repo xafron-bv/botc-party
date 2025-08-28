@@ -84,9 +84,12 @@ describe('Player context menu - touch long-press', () => {
   it('opens context menu via long-press and performs actions', () => {
     cy.viewport('iphone-6');
     // Long-press first player's token to open context menu
+    // Simulate long press by triggering pointerdown, then wait, then pointerup
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100, delay: 650 });
+      .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 });
+    cy.wait(650);
+    cy.get('#player-circle li .player-token').first()
+      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
     // Assert no selection occurred (window.getSelection empty)
     cy.window().then((win) => {
       const sel = win.getSelection && win.getSelection();

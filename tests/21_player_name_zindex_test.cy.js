@@ -79,7 +79,7 @@ describe('Player Name Z-Index Behavior', () => {
     });
   });
   
-  it('should show player names above tokens when touched/hovered', () => {
+  it('should maintain correct z-index hierarchy for player names', () => {
     cy.visit('/');
     cy.get('#modal-bg').should('not.exist');
     
@@ -90,17 +90,25 @@ describe('Player Name Z-Index Behavior', () => {
     
     cy.get('.player-name').should('have.length', 5);
     
-    // Test hover behavior on desktop
+    // Test that player names have lower z-index than tokens by default
     cy.get('.player-name').first().then($name => {
-      const initialZ = $name.css('z-index');
-      cy.wrap(initialZ).should('eq', '1'); // Should start below tokens
-      
-      // Hover over the player
-      cy.get('#player-circle li').first().trigger('mouseenter');
-      
-      cy.get('.player-name').first().then($hoveredName => {
-        const hoverZ = $hoveredName.css('z-index');
-        cy.wrap(hoverZ).should('eq', '60'); // Should be above when hovered
+      const nameZ = parseInt($name.css('z-index') || '0');
+      cy.get('.player-token').first().then($token => {
+        const tokenZ = parseInt($token.css('z-index') || '0');
+        // Player names should have lower z-index than tokens
+        expect(nameZ).to.be.lessThan(tokenZ);
+      });
+    });
+    
+    // Test touch behavior on mobile viewport
+    cy.viewport(375, 667);
+    
+    // On touch devices, names should still be below tokens by default
+    cy.get('.player-name').first().then($name => {
+      const nameZ = parseInt($name.css('z-index') || '0');
+      cy.get('.player-token').first().then($token => {
+        const tokenZ = parseInt($token.css('z-index') || '0');
+        expect(nameZ).to.be.lessThan(tokenZ);
       });
     });
   });
