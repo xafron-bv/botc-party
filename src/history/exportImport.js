@@ -29,6 +29,37 @@ export function exportHistory() {
   // Clean up
   URL.revokeObjectURL(url);
 
+  // Show success message
+  const importStatus = document.getElementById('import-status');
+  if (importStatus) {
+    const scriptCount = exportData.scriptHistory.length;
+    const grimoireCount = exportData.grimoireHistory.length;
+    
+    let message = 'History exported successfully! ';
+    const parts = [];
+    if (scriptCount > 0) {
+      parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`);
+    }
+    if (grimoireCount > 0) {
+      parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`);
+    }
+    
+    if (parts.length > 0) {
+      message += `Exported ${parts.join(' and ')}.`;
+    } else {
+      message += 'Exported empty history.';
+    }
+    
+    importStatus.textContent = message;
+    importStatus.className = 'status';
+    
+    // Clear the message after 5 seconds
+    setTimeout(() => {
+      importStatus.textContent = '';
+      importStatus.className = '';
+    }, 5000);
+  }
+
   // For testing purposes, store last downloaded file info
   if (window.Cypress) {
     window.lastDownloadedFile = {
@@ -170,6 +201,36 @@ export async function importHistory(file) {
       renderGrimoireHistory({ grimoireHistoryList });
     }
 
+    // Show success message
+    const importStatus = document.getElementById('import-status');
+    if (importStatus) {
+      const scriptCount = processedScriptHistory.length;
+      const grimoireCount = processedGrimoireHistory.length;
+      
+      let message = 'History imported successfully! ';
+      if (scriptCount > 0 || grimoireCount > 0) {
+        const parts = [];
+        if (scriptCount > 0) {
+          parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`);
+        }
+        if (grimoireCount > 0) {
+          parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`);
+        }
+        message += `Added ${parts.join(' and ')}.`;
+      } else {
+        message += 'No new entries added (all were duplicates).';
+      }
+      
+      importStatus.textContent = message;
+      importStatus.className = 'status';
+      
+      // Clear the message after 5 seconds
+      setTimeout(() => {
+        importStatus.textContent = '';
+        importStatus.className = '';
+      }, 5000);
+    }
+
   } catch (error) {
     console.error('Error importing history:', error);
     alert(`Error importing history: ${error.message}`);
@@ -197,6 +258,13 @@ export function initExportImport() {
     importFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
+        // Clear any previous status message
+        const importStatus = document.getElementById('import-status');
+        if (importStatus) {
+          importStatus.textContent = '';
+          importStatus.className = '';
+        }
+        
         try {
           await importHistory(file);
           // Clear the input so the same file can be selected again

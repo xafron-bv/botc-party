@@ -28,6 +28,11 @@ describe('History Export/Import', () => {
     // Click export button
     cy.get('#export-history-btn').click();
     
+    // Check for success message
+    cy.get('#import-status').should('have.class', 'status');
+    cy.get('#import-status').should('contain', 'History exported successfully');
+    cy.get('#import-status').should('contain', 'empty history');
+    
     // Verify download was triggered with correct content
     cy.window().then((win) => {
       expect(win.lastDownloadedFile).to.exist;
@@ -117,6 +122,10 @@ describe('History Export/Import', () => {
       fileName: 'test-history.json',
       mimeType: 'application/json'
     }, { force: true });
+    
+    // Check for success message
+    cy.get('#import-status').should('have.class', 'status');
+    cy.get('#import-status').should('contain', 'History imported successfully');
     
     // Verify history was imported
     cy.contains('#script-history-list .history-item .history-name', 'Imported Script').should('exist');
@@ -308,6 +317,50 @@ describe('History Export/Import', () => {
         expect(grimoireHistory[0].name).to.equal('No Duplicate Game');
       });
     });
+  });
+
+  it('should show import success with counts', () => {
+    const importData = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      scriptHistory: [
+        {
+          id: 'count_test_1',
+          name: 'Script 1',
+          data: ['chef'],
+          createdAt: Date.now() - 3000,
+          updatedAt: Date.now() - 3000
+        },
+        {
+          id: 'count_test_2',
+          name: 'Script 2',
+          data: ['mayor'],
+          createdAt: Date.now() - 2000,
+          updatedAt: Date.now() - 2000
+        }
+      ],
+      grimoireHistory: [
+        {
+          id: 'count_grimoire_1',
+          name: 'Game 1',
+          playerCount: 5,
+          script: ['chef'],
+          players: [],
+          createdAt: Date.now() - 1000,
+          updatedAt: Date.now() - 1000
+        }
+      ]
+    };
+    
+    cy.get('#import-history-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(importData)),
+      fileName: 'count-test.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    
+    // Should show success with counts
+    cy.get('#import-status').should('contain', '2 script');
+    cy.get('#import-status').should('contain', '1 grimoire');
   });
 
   it('should trigger file download with correct filename and content', () => {
