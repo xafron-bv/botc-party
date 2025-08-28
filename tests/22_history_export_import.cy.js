@@ -165,7 +165,7 @@ describe('History Export/Import', () => {
     cy.contains('#script-history-list .history-item .history-name', 'Another Import').should('exist');
   });
 
-  it('should handle duplicate IDs during import by generating new ones', () => {
+  it('should handle entries with same ID but different content by creating new entry', () => {
     // Seed existing history
     const existingScript = {
       id: 'duplicate_id_1',
@@ -180,15 +180,15 @@ describe('History Export/Import', () => {
     });
     cy.reload();
     
-    // Import with same ID
+    // Import with same ID but different content
     const importData = {
       version: 1,
       exportDate: new Date().toISOString(),
       scriptHistory: [
         {
           id: 'duplicate_id_1', // Same ID as existing
-          name: 'Duplicate ID Entry',
-          data: [{ id: '_meta', name: 'Duplicate ID Entry', author: 'duplicate' }, 'mayor'],
+          name: 'Different Content Entry', // Different name
+          data: [{ id: '_meta', name: 'Different Content Entry', author: 'different' }, 'mayor'], // Different data
           createdAt: Date.now() - 1000,
           updatedAt: Date.now() - 1000
         }
@@ -202,9 +202,9 @@ describe('History Export/Import', () => {
       mimeType: 'application/json'
     }, { force: true });
     
-    // Both entries should exist
+    // Both entries should exist since they have different content
     cy.contains('#script-history-list .history-item .history-name', 'Original Entry').should('exist');
-    cy.contains('#script-history-list .history-item .history-name', 'Duplicate ID Entry').should('exist');
+    cy.contains('#script-history-list .history-item .history-name', 'Different Content Entry').should('exist');
     
     // Check that IDs are different
     cy.window().then((win) => {
@@ -243,6 +243,70 @@ describe('History Export/Import', () => {
     // Should show error alert
     cy.on('window:alert', (str) => {
       expect(str).to.match(/error.*import.*format/i);
+    });
+  });
+
+  it('should not create duplicate entries when importing the same history', () => {
+    // Create initial history with specific timestamp to ensure consistency
+    const createdAt = Date.now() - 10000;
+    const updatedAt = Date.now() - 10000;
+    
+    const scriptEntry = {
+      id: 'script_no_dup_1',
+      name: 'No Duplicate Script',
+      data: [{ id: '_meta', name: 'No Duplicate Script', author: 'test' }, 'chef', 'librarian'],
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    };
+    
+    const grimoireEntry = {
+      id: 'grimoire_no_dup_1',
+      name: 'No Duplicate Game',
+      playerCount: 5,
+      script: ['chef', 'librarian'],
+      players: [
+        { id: 'player_1', name: 'Alice', character: 'chef', isDead: false, isVoteless: false }
+      ],
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    };
+    
+    cy.window().then((win) => {
+      win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([scriptEntry]));
+      win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([grimoireEntry]));
+    });
+    cy.reload();
+    
+    // Verify initial state
+    cy.get('#script-history-list .history-item').should('have.length', 1);
+    cy.get('#grimoire-history-list .history-item').should('have.length', 1);
+    
+    // Import the exact same data
+    const importData = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      scriptHistory: [scriptEntry],
+      grimoireHistory: [grimoireEntry]
+    };
+    
+    cy.get('#import-history-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(importData)),
+      fileName: 'reimport-test.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    
+    // Should still have only one entry each, not duplicates
+    cy.get('#script-history-list .history-item').should('have.length', 1);
+    cy.get('#grimoire-history-list .history-item').should('have.length', 1);
+    
+    // Verify in localStorage too
+    cy.window().then((win2) => {
+      const scriptHistory = JSON.parse(win2.localStorage.getItem('botcScriptHistoryV1'));
+      const grimoireHistory = JSON.parse(win2.localStorage.getItem('botcGrimoireHistoryV1'));
+      expect(scriptHistory).to.have.length(1);
+      expect(grimoireHistory).to.have.length(1);
+      expect(scriptHistory[0].name).to.equal('No Duplicate Script');
+      expect(grimoireHistory[0].name).to.equal('No Duplicate Game');
     });
   });
 
