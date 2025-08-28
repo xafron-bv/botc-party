@@ -315,6 +315,19 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   });
 }
 
+function countTravelers({ grimoireState }) {
+  let travelerCount = 0;
+  grimoireState.players.forEach(player => {
+    if (player.character) {
+      const role = getRoleById({ grimoireState, roleId: player.character });
+      if (role && role.team === 'traveller') {
+        travelerCount++;
+      }
+    }
+  });
+  return travelerCount;
+}
+
 function lookupCountsForPlayers({ grimoireState, count }) {
   if (!Array.isArray(grimoireState.playerSetupTable)) return null;
   const row = grimoireState.playerSetupTable.find(r => Number(r.players) === Number(count));
@@ -410,8 +423,10 @@ export function showReminderContextMenu({ grimoireState, x, y, playerIndex, remi
 export function renderSetupInfo({ grimoireState }) {
   const setupInfoEl = document.getElementById('setup-info');
   if (!setupInfoEl) return;
-  const count = grimoireState.players.length;
-  const row = lookupCountsForPlayers({ grimoireState, count });
+  const totalPlayers = grimoireState.players.length;
+  const travelerCount = countTravelers({ grimoireState });
+  const adjustedCount = totalPlayers - travelerCount;
+  const row = lookupCountsForPlayers({ grimoireState, count: adjustedCount });
   // Prefer parsed meta name; otherwise keep any existing hint
   let scriptName = grimoireState.scriptMetaName || '';
   if (!scriptName && Array.isArray(grimoireState.scriptData)) {
