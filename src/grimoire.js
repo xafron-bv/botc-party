@@ -1235,14 +1235,8 @@ export async function loadPlayerSetupTable({ grimoireState }) {
   }
 }
 
-// Import overlap fix initialization
-import { initOverlapFix } from './ui/nameTokenOverlapFix.js';
-
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize overlap fix
-  initOverlapFix();
-  
   // Register global touch handler for clearing raised states (only once)
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {

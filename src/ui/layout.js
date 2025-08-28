@@ -3,7 +3,6 @@
 import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
-import { fixPlayerNameTokenOverlaps } from './nameTokenOverlapFix.js';
 
 export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
@@ -65,11 +64,6 @@ export function repositionPlayers({ grimoireState }) {
     }
     positionRadialStack(listItem, visibleCount);
   });
-  
-  // Fix player name/token overlaps after a brief delay to ensure layout is settled
-  setTimeout(() => {
-    fixPlayerNameTokenOverlaps();
-  }, 50);
   
   positionInfoIcons();
   positionNightOrderNumbers();
