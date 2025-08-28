@@ -84,12 +84,9 @@ describe('Player context menu - touch long-press', () => {
   it('opens context menu via long-press and performs actions', () => {
     cy.viewport('iphone-6');
     // Long-press first player's token to open context menu
-    // Simulate long press by triggering pointerdown, then wait, then pointerup
+    // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
       .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 });
-    cy.wait(650);
-    cy.get('#player-circle li .player-token').first()
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
     // Assert no selection occurred (window.getSelection empty)
     cy.window().then((win) => {
       const sel = win.getSelection && win.getSelection();
@@ -100,9 +97,9 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-menu-add-after').click();
     cy.get('#player-circle li').should('have.length', 6);
     // Remove it back to 5 via long-press on the newly added last player
+    // Long-press last player's token to open context menu
     cy.get('#player-circle li').last().find('.player-token')
-      .trigger('pointerdown', { force: true })
-      .trigger('pointerup', { force: true, delay: 650 });
+      .trigger('pointerdown', { force: true });
     cy.get('#player-menu-remove').click();
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('#grimoire-history-list .history-item').should('have.length', 0);
