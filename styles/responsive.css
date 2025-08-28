@@ -19,4 +19,10 @@
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     gap: 12px;
   }
+  
+  /* Adjust player names on small screens */
+  .player-name {
+    font-size: clamp(10px, 2vmin, 16px);
+    padding: 0.6vmin 1.5vmin;
+  }
 }
