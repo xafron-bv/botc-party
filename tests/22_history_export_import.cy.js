@@ -281,32 +281,32 @@ describe('History Export/Import', () => {
     cy.get('#script-history-list .history-item').should('have.length', 1);
     cy.get('#grimoire-history-list .history-item').should('have.length', 1);
     
-    // Import the exact same data
-    const importData = {
-      version: 1,
-      exportDate: new Date().toISOString(),
-      scriptHistory: [scriptEntry],
-      grimoireHistory: [grimoireEntry]
-    };
+    // Export and then reimport the same data
+    cy.get('#export-history-btn').click();
     
-    cy.get('#import-history-file').selectFile({
-      contents: Cypress.Buffer.from(JSON.stringify(importData)),
-      fileName: 'reimport-test.json',
-      mimeType: 'application/json'
-    }, { force: true });
-    
-    // Should still have only one entry each, not duplicates
-    cy.get('#script-history-list .history-item').should('have.length', 1);
-    cy.get('#grimoire-history-list .history-item').should('have.length', 1);
-    
-    // Verify in localStorage too
-    cy.window().then((win2) => {
-      const scriptHistory = JSON.parse(win2.localStorage.getItem('botcScriptHistoryV1'));
-      const grimoireHistory = JSON.parse(win2.localStorage.getItem('botcGrimoireHistoryV1'));
-      expect(scriptHistory).to.have.length(1);
-      expect(grimoireHistory).to.have.length(1);
-      expect(scriptHistory[0].name).to.equal('No Duplicate Script');
-      expect(grimoireHistory[0].name).to.equal('No Duplicate Game');
+    cy.window().then((win) => {
+      const exportedData = win.lastDownloadedFile.content;
+      
+      // Import the exported data back
+      cy.get('#import-history-file').selectFile({
+        contents: Cypress.Buffer.from(exportedData),
+        fileName: 'reimport-test.json',
+        mimeType: 'application/json'
+      }, { force: true });
+      
+      // Should still have only one entry each, not duplicates
+      cy.get('#script-history-list .history-item').should('have.length', 1);
+      cy.get('#grimoire-history-list .history-item').should('have.length', 1);
+      
+      // Verify in localStorage too
+      cy.window().then((win2) => {
+        const scriptHistory = JSON.parse(win2.localStorage.getItem('botcScriptHistoryV1'));
+        const grimoireHistory = JSON.parse(win2.localStorage.getItem('botcGrimoireHistoryV1'));
+        expect(scriptHistory).to.have.length(1);
+        expect(grimoireHistory).to.have.length(1);
+        expect(scriptHistory[0].name).to.equal('No Duplicate Script');
+        expect(grimoireHistory[0].name).to.equal('No Duplicate Game');
+      });
     });
   });
 

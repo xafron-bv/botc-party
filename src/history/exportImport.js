@@ -58,33 +58,82 @@ export async function importHistory(file) {
       throw new Error('Invalid history format: missing or invalid scriptHistory/grimoireHistory arrays');
     }
 
-    // Handle duplicate IDs by generating new ones
+    // Helper function to check if two history entries are identical
+    const areEntriesIdentical = (entry1, entry2) => {
+      // Compare all relevant fields
+      return entry1.id === entry2.id &&
+        entry1.name === entry2.name &&
+        JSON.stringify(entry1.data) === JSON.stringify(entry2.data) &&
+        entry1.createdAt === entry2.createdAt &&
+        entry1.updatedAt === entry2.updatedAt;
+    };
+
+    const areGrimoireEntriesIdentical = (entry1, entry2) => {
+      // Compare all relevant fields for grimoire entries
+      return entry1.id === entry2.id &&
+        entry1.name === entry2.name &&
+        entry1.playerCount === entry2.playerCount &&
+        JSON.stringify(entry1.script) === JSON.stringify(entry2.script) &&
+        JSON.stringify(entry1.players) === JSON.stringify(entry2.players) &&
+        entry1.createdAt === entry2.createdAt &&
+        entry1.updatedAt === entry2.updatedAt;
+    };
+
+    // Process imported entries, handling duplicates
+    const processedScriptHistory = [];
     const existingScriptIds = new Set(history.scriptHistory.map(item => item.id));
+
+    for (const importedEntry of data.scriptHistory) {
+      // Check if this exact entry already exists
+      const isDuplicate = history.scriptHistory.some(existingEntry => 
+        areEntriesIdentical(existingEntry, importedEntry)
+      );
+
+      if (isDuplicate) {
+        // Skip this entry entirely - it's already in history
+        continue;
+      }
+
+      // If ID exists but content is different, generate new ID
+      if (existingScriptIds.has(importedEntry.id)) {
+        processedScriptHistory.push({
+          ...importedEntry,
+          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        });
+      } else {
+        // New unique entry
+        processedScriptHistory.push(importedEntry);
+      }
+    }
+
+    // Process grimoire entries similarly
+    const processedGrimoireHistory = [];
     const existingGrimoireIds = new Set(history.grimoireHistory.map(item => item.id));
 
-    const processedScriptHistory = data.scriptHistory.map(item => {
-      if (existingScriptIds.has(item.id)) {
-        // Generate new ID for duplicate
-        return {
-          ...item,
-          id: `${item.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        };
-      }
-      return item;
-    });
+    for (const importedEntry of data.grimoireHistory) {
+      // Check if this exact entry already exists
+      const isDuplicate = history.grimoireHistory.some(existingEntry => 
+        areGrimoireEntriesIdentical(existingEntry, importedEntry)
+      );
 
-    const processedGrimoireHistory = data.grimoireHistory.map(item => {
-      if (existingGrimoireIds.has(item.id)) {
-        // Generate new ID for duplicate
-        return {
-          ...item,
-          id: `${item.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        };
+      if (isDuplicate) {
+        // Skip this entry entirely - it's already in history
+        continue;
       }
-      return item;
-    });
 
-    // Merge with existing history
+      // If ID exists but content is different, generate new ID
+      if (existingGrimoireIds.has(importedEntry.id)) {
+        processedGrimoireHistory.push({
+          ...importedEntry,
+          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        });
+      } else {
+        // New unique entry
+        processedGrimoireHistory.push(importedEntry);
+      }
+    }
+
+    // Merge with existing history (only non-duplicate entries)
     history.scriptHistory = [...history.scriptHistory, ...processedScriptHistory];
     history.grimoireHistory = [...history.grimoireHistory, ...processedGrimoireHistory];
 
