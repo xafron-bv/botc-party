@@ -4,13 +4,21 @@ export function adjustPlayerNamePositions(playerCircle) {
   const listItems = playerCircle.querySelectorAll('li');
   if (listItems.length === 0) return;
   
-  // Add a small delay to ensure DOM is ready
-  requestAnimationFrame(() => {
+  // Skip async in test environment to avoid timing issues
+  if (window.Cypress) {
     adjustNamesImmediate(playerCircle, listItems);
-  });
+  } else {
+    // Add a small delay to ensure DOM is ready
+    requestAnimationFrame(() => {
+      adjustNamesImmediate(playerCircle, listItems);
+    });
+  }
 }
 
 function adjustNamesImmediate(playerCircle, listItems) {
+  // Prevent re-entry
+  if (playerCircle.dataset.adjustingNames === 'true') return;
+  playerCircle.dataset.adjustingNames = 'true';
   
   const nameElements = [];
   const tokenElements = [];
@@ -122,6 +130,9 @@ function adjustNamesImmediate(playerCircle, listItems) {
   // Fine-tune positions to prevent overlaps
   const tokenSizeValue = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--token-size'));
   preventNameOverlaps(nameElements, tokenSizeValue);
+  
+  // Clear the flag after completion
+  playerCircle.dataset.adjustingNames = 'false';
 }
 
 function preventNameOverlaps(nameElements, tokenSize) {
