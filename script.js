@@ -6,6 +6,7 @@ import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetup
 import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
+import { initExportImport } from './src/history/exportImport.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
@@ -322,6 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
   loadHistories();
   renderScriptHistory({ scriptHistoryList });
   renderGrimoireHistory({ grimoireHistoryList });
+
+  // Initialize export/import functionality
+  initExportImport();
 
   // Restore previous session (script and grimoire)
   loadAppState({ grimoireState, grimoireHistoryList });
