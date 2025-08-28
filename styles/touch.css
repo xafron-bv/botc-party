@@ -3,16 +3,25 @@
   #player-circle li .player-name {
     opacity: 1;
     filter: blur(0);
-    z-index: 0;
-    /* Keep below all other game elements */
+    z-index: 1;
+    /* Above background but below all tokens */
   }
 
-  /* Override for raised player names - must be above token z-index: 5 */
-  #player-circle li .player-name[data-raised="true"] {
-    z-index: 9999 !important;
-    /* Maximum z-index to ensure it's on top */
+  /* Ensure proper layering when a player is touched/selected */
+  #player-circle li[data-touched="true"] {
+    z-index: 100 !important;
+    /* Raise the entire li element above others */
+  }
+  
+  #player-circle li[data-touched="true"] .player-name {
+    z-index: 60 !important;
+    /* Above token within same li element */
     position: absolute !important;
-    /* Keep absolute positioning */
-    /* The transform is needed for centering, so we keep it */
+  }
+  
+  /* Legacy support for data-raised attribute */
+  #player-circle li .player-name[data-raised="true"] {
+    z-index: 60 !important;
+    position: absolute !important;
   }
 }
