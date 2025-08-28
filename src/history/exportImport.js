@@ -85,28 +85,12 @@ export async function importHistory(file) {
 
     for (const importedEntry of data.scriptHistory) {
       // Check if this exact entry already exists
-      const isDuplicate = history.scriptHistory.some(existingEntry => {
-        const identical = areEntriesIdentical(existingEntry, importedEntry);
-        if (window.Cypress) {
-          console.log('Comparing entries:', {
-            existing: existingEntry,
-            imported: importedEntry,
-            identical: identical,
-            idMatch: existingEntry.id === importedEntry.id,
-            nameMatch: existingEntry.name === importedEntry.name,
-            dataMatch: JSON.stringify(existingEntry.data) === JSON.stringify(importedEntry.data),
-            createdMatch: existingEntry.createdAt === importedEntry.createdAt,
-            updatedMatch: existingEntry.updatedAt === importedEntry.updatedAt
-          });
-        }
-        return identical;
-      });
+      const isDuplicate = history.scriptHistory.some(existingEntry => 
+        areEntriesIdentical(existingEntry, importedEntry)
+      );
 
       if (isDuplicate) {
         // Skip this entry entirely - it's already in history
-        if (window.Cypress) {
-          console.log('Skipping duplicate entry:', importedEntry.id);
-        }
         continue;
       }
 
