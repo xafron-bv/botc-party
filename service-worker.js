@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v39';
+const CACHE_NAME = 'botc-party-grimoire-v40';
 
 // Dynamic caching patterns instead of hardcoded file lists
 const CACHE_PATTERNS = {
