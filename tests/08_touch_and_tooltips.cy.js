@@ -155,21 +155,25 @@ describe('Ability UI - Touch', () => {
 
   it('player name: partially covered => first tap raises only; second tap edits', () => {
     cy.viewport('iphone-6');
-    startGameWithPlayers(5);
+    startGameWithPlayers(10); // More players to ensure overlap
     // Ensure no modal initially
     cy.get('#reminder-token-modal').should('not.be.visible');
 
-    // Get the player name and token elements to check their positions
-    cy.get('#player-circle li').first().within(() => {
-      cy.get('.player-name').then(($name) => {
-        cy.get('.player-token').then(() => {
-          // Check if player name is actually behind the token (lower z-index or overlapping position)
-          // Position calculations removed as they weren't being used
-
-          // Store original position for verification
-          cy.wrap($name[0].style.zIndex || '').as('originalZIndex');
-        });
-      });
+    // Force players to overlap by adjusting positions
+    cy.window().then((win) => {
+      const players = win.document.querySelectorAll('#player-circle li');
+      if (players.length >= 2) {
+        // Position first two players to overlap
+        players[0].style.position = 'absolute';
+        players[0].style.left = '100px';
+        players[0].style.top = '100px';
+        players[0].style.zIndex = '10';
+        
+        players[1].style.position = 'absolute';
+        players[1].style.left = '120px'; // Overlapping position
+        players[1].style.top = '120px';
+        players[1].style.zIndex = '20'; // Higher z-index
+      }
     });
 
     // Stub prompt and track call count
@@ -279,7 +283,24 @@ describe('Ability UI - Touch', () => {
 
   it('player name: comprehensive touch behavior - raise, edit, restore', () => {
     cy.viewport('iphone-6');
-    startGameWithPlayers(5);
+    startGameWithPlayers(10); // More players to ensure overlap
+
+    // Force players to overlap
+    cy.window().then((win) => {
+      const players = win.document.querySelectorAll('#player-circle li');
+      if (players.length >= 2) {
+        // Position first two players to overlap
+        players[0].style.position = 'absolute';
+        players[0].style.left = '100px';
+        players[0].style.top = '100px';
+        players[0].style.zIndex = '10';
+        
+        players[1].style.position = 'absolute';
+        players[1].style.left = '120px'; // Overlapping position
+        players[1].style.top = '120px';
+        players[1].style.zIndex = '20'; // Higher z-index
+      }
+    });
 
     // Stub prompt but it should NOT be called on first touch
     cy.window().then((win) => {
