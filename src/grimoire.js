@@ -313,7 +313,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
-    updateAliveCount({ grimoireState });
   });
 }
 
@@ -438,32 +437,26 @@ export function renderSetupInfo({ grimoireState }) {
   if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
   const parts = [];
   if (scriptName) parts.push(scriptName);
-  if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
-  setupInfoEl.textContent = parts.join(' ');
-}
-
-export function updateAliveCount({ grimoireState }) {
-  const aliveCountEl = document.getElementById('alive-count');
-  if (!aliveCountEl) return;
   
-  if (!grimoireState.players || grimoireState.players.length === 0) {
-    aliveCountEl.textContent = '';
-    return;
+  // Add alive count if players exist
+  if (totalPlayers > 0) {
+    const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
+    parts.push(`${alivePlayers}/${totalPlayers}`);
   }
   
-  const totalPlayers = grimoireState.players.length;
-  const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
-  
-  aliveCountEl.textContent = `(${alivePlayers}/${totalPlayers} alive)`;
+  if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
+  setupInfoEl.textContent = parts.join('  ');
 }
+
+
 
 export function updateGrimoire({ grimoireState }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
   const playerCircle = document.getElementById('player-circle');
   const listItems = playerCircle.querySelectorAll('li');
   
-  // Update alive count display
-  updateAliveCount({ grimoireState });
+  // Update setup info (which now includes alive count)
+  renderSetupInfo({ grimoireState });
   
   listItems.forEach((li, i) => {
     const player = grimoireState.players[i];
@@ -973,7 +966,6 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
   grimoireState.players = newPlayers;
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
-  updateAliveCount({ grimoireState });
 
   // Reset day/night tracking when starting a new game
   try {
@@ -1290,7 +1282,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
   updateGrimoire({ grimoireState });
   saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
-  updateAliveCount({ grimoireState });
   // Also after paint to ensure positions stabilize
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
@@ -1312,9 +1303,6 @@ export async function loadPlayerSetupTable({ grimoireState }) {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize alive count display
-  updateAliveCount({ grimoireState: { players: [] } });
-  
   // Register global touch handler for clearing raised states (only once)
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {
