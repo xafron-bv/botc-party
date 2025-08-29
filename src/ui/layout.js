@@ -19,37 +19,17 @@ export function repositionPlayers({ grimoireState }) {
   const radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
   
-  // Calculate space needed for player names
-  // Player names are positioned at 0.8 * token diameter from token center
-  // Get a sample player name element to measure actual height
-  const sampleName = listItemsForSize[0].querySelector('.player-name');
-  const nameHeight = sampleName ? sampleName.offsetHeight : 40;
-  const nameOffsetFromCenter = tokenDiameter * 0.8;
+  // Check current CSS-computed size of the circle
+  const computedStyle = window.getComputedStyle(circle);
+  const cssWidth = parseFloat(computedStyle.width);
+  const cssHeight = parseFloat(computedStyle.height);
+  const cssMaxSize = Math.min(cssWidth, cssHeight);
   
-  // Total space needed from circle center to outer edge of player name
-  // = radius + tokenRadius + nameOffsetFromCenter + nameHeight/2
-  const totalRadiusNeeded = radius + tokenRadius + nameOffsetFromCenter + nameHeight / 2;
-  
-  // Add some safety margin
-  const safetyMargin = 20;
-  const totalSpaceNeeded = totalRadiusNeeded + safetyMargin;
-  
-  // Calculate max container size that fits in viewport
   const margin = 24;
-  const maxWidth = parentRect.width - margin;
-  const maxHeight = parentRect.height - margin;
-  
-  // The container needs to accommodate the circle plus the extending player names
-  // Since names extend beyond the circle, we need to ensure:
-  // containerSize/2 + nameOffsetFromCenter + nameHeight/2 + safetyMargin < viewportHeight/2
-  const maxContainerFromHeight = (maxHeight - 2 * (nameOffsetFromCenter + nameHeight / 2 + safetyMargin));
-  const maxContainerFromWidth = maxWidth;
-  
-  const maxSize = Math.max(160, Math.min(maxContainerFromWidth, maxContainerFromHeight));
+  const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height, cssMaxSize) - margin);
   const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
   const containerSize = Math.min(requiredContainerSize, maxSize);
   const effectiveRadius = Math.max(80, containerSize / 2 - tokenRadius - 12);
-  
   circle.style.width = `${containerSize}px`;
   circle.style.height = `${containerSize}px`;
   const circleWidth = containerSize;

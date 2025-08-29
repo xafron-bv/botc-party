@@ -3,8 +3,14 @@
   padding: 0;
   margin: 0;
   position: relative;
+  /* Account for player names that extend beyond the circle
+     Player names positioned at 0.8 * token-size from center
+     Token max ~140px, so names extend ~112px from center
+     Plus token radius ~70px = ~182px from circle center
+     Plus name height ~30px = ~212px total from center
+     Need ~220px margin for safety (110px per side) */
   width: min(90vmin, calc(100vw - 32px));
-  height: min(90vmin, calc(100vh - 140px));
+  height: min(90vmin, calc(100vh - 220px));
   z-index: 2;
   /* Above setup-info */
   overflow: visible;
