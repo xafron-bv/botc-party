@@ -92,7 +92,18 @@ export function initInAppTour() {
   const steps = [
     { id: 'welcome', title: 'Quick Tour', body: 'Learn the basics: set players, load a script, assign characters, add reminders. Use Next/Back or ←/→. Press Esc to exit.', target: () => document.getElementById('sidebar-toggle'), requiresSidebarClosed: true },
     { id: 'open-sidebar', title: 'Open the sidebar', body: 'Open the sidebar to set up and load a script.', target: () => document.getElementById('sidebar-toggle'), requiresSidebarClosed: true, onBeforeNext: () => setSidebarCollapsed(false) },
-    { id: 'game-setup', title: 'Set players', body: 'Choose the player count and press Start Game to create tokens.', target: () => document.getElementById('start-game'), requiresSidebarOpen: true },
+    { id: 'game-setup', title: 'Set players', body: 'Choose the player count and press Start Game to create tokens.', target: () => document.getElementById('start-game'), requiresSidebarOpen: true, onBeforeNext: () => { 
+      // Start a default game if none exists
+      const playerCircle = document.getElementById('player-circle');
+      if (!playerCircle || !playerCircle.querySelector('li')) {
+        const playerCountInput = document.getElementById('player-count');
+        const startGameBtn = document.getElementById('start-game');
+        if (playerCountInput && startGameBtn) {
+          playerCountInput.value = '7';
+          startGameBtn.click();
+        }
+      }
+    }},
     { id: 'scripts', title: 'Load a script', body: 'Load a built-in script to populate roles.', target: () => document.querySelector('#sidebar .script-buttons') || document.getElementById('load-status'), requiresSidebarOpen: true },
     { id: 'assign-character', title: 'Assign a character', body: 'Tap a player token to choose and assign a character.', target: () => document.querySelector('#player-circle li .player-token') || document.getElementById('player-circle'), requiresSidebarClosed: true, onEnter: () => setSidebarCollapsed(true) },
     { id: 'reminders', title: 'Reminders', body: 'Use the + near a player to add a reminder token or text note.', target: () => document.querySelector('#player-circle li .reminder-placeholder') || document.getElementById('player-circle'), requiresSidebarClosed: true },

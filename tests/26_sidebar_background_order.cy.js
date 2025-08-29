@@ -40,13 +40,13 @@ describe('Sidebar - Background Selection Order', () => {
     cy.get('#sidebar').within(() => {
       // Get all major sections in order
       const expectedOrder = [
-        'h2:contains("Game Setup")',
+        'h3:contains("Game Setup")',
         '#game-setup',
-        'h2:contains("Script")',
+        'h3:contains("Script Management")',
         '.script-buttons',
-        'h2:contains("Character Sheet")',
+        'h3:contains("Character Sheet")',
         '#character-sheet',
-        'h2:contains("Background")', // This should come after character sheet
+        'h3:contains("Background")', // This should come after character sheet
         '.section:has(h3:contains("Background"))'
       ];
       
@@ -67,9 +67,9 @@ describe('Sidebar - Background Selection Order', () => {
 
   it('should show background section header after character sheet header', () => {
     // Find the character sheet header
-    cy.contains('#sidebar h2', 'Character Sheet').then(($charHeader) => {
-      // Find the background header - it might be "Upload Background" or similar
-      cy.get('#sidebar h2').contains(/background|upload/i).then(($bgHeader) => {
+    cy.contains('#sidebar h3', 'Character Sheet').then(($charHeader) => {
+      // Find the background header
+      cy.contains('#sidebar h3', 'Background').then(($bgHeader) => {
         const charHeaderRect = $charHeader[0].getBoundingClientRect();
         const bgHeaderRect = $bgHeader[0].getBoundingClientRect();
         

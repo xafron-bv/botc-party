@@ -18,8 +18,13 @@ export function repositionPlayers({ grimoireState }) {
   const chordNeeded = tokenDiameter * 1.25;
   const radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
+  // Calculate space needed for player names
+  // Player names are positioned at 0.8 * token-size from token center
+  // Add extra margin for the name element height (approx 40px)
+  const nameOffset = tokenDiameter * 0.8 + 40;
   const margin = 24;
-  const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
+  // Reduce available space to account for player names extending beyond the circle
+  const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height - 2 * nameOffset) - margin);
   const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
   const containerSize = Math.min(requiredContainerSize, maxSize);
   const effectiveRadius = Math.max(80, containerSize / 2 - tokenRadius - 12);

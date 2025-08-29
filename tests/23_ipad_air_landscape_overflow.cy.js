@@ -44,13 +44,15 @@ describe('iPad Air landscape mode - player name overflow', () => {
       const circleRect = $circle[0].getBoundingClientRect();
       
       // The circle should leave enough room for player names
-      // Player names extend beyond the circle by approximately token-size * 0.8
-      const tokenSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--token-size'));
-      const nameOffset = tokenSize * 0.8;
-      
-      // Check that circle + name offset fits in viewport
-      expect(circleRect.top - nameOffset).to.be.at.least(0, 'Grimoire should leave room for top player names');
-      expect(circleRect.bottom + nameOffset).to.be.at.most(820, 'Grimoire should leave room for bottom player names');
+      // Get the actual token size from the first token
+      cy.get('#player-circle li .player-token').first().then(($token) => {
+        const tokenSize = $token[0].offsetWidth;
+        const nameOffset = tokenSize * 0.8 + 40; // 0.8 * token size + name height
+        
+        // Check that circle + name offset fits in viewport
+        expect(circleRect.top - nameOffset).to.be.at.least(0, 'Grimoire should leave room for top player names');
+        expect(circleRect.bottom + nameOffset).to.be.at.most(820, 'Grimoire should leave room for bottom player names');
+      });
     });
   });
 
