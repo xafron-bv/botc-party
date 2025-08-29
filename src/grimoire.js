@@ -9,16 +9,40 @@ import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
+// Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
+function getAccurateRect(element) {
+  const rect = element.getBoundingClientRect();
+  
+  // Check if visualViewport is available (for iOS Safari zoom/scroll compensation)
+  if (window.visualViewport) {
+    const scale = window.visualViewport.scale || 1;
+    const offsetLeft = window.visualViewport.offsetLeft || 0;
+    const offsetTop = window.visualViewport.offsetTop || 0;
+    
+    return {
+      left: rect.left * scale + offsetLeft,
+      right: rect.right * scale + offsetLeft,
+      top: rect.top * scale + offsetTop,
+      bottom: rect.bottom * scale + offsetTop,
+      width: rect.width * scale,
+      height: rect.height * scale
+    };
+  }
+  
+  // Fallback to standard getBoundingClientRect for browsers without visualViewport
+  return rect;
+}
+
 // Helper function to check if a player element is overlapping with another player
 function isPlayerOverlapping({ listItem }) {
-  const rect1 = listItem.getBoundingClientRect();
+  const rect1 = getAccurateRect(listItem);
   const allPlayers = document.querySelectorAll('#player-circle li');
   
   for (let i = 0; i < allPlayers.length; i++) {
     const otherPlayer = allPlayers[i];
     if (otherPlayer === listItem) continue;
     
-    const rect2 = otherPlayer.getBoundingClientRect();
+    const rect2 = getAccurateRect(otherPlayer);
     
     // Check if rectangles overlap
     const overlap = !(rect1.right < rect2.left || 
