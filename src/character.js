@@ -50,6 +50,17 @@ export function populateCharacterGrid({ grimoireState }) {
 
 export function assignCharacter({ grimoireState, roleId }) {
   const characterModal = document.getElementById('character-modal');
+  
+  // Check if this is for a bluff token
+  if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
+    // Import and use the bluff assignment function
+    import('./bluffTokens.js').then(({ assignBluffCharacter }) => {
+      assignBluffCharacter({ grimoireState, roleId });
+    });
+    return;
+  }
+  
+  // Original player assignment logic
   if (grimoireState.selectedPlayerIndex > -1) {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
