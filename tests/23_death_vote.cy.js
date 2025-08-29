@@ -23,26 +23,26 @@ describe('Death Vote Indicator', () => {
   });
 
   it('shows alive count display even before game starts', () => {
-    // Before starting game, alive count should be empty
-    cy.get('#alive-count').should('exist');
-    cy.get('#alive-count').should('have.text', '');
+    // Before starting game, setup info should exist
+    cy.get('#setup-info').should('exist');
     
     // Start game
     startGameWithPlayers(8);
     
-    // Now it should show 8/8 alive
-    cy.get('#alive-count').should('contain', '(8/8 alive)');
+    // Now it should show 8/8 alive in setup info with script name
+    cy.get('#setup-info').should('contain', 'Trouble Brewing');
+    cy.get('#setup-info').should('contain', '8/8');
   });
 
-  it('shows alive count in the grimoire center', () => {
+  it('shows alive count in the grimoire center setup info', () => {
     startGameWithPlayers(8);
     
-    // Alive count should be in the grimoire center area
-    cy.get('#grimoire #center #alive-count').should('exist');
-    cy.get('#alive-count').should('have.class', 'alive-count-display');
+    // Alive count should be in the setup info with script name and role counts
+    cy.get('#setup-info').should('exist');
+    cy.get('#setup-info').invoke('text').should('match', /Trouble Brewing\n8\/8\s+\d+\/\d+\/\d+\/\d+/);
     
-    // All players should be alive initially
-    cy.get('#alive-count').should('contain', '(8/8 alive)');
+    // All players should be alive initially (8/8)
+    cy.get('#setup-info').should('contain', '8/8');
     
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
@@ -50,7 +50,7 @@ describe('Death Vote Indicator', () => {
     });
     
     // Alive count should update
-    cy.get('#alive-count').should('contain', '(7/8 alive)');
+    cy.get('#setup-info').should('contain', '7/8');
     
     // Mark second player as dead
     cy.get('#player-circle li .player-token .death-ribbon').eq(1).within(() => {
@@ -58,7 +58,7 @@ describe('Death Vote Indicator', () => {
     });
     
     // Alive count should update again
-    cy.get('#alive-count').should('contain', '(6/8 alive)');
+    cy.get('#setup-info').should('contain', '6/8');
   });
 
   it('shows death vote indicator for dead players', () => {
@@ -117,7 +117,7 @@ describe('Death Vote Indicator', () => {
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
     
     // Alive count should update
-    cy.get('#alive-count').should('contain', '(8/8 alive)');
+    cy.get('#setup-info').should('contain', '8/8');
   });
 
   it('persists death vote state across page reload', () => {
@@ -141,7 +141,7 @@ describe('Death Vote Indicator', () => {
     cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('not.exist');
     
     // Alive count should be correct
-    cy.get('#alive-count').should('contain', '(7/8 alive)');
+    cy.get('#setup-info').should('contain', '7/8');
   });
 
   it('resets death vote when player is marked alive without using vote', () => {
@@ -188,7 +188,7 @@ describe('Death Vote Indicator', () => {
     }
     
     // Alive count should show 5/8
-    cy.get('#alive-count').should('contain', '(5/8 alive)');
+    cy.get('#setup-info').should('contain', '5/8');
     
     // Use death vote for player 1 only
     cy.get('#player-circle li .player-token').eq(0).find('.death-vote-indicator').click({ force: true });
@@ -209,6 +209,6 @@ describe('Death Vote Indicator', () => {
     cy.get('#player-circle li .player-token').eq(2).should('have.class', 'is-dead');
     
     // Alive count should update to 6/8
-    cy.get('#alive-count').should('contain', '(6/8 alive)');
+    cy.get('#setup-info').should('contain', '6/8');
   });
 });

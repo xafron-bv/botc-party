@@ -435,17 +435,30 @@ export function renderSetupInfo({ grimoireState }) {
     if (meta && meta.name) scriptName = String(meta.name);
   }
   if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
-  const parts = [];
-  if (scriptName) parts.push(scriptName);
   
-  // Add alive count if players exist
-  if (totalPlayers > 0) {
-    const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
-    parts.push(`${alivePlayers}/${totalPlayers}`);
+  // Build display with script name on first line, counts on second line
+  let displayText = '';
+  if (scriptName) {
+    displayText = scriptName;
   }
   
-  if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
-  setupInfoEl.textContent = parts.join('  ');
+  // Build second line with player counts
+  const countsLine = [];
+  if (totalPlayers > 0) {
+    const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
+    countsLine.push(`${alivePlayers}/${totalPlayers}`);
+  }
+  
+  if (row) {
+    countsLine.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
+  }
+  
+  if (countsLine.length > 0) {
+    if (displayText) displayText += '\n';
+    displayText += countsLine.join('  ');
+  }
+  
+  setupInfoEl.textContent = displayText;
 }
 
 
