@@ -4,6 +4,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { updateGrimoire, rebuildPlayerCircleUiPreserveState, renderSetupInfo } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
+import { assignBluffCharacter } from './bluffTokens.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -50,6 +51,14 @@ export function populateCharacterGrid({ grimoireState }) {
 
 export function assignCharacter({ grimoireState, roleId }) {
   const characterModal = document.getElementById('character-modal');
+  
+  // Check if this is for a bluff token
+  if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
+    assignBluffCharacter({ grimoireState, roleId });
+    return;
+  }
+  
+  // Original player assignment logic
   if (grimoireState.selectedPlayerIndex > -1) {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
@@ -209,7 +218,14 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
     return;
   }
   grimoireState.selectedPlayerIndex = playerIndex;
-  characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
+  
+  // Update modal title back to player selection
+  const modalTitle = characterModal.querySelector('h3');
+  if (modalTitle && characterModalPlayerName) {
+    modalTitle.textContent = 'Select Character for ';
+    characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
+  }
+  
   populateCharacterGrid({ grimoireState });
   characterModal.style.display = 'flex';
   characterSearch.value = '';

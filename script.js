@@ -213,7 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
     textReminderModal.style.display = 'none';
   };
 
-  closeCharacterModalBtn.onclick = () => characterModal.style.display = 'none';
+  closeCharacterModalBtn.onclick = () => {
+    characterModal.style.display = 'none';
+    // Clear any selection states when closing the modal
+    delete grimoireState.selectedBluffIndex;
+    // Don't change selectedPlayerIndex as it might be legitimately set
+  };
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
   characterSearch.oninput = () => populateCharacterGrid({ grimoireState });
   if (closeReminderTokenModalBtn) {
@@ -224,7 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Close modals by tapping outside content
-  characterModal.addEventListener('click', (e) => { if (e.target === characterModal) characterModal.style.display = 'none'; });
+  characterModal.addEventListener('click', (e) => { 
+    if (e.target === characterModal) {
+      characterModal.style.display = 'none';
+      // Clear any bluff selection when closing
+      delete grimoireState.selectedBluffIndex;
+    }
+  });
   textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
   // For reminder token modal, also close if clicking outside the content container
   if (reminderTokenModal) {

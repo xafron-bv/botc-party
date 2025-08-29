@@ -10,7 +10,8 @@ export function saveAppState({ grimoireState }) {
       scriptData: grimoireState.scriptData,
       players: grimoireState.players,
       scriptName: grimoireState.scriptMetaName,
-      dayNightTracking: grimoireState.dayNightTracking
+      dayNightTracking: grimoireState.dayNightTracking,
+      bluffs: grimoireState.bluffs || [null, null, null]
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
@@ -39,6 +40,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       grimoireState.dayNightTracking = saved.dayNightTracking;
       // Update the UI after loading state
       updateDayNightUI(grimoireState);
+    }
+    if (saved && saved.bluffs) {
+      grimoireState.bluffs = saved.bluffs;
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }
