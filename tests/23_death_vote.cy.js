@@ -39,10 +39,14 @@ describe('Death Vote Indicator', () => {
     
     // Alive count should be in the setup info with script name and role counts
     cy.get('#setup-info').should('exist');
-    cy.get('#setup-info').invoke('text').should('match', /Trouble Brewing\n8\/8\s+\d+\/\d+\/\d+\/\d+/);
-    
-    // All players should be alive initially (8/8)
+    cy.get('#setup-info').should('contain', 'Trouble Brewing');
     cy.get('#setup-info').should('contain', '8/8');
+    
+    // Check that role counts have appropriate colors
+    cy.get('#setup-info .townsfolk-count').should('exist').should('have.css', 'color', 'rgb(93, 173, 226)');
+    cy.get('#setup-info .outsider-count').should('exist').should('have.css', 'color', 'rgb(189, 195, 199)');
+    cy.get('#setup-info .minion-count').should('exist').should('have.css', 'color', 'rgb(243, 156, 18)');
+    cy.get('#setup-info .demon-count').should('exist').should('have.css', 'color', 'rgb(231, 76, 60)');
     
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {

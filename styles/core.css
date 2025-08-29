@@ -105,3 +105,20 @@ body {
 #setup-info {
   font-size: clamp(12px, 1.8vmin, 18px);
 }
+
+/* Role count colors - light colors for dark background */
+#setup-info .townsfolk-count {
+  color: #5DADE2; /* Light blue */
+}
+
+#setup-info .outsider-count {
+  color: #BDC3C7; /* Light gray */
+}
+
+#setup-info .minion-count {
+  color: #F39C12; /* Orange */
+}
+
+#setup-info .demon-count {
+  color: #E74C3C; /* Light red */
+}

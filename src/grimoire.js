@@ -434,12 +434,15 @@ export function renderSetupInfo({ grimoireState }) {
     const meta = grimoireState.scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
     if (meta && meta.name) scriptName = String(meta.name);
   }
-  if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
+  if (!row && !scriptName) { 
+    setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; 
+    return; 
+  }
   
   // Build display with script name on first line, counts on second line
-  let displayText = '';
+  let displayHtml = '';
   if (scriptName) {
-    displayText = scriptName;
+    displayHtml = `<div>${scriptName}</div>`;
   }
   
   // Build second line with player counts
@@ -450,15 +453,21 @@ export function renderSetupInfo({ grimoireState }) {
   }
   
   if (row) {
-    countsLine.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
+    // Add colored role counts
+    const roleCountsHtml = [
+      `<span class="townsfolk-count">${row.townsfolk}</span>`,
+      `<span class="outsider-count">${row.outsiders}</span>`,
+      `<span class="minion-count">${row.minions}</span>`,
+      `<span class="demon-count">${row.demons}</span>`
+    ].join('/');
+    countsLine.push(roleCountsHtml);
   }
   
   if (countsLine.length > 0) {
-    if (displayText) displayText += '\n';
-    displayText += countsLine.join('  ');
+    displayHtml += `<div>${countsLine.join('  ')}</div>`;
   }
   
-  setupInfoEl.textContent = displayText;
+  setupInfoEl.innerHTML = displayHtml;
 }
 
 
