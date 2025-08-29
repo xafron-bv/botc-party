@@ -447,7 +447,9 @@ export function renderSetupInfo({ grimoireState }) {
   
   // Build second line with player counts
   const countsLine = [];
-  if (totalPlayers > 0) {
+  
+  // Only show alive count if we have a valid role distribution
+  if (totalPlayers > 0 && row) {
     const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
     countsLine.push(`${alivePlayers}/${totalPlayers}`);
   }
