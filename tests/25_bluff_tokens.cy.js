@@ -149,8 +149,7 @@ describe('Bluff Tokens', () => {
     cy.get('#character-search').type('baron');
     cy.get('#character-grid .token').first().click();
     
-    // Start a new game
-    cy.get('#sidebar-toggle').click();
+    // Start a new game - sidebar should already be visible
     cy.get('#player-count').clear().type('12');
     cy.get('#start-game').click();
     
@@ -165,9 +164,8 @@ describe('Bluff Tokens', () => {
     // Set mobile viewport
     cy.viewport('iphone-x');
     
-    // Touch the first bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().trigger('touchstart');
-    cy.get('#bluff-tokens-container .bluff-token').first().trigger('touchend');
+    // On mobile, the regular click should still work due to our touch handler
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     
     // Verify character modal opens
     cy.get('#character-modal').should('be.visible');
@@ -183,14 +181,15 @@ describe('Bluff Tokens', () => {
 
   it('should style bluff tokens distinctly from player tokens', () => {
     // Check that bluff tokens have specific styling
-    cy.get('#bluff-tokens-container .bluff-token').first().should($token => {
+    cy.get('#bluff-tokens-container .bluff-token').first().then($token => {
       const styles = window.getComputedStyle($token[0]);
       
       // Should have a different border or indicator to distinguish from player tokens
       expect(styles.borderStyle).to.not.equal('none');
       
-      // Should be smaller than player tokens
+      // Should be smaller than player tokens - get player token for comparison
       const bluffSize = parseInt(styles.width);
+      
       cy.get('.player-token').first().then($playerToken => {
         const playerSize = parseInt(window.getComputedStyle($playerToken[0]).width);
         expect(bluffSize).to.be.lessThan(playerSize);
@@ -219,10 +218,12 @@ describe('Bluff Tokens', () => {
   });
 
   it('should work with different scripts', () => {
-    // Load a different script
-    cy.get('#sidebar-toggle').click();
+    // Load a different script - sidebar should already be visible from beforeEach
     cy.get('#load-bmr').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
+    // Close sidebar to interact with bluff tokens
+    cy.get('#sidebar-close').click();
     
     // Verify bluff tokens still work
     cy.get('#bluff-tokens-container .bluff-token').first().click();

@@ -4,6 +4,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { updateGrimoire, rebuildPlayerCircleUiPreserveState, renderSetupInfo } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
+import { assignBluffCharacter } from './bluffTokens.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -53,10 +54,7 @@ export function assignCharacter({ grimoireState, roleId }) {
   
   // Check if this is for a bluff token
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
-    // Import and use the bluff assignment function
-    import('./bluffTokens.js').then(({ assignBluffCharacter }) => {
-      assignBluffCharacter({ grimoireState, roleId });
-    });
+    assignBluffCharacter({ grimoireState, roleId });
     return;
   }
   

@@ -44,7 +44,7 @@ export function createBluffToken({ grimoireState, index }) {
   });
   
   // Touch handler
-  if (isTouchDevice()) {
+  if (isTouchDevice) {
     token.addEventListener('touchstart', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -58,21 +58,28 @@ export function createBluffToken({ grimoireState, index }) {
     if (character) {
       const role = grimoireState.allRoles[character];
       if (role) {
-        const tooltipContent = `
-          <div class="role-name">${role.name}</div>
-          <div class="role-ability">${role.ability || ''}</div>
-        `;
-        positionTooltip({ x: e.pageX, y: e.pageY, visible: true, content: tooltipContent });
+        const abilityTooltip = document.getElementById('ability-tooltip');
+        if (abilityTooltip) {
+          abilityTooltip.innerHTML = `
+            <div class="role-name">${role.name}</div>
+            <div class="role-ability">${role.ability || ''}</div>
+          `;
+          abilityTooltip.classList.add('show');
+          positionTooltip(token, abilityTooltip);
+        }
       }
     }
   });
   
   token.addEventListener('mouseleave', () => {
-    positionTooltip({ visible: false });
+    const abilityTooltip = document.getElementById('ability-tooltip');
+    if (abilityTooltip) {
+      abilityTooltip.classList.remove('show');
+    }
   });
   
   // Touch ability popup
-  if (isTouchDevice()) {
+  if (isTouchDevice) {
     let touchTimer;
     token.addEventListener('touchstart', (e) => {
       const character = grimoireState.bluffs?.[index];
@@ -176,8 +183,12 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   
   // Update modal title
   const modalTitle = characterModal.querySelector('h3');
-  modalTitle.textContent = `Select Bluff ${bluffIndex + 1}`;
-  characterModalPlayerName.textContent = '';
+  if (modalTitle) {
+    modalTitle.textContent = `Select Bluff ${bluffIndex + 1}`;
+  }
+  if (characterModalPlayerName) {
+    characterModalPlayerName.textContent = '';
+  }
   
   populateCharacterGrid({ grimoireState });
   characterModal.style.display = 'flex';

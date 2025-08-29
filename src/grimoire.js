@@ -8,6 +8,7 @@ import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
+import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 
 // Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
 function getAccurateRect(element) {
@@ -382,15 +383,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   });
 
   // Add bluff tokens container
-  import('./bluffTokens.js').then(({ createBluffTokensContainer }) => {
-    const center = document.getElementById('center');
-    const existingContainer = document.getElementById('bluff-tokens-container');
-    if (existingContainer) {
-      existingContainer.remove();
-    }
-    const bluffContainer = createBluffTokensContainer({ grimoireState });
-    center.appendChild(bluffContainer);
-  });
+  const center = document.getElementById('center');
+  const existingContainer = document.getElementById('bluff-tokens-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+  const bluffContainer = createBluffTokensContainer({ grimoireState });
+  center.appendChild(bluffContainer);
 
   // Use requestAnimationFrame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
@@ -1082,9 +1081,7 @@ export function updateGrimoire({ grimoireState }) {
   positionNightOrderNumbers();
   
   // Update bluff tokens
-  import('./bluffTokens.js').then(({ updateAllBluffTokens }) => {
-    updateAllBluffTokens({ grimoireState });
-  });
+  updateAllBluffTokens({ grimoireState });
 }
 export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);
@@ -1403,15 +1400,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
   });
   
   // Add bluff tokens container
-  import('./bluffTokens.js').then(({ createBluffTokensContainer }) => {
-    const center = document.getElementById('center');
-    const existingContainer = document.getElementById('bluff-tokens-container');
-    if (existingContainer) {
-      existingContainer.remove();
-    }
-    const bluffContainer = createBluffTokensContainer({ grimoireState });
-    center.appendChild(bluffContainer);
-  });
+  const center = document.getElementById('center');
+  const existingContainer = document.getElementById('bluff-tokens-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+  const bluffContainer = createBluffTokensContainer({ grimoireState });
+  center.appendChild(bluffContainer);
   
   // Apply layout and state immediately for deterministic testing and UX
   repositionPlayers({ grimoireState });
