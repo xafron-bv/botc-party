@@ -34,8 +34,12 @@ describe('Death Vote Indicator', () => {
     cy.get('#alive-count').should('contain', '(8/8 alive)');
   });
 
-  it('shows alive count next to player count input', () => {
+  it('shows alive count in the grimoire center', () => {
     startGameWithPlayers(8);
+    
+    // Alive count should be in the grimoire center area
+    cy.get('#grimoire #center #alive-count').should('exist');
+    cy.get('#alive-count').should('have.class', 'alive-count-display');
     
     // All players should be alive initially
     cy.get('#alive-count').should('contain', '(8/8 alive)');
