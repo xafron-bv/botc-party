@@ -20,7 +20,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          npx --yes http-server -p 5173 -c- . & echo $! > server.pid
+          npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & echo $! > server.pid
           for i in {1..60}; do curl -fsS http://127.0.0.1:5173 >/dev/null && break || sleep 0.5; done
           CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js --browser electron
           kill $(cat server.pid) || true
