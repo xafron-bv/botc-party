@@ -97,5 +97,34 @@ describe('Sidebar & State', () => {
     cy.get('#player-circle li').should('have.length', 6);
     cy.get('#player-circle li .character-name').first().should('contain', 'Chef');
   });
+
+  it('background selection appears after character sheet in sidebar', () => {
+    // Ensure sidebar is open
+    cy.get('#sidebar-toggle').then(($btn) => {
+      if ($btn.is(':visible')) {
+        cy.wrap($btn).click();
+      }
+    });
+
+    // Find the character sheet section
+    cy.get('#character-sheet').should('exist');
+    
+    // Find the background section
+    cy.get('#sidebar').within(() => {
+      cy.contains('h3', 'Background').should('exist');
+    });
+
+    // Verify that the background section comes after the character sheet
+    cy.get('#character-sheet').then(($charSheet) => {
+      const charSheetBottom = $charSheet[0].getBoundingClientRect().bottom;
+      
+      cy.get('#sidebar').contains('h3', 'Background').then(($bgHeader) => {
+        const bgTop = $bgHeader[0].getBoundingClientRect().top;
+        
+        // Background section should appear below the character sheet
+        expect(bgTop).to.be.greaterThan(charSheetBottom);
+      });
+    });
+  });
 });
 
