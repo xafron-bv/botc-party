@@ -9,6 +9,78 @@ import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
+// Helper function to check if a player element is overlapping with another player
+function isPlayerOverlapping({ listItem }) {
+  const rect1 = listItem.getBoundingClientRect();
+  const allPlayers = document.querySelectorAll('#player-circle li');
+  
+  for (let i = 0; i < allPlayers.length; i++) {
+    const otherPlayer = allPlayers[i];
+    if (otherPlayer === listItem) continue;
+    
+    const rect2 = otherPlayer.getBoundingClientRect();
+    
+    // Check if rectangles overlap
+    const overlap = !(rect1.right < rect2.left || 
+                     rect1.left > rect2.right || 
+                     rect1.bottom < rect2.top || 
+                     rect1.top > rect2.bottom);
+    
+    if (overlap) {
+      // Check if the other player has a higher z-index (is on top)
+      const zIndex1 = parseInt(listItem.style.zIndex || window.getComputedStyle(listItem).zIndex, 10) || 0;
+      const zIndex2 = parseInt(otherPlayer.style.zIndex || window.getComputedStyle(otherPlayer).zIndex, 10) || 0;
+      
+      // If the other player has a higher or equal z-index, this player is covered
+      if (zIndex2 >= zIndex1) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+// Helper function to handle two-tap behavior for any element within a player
+function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, playerIndex }) {
+  if (!('ontouchstart' in window)) return;
+  
+  e.stopPropagation();
+  e.preventDefault();
+  
+  // Clear any other raised players first
+  document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
+    if (el !== listItem) {
+      delete el.dataset.raised;
+      // Restore original z-index
+      el.style.zIndex = el.dataset.originalLiZIndex || '';
+      delete el.dataset.originalLiZIndex;
+    }
+  });
+  
+  // Check if this player is already raised
+  const wasRaised = listItem.dataset.raised === 'true';
+  
+  // Check if player is overlapping with another player
+  const isOverlapping = isPlayerOverlapping({ listItem });
+  
+  if (isOverlapping && !wasRaised) {
+    // First tap on overlapping player: just raise it
+    listItem.dataset.raised = 'true';
+    listItem.dataset.originalLiZIndex = listItem.style.zIndex || '';
+    listItem.style.zIndex = '200'; // Raise above other players
+    return; // Don't trigger action
+  }
+  
+  // Either not partially covered, or already raised - trigger action
+  if (actionCallback) {
+    actionCallback(e);
+  }
+  
+  // Keep the player raised after performing the action
+  // It will only be un-raised when clicking outside (handled by global listener)
+}
+
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
@@ -70,6 +142,36 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for player token with two-tap behavior
+    if ('ontouchstart' in window) {
+      const tokenEl = listItem.querySelector('.player-token');
+      tokenEl.addEventListener('touchstart', (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return; // handled by ribbon
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return; // handled by info icon
+        }
+        
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            openCharacterModal({ grimoireState, playerIndex: i });
+          },
+          grimoireState,
+          playerIndex: i
+        });
+      });
+      
+      // Prevent click event after touch to avoid double triggering
+      tokenEl.addEventListener('touchend', (e) => {
+        e.preventDefault();
+      });
+    }
+    
     // Player context menu: right-click
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -106,71 +208,19 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
 
-    // Add touchstart handler for touch devices
+    // Add touchstart handler for player name with two-tap behavior
     if ('ontouchstart' in window) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        e.preventDefault(); // Prevent any default behavior
-
-        // Clear any other raised player names first
-        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
-          if (el !== e.currentTarget) {
-            delete el.dataset.raised;
-            // Restore original z-index
-            el.style.zIndex = el.dataset.originalZIndex || '';
-            delete el.dataset.originalZIndex;
-          }
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: handlePlayerNameClick,
+          grimoireState,
+          playerIndex: i
         });
-
-        // Check if player name is partially covered (behind token)
-        const playerNameEl = e.currentTarget;
-
-        // Track if this element has been "raised" (first tap occurred)
-        const wasRaised = playerNameEl.dataset.raised === 'true';
-
-        // Get computed styles to check z-index
-        const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
-
-        // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
-        // If z-index is less than 10, it's considered partially covered
-        const isPartiallyCovered = currentZIndex < 10;
-
-        if (isPartiallyCovered && !wasRaised) {
-          // First tap on partially covered name: just raise it
-          playerNameEl.dataset.raised = 'true';
-          playerNameEl.dataset.originalZIndex = currentZIndex.toString();
-          playerNameEl.style.setProperty('z-index', '60', 'important'); // Raise above other elements with !important to override touch.css
-
-          // Also raise the parent li to ensure the whole container is above others
-          const parentLi = playerNameEl.closest('li');
-          if (parentLi) {
-            parentLi.dataset.originalZIndex = parentLi.style.zIndex || '';
-            parentLi.style.setProperty('z-index', '200', 'important');
-          }
-
-          return; // Don't trigger rename
-        }
-
-        // Either not partially covered, or already raised - trigger rename
-        handlePlayerNameClick(e);
-
-        // After rename, reset the raised state
-        if (playerNameEl.dataset.raised) {
-          delete playerNameEl.dataset.raised;
-          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
-          playerNameEl.style.removeProperty('z-index');
-          delete playerNameEl.dataset.originalZIndex;
-
-          // Also restore parent li z-index
-          const parentLi = playerNameEl.closest('li');
-          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
-            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
-            delete parentLi.dataset.originalZIndex;
-          }
-        }
       });
     }
+
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -615,6 +665,20 @@ export function updateGrimoire({ grimoireState }) {
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
+    
+    // Add touch handler for death ribbon with two-tap behavior
+    if ('ontouchstart' in window) {
+      ribbon.addEventListener('touchstart', (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem: li,
+          actionCallback: handleRibbonToggle,
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
+    
     // Attach to painted shapes only to avoid transparent hit areas
     try {
       ribbon.querySelectorAll('rect, path').forEach((shape) => {
@@ -653,6 +717,20 @@ export function updateGrimoire({ grimoireState }) {
       };
       
       deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
+      
+      // Add touch handler for death vote with two-tap behavior
+      if ('ontouchstart' in window) {
+        deathVoteIndicator.addEventListener('touchstart', (e) => {
+          handlePlayerElementTouch({
+            e,
+            listItem: li,
+            actionCallback: handleDeathVoteClick,
+            grimoireState,
+            playerIndex: i
+          });
+        });
+      }
+      
       tokenDiv.appendChild(deathVoteIndicator);
     }
 
@@ -1078,6 +1156,29 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for player token with two-tap behavior
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-token').addEventListener('touchstart', (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return; // handled by ribbon
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return; // handled by info icon
+        }
+        
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            openCharacterModal({ grimoireState, playerIndex: i });
+          },
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
 
     // Player name click handler as a named function
     const handlePlayerNameClick2 = (e) => {
@@ -1094,63 +1195,19 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
 
-    // Add touchstart handler for touch devices
+    // Add touchstart handler for player name with two-tap behavior
     if ('ontouchstart' in window) {
       listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        e.preventDefault(); // Prevent any default behavior
-
-        // Clear any other raised player names first
-        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
-          if (el !== e.currentTarget) {
-            delete el.dataset.raised;
-            // Restore original z-index
-            el.style.zIndex = el.dataset.originalZIndex || '';
-            delete el.dataset.originalZIndex;
-          }
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: handlePlayerNameClick2,
+          grimoireState,
+          playerIndex: i
         });
-
-        // Check if player name is partially covered (behind token)
-        const playerNameEl = e.currentTarget;
-
-        // Track if this element has been "raised" (first tap occurred)
-        const wasRaised = playerNameEl.dataset.raised === 'true';
-
-        // Get computed styles to check z-index
-        const nameStyles = window.getComputedStyle(playerNameEl);
-        const currentZIndex = parseInt(nameStyles.zIndex, 10) || 0;
-
-        // In touch mode, names default to z-index 0 and are behind tokens (z-index 5)
-        // If z-index is less than 10, it's considered partially covered
-        const isPartiallyCovered = currentZIndex < 10;
-
-        if (isPartiallyCovered && !wasRaised) {
-          // First tap on partially covered name: just raise it
-          playerNameEl.dataset.raised = 'true';
-          playerNameEl.dataset.originalZIndex = currentZIndex.toString();
-          playerNameEl.style.zIndex = '60'; // Raise above other elements including hovered players
-          return; // Don't trigger rename
-        }
-
-        // Either not partially covered, or already raised - trigger rename
-        handlePlayerNameClick2(e);
-
-        // After rename, reset the raised state
-        if (playerNameEl.dataset.raised) {
-          delete playerNameEl.dataset.raised;
-          // Remove inline z-index to let CSS take over (z-index: 0 in touch mode)
-          playerNameEl.style.removeProperty('z-index');
-          delete playerNameEl.dataset.originalZIndex;
-
-          // Also restore parent li z-index
-          const parentLi = playerNameEl.closest('li');
-          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
-            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
-            delete parentLi.dataset.originalZIndex;
-          }
-        }
       });
     }
+
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -1331,24 +1388,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {
       const target = e.target;
-      // If not tapping on a player name, clear all raised states
-      if (!target.closest('.player-name')) {
-        document.querySelectorAll('#player-circle li .player-name[data-raised="true"]').forEach(el => {
+      // If not tapping on a player element, clear all raised states
+      if (!target.closest('#player-circle li')) {
+        document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
           delete el.dataset.raised;
           // Restore original z-index
-          el.style.zIndex = el.dataset.originalZIndex || '';
-          delete el.dataset.originalZIndex;
-
-          // Also restore parent li z-index
-          const parentLi = el.closest('li');
-          if (parentLi && parentLi.dataset.originalZIndex !== undefined) {
-            parentLi.style.zIndex = parentLi.dataset.originalZIndex;
-            delete parentLi.dataset.originalZIndex;
-          }
-
-          // Force the player name to go back behind the token
-          // In touch mode, CSS sets z-index: 0, but we need to ensure inline style is removed
-          el.style.removeProperty('z-index');
+          el.style.zIndex = el.dataset.originalLiZIndex || '';
+          delete el.dataset.originalLiZIndex;
         });
       }
     }, { passive: true });
