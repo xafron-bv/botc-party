@@ -38,6 +38,8 @@ describe('Tour', () => {
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to assign-character
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
+    // Advance to player management
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to player-management
     // Advance to reminders
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
     // Advance to day/night toggle
@@ -59,8 +61,8 @@ describe('Tour', () => {
     cy.get('#start-tour').click();
 
     // Navigate directly to the day/night toggle step
-    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> reminders -> day-night-toggle
-    for (let i = 0; i < 6; i++) {
+    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management -> reminders -> day-night-toggle
+    for (let i = 0; i < 7; i++) {
       cy.contains('.tour-popover .actions .button', 'Next').click();
     }
 
@@ -90,5 +92,38 @@ describe('Tour', () => {
 
     // Finish the tour (no strict teardown assertion to avoid CI race conditions)
     cy.contains('.tour-popover .actions .button', 'Finish').click({ force: true });
+  });
+
+  it('includes a step for adding/removing players via right-click or long-touch', () => {
+    // Start the tour
+    cy.get('#start-tour').click();
+
+    // Navigate to the new player management step
+    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management
+    for (let i = 0; i < 5; i++) {
+      cy.contains('.tour-popover .actions .button', 'Next').click();
+    }
+
+    // Verify we're on the player management step
+    cy.get('.tour-popover').should('be.visible');
+    cy.get('.tour-popover .title').should('contain', 'Add/Remove Players');
+    cy.get('.tour-popover .body').should('contain', 'right-click');
+    cy.get('.tour-popover .body').should('contain', 'long-touch');
+    cy.get('.tour-popover .body').should('contain', 'add');
+    cy.get('.tour-popover .body').should('contain', 'remove');
+
+    // Verify the highlight is on a player token or the player circle
+    cy.get('.tour-highlight').should('exist');
+    
+    // Verify we can navigate back and forward
+    cy.contains('.tour-popover .actions .button', 'Back').click();
+    cy.get('.tour-popover .title').should('contain', 'Assign a character');
+
+    cy.contains('.tour-popover .actions .button', 'Next').click();
+    cy.get('.tour-popover .title').should('contain', 'Add/Remove Players');
+
+    // Continue to reminders step
+    cy.contains('.tour-popover .actions .button', 'Next').click();
+    cy.get('.tour-popover .title').should('contain', 'Reminders');
   });
 });
