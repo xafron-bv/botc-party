@@ -19,8 +19,8 @@ describe('iPad Air landscape mode - player name overflow', () => {
     cy.get('#start-game').click();
     cy.get('#player-circle li').should('have.length', 15);
 
-    // Wait for layout to stabilize
-    cy.wait(500);
+    // Wait for layout to stabilize and names to be positioned
+    cy.wait(1000);
 
     // Check that all player names are within viewport bounds
     cy.get('#player-circle li .player-name').each(($playerName) => {
@@ -62,8 +62,8 @@ describe('iPad Air landscape mode - player name overflow', () => {
     cy.get('#start-game').click();
     cy.get('#player-circle li').should('have.length', 20);
 
-    // Wait for layout to stabilize
-    cy.wait(500);
+    // Wait for layout to stabilize and names to be positioned
+    cy.wait(1000);
 
     // Check that all player names are within viewport bounds
     cy.get('#player-circle li .player-name').each(($playerName) => {
