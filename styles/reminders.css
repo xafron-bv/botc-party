@@ -156,7 +156,7 @@
   width: 40px;
   height: 40px;
   left: 50%;
-  top: 50%;
+  top: 15%;
   transform: translate(-50%, -50%);
   cursor: pointer;
   opacity: 0.9;
