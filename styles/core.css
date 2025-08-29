@@ -73,8 +73,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px 12px;
-  /* give breathing room for player names that extend beyond the circle */
+  padding: 12px;
+  /* give breathing room on small screens */
   box-sizing: border-box;
 }
 

@@ -86,18 +86,25 @@ describe('iPad Air landscape mode - player name overflow', () => {
       const viewportHeight = 820;
       const viewportWidth = 1180;
       
-      // Calculate available space considering player names
-      // Player names need approximately 80-100px above and below the circle
-      const requiredNameSpace = 200; // 100px top + 100px bottom
-      const maxCircleHeight = viewportHeight - requiredNameSpace;
-      
-      // The circle should not exceed the available space
-      expect(circleRect.height).to.be.at.most(maxCircleHeight, 
-        'Grimoire circle should be small enough to accommodate player names');
-      
-      // The circle should still be reasonably sized (not too small)
-      expect(circleRect.height).to.be.at.least(400, 
-        'Grimoire circle should not be too small');
+      // Get actual token size and calculate name space
+      cy.get('#player-circle li .player-token').first().then(($token) => {
+        const tokenSize = $token[0].offsetWidth;
+        const nameOffset = tokenSize * 0.8 + 40; // 0.8 * token size + name height
+        const requiredNameSpace = nameOffset * 2; // top + bottom
+        const maxCircleHeight = viewportHeight - requiredNameSpace - 40; // with safety margin
+        
+        // The circle should not exceed the available space
+        expect(circleRect.height).to.be.at.most(maxCircleHeight, 
+          'Grimoire circle should be small enough to accommodate player names');
+        
+        // The circle should use most of the available space (at least 80%)
+        expect(circleRect.height).to.be.at.least(maxCircleHeight * 0.8, 
+          'Grimoire circle should use most of the available space');
+        
+        // The circle should still be reasonably sized (not too small)
+        expect(circleRect.height).to.be.at.least(400, 
+          'Grimoire circle should not be too small');
+      });
     });
   });
 });
