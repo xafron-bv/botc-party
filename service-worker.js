@@ -119,6 +119,11 @@ self.addEventListener('fetch', event => {
 
   // Handle characters.json requests - cache first
   if (event.request.url.includes('/characters.json') || event.request.url.endsWith('characters.json')) {
+    // Start caching token images immediately (synchronously within the event handler)
+    const tokenCachePromise = cacheAllTokenImages().catch(err => {
+      console.error('Failed to cache token images:', err);
+    });
+    
     event.respondWith(
       caches.match(event.request, { ignoreSearch: true })
         .then(response => {
@@ -130,8 +135,7 @@ self.addEventListener('fetch', event => {
                   const responseClone = freshResponse.clone();
                   caches.open(CACHE_NAME).then(cache => {
                     cache.put(event.request, responseClone);
-                    // Cache all token images after successfully caching characters.json
-                    event.waitUntil(cacheAllTokenImages());
+                    // Token images are already being cached via tokenCachePromise
                   });
                 }
               })
@@ -144,8 +148,7 @@ self.addEventListener('fetch', event => {
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then(cache => {
                   cache.put(event.request, responseClone);
-                  // Cache all token images after successfully caching characters.json
-                  event.waitUntil(cacheAllTokenImages());
+                  // Token images are already being cached via tokenCachePromise
                 });
               }
               return response;
@@ -157,6 +160,9 @@ self.addEventListener('fetch', event => {
             });
         })
     );
+    
+    // Use waitUntil synchronously with the promise we created earlier
+    event.waitUntil(tokenCachePromise);
     return;
   }
 

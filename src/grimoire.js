@@ -109,7 +109,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         
         // Set high z-index to bring to front
         listItem.style.zIndex = '200'; // Parent li gets highest z-index
-        tokenEl.style.zIndex = '60'; // Token gets high z-index
+        tokenEl.style.zIndex = '70'; // Token gets high z-index (higher than raised names at 60)
         listItem.dataset.tokenRaised = 'true';
       }, { passive: true });
     }
@@ -1160,7 +1160,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         
         // Set high z-index to bring to front
         listItem.style.zIndex = '200'; // Parent li gets highest z-index
-        tokenEl.style.zIndex = '60'; // Token gets high z-index
+        tokenEl.style.zIndex = '70'; // Token gets high z-index (higher than raised names at 60)
         listItem.dataset.tokenRaised = 'true';
       }, { passive: true });
     }
