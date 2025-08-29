@@ -5,7 +5,7 @@ import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isT
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg } from './ui/svg.js';
+import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
@@ -41,7 +41,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     name: `Player ${i + 1}`,
     character: null,
     reminders: [],
-    dead: false
+    dead: false,
+    deathVote: false
   }));
   if (playerCountInput) {
     try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
@@ -433,17 +434,54 @@ export function renderSetupInfo({ grimoireState }) {
     const meta = grimoireState.scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
     if (meta && meta.name) scriptName = String(meta.name);
   }
-  if (!row && !scriptName) { setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; return; }
-  const parts = [];
-  if (scriptName) parts.push(scriptName);
-  if (row) parts.push(`${row.townsfolk}/${row.outsiders}/${row.minions}/${row.demons}`);
-  setupInfoEl.textContent = parts.join(' ');
+  if (!row && !scriptName) { 
+    setupInfoEl.textContent = 'Select a script and add players from the sidebar.'; 
+    return; 
+  }
+  
+  // Build display with script name on first line, counts on second line
+  let displayHtml = '';
+  if (scriptName) {
+    displayHtml = `<div>${scriptName}</div>`;
+  }
+  
+  // Build second line with player counts
+  const countsLine = [];
+  
+  // Only show alive count if we have a valid role distribution
+  if (totalPlayers > 0 && row) {
+    const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
+    countsLine.push(`${alivePlayers}/${totalPlayers}`);
+  }
+  
+  if (row) {
+    // Add colored role counts
+    const roleCountsHtml = [
+      `<span class="townsfolk-count">${row.townsfolk}</span>`,
+      `<span class="outsider-count">${row.outsiders}</span>`,
+      `<span class="minion-count">${row.minions}</span>`,
+      `<span class="demon-count">${row.demons}</span>`
+    ].join('/');
+    countsLine.push(roleCountsHtml);
+  }
+  
+  if (countsLine.length > 0) {
+    displayHtml += `<div>${countsLine.join('  ')}</div>`;
+  }
+  
+  setupInfoEl.innerHTML = displayHtml;
 }
+
+
 
 export function updateGrimoire({ grimoireState }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
   const playerCircle = document.getElementById('player-circle');
   const listItems = playerCircle.querySelectorAll('li');
+  
+  // Update setup info (which now includes alive count)
+  renderSetupInfo({ grimoireState });
+  
   listItems.forEach((li, i) => {
     const player = grimoireState.players[i];
     const playerNameEl = li.querySelector('.player-name');
@@ -554,7 +592,20 @@ export function updateGrimoire({ grimoireState }) {
     ribbon.classList.add('death-ribbon');
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
-      grimoireState.players[i].dead = !grimoireState.players[i].dead;
+      const player = grimoireState.players[i];
+      
+      if (player.dead && player.deathVote) {
+        // If player is dead and has used death vote, revive them
+        grimoireState.players[i].dead = false;
+        grimoireState.players[i].deathVote = false;
+      } else {
+        // Otherwise, toggle dead state normally
+        grimoireState.players[i].dead = !grimoireState.players[i].dead;
+        // Reset death vote when marking alive
+        if (!grimoireState.players[i].dead) {
+          grimoireState.players[i].deathVote = false;
+        }
+      }
 
       // Save phase state if day/night tracking is enabled
       if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
@@ -579,6 +630,30 @@ export function updateGrimoire({ grimoireState }) {
       tokenDiv.classList.add('is-dead');
     } else {
       tokenDiv.classList.remove('is-dead');
+    }
+
+    // Add death vote indicator for dead players
+    const existingDeathVote = tokenDiv.querySelector('.death-vote-indicator');
+    if (existingDeathVote) existingDeathVote.remove();
+    
+    if (player.dead && !player.deathVote) {
+      const deathVoteIndicator = createDeathVoteIndicatorSvg();
+      const handleDeathVoteClick = (e) => {
+        e.stopPropagation();
+        // Use death vote (can only be used once)
+        grimoireState.players[i].deathVote = true;
+        
+        // Save phase state if day/night tracking is enabled
+        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          saveCurrentPhaseState(grimoireState);
+        }
+        
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
+      };
+      
+      deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
+      tokenDiv.appendChild(deathVoteIndicator);
     }
 
     // Add night order number if applicable
@@ -910,7 +985,7 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
   const newPlayers = Array.from({ length: playerCount }, (_, i) => {
     const existing = existingPlayers[i];
     const name = existing && existing.name ? existing.name : `Player ${i + 1}`;
-    return { name, character: null, reminders: [], dead: false };
+    return { name, character: null, reminders: [], dead: false, deathVote: false };
   });
   grimoireState.players = newPlayers;
 

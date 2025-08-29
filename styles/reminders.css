@@ -150,6 +150,30 @@
   opacity: 0.7;
 }
 
+/* Death vote indicator */
+.player-token .death-vote-indicator {
+  position: absolute;
+  width: calc(var(--token-size) * 0.25);
+  height: calc(var(--token-size) * 0.25);
+  min-width: 20px;
+  min-height: 20px;
+  max-width: 35px;
+  max-height: 35px;
+  left: 50%;
+  top: 12%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.player-token .death-vote-indicator:hover {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
 .icon-reminder-svg {
   position: absolute;
   inset: 0;
