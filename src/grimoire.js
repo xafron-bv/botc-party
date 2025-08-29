@@ -8,6 +8,7 @@ import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
+import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 
 // Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
 function getAccurateRect(element) {
@@ -380,6 +381,15 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
     // No capture intercepts; rely on pointer-events gating and the touchstart handler above
   });
+
+  // Add bluff tokens container
+  const center = document.getElementById('center');
+  const existingContainer = document.getElementById('bluff-tokens-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+  const bluffContainer = createBluffTokensContainer({ grimoireState });
+  center.appendChild(bluffContainer);
 
   // Use requestAnimationFrame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
@@ -1069,6 +1079,9 @@ export function updateGrimoire({ grimoireState }) {
     positionInfoIcons();
   }
   positionNightOrderNumbers();
+  
+  // Update bluff tokens
+  updateAllBluffTokens({ grimoireState });
 }
 export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
   const playerCount = parseInt(playerCountInput.value, 10);
@@ -1093,6 +1106,9 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
 
+  // Reset bluffs when starting a new game
+  grimoireState.bluffs = [null, null, null];
+  
   // Reset day/night tracking when starting a new game
   try {
     if (!grimoireState.dayNightTracking) {
@@ -1382,6 +1398,16 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
     }
   });
+  
+  // Add bluff tokens container
+  const center = document.getElementById('center');
+  const existingContainer = document.getElementById('bluff-tokens-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+  const bluffContainer = createBluffTokensContainer({ grimoireState });
+  center.appendChild(bluffContainer);
+  
   // Apply layout and state immediately for deterministic testing and UX
   repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });

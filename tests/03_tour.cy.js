@@ -10,6 +10,12 @@ describe('Tour', () => {
   });
 
   it('starts next to a target element and can go back/next/skip; sidebar state changes when required', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -42,6 +48,8 @@ describe('Tour', () => {
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to player-management
     // Advance to reminders
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
+    // Advance to bluff tokens
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to bluff-tokens
     // Advance to day/night toggle
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to day-night-toggle
     // Verify the tour highlights the day/night toggle button
@@ -57,12 +65,18 @@ describe('Tour', () => {
   });
 
   it('includes a day/night toggle step with proper content and positioning', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
     // Navigate directly to the day/night toggle step
-    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management -> reminders -> day-night-toggle
-    for (let i = 0; i < 7; i++) {
+    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management -> reminders -> bluff-tokens -> day-night-toggle
+    for (let i = 0; i < 8; i++) {
       cy.contains('.tour-popover .actions .button', 'Next').click();
     }
 
@@ -78,7 +92,7 @@ describe('Tour', () => {
 
     // Verify we can navigate back and forward
     cy.contains('.tour-popover .actions .button', 'Back').click();
-    cy.get('.tour-popover .title').should('contain', 'Reminders');
+    cy.get('.tour-popover .title').should('contain', 'Bluff Tokens');
 
     cy.contains('.tour-popover .actions .button', 'Next').click();
     cy.get('.tour-popover .title').should('have.text', 'Day/Night Tracking');
@@ -95,6 +109,12 @@ describe('Tour', () => {
   });
 
   it('includes a step for adding/removing players via right-click or long-touch', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
