@@ -19,17 +19,17 @@ describe('Sidebar - Background Selection Order', () => {
     // Find the character sheet section
     cy.get('#character-sheet').should('exist');
     
-    // Find the background selection section
-    cy.get('.upload-section').should('exist');
+    // Find the background selection section by looking for the Background heading
+    cy.contains('.section h3', 'Background').parent('.section').should('exist');
     
     // Get their positions in the DOM
     cy.get('#character-sheet').then(($charSheet) => {
-      cy.get('.upload-section').then(($uploadSection) => {
+      cy.contains('.section h3', 'Background').parent('.section').then(($bgSection) => {
         const charSheetRect = $charSheet[0].getBoundingClientRect();
-        const uploadRect = $uploadSection[0].getBoundingClientRect();
+        const bgRect = $bgSection[0].getBoundingClientRect();
         
         // Background selection should appear below character sheet
-        expect(uploadRect.top).to.be.greaterThan(charSheetRect.bottom,
+        expect(bgRect.top).to.be.greaterThan(charSheetRect.bottom,
           'Background selection should appear after character sheet');
       });
     });
@@ -47,7 +47,7 @@ describe('Sidebar - Background Selection Order', () => {
         'h2:contains("Character Sheet")',
         '#character-sheet',
         'h2:contains("Background")', // This should come after character sheet
-        '.upload-section'
+        '.section:has(h3:contains("Background"))'
       ];
       
       let lastElement = null;
@@ -87,11 +87,11 @@ describe('Sidebar - Background Selection Order', () => {
     
     // Verify order is still correct with populated character sheet
     cy.get('#character-sheet').then(($charSheet) => {
-      cy.get('.upload-section').then(($uploadSection) => {
+      cy.contains('.section h3', 'Background').parent('.section').then(($bgSection) => {
         const charSheetRect = $charSheet[0].getBoundingClientRect();
-        const uploadRect = $uploadSection[0].getBoundingClientRect();
+        const bgRect = $bgSection[0].getBoundingClientRect();
         
-        expect(uploadRect.top).to.be.greaterThan(charSheetRect.bottom,
+        expect(bgRect.top).to.be.greaterThan(charSheetRect.bottom,
           'Background selection should still appear after populated character sheet');
       });
     });
@@ -99,17 +99,17 @@ describe('Sidebar - Background Selection Order', () => {
 
   it('should keep background controls together', () => {
     // All background-related controls should be in the same section
-    cy.get('.upload-section').within(() => {
-      // Should contain file upload
-      cy.get('input[type="file"]').should('exist');
+    cy.contains('.section h3', 'Background').parent('.section').within(() => {
+      // Should contain background select dropdown
+      cy.get('#background-select').should('exist');
       
-      // Should contain preset backgrounds or clear button
-      cy.get('button').should('exist');
+      // Should have background options
+      cy.get('option').should('have.length.greaterThan', 1);
     });
     
     // Background controls should not be scattered in other sections
     cy.get('#game-setup').within(() => {
-      cy.get('input[type="file"][accept*="image"]').should('not.exist');
+      cy.get('#background-select').should('not.exist');
     });
   });
 });
