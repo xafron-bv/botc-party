@@ -9,12 +9,36 @@ import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
 
-// Helper function to check if a player element is partially covered
-function isPlayerPartiallyCovered({ listItem }) {
-  const liZIndex = parseInt(listItem.style.zIndex || window.getComputedStyle(listItem).zIndex, 10) || 0;
-  // In touch mode, if z-index is less than 50, it might be partially covered
-  // But also check if it was manually set to a low value for testing
-  return liZIndex < 50 && liZIndex > 0;
+// Helper function to check if a player element is overlapping with another player
+function isPlayerOverlapping({ listItem }) {
+  const rect1 = listItem.getBoundingClientRect();
+  const allPlayers = document.querySelectorAll('#player-circle li');
+  
+  for (let i = 0; i < allPlayers.length; i++) {
+    const otherPlayer = allPlayers[i];
+    if (otherPlayer === listItem) continue;
+    
+    const rect2 = otherPlayer.getBoundingClientRect();
+    
+    // Check if rectangles overlap
+    const overlap = !(rect1.right < rect2.left || 
+                     rect1.left > rect2.right || 
+                     rect1.bottom < rect2.top || 
+                     rect1.top > rect2.bottom);
+    
+    if (overlap) {
+      // Check if the other player has a higher z-index (is on top)
+      const zIndex1 = parseInt(listItem.style.zIndex || window.getComputedStyle(listItem).zIndex, 10) || 0;
+      const zIndex2 = parseInt(otherPlayer.style.zIndex || window.getComputedStyle(otherPlayer).zIndex, 10) || 0;
+      
+      // If the other player has a higher or equal z-index, this player is covered
+      if (zIndex2 >= zIndex1) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
 }
 
 // Helper function to handle two-tap behavior for any element within a player
@@ -37,11 +61,11 @@ function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, 
   // Check if this player is already raised
   const wasRaised = listItem.dataset.raised === 'true';
   
-  // Check if player is partially covered
-  const isPartiallyCovered = isPlayerPartiallyCovered({ listItem });
+  // Check if player is overlapping with another player
+  const isOverlapping = isPlayerOverlapping({ listItem });
   
-  if (isPartiallyCovered && !wasRaised) {
-    // First tap on partially covered player: just raise it
+  if (isOverlapping && !wasRaised) {
+    // First tap on overlapping player: just raise it
     listItem.dataset.raised = 'true';
     listItem.dataset.originalLiZIndex = listItem.style.zIndex || '';
     listItem.style.zIndex = '200'; // Raise above other players
