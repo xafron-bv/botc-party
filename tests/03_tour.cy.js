@@ -10,6 +10,12 @@ describe('Tour', () => {
   });
 
   it('starts next to a target element and can go back/next/skip; sidebar state changes when required', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -59,6 +65,12 @@ describe('Tour', () => {
   });
 
   it('includes a day/night toggle step with proper content and positioning', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -97,6 +109,12 @@ describe('Tour', () => {
   });
 
   it('includes a step for adding/removing players via right-click or long-touch', () => {
+    // Start a game first so bluff tokens are created
+    cy.get('#player-count').clear().type('8');
+    cy.get('#start-game').click();
+    cy.get('#load-tb').click();
+    cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    
     // Start the tour
     cy.get('#start-tour').click();
 
