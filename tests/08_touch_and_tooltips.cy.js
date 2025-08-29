@@ -180,8 +180,8 @@ describe('Ability UI - Touch', () => {
       .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
     cy.get('@namePrompt').should('have.callCount', 0);
 
-    // Verify the name was raised (z-index changed or raised state set)
-    cy.get('#player-circle li .player-name').first().should(($el) => {
+    // Verify the player was raised (z-index changed or raised state set)
+    cy.get('#player-circle li').first().should(($el) => {
       expect($el[0].dataset.raised).to.equal('true');
     });
 
@@ -191,7 +191,7 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
 
     // Verify raised state is cleared after rename
-    cy.get('#player-circle li .player-name').first().should(($el) => {
+    cy.get('#player-circle li').first().should(($el) => {
       expect($el[0].dataset.raised).to.be.undefined;
     });
   });
@@ -299,15 +299,15 @@ describe('Ability UI - Touch', () => {
     // Verify prompt was NOT called
     cy.get('@promptStub').should('have.callCount', 0);
 
-    // Verify name was raised (z-index increased)
-    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
-      const currentZIndex = parseInt($name[0].style.zIndex, 10) || 0;
-      expect(currentZIndex).to.be.greaterThan(5); // Should be raised above token
+    // Verify player was raised (z-index increased)
+    cy.get('#player-circle li').first().should(($li) => {
+      const currentZIndex = parseInt($li[0].style.zIndex, 10) || 0;
+      expect(currentZIndex).to.be.greaterThan(50); // Should be raised above other players
     });
 
     // Verify raised state is set
-    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
-      expect($name[0].dataset.raised).to.equal('true');
+    cy.get('#player-circle li').first().should(($li) => {
+      expect($li[0].dataset.raised).to.equal('true');
     });
 
     // SECOND TOUCH ON SAME NAME: Should open prompt

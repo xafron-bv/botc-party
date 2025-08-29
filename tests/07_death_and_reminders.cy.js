@@ -165,7 +165,8 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
     // Tap death ribbon (simulate touch)
     cy.get('#player-circle li').first().find('.death-ribbon')
-      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true })
+      .trigger('touchstart', { touches: [{ clientX: 5, clientY: 5 }], force: true });
+    cy.get('#player-circle li').first().find('.death-ribbon')
       .trigger('touchend', { force: true });
     // Should remain collapsed
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');

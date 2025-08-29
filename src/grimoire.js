@@ -42,11 +42,19 @@ function isPlayerOverlapping({ listItem }) {
 }
 
 // Helper function to handle two-tap behavior for any element within a player
-function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, playerIndex }) {
+function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, playerIndex, isDeathRibbon = false }) {
   if (!('ontouchstart' in window)) return;
   
   e.stopPropagation();
   e.preventDefault();
+  
+  // Death ribbon should always perform immediate action
+  if (isDeathRibbon) {
+    if (actionCallback) {
+      actionCallback(e);
+    }
+    return;
+  }
   
   // Clear any other raised players first
   document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
@@ -670,7 +678,7 @@ export function updateGrimoire({ grimoireState }) {
       saveAppState({ grimoireState });
     };
     
-    // Add touch handler for death ribbon with two-tap behavior
+    // Add touch handler for death ribbon with immediate action (no two-tap)
     if ('ontouchstart' in window) {
       ribbon.addEventListener('touchstart', (e) => {
         handlePlayerElementTouch({
@@ -678,7 +686,8 @@ export function updateGrimoire({ grimoireState }) {
           listItem: li,
           actionCallback: handleRibbonToggle,
           grimoireState,
-          playerIndex: i
+          playerIndex: i,
+          isDeathRibbon: true
         });
       });
     }
