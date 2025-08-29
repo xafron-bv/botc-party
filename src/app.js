@@ -1,5 +1,5 @@
 import { INCLUDE_TRAVELLERS_KEY } from './constants.js';
-import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
+import { renderSetupInfo, setupGrimoire, updateGrimoire, updateAliveCount } from './grimoire.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 import { updateDayNightUI } from './dayNightTracking.js';
@@ -34,6 +34,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       updateGrimoire({ grimoireState });
       repositionPlayers({ grimoireState });
       renderSetupInfo({ grimoireState });
+      updateAliveCount({ grimoireState });
     }
     if (saved && saved.dayNightTracking) {
       grimoireState.dayNightTracking = saved.dayNightTracking;

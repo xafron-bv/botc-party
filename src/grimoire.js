@@ -442,9 +442,14 @@ export function renderSetupInfo({ grimoireState }) {
   setupInfoEl.textContent = parts.join(' ');
 }
 
-function updateAliveCount({ grimoireState }) {
+export function updateAliveCount({ grimoireState }) {
   const aliveCountEl = document.getElementById('alive-count');
   if (!aliveCountEl) return;
+  
+  if (!grimoireState.players || grimoireState.players.length === 0) {
+    aliveCountEl.textContent = '';
+    return;
+  }
   
   const totalPlayers = grimoireState.players.length;
   const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
@@ -1307,6 +1312,9 @@ export async function loadPlayerSetupTable({ grimoireState }) {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize alive count display
+  updateAliveCount({ grimoireState: { players: [] } });
+  
   // Register global touch handler for clearing raised states (only once)
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {

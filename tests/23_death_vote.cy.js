@@ -20,10 +20,23 @@ describe('Death Vote Indicator', () => {
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+  });
+
+  it('shows alive count display even before game starts', () => {
+    // Before starting game, alive count should be empty
+    cy.get('#alive-count').should('exist');
+    cy.get('#alive-count').should('have.text', '');
+    
+    // Start game
     startGameWithPlayers(8);
+    
+    // Now it should show 8/8 alive
+    cy.get('#alive-count').should('contain', '(8/8 alive)');
   });
 
   it('shows alive count next to player count input', () => {
+    startGameWithPlayers(8);
+    
     // All players should be alive initially
     cy.get('#alive-count').should('contain', '(8/8 alive)');
     
@@ -45,6 +58,7 @@ describe('Death Vote Indicator', () => {
   });
 
   it('shows death vote indicator for dead players', () => {
+    startGameWithPlayers(8);
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
@@ -57,6 +71,8 @@ describe('Death Vote Indicator', () => {
   });
 
   it('removes death vote indicator when clicked (uses death vote)', () => {
+    startGameWithPlayers(8);
+    
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
@@ -76,6 +92,8 @@ describe('Death Vote Indicator', () => {
   });
 
   it('revives player when clicking death ribbon after death vote is used', () => {
+    startGameWithPlayers(8);
+    
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
@@ -99,6 +117,8 @@ describe('Death Vote Indicator', () => {
   });
 
   it('persists death vote state across page reload', () => {
+    startGameWithPlayers(8);
+    
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
@@ -121,6 +141,8 @@ describe('Death Vote Indicator', () => {
   });
 
   it('resets death vote when player is marked alive without using vote', () => {
+    startGameWithPlayers(8);
+    
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
@@ -147,6 +169,8 @@ describe('Death Vote Indicator', () => {
   });
 
   it('handles multiple dead players with independent death votes', () => {
+    startGameWithPlayers(8);
+    
     // Mark first three players as dead
     for (let i = 0; i < 3; i++) {
       cy.get('#player-circle li .player-token .death-ribbon').eq(i).within(() => {
