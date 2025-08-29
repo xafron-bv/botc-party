@@ -42,6 +42,8 @@ describe('Tour', () => {
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to player-management
     // Advance to reminders
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
+    // Advance to bluff tokens
+    cy.contains('.tour-popover .actions .button', 'Next').click(); // to bluff-tokens
     // Advance to day/night toggle
     cy.contains('.tour-popover .actions .button', 'Next').click(); // to day-night-toggle
     // Verify the tour highlights the day/night toggle button
@@ -61,8 +63,8 @@ describe('Tour', () => {
     cy.get('#start-tour').click();
 
     // Navigate directly to the day/night toggle step
-    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management -> reminders -> day-night-toggle
-    for (let i = 0; i < 7; i++) {
+    // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management -> reminders -> bluff-tokens -> day-night-toggle
+    for (let i = 0; i < 8; i++) {
       cy.contains('.tour-popover .actions .button', 'Next').click();
     }
 
@@ -78,7 +80,7 @@ describe('Tour', () => {
 
     // Verify we can navigate back and forward
     cy.contains('.tour-popover .actions .button', 'Back').click();
-    cy.get('.tour-popover .title').should('contain', 'Reminders');
+    cy.get('.tour-popover .title').should('contain', 'Bluff Tokens');
 
     cy.contains('.tour-popover .actions .button', 'Next').click();
     cy.get('.tour-popover .title').should('have.text', 'Day/Night Tracking');
