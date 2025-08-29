@@ -77,12 +77,8 @@ function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, 
     actionCallback(e);
   }
   
-  // After action, reset the raised state
-  if (listItem.dataset.raised) {
-    delete listItem.dataset.raised;
-    listItem.style.zIndex = listItem.dataset.originalLiZIndex || '';
-    delete listItem.dataset.originalLiZIndex;
-  }
+  // Keep the player raised after performing the action
+  // It will only be un-raised when clicking outside (handled by global listener)
 }
 
 function getRoleById({ grimoireState, roleId }) {
