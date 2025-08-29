@@ -70,6 +70,49 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for touch devices to bring token to front
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-token').addEventListener('touchstart', (e) => {
+        // Don't handle if touching death ribbon or info icon
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return;
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return;
+        }
+        
+        // Clear any other raised player tokens first
+        document.querySelectorAll('#player-circle li[data-token-raised="true"]').forEach(el => {
+          if (el !== listItem) {
+            delete el.dataset.tokenRaised;
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalLiZIndex || '';
+            delete el.dataset.originalLiZIndex;
+            const token = el.querySelector('.player-token');
+            if (token) {
+              token.style.zIndex = token.dataset.originalTokenZIndex || '';
+              delete token.dataset.originalTokenZIndex;
+            }
+          }
+        });
+        
+        // Raise this player token to front
+        const tokenEl = e.currentTarget;
+        const currentLiZIndex = listItem.style.zIndex || window.getComputedStyle(listItem).zIndex || '';
+        const currentTokenZIndex = tokenEl.style.zIndex || window.getComputedStyle(tokenEl).zIndex || '5';
+        
+        // Store original z-index values
+        listItem.dataset.originalLiZIndex = currentLiZIndex;
+        tokenEl.dataset.originalTokenZIndex = currentTokenZIndex;
+        
+        // Set high z-index to bring to front
+        listItem.style.zIndex = '200'; // Parent li gets highest z-index
+        tokenEl.style.zIndex = '60'; // Token gets high z-index
+        listItem.dataset.tokenRaised = 'true';
+      }, { passive: true });
+    }
     // Player context menu: right-click
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -1078,6 +1121,49 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for touch devices to bring token to front
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-token').addEventListener('touchstart', (e) => {
+        // Don't handle if touching death ribbon or info icon
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return;
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return;
+        }
+        
+        // Clear any other raised player tokens first
+        document.querySelectorAll('#player-circle li[data-token-raised="true"]').forEach(el => {
+          if (el !== listItem) {
+            delete el.dataset.tokenRaised;
+            // Restore original z-index
+            el.style.zIndex = el.dataset.originalLiZIndex || '';
+            delete el.dataset.originalLiZIndex;
+            const token = el.querySelector('.player-token');
+            if (token) {
+              token.style.zIndex = token.dataset.originalTokenZIndex || '';
+              delete token.dataset.originalTokenZIndex;
+            }
+          }
+        });
+        
+        // Raise this player token to front
+        const tokenEl = e.currentTarget;
+        const currentLiZIndex = listItem.style.zIndex || window.getComputedStyle(listItem).zIndex || '';
+        const currentTokenZIndex = tokenEl.style.zIndex || window.getComputedStyle(tokenEl).zIndex || '5';
+        
+        // Store original z-index values
+        listItem.dataset.originalLiZIndex = currentLiZIndex;
+        tokenEl.dataset.originalTokenZIndex = currentTokenZIndex;
+        
+        // Set high z-index to bring to front
+        listItem.style.zIndex = '200'; // Parent li gets highest z-index
+        tokenEl.style.zIndex = '60'; // Token gets high z-index
+        listItem.dataset.tokenRaised = 'true';
+      }, { passive: true });
+    }
 
     // Player name click handler as a named function
     const handlePlayerNameClick2 = (e) => {
@@ -1349,6 +1435,21 @@ document.addEventListener('DOMContentLoaded', () => {
           // Force the player name to go back behind the token
           // In touch mode, CSS sets z-index: 0, but we need to ensure inline style is removed
           el.style.removeProperty('z-index');
+        });
+      }
+      
+      // If not tapping on a player token, clear all raised token states
+      if (!target.closest('.player-token')) {
+        document.querySelectorAll('#player-circle li[data-token-raised="true"]').forEach(el => {
+          delete el.dataset.tokenRaised;
+          // Restore original z-index
+          el.style.zIndex = el.dataset.originalLiZIndex || '';
+          delete el.dataset.originalLiZIndex;
+          const token = el.querySelector('.player-token');
+          if (token) {
+            token.style.zIndex = token.dataset.originalTokenZIndex || '';
+            delete token.dataset.originalTokenZIndex;
+          }
         });
       }
     }, { passive: true });
