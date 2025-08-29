@@ -70,21 +70,14 @@
   display: none;
 }
 
-/* Curved label for character names on bluff tokens */
-.bluff-token svg {
-  position: absolute;
-  left: 50%;
-  bottom: -5px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 1;
+/* Curved label for character names on bluff tokens - uses same styling as character tokens */
+.bluff-token .icon-reminder-svg {
+  /* Same as regular tokens, no need to override */
 }
 
-.bluff-token svg text {
-  fill: #fff;
-  font-size: 10px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+/* Specific text size for bluff tokens (they're smaller) */
+.bluff-token .icon-reminder-text {
+  font-size: 10px !important; /* Override the calc-based size since bluff tokens are fixed size */
 }
 
 /* Responsive adjustments */
@@ -106,8 +99,8 @@
     bottom: -20px;
   }
   
-  .bluff-token svg text {
-    font-size: 8px;
+  .bluff-token .icon-reminder-text {
+    font-size: 8px !important;
   }
 }
 
