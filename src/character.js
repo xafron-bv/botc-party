@@ -218,7 +218,14 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
     return;
   }
   grimoireState.selectedPlayerIndex = playerIndex;
-  characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
+  
+  // Update modal title back to player selection
+  const modalTitle = characterModal.querySelector('h3');
+  if (modalTitle && characterModalPlayerName) {
+    modalTitle.textContent = 'Select Character for ';
+    characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
+  }
+  
   populateCharacterGrid({ grimoireState });
   characterModal.style.display = 'flex';
   characterSearch.value = '';

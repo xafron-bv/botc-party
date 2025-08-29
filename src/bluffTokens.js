@@ -184,7 +184,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   
   // Store the bluff index in grimoire state temporarily
   grimoireState.selectedBluffIndex = bluffIndex;
-  grimoireState.selectedPlayerIndex = -1; // Indicate this is for bluff, not player
+  // Don't modify selectedPlayerIndex - it should remain as is
   
   // Update modal title
   const modalTitle = characterModal.querySelector('h3');
@@ -219,7 +219,7 @@ export function assignBluffCharacter({ grimoireState, roleId }) {
     // Hide the modal
     characterModal.style.display = 'none';
     
-    // Clear selection
+    // Clear bluff selection
     delete grimoireState.selectedBluffIndex;
     
     // Save state
