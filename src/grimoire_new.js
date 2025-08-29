@@ -26,6 +26,57 @@ function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   return count;
 }
 
+// Helper function to check if a player element is partially covered
+function isPlayerPartiallyCovered({ listItem }) {
+  const liZIndex = parseInt(listItem.style.zIndex || window.getComputedStyle(listItem).zIndex, 10) || 0;
+  // In touch mode, if z-index is less than 50, it might be partially covered
+  return liZIndex < 50;
+}
+
+// Helper function to handle two-tap behavior for any element within a player
+function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, playerIndex }) {
+  if (!('ontouchstart' in window)) return;
+  
+  e.stopPropagation();
+  e.preventDefault();
+  
+  // Clear any other raised players first
+  document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
+    if (el !== listItem) {
+      delete el.dataset.raised;
+      // Restore original z-index
+      el.style.zIndex = el.dataset.originalLiZIndex || '';
+      delete el.dataset.originalLiZIndex;
+    }
+  });
+  
+  // Check if this player is already raised
+  const wasRaised = listItem.dataset.raised === 'true';
+  
+  // Check if player is partially covered
+  const isPartiallyCovered = isPlayerPartiallyCovered({ listItem });
+  
+  if (isPartiallyCovered && !wasRaised) {
+    // First tap on partially covered player: just raise it
+    listItem.dataset.raised = 'true';
+    listItem.dataset.originalLiZIndex = listItem.style.zIndex || '';
+    listItem.style.zIndex = '200'; // Raise above other players
+    return; // Don't trigger action
+  }
+  
+  // Either not partially covered, or already raised - trigger action
+  if (actionCallback) {
+    actionCallback(e);
+  }
+  
+  // After action, reset the raised state
+  if (listItem.dataset.raised) {
+    delete listItem.dataset.raised;
+    listItem.style.zIndex = listItem.dataset.originalLiZIndex || '';
+    delete listItem.dataset.originalLiZIndex;
+  }
+}
+
 // A lot of similar code in rebuildPlayerCircleUiPreserveState
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
@@ -70,6 +121,30 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for player token with two-tap behavior
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-token').addEventListener('touchstart', (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return; // handled by ribbon
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return; // handled by info icon
+        }
+        
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            openCharacterModal({ grimoireState, playerIndex: i });
+          },
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
+    
     // Player context menu: right-click
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -106,7 +181,19 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
 
-
+    // Add touchstart handler for player name with two-tap behavior
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: handlePlayerNameClick,
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
+    
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -551,6 +638,20 @@ export function updateGrimoire({ grimoireState }) {
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
+    
+    // Add touch handler for death ribbon with two-tap behavior
+    if ('ontouchstart' in window) {
+      ribbon.addEventListener('touchstart', (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem: li,
+          actionCallback: handleRibbonToggle,
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
+    
     // Attach to painted shapes only to avoid transparent hit areas
     try {
       ribbon.querySelectorAll('rect, path').forEach((shape) => {
@@ -589,6 +690,20 @@ export function updateGrimoire({ grimoireState }) {
       };
       
       deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
+      
+      // Add touch handler for death vote with two-tap behavior
+      if ('ontouchstart' in window) {
+        deathVoteIndicator.addEventListener('touchstart', (e) => {
+          handlePlayerElementTouch({
+            e,
+            listItem: li,
+            actionCallback: handleDeathVoteClick,
+            grimoireState,
+            playerIndex: i
+          });
+        });
+      }
+      
       tokenDiv.appendChild(deathVoteIndicator);
     }
 
@@ -1014,6 +1129,29 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
       openCharacterModal({ grimoireState, playerIndex: i });
     };
+    
+    // Add touchstart handler for player token with two-tap behavior
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-token').addEventListener('touchstart', (e) => {
+        const target = e.target;
+        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
+          return; // handled by ribbon
+        }
+        if (target && target.classList.contains('ability-info-icon')) {
+          return; // handled by info icon
+        }
+        
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            openCharacterModal({ grimoireState, playerIndex: i });
+          },
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
 
     // Player name click handler as a named function
     const handlePlayerNameClick2 = (e) => {
@@ -1030,7 +1168,19 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Add click handler
     listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
 
-
+    // Add touchstart handler for player name with two-tap behavior
+    if ('ontouchstart' in window) {
+      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: handlePlayerNameClick2,
+          grimoireState,
+          playerIndex: i
+        });
+      });
+    }
+    
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       const thisLi = listItem;
@@ -1207,5 +1357,19 @@ export async function loadPlayerSetupTable({ grimoireState }) {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-
+  // Register global touch handler for clearing raised states (only once)
+  if ('ontouchstart' in window) {
+    document.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      // If not tapping on a player element, clear all raised states
+      if (!target.closest('#player-circle li')) {
+        document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
+          delete el.dataset.raised;
+          // Restore original z-index
+          el.style.zIndex = el.dataset.originalLiZIndex || '';
+          delete el.dataset.originalLiZIndex;
+        });
+      }
+    }, { passive: true });
+  }
 });
