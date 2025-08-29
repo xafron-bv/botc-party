@@ -50,9 +50,30 @@ describe('Player two-tap behavior in touch mode', () => {
 
   describe('Player token (character circle)', () => {
     it('should bring player to front on first tap when overlapping, open modal on second tap', () => {
-      // Mark second player as overlapping for test
-      cy.get('#player-circle li').eq(1).then($li => {
-        $li[0].dataset.testOverlapping = 'true';
+      // Create many players to ensure overlap
+      cy.get('#player-count').then(($el) => {
+        const el = $el[0];
+        el.value = '12';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      cy.get('#restart-game').click();
+      cy.get('#player-circle li').should('have.length', 12);
+      
+      // Force two specific players to overlap by positioning them at the same location
+      cy.get('#player-circle').then($circle => {
+        const circle = $circle[0];
+        const players = circle.querySelectorAll('li');
+        
+        // Get the position of player 0
+        const rect0 = players[0].getBoundingClientRect();
+        
+        // Position player 1 at the same location with lower z-index
+        players[1].style.position = 'absolute';
+        players[1].style.left = rect0.left + 'px';
+        players[1].style.top = rect0.top + 'px';
+        players[1].style.zIndex = '5';
+        players[0].style.zIndex = '10';
       });
       
       const secondPlayerLi = cy.get('#player-circle li').eq(1);
@@ -101,9 +122,20 @@ describe('Player two-tap behavior in touch mode', () => {
 
   describe('Player name', () => {
     it('should bring player to front on first tap when overlapping, rename on second tap', () => {
-      // Mark second player as overlapping for test
-      cy.get('#player-circle li').eq(1).then($li => {
-        $li[0].dataset.testOverlapping = 'true';
+      // Force two specific players to overlap
+      cy.get('#player-circle').then($circle => {
+        const circle = $circle[0];
+        const players = circle.querySelectorAll('li');
+        
+        // Get the position of player 0
+        const rect0 = players[0].getBoundingClientRect();
+        
+        // Position player 1 at the same location with lower z-index
+        players[1].style.position = 'absolute';
+        players[1].style.left = rect0.left + 'px';
+        players[1].style.top = rect0.top + 'px';
+        players[1].style.zIndex = '5';
+        players[0].style.zIndex = '10';
       });
       
       const secondPlayerLi = cy.get('#player-circle li').eq(1);
@@ -139,9 +171,20 @@ describe('Player two-tap behavior in touch mode', () => {
       cy.get('#character-modal').should('be.visible');
       cy.get('#character-modal .role').eq(1).click();
       
-      // Mark second player as overlapping for test
-      cy.get('#player-circle li').eq(1).then($li => {
-        $li[0].dataset.testOverlapping = 'true';
+      // Force two specific players to overlap
+      cy.get('#player-circle').then($circle => {
+        const circle = $circle[0];
+        const players = circle.querySelectorAll('li');
+        
+        // Get the position of player 0
+        const rect0 = players[0].getBoundingClientRect();
+        
+        // Position player 1 at the same location with lower z-index
+        players[1].style.position = 'absolute';
+        players[1].style.left = rect0.left + 'px';
+        players[1].style.top = rect0.top + 'px';
+        players[1].style.zIndex = '5';
+        players[0].style.zIndex = '10';
       });
       
       const secondPlayerLi = cy.get('#player-circle li').eq(1);
@@ -172,22 +215,21 @@ describe('Player two-tap behavior in touch mode', () => {
 
   describe('Global behavior', () => {
     it('should clear raised state when tapping outside any player', () => {
-      // Position players to overlap
-      cy.get('#player-circle li').eq(0).then($li1 => {
-        cy.get('#player-circle li').eq(1).then($li2 => {
-          $li1[0].style.position = 'absolute';
-          $li1[0].style.left = '100px';
-          $li1[0].style.top = '100px';
-          $li1[0].style.zIndex = '10';
-          
-          $li2[0].style.position = 'absolute';
-          $li2[0].style.left = '110px';
-          $li2[0].style.top = '110px';
-          $li2[0].style.zIndex = '5';
-        });
+      // Force two specific players to overlap
+      cy.get('#player-circle').then($circle => {
+        const circle = $circle[0];
+        const players = circle.querySelectorAll('li');
+        
+        // Get the position of player 0
+        const rect0 = players[0].getBoundingClientRect();
+        
+        // Position player 1 at the same location with lower z-index
+        players[1].style.position = 'absolute';
+        players[1].style.left = rect0.left + 'px';
+        players[1].style.top = rect0.top + 'px';
+        players[1].style.zIndex = '5';
+        players[0].style.zIndex = '10';
       });
-      
-      cy.wait(100);
       
       const firstPlayerToken = cy.get('#player-circle li').eq(1).find('.player-token');
       
@@ -206,29 +248,27 @@ describe('Player two-tap behavior in touch mode', () => {
     });
 
     it('should only have one player raised at a time', () => {
-      // Position three players to overlap
-      cy.get('#player-circle li').eq(0).then($li1 => {
-        cy.get('#player-circle li').eq(1).then($li2 => {
-          cy.get('#player-circle li').eq(2).then($li3 => {
-            $li1[0].style.position = 'absolute';
-            $li1[0].style.left = '100px';
-            $li1[0].style.top = '100px';
-            $li1[0].style.zIndex = '10';
-            
-            $li2[0].style.position = 'absolute';
-            $li2[0].style.left = '110px';
-            $li2[0].style.top = '110px';
-            $li2[0].style.zIndex = '5';
-            
-            $li3[0].style.position = 'absolute';
-            $li3[0].style.left = '120px';
-            $li3[0].style.top = '120px';
-            $li3[0].style.zIndex = '3';
-          });
-        });
+      // Force three players to overlap
+      cy.get('#player-circle').then($circle => {
+        const circle = $circle[0];
+        const players = circle.querySelectorAll('li');
+        
+        // Get the position of player 0
+        const rect0 = players[0].getBoundingClientRect();
+        
+        // Position players 1 and 2 at overlapping locations
+        players[1].style.position = 'absolute';
+        players[1].style.left = rect0.left + 'px';
+        players[1].style.top = rect0.top + 'px';
+        players[1].style.zIndex = '5';
+        
+        players[2].style.position = 'absolute';
+        players[2].style.left = (rect0.left + 10) + 'px';
+        players[2].style.top = (rect0.top + 10) + 'px';
+        players[2].style.zIndex = '3';
+        
+        players[0].style.zIndex = '10';
       });
-      
-      cy.wait(100);
       
       // Tap first player
       cy.get('#player-circle li').eq(1).find('.player-token').trigger('touchstart', { force: true, touches: [{ clientX: 10, clientY: 10 }] });

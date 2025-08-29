@@ -11,11 +11,6 @@ import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNig
 
 // Helper function to check if a player element is overlapping with another player
 function isPlayerOverlapping({ listItem }) {
-  // For testing, allow override
-  if (listItem.dataset.testOverlapping === 'true') {
-    return true;
-  }
-  
   const rect1 = listItem.getBoundingClientRect();
   const allPlayers = document.querySelectorAll('#player-circle li');
   
