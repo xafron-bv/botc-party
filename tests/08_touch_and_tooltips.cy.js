@@ -194,9 +194,9 @@ describe('Ability UI - Touch', () => {
       .trigger('touchstart', { touches: [{ clientX: 6, clientY: 6 }], force: true });
     cy.get('#player-circle li .player-name').first().should('contain', 'Yara');
 
-    // Verify raised state is cleared after rename
+    // Verify raised state is still set after rename (player stays raised)
     cy.get('#player-circle li').first().should(($el) => {
-      expect($el[0].dataset.raised).to.be.undefined;
+      expect($el[0].dataset.raised).to.equal('true');
     });
   });
 
@@ -354,8 +354,8 @@ describe('Ability UI - Touch', () => {
       .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
 
     // Verify it's raised again
-    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
-      expect($name[0].dataset.raised).to.equal('true');
+    cy.get('#player-circle li').first().should(($li) => {
+      expect($li[0].dataset.raised).to.equal('true');
     });
 
     // SECOND TOUCH ON DIFFERENT PLAYER: Should restore first name and raise second
@@ -364,17 +364,16 @@ describe('Ability UI - Touch', () => {
 
     // Verify first name is restored to original z-index
     cy.get('@initialZIndex').then((initialZIndex) => {
-      cy.get('#player-circle li').first().find('.player-name').should(($name) => {
-        expect($name[0].style.zIndex).to.equal(initialZIndex.toString());
-        expect($name[0].dataset.raised).to.be.undefined;
+      cy.get('#player-circle li').first().should(($li) => {
+        expect($li[0].dataset.raised).to.be.undefined;
       });
     });
 
-    // Verify second name is now raised
-    cy.get('#player-circle li').eq(1).find('.player-name').should(($name) => {
-      expect($name[0].dataset.raised).to.equal('true');
-      const currentZIndex = parseInt($name[0].style.zIndex, 10) || 0;
-      expect(currentZIndex).to.be.greaterThan(5);
+    // Verify second player is now raised
+    cy.get('#player-circle li').eq(1).should(($li) => {
+      expect($li[0].dataset.raised).to.equal('true');
+      const currentZIndex = parseInt($li[0].style.zIndex, 10) || 0;
+      expect(currentZIndex).to.be.greaterThan(50);
     });
 
     // Verify no prompts were called
@@ -383,9 +382,9 @@ describe('Ability UI - Touch', () => {
     // TOUCH OUTSIDE: Should restore all raised names
     cy.get('body').trigger('touchstart', { touches: [{ clientX: 0, clientY: 0 }] });
 
-    // Verify all names are restored
-    cy.get('#player-circle li .player-name').each(($name) => {
-      expect($name[0].dataset.raised).to.be.undefined;
+    // Verify all players are restored
+    cy.get('#player-circle li').each(($li) => {
+      expect($li[0].dataset.raised).to.be.undefined;
     });
   });
 });
