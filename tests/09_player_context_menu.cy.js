@@ -80,6 +80,28 @@ describe('Player context menu - desktop right-click', () => {
     // Menu should be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
+
+  it('closes context menu when clicking outside after right-click on character token', () => {
+    // First assign a character to a player
+    cy.get('#player-circle li').first().find('.player-token').click();
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-grid .token').first().click();
+    cy.get('#character-modal').should('not.be.visible');
+    
+    // Now right-click on the character token (desktop mode uses right-click, not long press)
+    cy.get('#player-circle li').first().rightclick();
+    
+    cy.get('#player-context-menu').should('have.css', 'display', 'block');
+    
+    // Wait for grace period
+    cy.wait(200);
+    
+    // Click outside the menu
+    cy.get('#center').click({ force: true });
+    
+    // Menu should be hidden
+    cy.get('#player-context-menu').should('have.css', 'display', 'none');
+  });
 });
 
 describe('Player context menu - touch long-press', () => {
