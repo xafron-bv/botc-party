@@ -10,14 +10,15 @@ npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-serv
 2. Publish the local port (default http-server port 8080):
 
 ```bash
-# Save tunnel password/IP on line 1 and the deterministic URL on line 2
+# Preferred: use the helper script
+/workspace/scripts/publish_tunnel.sh
+
+# Or inline (equivalent) if needed:
 rm -f /workspace/.port /tmp/localtunnel.pid
 IP=$(curl -fsSL https://loca.lt/mytunnelpassword || true)
 SUB=clk$RANDOM$RANDOM
 URL=https://$SUB.loca.lt
 printf '%s\n%s\n' "$IP" "$URL" > /workspace/.port
-
-# Restart tunnel with the chosen subdomain and keep it running after shell exit
 pkill -f 'localtunnel --port 8080' 2>/dev/null || true
 nohup npx --yes localtunnel --port 8080 --subdomain "$SUB" >/tmp/localtunnel.log 2>&1 & echo $! > /tmp/localtunnel.pid
 ```

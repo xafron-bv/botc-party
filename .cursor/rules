@@ -13,14 +13,7 @@ steps:
 
   - id: publish_local_port
     when: always
-    run: |
-      rm -f /workspace/.port /tmp/localtunnel.pid
-      IP=$(curl -fsSL https://loca.lt/mytunnelpassword || true)
-      SUB=clk$RANDOM$RANDOM
-      URL=https://$SUB.loca.lt
-      printf '%s\n%s\n' "$IP" "$URL" > /workspace/.port
-      pkill -f 'localtunnel --port {{server_port}}' 2>/dev/null || true
-      nohup npx --yes localtunnel --port {{server_port}} --subdomain "$SUB" >/tmp/localtunnel.log 2>&1 & echo $! > /tmp/localtunnel.pid
+    run: /workspace/scripts/publish_tunnel.sh
 
   - id: run_tests
     when: pre-commit
