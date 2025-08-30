@@ -45,15 +45,6 @@ export function createBluffToken({ grimoireState, index }) {
     openBluffCharacterModal({ grimoireState, bluffIndex: index });
   });
   
-  // Touch handler
-  if (isTouchDevice) {
-    token.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      openBluffCharacterModal({ grimoireState, bluffIndex: index });
-    });
-  }
-  
   // Hover handler for tooltips
   token.addEventListener('mouseenter', (e) => {
     const character = grimoireState.bluffs?.[index];
@@ -80,13 +71,26 @@ export function createBluffToken({ grimoireState, index }) {
     }
   });
   
-  // Touch ability popup
+  // Touch handling for both tap and long press
   if (isTouchDevice) {
     let touchTimer;
+    let tapActionTimer;
+    let isLongPress = false;
+    
     token.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      
+      // Reset long press flag
+      isLongPress = false;
+      
       const character = grimoireState.bluffs?.[index];
+      
+      // Long press for ability popup
       if (character) {
         touchTimer = setTimeout(() => {
+          isLongPress = true;
+          clearTimeout(tapActionTimer); // Cancel tap action
           const role = grimoireState.allRoles[character];
           if (role) {
             const touch = e.touches[0];
@@ -99,14 +103,34 @@ export function createBluffToken({ grimoireState, index }) {
           }
         }, 700);
       }
+      
+      // Delayed tap action to allow long press detection
+      clearTimeout(tapActionTimer);
+      tapActionTimer = setTimeout(() => {
+        if (!isLongPress) {
+          openBluffCharacterModal({ grimoireState, bluffIndex: index });
+        }
+      }, 100);
     });
     
     token.addEventListener('touchend', () => {
       clearTimeout(touchTimer);
+      // Let the delayed tap action execute if not long press
+      if (isLongPress) {
+        clearTimeout(tapActionTimer);
+      }
     });
     
     token.addEventListener('touchmove', () => {
       clearTimeout(touchTimer);
+      clearTimeout(tapActionTimer);
+      isLongPress = false;
+    });
+    
+    token.addEventListener('touchcancel', () => {
+      clearTimeout(touchTimer);
+      clearTimeout(tapActionTimer);
+      isLongPress = false;
     });
   }
   
