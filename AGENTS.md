@@ -18,9 +18,17 @@ npx --yes http-server -c-1
 3. Publish the local port (default http-server port 8080):
 
 ```bash
-curl https://loca.lt/mytunnelpassword > /workspace/.port
-echo >> /workspace/.port
-npx --yes localtunnel --port 8080 >> /workspace/.port
+# Save tunnel password
+curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
+
+# Stop any existing localtunnel
+[ -f /workspace/.tunnel.pid ] && kill $(cat /workspace/.tunnel.pid) 2>/dev/null || true
+
+# Start localtunnel in background and capture logs/PID
+npx --yes localtunnel --port 8080 > /workspace/.tunnel.log 2>&1 & echo $! > /workspace/.tunnel.pid
+
+# Wait for the public URL and append it to /workspace/.port
+timeout 20s bash -lc 'until grep -m1 -Eo "https?://[^[:space:]]+" /workspace/.tunnel.log >> /workspace/.port; do sleep 0.5; done'
 ```
 
 4. Before committing changes, always run the tests and ESLint fix:
