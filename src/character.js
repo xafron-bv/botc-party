@@ -382,6 +382,12 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
   }, true);
+  
+  // Also hide menu on touch events outside the menu
+  document.addEventListener('touchstart', (e) => {
+    if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
+  }, true);
+  
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hidePlayerContextMenu({ grimoireState });
   });

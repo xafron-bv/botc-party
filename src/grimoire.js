@@ -525,6 +525,12 @@ export function ensureReminderContextMenu({ grimoireState }) {
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
   }, true);
+  
+  // Also hide menu on touch events outside the menu
+  document.addEventListener('touchstart', (e) => {
+    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
+  }, true);
+  
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideReminderContextMenu({ grimoireState });
   });
