@@ -1,6 +1,6 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
-import { openCharacterModal, showPlayerContextMenu } from './character.js';
+import { openCharacterModal, showPlayerContextMenu, hidePlayerContextMenu } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
@@ -1591,5 +1591,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     }, { passive: true });
+  }
+});
+
+// Global handlers for player context menu - registered once at app start
+document.addEventListener('click', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  
+  const menu = grimoireState.playerContextMenu;
+  if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
+    hidePlayerContextMenu({ grimoireState });
+  }
+}, true);
+
+document.addEventListener('touchstart', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  
+  const menu = grimoireState.playerContextMenu;
+  if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
+    hidePlayerContextMenu({ grimoireState });
+  }
+}, true);
+
+// Prevent menu from disappearing on touch release
+document.addEventListener('touchend', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  
+  const menu = grimoireState.playerContextMenu;
+  if (menu.contains(e.target)) {
+    e.stopPropagation();
+  }
+}, true);
+
+document.addEventListener('keydown', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  
+  if (e.key === 'Escape' && grimoireState.playerContextMenu.style.display === 'block') {
+    hidePlayerContextMenu({ grimoireState });
   }
 });

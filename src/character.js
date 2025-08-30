@@ -417,30 +417,6 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   menu.appendChild(removeBtn);
   document.body.appendChild(menu);
 
-  // Hide menu when clicking elsewhere or pressing Escape
-  document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target) && !grimoireState.menuJustOpened) {
-      hidePlayerContextMenu({ grimoireState });
-    }
-  }, true);
-  
-  // Also hide menu on touch events outside the menu
-  document.addEventListener('touchstart', (e) => {
-    if (!menu.contains(e.target) && !grimoireState.menuJustOpened) {
-      hidePlayerContextMenu({ grimoireState });
-    }
-  }, true);
-  
-  // Don't hide on touchend to prevent menu from disappearing on release
-  document.addEventListener('touchend', (e) => {
-    if (menu.contains(e.target)) {
-      e.stopPropagation();
-    }
-  }, true);
-  
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hidePlayerContextMenu({ grimoireState });
-  });
   grimoireState.playerContextMenu = menu;
   return menu;
 }
