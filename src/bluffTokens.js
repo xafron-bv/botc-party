@@ -84,7 +84,7 @@ export function createBluffToken({ grimoireState, index }) {
   });
 
   // Simple touch handling - just prevent double click
-  if (isTouchDevice) {
+  if (isTouchDevice()) {
     token.addEventListener('touchstart', (e) => {
       // Don't handle if clicking on info icon
       if (e.target.closest('.ability-info-icon')) {
@@ -113,7 +113,7 @@ export function createBluffToken({ grimoireState, index }) {
   }
 
   // Add info icon for touch mode (initially hidden)
-  if (isTouchDevice) {
+  if (isTouchDevice()) {
     const infoIcon = document.createElement('div');
     infoIcon.className = 'ability-info-icon bluff-info-icon';
     infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
@@ -185,7 +185,7 @@ export function updateBluffToken({ grimoireState, index }) {
 
     // Show/hide info icon based on whether role has ability
     if (infoIcon) {
-      infoIcon.style.display = (isTouchDevice && role.ability) ? 'flex' : 'none';
+      infoIcon.style.display = (isTouchDevice() && role.ability) ? 'flex' : 'none';
     }
   } else {
     // Clear the token

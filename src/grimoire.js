@@ -317,7 +317,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           return;
         }
       }
-      if (isTouchDevice) {
+      if (isTouchDevice()) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       } else if (e.altKey) {
         openTextReminderModal({ grimoireState, playerIndex: i });
@@ -340,13 +340,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       });
       listItem.dataset.expanded = '1';
       // Only set suppression on touch, and only when changing from collapsed -> expanded
-      if (isTouchDevice && !wasExpanded) {
+      if (isTouchDevice() && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players); };
-    if (!isTouchDevice) {
+    if (!isTouchDevice()) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
@@ -401,7 +401,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
 
     // Install one-time outside click/tap collapse for touch devices
-    if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+    if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
@@ -589,9 +589,11 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   // Helper function to handle button actions only on proper tap/click
   const addButtonHandler = (button, action) => {
     let touchMoved = false;
+    let touchStarted = false;
     
     button.addEventListener('touchstart', (e) => {
       touchMoved = false;
+      touchStarted = true;
       e.stopPropagation();
     });
     
@@ -603,15 +605,18 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     button.addEventListener('touchend', (e) => {
       e.stopPropagation();
       e.preventDefault();
-      if (!touchMoved) {
+      if (!touchMoved && touchStarted) {
         action();
       }
+      // Reset for next interaction
+      touchStarted = false;
+      touchMoved = false;
     });
     
     button.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Only handle click if it's not from a touch event
-      if (!('ontouchstart' in window)) {
+      // Only handle click if no touch event was started
+      if (!touchStarted) {
         action();
       }
     });
@@ -1009,7 +1014,7 @@ export function updateGrimoire({ grimoireState }) {
         }
 
         // Desktop hover actions on icon reminders
-        if (!isTouchDevice) {
+        if (!isTouchDevice()) {
           const editBtn = document.createElement('div');
           editBtn.className = 'reminder-action edit';
           editBtn.title = 'Edit';
@@ -1066,7 +1071,7 @@ export function updateGrimoire({ grimoireState }) {
         }
 
         // Touch long-press for reminder context menu (iOS Safari, Android)
-        if (isTouchDevice) {
+        if (isTouchDevice()) {
           const onPressStart = (e) => {
             try { e.preventDefault(); } catch (_) { }
             clearTimeout(grimoireState.longPressTimer);
@@ -1147,7 +1152,7 @@ export function updateGrimoire({ grimoireState }) {
           // No-op on desktop; use hover edit icon instead
         };
         // Desktop hover actions on text reminders
-        if (!isTouchDevice) {
+        if (!isTouchDevice()) {
           const editBtn2 = document.createElement('div');
           editBtn2.className = 'reminder-action edit';
           editBtn2.title = 'Edit';
@@ -1206,7 +1211,7 @@ export function updateGrimoire({ grimoireState }) {
           reminderEl.appendChild(delBtn2);
         }
         // Touch long-press for reminder context menu
-        if (isTouchDevice) {
+        if (isTouchDevice()) {
           const onPressStart2 = (e) => {
             try { e.preventDefault(); } catch (_) { }
             clearTimeout(grimoireState.longPressTimer);
@@ -1520,7 +1525,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           return;
         }
       }
-      if (isTouchDevice) {
+      if (isTouchDevice()) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       } else if (e.altKey) {
         openTextReminderModal({ grimoireState, playerIndex: i });
@@ -1542,13 +1547,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         }
       });
       listItem.dataset.expanded = '1';
-      if (isTouchDevice && !wasExpanded) {
+      if (isTouchDevice() && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i })); };
-    if (!isTouchDevice) {
+    if (!isTouchDevice()) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
@@ -1607,7 +1612,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Long-press on token to open context menu on touch devices
     const tokenEl = listItem.querySelector('.player-token');
     tokenEl.addEventListener('pointerdown', (e) => {
-      if (!isTouchDevice) return;
+      if (!isTouchDevice()) return;
       try { e.preventDefault(); } catch (_) { }
       clearTimeout(grimoireState.longPressTimer);
       const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
@@ -1626,7 +1631,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     });
 
     // Install one-time outside collapse handler for touch devices
-    if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+    if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
