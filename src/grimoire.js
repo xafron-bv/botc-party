@@ -1,6 +1,6 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
-import { openCharacterModal, showPlayerContextMenu, hidePlayerContextMenu } from './character.js';
+import { openCharacterModal } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
@@ -521,20 +521,6 @@ export function ensureReminderContextMenu({ grimoireState }) {
   menu.appendChild(deleteBtn);
   document.body.appendChild(menu);
 
-  // Hide on outside click or Escape
-  document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
-  }, true);
-  
-  // Also hide menu on touch events outside the menu
-  document.addEventListener('touchstart', (e) => {
-    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
-  }, true);
-  
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideReminderContextMenu({ grimoireState });
-  });
-
   grimoireState.reminderContextMenu = menu;
   return menu;
 }
@@ -543,6 +529,132 @@ export function hideReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
   grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
   clearTimeout(grimoireState.longPressTimer);
+}
+
+export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
+  const menu = ensurePlayerContextMenu({ grimoireState });
+  grimoireState.contextMenuTargetIndex = playerIndex;
+  // Set a flag to indicate the menu was just opened
+  grimoireState.menuJustOpened = true;
+  setTimeout(() => {
+    grimoireState.menuJustOpened = false;
+  }, 500); // Give 500ms grace period after opening
+  
+  // Enable/disable buttons based on limits
+  const canAdd = grimoireState.players.length < 20;
+  const canRemove = grimoireState.players.length > 5;
+  const addBeforeBtn = menu.querySelector('#player-menu-add-before');
+  const addAfterBtn = menu.querySelector('#player-menu-add-after');
+  const removeBtn = menu.querySelector('#player-menu-remove');
+  [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+  });
+  if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
+  if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
+  menu.style.display = 'block';
+  // Position within viewport bounds
+  const margin = 6;
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+    let left = x;
+    let top = y;
+    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
+    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  });
+}
+
+export function hidePlayerContextMenu({ grimoireState }) {
+  if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
+  grimoireState.contextMenuTargetIndex = -1;
+  clearTimeout(grimoireState.longPressTimer);
+}
+
+export function ensurePlayerContextMenu({ grimoireState }) {
+  if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
+  const menu = document.createElement('div');
+  menu.id = 'player-context-menu';
+  const addBeforeBtn = document.createElement('button');
+  addBeforeBtn.id = 'player-menu-add-before';
+  addBeforeBtn.textContent = 'Add Player Before';
+  const addAfterBtn = document.createElement('button');
+  addAfterBtn.id = 'player-menu-add-after';
+  addAfterBtn.textContent = 'Add Player After';
+  const removeBtn = document.createElement('button');
+  removeBtn.id = 'player-menu-remove';
+  removeBtn.textContent = 'Remove Player';
+
+  // Helper function to handle button actions only on proper tap/click
+  const addButtonHandler = (button, action) => {
+    let touchMoved = false;
+    
+    button.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchmove', (e) => {
+      touchMoved = true;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!touchMoved) {
+        action();
+      }
+    });
+    
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Only handle click if it's not from a touch event
+      if (!('ontouchstart' in window)) {
+        action();
+      }
+    });
+  };
+
+  addButtonHandler(addBeforeBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length >= 20) return; // clamp to max
+    const newName = `Player ${grimoireState.players.length + 1}`;
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    grimoireState.players.splice(idx, 0, newPlayer);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+  
+  addButtonHandler(addAfterBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length >= 20) return; // clamp to max
+    const newName = `Player ${grimoireState.players.length + 1}`;
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    grimoireState.players.splice(idx + 1, 0, newPlayer);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+  
+  addButtonHandler(removeBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length <= 5) return; // keep within 5..20
+    grimoireState.players.splice(idx, 1);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+
+  menu.appendChild(addBeforeBtn);
+  menu.appendChild(addAfterBtn);
+  menu.appendChild(removeBtn);
+  document.body.appendChild(menu);
+
+  grimoireState.playerContextMenu = menu;
+  return menu;
 }
 
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
@@ -1594,43 +1706,74 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Global handlers for player context menu - registered once at app start
+// Global handlers for context menus - registered once at app start
 document.addEventListener('click', (e) => {
   const grimoireState = window.grimoireState;
-  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  if (!grimoireState) return;
   
-  const menu = grimoireState.playerContextMenu;
-  if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
-    hidePlayerContextMenu({ grimoireState });
+  // Handle player context menu
+  if (grimoireState.playerContextMenu) {
+    const menu = grimoireState.playerContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
+      hidePlayerContextMenu({ grimoireState });
+    }
+  }
+  
+  // Handle reminder context menu
+  if (grimoireState.reminderContextMenu) {
+    const menu = grimoireState.reminderContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      hideReminderContextMenu({ grimoireState });
+    }
   }
 }, true);
 
 document.addEventListener('touchstart', (e) => {
   const grimoireState = window.grimoireState;
-  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  if (!grimoireState) return;
   
-  const menu = grimoireState.playerContextMenu;
-  if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
-    hidePlayerContextMenu({ grimoireState });
+  // Handle player context menu
+  if (grimoireState.playerContextMenu) {
+    const menu = grimoireState.playerContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
+      hidePlayerContextMenu({ grimoireState });
+    }
+  }
+  
+  // Handle reminder context menu
+  if (grimoireState.reminderContextMenu) {
+    const menu = grimoireState.reminderContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      hideReminderContextMenu({ grimoireState });
+    }
   }
 }, true);
 
-// Prevent menu from disappearing on touch release
+// Prevent menus from disappearing on touch release
 document.addEventListener('touchend', (e) => {
   const grimoireState = window.grimoireState;
-  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  if (!grimoireState) return;
   
-  const menu = grimoireState.playerContextMenu;
-  if (menu.contains(e.target)) {
+  if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.contains(e.target)) {
+    e.stopPropagation();
+  }
+  
+  if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.contains(e.target)) {
     e.stopPropagation();
   }
 }, true);
 
 document.addEventListener('keydown', (e) => {
   const grimoireState = window.grimoireState;
-  if (!grimoireState || !grimoireState.playerContextMenu) return;
+  if (!grimoireState) return;
   
-  if (e.key === 'Escape' && grimoireState.playerContextMenu.style.display === 'block') {
-    hidePlayerContextMenu({ grimoireState });
+  if (e.key === 'Escape') {
+    if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.style.display === 'block') {
+      hidePlayerContextMenu({ grimoireState });
+    }
+    
+    if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block') {
+      hideReminderContextMenu({ grimoireState });
+    }
   }
 });
