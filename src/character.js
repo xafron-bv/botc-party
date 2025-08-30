@@ -298,6 +298,12 @@ export async function loadAllCharacters({ grimoireState }) {
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   const menu = ensurePlayerContextMenu({ grimoireState });
   grimoireState.contextMenuTargetIndex = playerIndex;
+  // Set a flag to indicate the menu was just opened
+  grimoireState.menuJustOpened = true;
+  setTimeout(() => {
+    grimoireState.menuJustOpened = false;
+  }, 500); // Give 500ms grace period after opening
+  
   // Enable/disable buttons based on limits
   const canAdd = grimoireState.players.length < 20;
   const canRemove = grimoireState.players.length > 5;
@@ -344,7 +350,38 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   removeBtn.id = 'player-menu-remove';
   removeBtn.textContent = 'Remove Player';
 
-  addBeforeBtn.addEventListener('click', () => {
+  // Helper function to handle button actions only on proper tap/click
+  const addButtonHandler = (button, action) => {
+    let touchMoved = false;
+    
+    button.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchmove', (e) => {
+      touchMoved = true;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!touchMoved) {
+        action();
+      }
+    });
+    
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Only handle click if it's not from a touch event
+      if (!('ontouchstart' in window)) {
+        action();
+      }
+    });
+  };
+
+  addButtonHandler(addBeforeBtn, () => {
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -354,7 +391,8 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     grimoireState.players.splice(idx, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
-  addAfterBtn.addEventListener('click', () => {
+  
+  addButtonHandler(addAfterBtn, () => {
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -364,7 +402,8 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     grimoireState.players.splice(idx + 1, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
-  removeBtn.addEventListener('click', () => {
+  
+  addButtonHandler(removeBtn, () => {
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -380,12 +419,23 @@ export function ensurePlayerContextMenu({ grimoireState }) {
 
   // Hide menu when clicking elsewhere or pressing Escape
   document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
+    if (!menu.contains(e.target) && !grimoireState.menuJustOpened) {
+      hidePlayerContextMenu({ grimoireState });
+    }
   }, true);
   
   // Also hide menu on touch events outside the menu
   document.addEventListener('touchstart', (e) => {
-    if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
+    if (!menu.contains(e.target) && !grimoireState.menuJustOpened) {
+      hidePlayerContextMenu({ grimoireState });
+    }
+  }, true);
+  
+  // Don't hide on touchend to prevent menu from disappearing on release
+  document.addEventListener('touchend', (e) => {
+    if (menu.contains(e.target)) {
+      e.stopPropagation();
+    }
   }, true);
   
   document.addEventListener('keydown', (e) => {
