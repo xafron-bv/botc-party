@@ -3,14 +3,16 @@
 1. Start local server (from repo root):
 
 ```bash
-npx --yes http-server -c-1
+# Run in background on port 8080 and store PID (recommended for agents)
+npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-server.pid
 ```
 
 2. Publish the local port (default http-server port 8080):
 
 ```bash
-# Save tunnel password
+# Save tunnel password and ensure newline separation
 curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
+printf "\n" >> /workspace/.port
 
 # Stop any existing localtunnel
 [ -f /tmp/tunnel.pid ] && kill $(cat /tmp/tunnel.pid) 2>/dev/null || true
@@ -19,7 +21,7 @@ curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
 npx --yes localtunnel --port 8080 > /tmp/tunnel.log 2>&1 & echo $! > /tmp/tunnel.pid
 
 # Wait for the public URL and append it to /workspace/.port
-timeout 20s bash -lc 'until grep -m1 -Eo "https?://[^[:space:]]+" /tmp/tunnel.log >> /workspace/.port; do sleep 0.5; done'
+timeout 40s bash -lc 'until grep -m1 -Eo "https?://[^[:space:]]+" /tmp/tunnel.log >> /workspace/.port; do sleep 1; done'
 ```
 
 3. Before committing changes, always run the tests and ESLint fix:
