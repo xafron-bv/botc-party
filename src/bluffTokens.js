@@ -39,8 +39,16 @@ export function createBluffToken({ grimoireState, index }) {
   label.textContent = `Bluff ${index + 1}`;
   token.appendChild(label);
   
+  // Track if a touch event has occurred to prevent click after touch
+  let touchOccurred = false;
+  
   // Click handler
   token.addEventListener('click', (e) => {
+    // Ignore click if it was triggered by a touch event
+    if (touchOccurred) {
+      touchOccurred = false;
+      return;
+    }
     e.stopPropagation();
     openBluffCharacterModal({ grimoireState, bluffIndex: index });
   });
@@ -76,15 +84,24 @@ export function createBluffToken({ grimoireState, index }) {
     let touchTimer;
     let tapActionTimer;
     let isLongPress = false;
+    let touchStartTime = 0;
     
     token.addEventListener('touchstart', (e) => {
       e.stopPropagation();
       e.preventDefault();
       
+      // Mark that a touch occurred
+      touchOccurred = true;
+      touchStartTime = Date.now();
+      
       // Reset long press flag
       isLongPress = false;
       
       const character = grimoireState.bluffs?.[index];
+      
+      // Clear any existing timers
+      clearTimeout(touchTimer);
+      clearTimeout(tapActionTimer);
       
       // Long press for ability popup
       if (character) {
@@ -103,34 +120,44 @@ export function createBluffToken({ grimoireState, index }) {
           }
         }, 700);
       }
-      
-      // Delayed tap action to allow long press detection
-      clearTimeout(tapActionTimer);
-      tapActionTimer = setTimeout(() => {
-        if (!isLongPress) {
-          openBluffCharacterModal({ grimoireState, bluffIndex: index });
-        }
-      }, 100);
     });
     
-    token.addEventListener('touchend', () => {
+    token.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      
+      // Calculate touch duration
+      const touchDuration = Date.now() - touchStartTime;
+      
       clearTimeout(touchTimer);
-      // Let the delayed tap action execute if not long press
-      if (isLongPress) {
-        clearTimeout(tapActionTimer);
+      
+      // If it wasn't a long press and touch was quick enough, trigger the action
+      if (!isLongPress && touchDuration < 700) {
+        // Use a small delay to ensure long press timer is cancelled
+        tapActionTimer = setTimeout(() => {
+          if (!isLongPress) {
+            openBluffCharacterModal({ grimoireState, bluffIndex: index });
+          }
+        }, 50);
       }
+      
+      // Reset touch flag after a delay to handle any delayed click events
+      setTimeout(() => {
+        touchOccurred = false;
+      }, 300);
     });
     
     token.addEventListener('touchmove', () => {
       clearTimeout(touchTimer);
       clearTimeout(tapActionTimer);
       isLongPress = false;
+      touchOccurred = false;
     });
     
     token.addEventListener('touchcancel', () => {
       clearTimeout(touchTimer);
       clearTimeout(tapActionTimer);
       isLongPress = false;
+      touchOccurred = false;
     });
   }
   

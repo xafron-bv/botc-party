@@ -42,6 +42,9 @@ describe('Player two-tap behavior in touch mode', () => {
     playerToken.trigger('touchstart', { force: true, touches: [{ clientX: 10, clientY: 10 }] });
     playerToken.trigger('touchend', { force: true });
     
+    // Wait for touch action to complete (50ms delay in implementation)
+    cy.wait(100);
+    
     // Check if raised or modal opened
     cy.get('body').then($body => {
       const modalVisible = $body.find('#character-modal:visible').length > 0;
