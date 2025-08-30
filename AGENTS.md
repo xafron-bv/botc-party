@@ -11,12 +11,11 @@ npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-serv
 
 ```bash
 # Save tunnel password/IP, then start tunnel and append first URL; wait until URL exists
-rm -f /workspace/.port
+rm -f /workspace/.port /tmp/localtunnel.pid
 curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
 pkill -f 'localtunnel --port 8080' 2>/dev/null || true
 echo "" >> /workspace/.port
-stdbuf -oL npx --yes localtunnel --port 8080 2>&1 \
-  | stdbuf -oL tee >(grep -m1 -Eo 'https?://[^[:space:]]+' >> /workspace/.port) >/dev/null &
+nohup sh -c 'stdbuf -oL npx --yes localtunnel --port 8080 2>&1 | stdbuf -oL tee >(grep -m1 -Eo "https?://[^[:space:]]+" >> /workspace/.port) >/dev/null' >/dev/null 2>&1 & echo $! > /tmp/localtunnel.pid
 # Wait until .port has 2 lines (IP + URL) or timeout (~15s)
 for i in $(seq 1 60); do
   [ "$(wc -l < /workspace/.port)" -ge 2 ] && break
