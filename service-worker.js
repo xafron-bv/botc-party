@@ -123,7 +123,7 @@ self.addEventListener('fetch', event => {
     const tokenCachePromise = cacheAllTokenImages().catch(err => {
       console.error('Failed to cache token images:', err);
     });
-    
+
     event.respondWith(
       caches.match(event.request, { ignoreSearch: true })
         .then(response => {
@@ -160,7 +160,7 @@ self.addEventListener('fetch', event => {
             });
         })
     );
-    
+
     // Use waitUntil synchronously with the promise we created earlier
     event.waitUntil(tokenCachePromise);
     return;

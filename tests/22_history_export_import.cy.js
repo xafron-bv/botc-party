@@ -11,15 +11,15 @@ describe('History Export/Import', () => {
   it('should show export and import buttons in the UI', () => {
     // Scroll to the History Management section
     cy.contains('h3', 'History Management').scrollIntoView();
-    
+
     // Export button should exist
     cy.get('#export-history-btn').should('exist').and('be.visible');
     cy.get('#export-history-btn').should('contain', 'Export History');
-    
+
     // Import button should exist
     cy.get('#import-history-btn').should('exist').and('be.visible');
     cy.get('#import-history-btn').should('contain', 'Import History');
-    
+
     // File input for import should exist but be hidden
     cy.get('#import-history-file').should('exist');
   });
@@ -27,17 +27,17 @@ describe('History Export/Import', () => {
   it('should export empty history when no entries exist', () => {
     // Click export button
     cy.get('#export-history-btn').click();
-    
+
     // Check for success message
     cy.get('#import-status').should('have.class', 'status');
     cy.get('#import-status').should('contain', 'History exported successfully');
     cy.get('#import-status').should('contain', 'empty history');
-    
+
     // Verify download was triggered with correct content
     cy.window().then((win) => {
       expect(win.lastDownloadedFile).to.exist;
       expect(win.lastDownloadedFile.filename).to.match(/botc-history-\d{4}-\d{2}-\d{2}\.json/);
-      
+
       const content = JSON.parse(win.lastDownloadedFile.content);
       expect(content).to.deep.equal({
         version: 1,
@@ -57,7 +57,7 @@ describe('History Export/Import', () => {
       createdAt: Date.now() - 1000,
       updatedAt: Date.now() - 1000
     };
-    
+
     const grimoireEntry = {
       id: 'grimoire_test_1',
       name: 'Test Game',
@@ -69,16 +69,16 @@ describe('History Export/Import', () => {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    
+
     cy.window().then((win) => {
       win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([scriptEntry]));
       win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([grimoireEntry]));
     });
     cy.reload();
-    
+
     // Click export button
     cy.get('#export-history-btn').click();
-    
+
     // Verify download content
     cy.window().then((win) => {
       const content = JSON.parse(win.lastDownloadedFile.content);
@@ -115,18 +115,18 @@ describe('History Export/Import', () => {
         }
       ]
     };
-    
+
     // Mock file upload
     cy.get('#import-history-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'test-history.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Check for success message
     cy.get('#import-status').should('have.class', 'status');
     cy.get('#import-status').should('contain', 'History imported successfully');
-    
+
     // Verify history was imported
     cy.contains('#script-history-list .history-item .history-name', 'Imported Script').should('exist');
     cy.contains('#grimoire-history-list .history-item .history-name', 'Imported Game').should('exist');
@@ -141,12 +141,12 @@ describe('History Export/Import', () => {
       createdAt: Date.now() - 3000,
       updatedAt: Date.now() - 3000
     };
-    
+
     cy.window().then((win) => {
       win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([existingScript]));
     });
     cy.reload();
-    
+
     // Import new history
     const importData = {
       version: 1,
@@ -162,13 +162,13 @@ describe('History Export/Import', () => {
       ],
       grimoireHistory: []
     };
-    
+
     cy.get('#import-history-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'merge-test.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Both entries should exist
     cy.contains('#script-history-list .history-item .history-name', 'Existing Script').should('exist');
     cy.contains('#script-history-list .history-item .history-name', 'Another Import').should('exist');
@@ -183,12 +183,12 @@ describe('History Export/Import', () => {
       createdAt: Date.now() - 3000,
       updatedAt: Date.now() - 3000
     };
-    
+
     cy.window().then((win) => {
       win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([existingScript]));
     });
     cy.reload();
-    
+
     // Import with same ID but different content
     const importData = {
       version: 1,
@@ -204,17 +204,17 @@ describe('History Export/Import', () => {
       ],
       grimoireHistory: []
     };
-    
+
     cy.get('#import-history-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'duplicate-test.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Both entries should exist since they have different content
     cy.contains('#script-history-list .history-item .history-name', 'Original Entry').should('exist');
     cy.contains('#script-history-list .history-item .history-name', 'Different Content Entry').should('exist');
-    
+
     // Check that IDs are different
     cy.window().then((win) => {
       const history = JSON.parse(win.localStorage.getItem('botcScriptHistoryV1'));
@@ -230,7 +230,7 @@ describe('History Export/Import', () => {
       fileName: 'invalid.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Should show error alert
     cy.on('window:alert', (str) => {
       expect(str).to.match(/error.*import.*invalid/i);
@@ -242,13 +242,13 @@ describe('History Export/Import', () => {
     const invalidData = {
       someOtherField: 'not the right format'
     };
-    
+
     cy.get('#import-history-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(invalidData)),
       fileName: 'wrong-format.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Should show error alert
     cy.on('window:alert', (str) => {
       expect(str).to.match(/error.*import.*format/i);
@@ -259,15 +259,15 @@ describe('History Export/Import', () => {
     // Create initial history with specific timestamp to ensure consistency
     const createdAt = Date.now() - 10000;
     const updatedAt = Date.now() - 10000;
-    
+
     const scriptEntry = {
       id: 'script_no_dup_1',
       name: 'No Duplicate Script',
       data: [{ id: '_meta', name: 'No Duplicate Script', author: 'test' }, 'chef', 'librarian'],
-      createdAt: createdAt,
-      updatedAt: updatedAt
+      createdAt,
+      updatedAt
     };
-    
+
     const grimoireEntry = {
       id: 'grimoire_no_dup_1',
       name: 'No Duplicate Game',
@@ -276,37 +276,37 @@ describe('History Export/Import', () => {
       players: [
         { id: 'player_1', name: 'Alice', character: 'chef', isDead: false, isVoteless: false }
       ],
-      createdAt: createdAt,
-      updatedAt: updatedAt
+      createdAt,
+      updatedAt
     };
-    
+
     cy.window().then((win) => {
       win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([scriptEntry]));
       win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([grimoireEntry]));
     });
     cy.reload();
-    
+
     // Verify initial state
     cy.get('#script-history-list .history-item').should('have.length', 1);
     cy.get('#grimoire-history-list .history-item').should('have.length', 1);
-    
+
     // Export and then reimport the same data
     cy.get('#export-history-btn').click();
-    
+
     cy.window().then((win) => {
       const exportedData = win.lastDownloadedFile.content;
-      
+
       // Import the exported data back
       cy.get('#import-history-file').selectFile({
         contents: Cypress.Buffer.from(exportedData),
         fileName: 'reimport-test.json',
         mimeType: 'application/json'
       }, { force: true });
-      
+
       // Should still have only one entry each, not duplicates
       cy.get('#script-history-list .history-item').should('have.length', 1);
       cy.get('#grimoire-history-list .history-item').should('have.length', 1);
-      
+
       // Verify in localStorage too
       cy.window().then((win2) => {
         const scriptHistory = JSON.parse(win2.localStorage.getItem('botcScriptHistoryV1'));
@@ -351,13 +351,13 @@ describe('History Export/Import', () => {
         }
       ]
     };
-    
+
     cy.get('#import-history-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'count-test.json',
       mimeType: 'application/json'
     }, { force: true });
-    
+
     // Should show success with counts
     cy.get('#import-status').should('contain', '2 script');
     cy.get('#import-status').should('contain', '1 grimoire');
@@ -366,7 +366,7 @@ describe('History Export/Import', () => {
   it('should trigger file download with correct filename and content', () => {
     // This test verifies the actual download mechanism
     let downloadTriggered = false;
-    
+
     cy.window().then((win) => {
       // Override createElement to intercept download
       const originalCreateElement = win.document.createElement;
@@ -386,9 +386,9 @@ describe('History Export/Import', () => {
         return element;
       };
     });
-    
+
     cy.get('#export-history-btn').click();
-    
+
     cy.window().then(() => {
       expect(downloadTriggered).to.be.true;
     });

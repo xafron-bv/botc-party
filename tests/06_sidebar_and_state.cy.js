@@ -108,7 +108,7 @@ describe('Sidebar & State', () => {
 
     // Find the character sheet section
     cy.get('#character-sheet').should('exist');
-    
+
     // Find the background section
     cy.get('#sidebar').within(() => {
       cy.contains('h3', 'Background').should('exist');
@@ -117,10 +117,10 @@ describe('Sidebar & State', () => {
     // Verify that the background section comes after the character sheet
     cy.get('#character-sheet').then(($charSheet) => {
       const charSheetBottom = $charSheet[0].getBoundingClientRect().bottom;
-      
+
       cy.get('#sidebar').contains('h3', 'Background').then(($bgHeader) => {
         const bgTop = $bgHeader[0].getBoundingClientRect().top;
-        
+
         // Background section should appear below the character sheet
         expect(bgTop).to.be.greaterThan(charSheetBottom);
       });
