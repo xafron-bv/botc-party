@@ -18,16 +18,12 @@ npx --yes http-server -c-1
 3. Publish the local port (default http-server port 8080):
 
 ```bash
-npx --yes localtunnel --port 8080
+curl https://loca.lt/mytunnelpassword > /workspace/.port
+echo >> /workspace/.port
+npx --yes localtunnel --port 8080 >> /workspace/.port
 ```
 
-4. Store the password in a file at the project root:
-
-```bash
-curl https://loca.lt/mytunnelpassword > /workspace/.password
-```
-
-5. Before committing changes, always run the tests and ESLint fix:
+4. Before committing changes, always run the tests and ESLint fix:
 
 ```bash
 # Run tests as in step 1, then:
