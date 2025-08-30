@@ -534,11 +534,8 @@ export function hideReminderContextMenu({ grimoireState }) {
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   const menu = ensurePlayerContextMenu({ grimoireState });
   grimoireState.contextMenuTargetIndex = playerIndex;
-  // Set a flag to indicate the menu was just opened
-  grimoireState.menuJustOpened = true;
-  setTimeout(() => {
-    grimoireState.menuJustOpened = false;
-  }, 500); // Give 500ms grace period after opening
+  // Set a timestamp when the menu was opened
+  grimoireState.menuOpenedAt = Date.now();
   
   // Enable/disable buttons based on limits
   const canAdd = grimoireState.players.length < 20;
@@ -569,6 +566,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
 export function hidePlayerContextMenu({ grimoireState }) {
   if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
   grimoireState.contextMenuTargetIndex = -1;
+  grimoireState.menuOpenedAt = 0;
   clearTimeout(grimoireState.longPressTimer);
 }
 
@@ -1719,8 +1717,12 @@ document.addEventListener('click', (e) => {
   // Handle player context menu
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
-      hidePlayerContextMenu({ grimoireState });
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      // Only ignore the close if this click is happening within 100ms of opening
+      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+      if (timeSinceOpen > 100) {
+        hidePlayerContextMenu({ grimoireState });
+      }
     }
   }
   
@@ -1740,8 +1742,12 @@ document.addEventListener('touchstart', (e) => {
   // Handle player context menu
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !grimoireState.menuJustOpened) {
-      hidePlayerContextMenu({ grimoireState });
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      // Only ignore the close if this touch is happening within 100ms of opening
+      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+      if (timeSinceOpen > 100) {
+        hidePlayerContextMenu({ grimoireState });
+      }
     }
   }
   
