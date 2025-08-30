@@ -1,4 +1,4 @@
-import { resolveAssetPath } from '../utils.js';
+
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid } from './character.js';
@@ -58,7 +58,7 @@ export function createBluffToken({ grimoireState, index }) {
   });
 
   // Hover handler for tooltips
-  token.addEventListener('mouseenter', (e) => {
+  token.addEventListener('mouseenter', (_e) => {
     const character = grimoireState.bluffs?.[index];
     if (character) {
       const role = grimoireState.allRoles[character];

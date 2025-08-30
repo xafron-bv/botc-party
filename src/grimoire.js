@@ -67,7 +67,7 @@ function isPlayerOverlapping({ listItem }) {
 }
 
 // Helper function to handle two-tap behavior for any element within a player
-function handlePlayerElementTouch({ e, listItem, actionCallback, grimoireState, playerIndex }) {
+function handlePlayerElementTouch({ e, listItem, actionCallback }) {
   if (!('ontouchstart' in window)) return;
 
   e.stopPropagation();
@@ -251,7 +251,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         }, 300);
       });
 
-      tokenEl.addEventListener('touchcancel', (e) => {
+      tokenEl.addEventListener('touchcancel', (_e) => {
         // Clear all timers on cancel (only clear long press timer if menu is not visible)
         if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
           clearTimeout(grimoireState.longPressTimer);
@@ -1341,7 +1341,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         }, 300);
       });
 
-      tokenEl2.addEventListener('touchcancel', (e) => {
+      tokenEl2.addEventListener('touchcancel', (_e) => {
         // Clear all timers on cancel (only clear long press timer if menu is not visible)
         if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
           clearTimeout(grimoireState.longPressTimer);

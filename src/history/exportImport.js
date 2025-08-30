@@ -269,7 +269,7 @@ export function initExportImport() {
           await importHistory(file);
           // Clear the input so the same file can be selected again
           importFileInput.value = '';
-        } catch (error) {
+        } catch (_error) {
           // Error already handled in importHistory
         }
       }

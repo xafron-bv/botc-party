@@ -36,7 +36,6 @@ describe('Player two-tap behavior in touch mode', () => {
 
     // Find a player in the middle of the circle (likely to overlap)
     const playerToken = cy.get('#player-circle li').eq(10).find('.player-token');
-    const playerLi = cy.get('#player-circle li').eq(10);
 
     // First tap
     playerToken.trigger('touchstart', { force: true, touches: [{ clientX: 10, clientY: 10 }] });
