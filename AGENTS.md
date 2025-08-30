@@ -14,14 +14,12 @@ npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-serv
 curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
 printf "\n" >> /workspace/.port
 
-# Stop any existing localtunnel
-[ -f /tmp/tunnel.pid ] && kill $(cat /tmp/tunnel.pid) 2>/dev/null || true
+# Stop any existing localtunnel (fileless, by pattern)
+pkill -f 'localtunnel --port 8080' 2>/dev/null || true
 
-# Start localtunnel in background and capture logs/PID (log and pid in /tmp)
-npx --yes localtunnel --port 8080 > /tmp/tunnel.log 2>&1 & echo $! > /tmp/tunnel.pid
-
-# Wait for the public URL and append it to /workspace/.port
-timeout 40s bash -lc 'until grep -m1 -Eo "https?://[^[:space:]]+" /tmp/tunnel.log >> /workspace/.port; do sleep 1; done'
+# Start fileless tunnel and capture the first URL into /workspace/.port while keeping the tunnel alive
+npx --yes localtunnel --port 8080 \
+  | stdbuf -oL tee >(grep -m1 -Eo 'https?://[^[:space:]]+' >> /workspace/.port) >/dev/null &
 ```
 
 3. Before committing changes, always run the tests and ESLint fix:
