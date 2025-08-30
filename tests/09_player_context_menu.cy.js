@@ -189,5 +189,54 @@ describe('Player context menu - touch long-press', () => {
     // Now menu should be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
+
+  it('responds to tap on menu buttons in touch mode', () => {
+    cy.viewport('iphone-6');
+    // Start with 5 players
+    cy.get('#player-circle li').should('have.length', 5);
+    
+    // Long-press to open context menu
+    cy.get('#player-circle li .player-token').first()
+      .trigger('pointerdown', { force: true })
+      .wait(650)
+      .trigger('pointerup', { force: true });
+    
+    cy.get('#player-context-menu').should('have.css', 'display', 'block');
+    
+    // Click the button (this is what the original test did)
+    cy.get('#player-menu-add-after').click();
+    
+    // Should have 6 players now
+    cy.get('#player-circle li').should('have.length', 6);
+    
+    // Menu should be closed after action
+    cy.get('#player-context-menu').should('have.css', 'display', 'none');
+  });
+
+  it('handles touch move without triggering button action', () => {
+    cy.viewport('iphone-6');
+    // Start with 5 players
+    cy.get('#player-circle li').should('have.length', 5);
+    
+    // Long-press to open context menu
+    cy.get('#player-circle li .player-token').first()
+      .trigger('pointerdown', { force: true })
+      .wait(650)
+      .trigger('pointerup', { force: true });
+    
+    cy.get('#player-context-menu').should('have.css', 'display', 'block');
+    
+    // Touch and move on the button (should not trigger action)
+    cy.get('#player-menu-add-after')
+      .trigger('touchstart', { force: true, clientX: 100, clientY: 100 })
+      .trigger('touchmove', { force: true, clientX: 150, clientY: 150 })
+      .trigger('touchend', { force: true, clientX: 150, clientY: 150 });
+    
+    // Should still have 5 players (no action triggered)
+    cy.get('#player-circle li').should('have.length', 5);
+    
+    // Menu should still be open
+    cy.get('#player-context-menu').should('have.css', 'display', 'block');
+  });
 });
 

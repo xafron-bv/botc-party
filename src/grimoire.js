@@ -587,11 +587,10 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   // Helper function to handle button actions only on proper tap/click
   const addButtonHandler = (button, action) => {
     let touchMoved = false;
-    let touchStarted = false;
+    let lastTouchEnd = 0;
     
     button.addEventListener('touchstart', (e) => {
       touchMoved = false;
-      touchStarted = true;
       e.stopPropagation();
     });
     
@@ -603,18 +602,18 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     button.addEventListener('touchend', (e) => {
       e.stopPropagation();
       e.preventDefault();
-      if (!touchMoved && touchStarted) {
+      if (!touchMoved) {
+        lastTouchEnd = Date.now();
         action();
       }
-      // Reset for next interaction
-      touchStarted = false;
-      touchMoved = false;
     });
     
     button.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Only handle click if no touch event was started
-      if (!touchStarted) {
+      e.preventDefault();
+      // Skip click if it was triggered by a recent touch
+      const timeSinceTouchEnd = Date.now() - lastTouchEnd;
+      if (timeSinceTouchEnd > 300) {
         action();
       }
     });
