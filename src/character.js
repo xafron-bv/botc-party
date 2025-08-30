@@ -16,7 +16,7 @@ export function populateCharacterGrid({ grimoireState }) {
   if (!filter || ['none', 'clear', 'empty'].some(term => term.includes(filter))) {
     const emptyToken = document.createElement('div');
     emptyToken.className = 'token empty';
-    emptyToken.style.backgroundImage = `url('./assets/img/token-BqDQdWeO.webp')`;
+    emptyToken.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
     emptyToken.style.backgroundSize = 'cover';
     emptyToken.style.position = 'relative';
     emptyToken.style.overflow = 'visible';
@@ -51,13 +51,13 @@ export function populateCharacterGrid({ grimoireState }) {
 
 export function assignCharacter({ grimoireState, roleId }) {
   const characterModal = document.getElementById('character-modal');
-  
+
   // Check if this is for a bluff token
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
     assignBluffCharacter({ grimoireState, roleId });
     return;
   }
-  
+
   // Original player assignment logic
   if (grimoireState.selectedPlayerIndex > -1) {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
@@ -218,14 +218,14 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
     return;
   }
   grimoireState.selectedPlayerIndex = playerIndex;
-  
+
   // Update modal title back to player selection
   const modalTitle = characterModal.querySelector('h3');
   if (modalTitle && characterModalPlayerName) {
     modalTitle.textContent = 'Select Character for ';
     characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
   }
-  
+
   populateCharacterGrid({ grimoireState });
   characterModal.style.display = 'flex';
   characterSearch.value = '';

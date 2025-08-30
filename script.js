@@ -101,18 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
     grimoireState.nightPhase = 'first-night';
   }
 
-    if (nightOrderSortCheckbox) {
+  if (nightOrderSortCheckbox) {
     nightOrderSortCheckbox.checked = grimoireState.nightOrderSort;
     if (nightOrderControls) {
       nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
     }
-    
+
     nightOrderSortCheckbox.addEventListener('change', async () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
       try {
         localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
       } catch (_) {}
-      
+
       if (nightOrderControls) {
         nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
       }
@@ -124,24 +124,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-    // Set up radio buttons
+  // Set up radio buttons
   if (firstNightBtn && otherNightsBtn) {
     // Set initial state
     firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
     otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
-    
+
     const handlePhaseChange = async (e) => {
       grimoireState.nightPhase = e.target.value;
       try {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
       } catch (_) {}
-      
+
       // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {
         await displayScript({ data: grimoireState.scriptData, grimoireState });
       }
     };
-    
+
     firstNightBtn.addEventListener('change', handlePhaseChange);
     otherNightsBtn.addEventListener('change', handlePhaseChange);
   }
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Close modals by tapping outside content
-  characterModal.addEventListener('click', (e) => { 
+  characterModal.addEventListener('click', (e) => {
     if (e.target === characterModal) {
       characterModal.style.display = 'none';
       // Clear any bluff selection when closing

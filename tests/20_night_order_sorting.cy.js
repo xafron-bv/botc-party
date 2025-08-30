@@ -171,7 +171,7 @@ describe('Night Order Sorting', () => {
     });
   });
 
-    describe('Night Phase Selector', () => {
+  describe('Night Phase Selector', () => {
     it('should show night phase selector only when night order sorting is enabled', () => {
       // Initially hidden
       cy.get('[data-testid="night-phase-selector"]').should('not.be.visible');

@@ -168,7 +168,7 @@ describe('Ability UI - Touch', () => {
         players[0].style.left = '100px';
         players[0].style.top = '100px';
         players[0].style.zIndex = '10';
-        
+
         players[1].style.position = 'absolute';
         players[1].style.left = '120px'; // Overlapping position
         players[1].style.top = '120px';

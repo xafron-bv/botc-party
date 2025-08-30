@@ -15,7 +15,7 @@ describe('Tour', () => {
     cy.get('#start-game').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
-    
+
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -70,7 +70,7 @@ describe('Tour', () => {
     cy.get('#start-game').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
-    
+
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -114,7 +114,7 @@ describe('Tour', () => {
     cy.get('#start-game').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
-    
+
     // Start the tour
     cy.get('#start-tour').click();
 
@@ -134,7 +134,7 @@ describe('Tour', () => {
 
     // Verify the highlight is on a player token or the player circle
     cy.get('.tour-highlight').should('exist');
-    
+
     // Verify we can navigate back and forward
     cy.contains('.tour-popover .actions .button', 'Back').click();
     cy.get('.tour-popover .title').should('contain', 'Assign a character');
