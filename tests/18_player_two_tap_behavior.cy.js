@@ -42,13 +42,20 @@ describe('Player two-tap behavior in touch mode', () => {
     playerToken.trigger('touchstart', { force: true, touches: [{ clientX: 10, clientY: 10 }] });
     playerToken.trigger('touchend', { force: true });
     
-    // Check if raised or modal opened
-    cy.get('body').then($body => {
+    // Wait for either modal to become visible or player to be raised
+    // This is better than cy.wait because it waits only as long as needed
+    cy.get('body').should(($body) => {
       const modalVisible = $body.find('#character-modal:visible').length > 0;
       const playerRaised = $body.find('#player-circle li').eq(10).attr('data-raised') === 'true';
       
       // Either modal opened (not overlapping) or player raised (overlapping)
       expect(modalVisible || playerRaised).to.be.true;
+    });
+    
+    // Check the result and handle second tap if needed
+    cy.get('body').then($body => {
+      const modalVisible = $body.find('#character-modal:visible').length > 0;
+      const playerRaised = $body.find('#player-circle li').eq(10).attr('data-raised') === 'true';
       
       if (!modalVisible && playerRaised) {
         // Player was raised, so it was overlapping
