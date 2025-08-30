@@ -49,7 +49,7 @@ describe('History File Validation', () => {
 
     // The character sheet should not be updated
     cy.get('#character-sheet').should('contain', 'Load a script to see available characters');
-    
+
     // Load status should show error
     cy.get('#load-status').should('have.class', 'error');
     cy.get('#load-status').should('contain', 'history');

@@ -109,7 +109,7 @@ export function createDeathVoteIndicatorSvg() {
   svg.setAttribute('viewBox', '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.classList.add('death-vote-indicator');
-  
+
   // Create circle background
   const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   circle.setAttribute('cx', '50');
@@ -118,7 +118,7 @@ export function createDeathVoteIndicatorSvg() {
   circle.setAttribute('fill', '#8B0000');
   circle.setAttribute('stroke', '#000');
   circle.setAttribute('stroke-width', '4');
-  
+
   // Create vote symbol (checkmark)
   const checkmark = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   checkmark.setAttribute('d', 'M 25 50 L 40 65 L 75 30');
@@ -127,7 +127,7 @@ export function createDeathVoteIndicatorSvg() {
   checkmark.setAttribute('stroke-width', '8');
   checkmark.setAttribute('stroke-linecap', 'round');
   checkmark.setAttribute('stroke-linejoin', 'round');
-  
+
   svg.appendChild(circle);
   svg.appendChild(checkmark);
   return svg;

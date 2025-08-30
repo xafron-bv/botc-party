@@ -14,18 +14,18 @@ export function exportHistory() {
   // Create blob and download
   const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  
+
   // Create download link
   const a = document.createElement('a');
   a.href = url;
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   a.download = `botc-history-${date}.json`;
-  
+
   // Trigger download
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  
+
   // Clean up
   URL.revokeObjectURL(url);
 
@@ -34,7 +34,7 @@ export function exportHistory() {
   if (importStatus) {
     const scriptCount = exportData.scriptHistory.length;
     const grimoireCount = exportData.grimoireHistory.length;
-    
+
     let message = 'History exported successfully! ';
     const parts = [];
     if (scriptCount > 0) {
@@ -43,16 +43,16 @@ export function exportHistory() {
     if (grimoireCount > 0) {
       parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`);
     }
-    
+
     if (parts.length > 0) {
       message += `Exported ${parts.join(' and ')}.`;
     } else {
       message += 'Exported empty history.';
     }
-    
+
     importStatus.textContent = message;
     importStatus.className = 'status';
-    
+
     // Clear the message after 5 seconds
     setTimeout(() => {
       importStatus.textContent = '';
@@ -132,7 +132,7 @@ export async function importHistory(file) {
 
     for (const importedEntry of data.scriptHistory) {
       // Check if this exact entry already exists
-      const isDuplicate = history.scriptHistory.some(existingEntry => 
+      const isDuplicate = history.scriptHistory.some(existingEntry =>
         areEntriesIdentical(existingEntry, importedEntry)
       );
 
@@ -159,7 +159,7 @@ export async function importHistory(file) {
 
     for (const importedEntry of data.grimoireHistory) {
       // Check if this exact entry already exists
-      const isDuplicate = history.grimoireHistory.some(existingEntry => 
+      const isDuplicate = history.grimoireHistory.some(existingEntry =>
         areGrimoireEntriesIdentical(existingEntry, importedEntry)
       );
 
@@ -190,10 +190,10 @@ export async function importHistory(file) {
     // Re-render history lists
     const { renderScriptHistory } = await import('./script.js');
     const { renderGrimoireHistory } = await import('./grimoire.js');
-    
+
     const scriptHistoryList = document.getElementById('script-history-list');
     const grimoireHistoryList = document.getElementById('grimoire-history-list');
-    
+
     if (scriptHistoryList) {
       renderScriptHistory({ scriptHistoryList });
     }
@@ -206,7 +206,7 @@ export async function importHistory(file) {
     if (importStatus) {
       const scriptCount = processedScriptHistory.length;
       const grimoireCount = processedGrimoireHistory.length;
-      
+
       let message = 'History imported successfully! ';
       if (scriptCount > 0 || grimoireCount > 0) {
         const parts = [];
@@ -220,10 +220,10 @@ export async function importHistory(file) {
       } else {
         message += 'No new entries added (all were duplicates).';
       }
-      
+
       importStatus.textContent = message;
       importStatus.className = 'status';
-      
+
       // Clear the message after 5 seconds
       setTimeout(() => {
         importStatus.textContent = '';
@@ -264,12 +264,12 @@ export function initExportImport() {
           importStatus.textContent = '';
           importStatus.className = '';
         }
-        
+
         try {
           await importHistory(file);
           // Clear the input so the same file can be selected again
           importFileInput.value = '';
-        } catch (error) {
+        } catch (_error) {
           // Error already handled in importHistory
         }
       }
