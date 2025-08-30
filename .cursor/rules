@@ -14,13 +14,14 @@ steps:
   - id: publish_local_port
     when: always
     run: |
-      rm -f /workspace/.port /tmp/localtunnel.pid
+      rm -f /workspace/.port /tmp/localtunnel.pid /tmp/localtunnel.log /tmp/localtunnel_watch.pid
       curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
-      pkill -f 'localtunnel --port {{server_port}}' 2>/dev/null || true
       echo "" >> /workspace/.port
-      nohup sh -c 'stdbuf -oL npx --yes localtunnel --port {{server_port}} 2>&1 | stdbuf -oL tee >(grep -m1 -Eo "https?://[^[:space:]]+" >> /workspace/.port) >/dev/null' >/dev/null 2>&1 & echo $! > /tmp/localtunnel.pid
-      # Wait until .port has 2 lines (IP + URL) or timeout (~15s)
-      for i in $(seq 1 60); do
+      pkill -f 'localtunnel --port {{server_port}}' 2>/dev/null || true
+      nohup sh -c 'npx --yes localtunnel --port {{server_port}} >> /tmp/localtunnel.log 2>&1' >/dev/null 2>&1 & echo $! > /tmp/localtunnel.pid
+      nohup sh -c 'tail -F /tmp/localtunnel.log | grep -m1 -Eo "https?://[^[:space:]]+" >> /workspace/.port' >/dev/null 2>&1 & echo $! > /tmp/localtunnel_watch.pid
+      # Wait until .port has 2 lines (IP + URL) or timeout (~20s)
+      for i in $(seq 1 80); do
         if [ "$(wc -l < /workspace/.port)" -ge 2 ]; then
           break
         fi
