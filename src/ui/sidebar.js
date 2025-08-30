@@ -100,7 +100,7 @@ export function initSidebarToggle({
     const collapsed = document.body.classList.contains('sidebar-collapsed');
     applyCollapsed(collapsed);
   });
-  if (isTouchDevice) {
+  if (isTouchDevice()) {
     const handleOutsideClick = (event) => {
       const useOverlay = prefersOverlaySidebar.matches;
       if (useOverlay) return;
