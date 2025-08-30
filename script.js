@@ -77,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
     outsideCollapseHandlerInstalled: false
   };
 
+  // Make grimoireState available globally for event handlers
+  window.grimoireState = grimoireState;
+
   initGrimoireBackground();
 
   if (backgroundSelect) {

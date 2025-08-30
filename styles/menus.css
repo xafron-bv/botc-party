@@ -17,10 +17,13 @@
   background: transparent;
   border: none;
   color: #eee;
-  padding: 8px 12px;
+  padding: 12px 16px;
   cursor: pointer;
   font-size: 14px;
   border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.2s;
 }
 
 #player-context-menu button:hover {

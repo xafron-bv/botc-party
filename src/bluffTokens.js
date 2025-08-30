@@ -3,7 +3,6 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid } from './character.js';
 import { saveAppState } from './app.js';
-import { isTouchDevice } from './constants.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
   // Create container for bluff tokens
@@ -84,7 +83,7 @@ export function createBluffToken({ grimoireState, index }) {
   });
 
   // Simple touch handling - just prevent double click
-  if (isTouchDevice) {
+  if ('ontouchstart' in window) {
     token.addEventListener('touchstart', (e) => {
       // Don't handle if clicking on info icon
       if (e.target.closest('.ability-info-icon')) {
@@ -112,36 +111,7 @@ export function createBluffToken({ grimoireState, index }) {
     });
   }
 
-  // Add info icon for touch mode (initially hidden)
-  if (isTouchDevice) {
-    const infoIcon = document.createElement('div');
-    infoIcon.className = 'ability-info-icon bluff-info-icon';
-    infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-    infoIcon.dataset.bluffIndex = index;
-    infoIcon.style.display = 'none'; // Initially hidden
-
-    // Handle both click and touch events
-    const handleInfoClick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const character = grimoireState.bluffs?.[index];
-      if (character) {
-        const role = grimoireState.allRoles[character];
-        if (role && role.ability) {
-          showTouchAbilityPopup(infoIcon, role.ability);
-        }
-      }
-    };
-
-    infoIcon.onclick = handleInfoClick;
-    infoIcon.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleInfoClick(e);
-    });
-
-    token.appendChild(infoIcon);
-  }
+  // Note: info icon will be added in updateBluffToken when a character with ability is assigned
 
   return token;
 }
@@ -151,7 +121,12 @@ export function updateBluffToken({ grimoireState, index }) {
   if (!token) return;
 
   const character = grimoireState.bluffs?.[index];
-  const infoIcon = token.querySelector('.ability-info-icon');
+
+  // Remove any existing info icon
+  const existingInfoIcon = token.querySelector('.ability-info-icon');
+  if (existingInfoIcon) {
+    existingInfoIcon.remove();
+  }
 
   if (character && grimoireState.allRoles[character]) {
     const role = grimoireState.allRoles[character];
@@ -183,9 +158,50 @@ export function updateBluffToken({ grimoireState, index }) {
       label.style.display = 'none';
     }
 
-    // Show/hide info icon based on whether role has ability
-    if (infoIcon) {
-      infoIcon.style.display = (isTouchDevice && role.ability) ? 'flex' : 'none';
+    // Add tooltip functionality for non-touch devices (matching character token behavior)
+    if (!('ontouchstart' in window)) {
+      // Get or create ability tooltip
+      let abilityTooltip = document.getElementById('ability-tooltip');
+      if (!abilityTooltip) {
+        abilityTooltip = document.createElement('div');
+        abilityTooltip.id = 'ability-tooltip';
+        abilityTooltip.className = 'ability-tooltip';
+        document.body.appendChild(abilityTooltip);
+      }
+
+      token.addEventListener('mouseenter', (e) => {
+        if (role.ability) {
+          abilityTooltip.textContent = role.ability;
+          abilityTooltip.classList.add('show');
+          positionTooltip(e.target, abilityTooltip);
+        }
+      });
+
+      token.addEventListener('mouseleave', () => {
+        abilityTooltip.classList.remove('show');
+      });
+    } else if (role.ability) {
+      // Add info icon for touch mode if role has ability
+      const infoIcon = document.createElement('div');
+      infoIcon.className = 'ability-info-icon bluff-info-icon';
+      infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+      infoIcon.dataset.bluffIndex = index;
+      
+      // Handle both click and touch events
+      const handleInfoClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        showTouchAbilityPopup(infoIcon, role.ability);
+      };
+      
+      infoIcon.onclick = handleInfoClick;
+      infoIcon.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        handleInfoClick(e);
+      });
+      
+      token.appendChild(infoIcon);
     }
   } else {
     // Clear the token
@@ -209,10 +225,8 @@ export function updateBluffToken({ grimoireState, index }) {
       label.style.display = 'block';
     }
 
-    // Hide info icon when no character
-    if (infoIcon) {
-      infoIcon.style.display = 'none';
-    }
+    // Remove tooltip event listeners if any were added
+    // Note: The new mouseenter/mouseleave events will be replaced next time updateBluffToken is called
   }
 }
 

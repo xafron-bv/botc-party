@@ -1,7 +1,7 @@
 import { displayScript } from './script.js';
 import { resolveAssetPath, normalizeKey } from '../utils.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
-import { updateGrimoire, rebuildPlayerCircleUiPreserveState, renderSetupInfo } from './grimoire.js';
+import { updateGrimoire, renderSetupInfo } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
@@ -295,102 +295,4 @@ export async function loadAllCharacters({ grimoireState }) {
   }
 }
 
-export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
-  const menu = ensurePlayerContextMenu({ grimoireState });
-  grimoireState.contextMenuTargetIndex = playerIndex;
-  // Enable/disable buttons based on limits
-  const canAdd = grimoireState.players.length < 20;
-  const canRemove = grimoireState.players.length > 5;
-  const addBeforeBtn = menu.querySelector('#player-menu-add-before');
-  const addAfterBtn = menu.querySelector('#player-menu-add-after');
-  const removeBtn = menu.querySelector('#player-menu-remove');
-  [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
-    btn.disabled = false;
-    btn.classList.remove('disabled');
-  });
-  if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
-  if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
-  menu.style.display = 'block';
-  // Position within viewport bounds
-  const margin = 6;
-  requestAnimationFrame(() => {
-    const rect = menu.getBoundingClientRect();
-    let left = x;
-    let top = y;
-    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
-    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
-  });
-}
 
-export function hidePlayerContextMenu({ grimoireState }) {
-  if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
-  grimoireState.contextMenuTargetIndex = -1;
-  clearTimeout(grimoireState.longPressTimer);
-}
-
-export function ensurePlayerContextMenu({ grimoireState }) {
-  if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
-  const menu = document.createElement('div');
-  menu.id = 'player-context-menu';
-  const addBeforeBtn = document.createElement('button');
-  addBeforeBtn.id = 'player-menu-add-before';
-  addBeforeBtn.textContent = 'Add Player Before';
-  const addAfterBtn = document.createElement('button');
-  addAfterBtn.id = 'player-menu-add-after';
-  addAfterBtn.textContent = 'Add Player After';
-  const removeBtn = document.createElement('button');
-  removeBtn.id = 'player-menu-remove';
-  removeBtn.textContent = 'Remove Player';
-
-  addBeforeBtn.addEventListener('click', () => {
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length >= 20) return; // clamp to max
-    const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
-    grimoireState.players.splice(idx, 0, newPlayer);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  });
-  addAfterBtn.addEventListener('click', () => {
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length >= 20) return; // clamp to max
-    const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
-    grimoireState.players.splice(idx + 1, 0, newPlayer);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  });
-  removeBtn.addEventListener('click', () => {
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length <= 5) return; // keep within 5..20
-    grimoireState.players.splice(idx, 1);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  });
-
-  menu.appendChild(addBeforeBtn);
-  menu.appendChild(addAfterBtn);
-  menu.appendChild(removeBtn);
-  document.body.appendChild(menu);
-
-  // Hide menu when clicking elsewhere or pressing Escape
-  document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
-  }, true);
-  
-  // Also hide menu on touch events outside the menu
-  document.addEventListener('touchstart', (e) => {
-    if (!menu.contains(e.target)) hidePlayerContextMenu({ grimoireState });
-  }, true);
-  
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hidePlayerContextMenu({ grimoireState });
-  });
-  grimoireState.playerContextMenu = menu;
-  return menu;
-}

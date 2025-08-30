@@ -1,6 +1,6 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
-import { openCharacterModal, showPlayerContextMenu } from './character.js';
+import { openCharacterModal } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
@@ -317,7 +317,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           return;
         }
       }
-      if (isTouchDevice) {
+      if (isTouchDevice()) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       } else if (e.altKey) {
         openTextReminderModal({ grimoireState, playerIndex: i });
@@ -340,13 +340,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       });
       listItem.dataset.expanded = '1';
       // Only set suppression on touch, and only when changing from collapsed -> expanded
-      if (isTouchDevice && !wasExpanded) {
+      if (isTouchDevice() && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players); };
-    if (!isTouchDevice) {
+    if (!isTouchDevice()) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
@@ -401,7 +401,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
 
     // Install one-time outside click/tap collapse for touch devices
-    if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+    if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
@@ -521,20 +521,6 @@ export function ensureReminderContextMenu({ grimoireState }) {
   menu.appendChild(deleteBtn);
   document.body.appendChild(menu);
 
-  // Hide on outside click or Escape
-  document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
-  }, true);
-  
-  // Also hide menu on touch events outside the menu
-  document.addEventListener('touchstart', (e) => {
-    if (!menu.contains(e.target)) hideReminderContextMenu({ grimoireState });
-  }, true);
-  
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideReminderContextMenu({ grimoireState });
-  });
-
   grimoireState.reminderContextMenu = menu;
   return menu;
 }
@@ -543,6 +529,134 @@ export function hideReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
   grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
   clearTimeout(grimoireState.longPressTimer);
+}
+
+export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
+  const menu = ensurePlayerContextMenu({ grimoireState });
+  grimoireState.contextMenuTargetIndex = playerIndex;
+  // Set a timestamp when the menu was opened
+  grimoireState.menuOpenedAt = Date.now();
+  
+  // Enable/disable buttons based on limits
+  const canAdd = grimoireState.players.length < 20;
+  const canRemove = grimoireState.players.length > 5;
+  const addBeforeBtn = menu.querySelector('#player-menu-add-before');
+  const addAfterBtn = menu.querySelector('#player-menu-add-after');
+  const removeBtn = menu.querySelector('#player-menu-remove');
+  [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+  });
+  if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
+  if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
+  menu.style.display = 'block';
+  // Position within viewport bounds
+  const margin = 6;
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+    let left = x;
+    let top = y;
+    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
+    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+  });
+}
+
+export function hidePlayerContextMenu({ grimoireState }) {
+  if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
+  grimoireState.contextMenuTargetIndex = -1;
+  grimoireState.menuOpenedAt = 0;
+  clearTimeout(grimoireState.longPressTimer);
+}
+
+export function ensurePlayerContextMenu({ grimoireState }) {
+  if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
+  const menu = document.createElement('div');
+  menu.id = 'player-context-menu';
+  const addBeforeBtn = document.createElement('button');
+  addBeforeBtn.id = 'player-menu-add-before';
+  addBeforeBtn.textContent = 'Add Player Before';
+  const addAfterBtn = document.createElement('button');
+  addAfterBtn.id = 'player-menu-add-after';
+  addAfterBtn.textContent = 'Add Player After';
+  const removeBtn = document.createElement('button');
+  removeBtn.id = 'player-menu-remove';
+  removeBtn.textContent = 'Remove Player';
+
+  // Helper function to handle button actions only on proper tap/click
+  const addButtonHandler = (button, action) => {
+    let touchMoved = false;
+    let lastTouchEnd = 0;
+    
+    button.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchmove', (e) => {
+      touchMoved = true;
+      e.stopPropagation();
+    });
+    
+    button.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!touchMoved) {
+        lastTouchEnd = Date.now();
+        action();
+      }
+    });
+    
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      // Skip click if it was triggered by a recent touch
+      const timeSinceTouchEnd = Date.now() - lastTouchEnd;
+      if (timeSinceTouchEnd > 300) {
+        action();
+      }
+    });
+  };
+
+  addButtonHandler(addBeforeBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length >= 20) return; // clamp to max
+    const newName = `Player ${grimoireState.players.length + 1}`;
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    grimoireState.players.splice(idx, 0, newPlayer);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+  
+  addButtonHandler(addAfterBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length >= 20) return; // clamp to max
+    const newName = `Player ${grimoireState.players.length + 1}`;
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    grimoireState.players.splice(idx + 1, 0, newPlayer);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+  
+  addButtonHandler(removeBtn, () => {
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length <= 5) return; // keep within 5..20
+    grimoireState.players.splice(idx, 1);
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+
+  menu.appendChild(addBeforeBtn);
+  menu.appendChild(addAfterBtn);
+  menu.appendChild(removeBtn);
+  document.body.appendChild(menu);
+
+  grimoireState.playerContextMenu = menu;
+  return menu;
 }
 
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
@@ -897,7 +1011,7 @@ export function updateGrimoire({ grimoireState }) {
         }
 
         // Desktop hover actions on icon reminders
-        if (!isTouchDevice) {
+        if (!isTouchDevice()) {
           const editBtn = document.createElement('div');
           editBtn.className = 'reminder-action edit';
           editBtn.title = 'Edit';
@@ -954,7 +1068,7 @@ export function updateGrimoire({ grimoireState }) {
         }
 
         // Touch long-press for reminder context menu (iOS Safari, Android)
-        if (isTouchDevice) {
+        if (isTouchDevice()) {
           const onPressStart = (e) => {
             try { e.preventDefault(); } catch (_) { }
             clearTimeout(grimoireState.longPressTimer);
@@ -1035,7 +1149,7 @@ export function updateGrimoire({ grimoireState }) {
           // No-op on desktop; use hover edit icon instead
         };
         // Desktop hover actions on text reminders
-        if (!isTouchDevice) {
+        if (!isTouchDevice()) {
           const editBtn2 = document.createElement('div');
           editBtn2.className = 'reminder-action edit';
           editBtn2.title = 'Edit';
@@ -1094,7 +1208,7 @@ export function updateGrimoire({ grimoireState }) {
           reminderEl.appendChild(delBtn2);
         }
         // Touch long-press for reminder context menu
-        if (isTouchDevice) {
+        if (isTouchDevice()) {
           const onPressStart2 = (e) => {
             try { e.preventDefault(); } catch (_) { }
             clearTimeout(grimoireState.longPressTimer);
@@ -1408,7 +1522,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           return;
         }
       }
-      if (isTouchDevice) {
+      if (isTouchDevice()) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       } else if (e.altKey) {
         openTextReminderModal({ grimoireState, playerIndex: i });
@@ -1430,13 +1544,13 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         }
       });
       listItem.dataset.expanded = '1';
-      if (isTouchDevice && !wasExpanded) {
+      if (isTouchDevice() && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i })); };
-    if (!isTouchDevice) {
+    if (!isTouchDevice()) {
       // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
@@ -1495,7 +1609,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     // Long-press on token to open context menu on touch devices
     const tokenEl = listItem.querySelector('.player-token');
     tokenEl.addEventListener('pointerdown', (e) => {
-      if (!isTouchDevice) return;
+      if (!isTouchDevice()) return;
       try { e.preventDefault(); } catch (_) { }
       clearTimeout(grimoireState.longPressTimer);
       const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
@@ -1514,7 +1628,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     });
 
     // Install one-time outside collapse handler for touch devices
-    if (isTouchDevice && !grimoireState.outsideCollapseHandlerInstalled) {
+    if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
@@ -1591,5 +1705,85 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     }, { passive: true });
+  }
+});
+
+// Global handlers for context menus - registered once at app start
+document.addEventListener('click', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState) return;
+  
+  // Handle player context menu
+  if (grimoireState.playerContextMenu) {
+    const menu = grimoireState.playerContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      // Only ignore the close if this click is happening within 100ms of opening
+      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+      if (timeSinceOpen > 100) {
+        hidePlayerContextMenu({ grimoireState });
+      }
+    }
+  }
+  
+  // Handle reminder context menu
+  if (grimoireState.reminderContextMenu) {
+    const menu = grimoireState.reminderContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      hideReminderContextMenu({ grimoireState });
+    }
+  }
+}, true);
+
+document.addEventListener('touchstart', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState) return;
+  
+  // Handle player context menu
+  if (grimoireState.playerContextMenu) {
+    const menu = grimoireState.playerContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      // Only ignore the close if this touch is happening within 100ms of opening
+      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+      if (timeSinceOpen > 100) {
+        hidePlayerContextMenu({ grimoireState });
+      }
+    }
+  }
+  
+  // Handle reminder context menu
+  if (grimoireState.reminderContextMenu) {
+    const menu = grimoireState.reminderContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      hideReminderContextMenu({ grimoireState });
+    }
+  }
+}, true);
+
+// Prevent menus from disappearing on touch release
+document.addEventListener('touchend', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState) return;
+  
+  if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.contains(e.target)) {
+    e.stopPropagation();
+  }
+  
+  if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.contains(e.target)) {
+    e.stopPropagation();
+  }
+}, true);
+
+document.addEventListener('keydown', (e) => {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState) return;
+  
+  if (e.key === 'Escape') {
+    if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.style.display === 'block') {
+      hidePlayerContextMenu({ grimoireState });
+    }
+    
+    if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block') {
+      hideReminderContextMenu({ grimoireState });
+    }
   }
 });
