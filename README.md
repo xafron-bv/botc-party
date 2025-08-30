@@ -105,6 +105,27 @@ npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://1
 npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress open --config-file tests/cypress.config.js ; kill %1 || true
 ```
 
+## AI Instructions
+
+1. Read this README to understand the repo layout, serving, and testing.
+2. Start local server (from repo root):
+
+```bash
+npx --yes http-server -c-1
+```
+
+3. Publish the local port (default http-server port 8080):
+
+```bash
+npx --yes localtunnel --port 8080
+```
+
+4. Store the password in a file at the project root:
+
+```bash
+curl https://loca.lt/mytunnelpassword > /workspace/.password
+```
+
 ## Deployment
 
 - **GitHub Pages**: Pushes to `main` are deployed to GitHub Pages via `.github/workflows/deploy.yml`.
