@@ -112,6 +112,37 @@ export function createBluffToken({ grimoireState, index }) {
     });
   }
   
+  // Add info icon for touch mode (initially hidden)
+  if (isTouchDevice) {
+    const infoIcon = document.createElement('div');
+    infoIcon.className = 'ability-info-icon bluff-info-icon';
+    infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+    infoIcon.dataset.bluffIndex = index;
+    infoIcon.style.display = 'none'; // Initially hidden
+    
+    // Handle both click and touch events
+    const handleInfoClick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const character = grimoireState.bluffs?.[index];
+      if (character) {
+        const role = grimoireState.allRoles[character];
+        if (role && role.ability) {
+          showTouchAbilityPopup(infoIcon, role.ability);
+        }
+      }
+    };
+    
+    infoIcon.onclick = handleInfoClick;
+    infoIcon.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleInfoClick(e);
+    });
+    
+    token.appendChild(infoIcon);
+  }
+  
   return token;
 }
 
@@ -120,12 +151,7 @@ export function updateBluffToken({ grimoireState, index }) {
   if (!token) return;
   
   const character = grimoireState.bluffs?.[index];
-  
-  // Remove any existing info icon
-  const existingIcon = token.querySelector('.ability-info-icon');
-  if (existingIcon) {
-    existingIcon.remove();
-  }
+  const infoIcon = token.querySelector('.ability-info-icon');
   
   if (character && grimoireState.allRoles[character]) {
     const role = grimoireState.allRoles[character];
@@ -157,28 +183,9 @@ export function updateBluffToken({ grimoireState, index }) {
       label.style.display = 'none';
     }
     
-    // Add info icon for touch mode if role has ability
-    if (isTouchDevice && role.ability) {
-      const infoIcon = document.createElement('div');
-      infoIcon.className = 'ability-info-icon bluff-info-icon';
-      infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-      infoIcon.dataset.bluffIndex = index;
-      
-      // Handle both click and touch events
-      const handleInfoClick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        showTouchAbilityPopup(infoIcon, role.ability);
-      };
-      
-      infoIcon.onclick = handleInfoClick;
-      infoIcon.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleInfoClick(e);
-      });
-      
-      token.appendChild(infoIcon);
+    // Show/hide info icon based on whether role has ability
+    if (infoIcon) {
+      infoIcon.style.display = (isTouchDevice && role.ability) ? 'flex' : 'none';
     }
   } else {
     // Clear the token
@@ -200,6 +207,11 @@ export function updateBluffToken({ grimoireState, index }) {
     const label = token.querySelector('.bluff-label');
     if (label) {
       label.style.display = 'block';
+    }
+    
+    // Hide info icon when no character
+    if (infoIcon) {
+      infoIcon.style.display = 'none';
     }
   }
 }
