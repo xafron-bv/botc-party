@@ -1,6 +1,14 @@
 ## AI Instructions
 
-1. Read the README to understand the repo layout, serving, and testing.
+1. Run tests (headless):
+
+```bash
+# Full suite (starts a server on 5173, runs Cypress, then stops server)
+npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
+
+# Single spec example
+npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js --spec tests/09_player_context_menu.cy.js ; kill %1 || true
+```
 2. Start local server (from repo root):
 
 ```bash
@@ -17,5 +25,12 @@ npx --yes localtunnel --port 8080
 
 ```bash
 curl https://loca.lt/mytunnelpassword > /workspace/.password
+```
+
+5. Before committing changes, always run the tests and ESLint fix:
+
+```bash
+# Run tests as in step 1, then:
+npx eslint --fix
 ```
 
