@@ -100,9 +100,3 @@
   transform: translate(-50%, -50%) scale(0.95);
 }
 
-/* Only show info icon on touch devices */
-@media (hover: hover) and (pointer: fine) {
-  .ability-info-icon {
-    display: none;
-  }
-}

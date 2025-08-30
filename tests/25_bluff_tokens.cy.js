@@ -115,9 +115,9 @@ describe('Bluff Tokens', () => {
     // Hover over the bluff token
     cy.get('#bluff-tokens-container .bluff-token').first().trigger('mouseenter');
 
-    // Check for tooltip
+    // Check for tooltip showing Baron's ability
     cy.get('#ability-tooltip').should('be.visible');
-    cy.get('#ability-tooltip').should('contain', 'Baron');
+    cy.get('#ability-tooltip').should('contain', 'There are extra Outsiders in play');
   });
 
   it('should persist bluff tokens when saving and loading grimoire state', () => {
