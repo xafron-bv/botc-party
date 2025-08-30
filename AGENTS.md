@@ -10,29 +10,16 @@ npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-serv
 2. Publish the local port (default http-server port 8080):
 
 ```bash
-# Save tunnel password/IP to first line
-rm -f /workspace/.port /tmp/localtunnel.pid /tmp/localtunnel.log /tmp/localtunnel_watch.pid
-curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
-echo "" >> /workspace/.port
+# Save tunnel password/IP on line 1 and the deterministic URL on line 2
+rm -f /workspace/.port /tmp/localtunnel.pid
+IP=$(curl -fsSL https://loca.lt/mytunnelpassword || true)
+SUB=clk$RANDOM$RANDOM
+URL=https://$SUB.loca.lt
+printf '%s\n%s\n' "$IP" "$URL" > /workspace/.port
 
-# Stop any existing localtunnel
+# Restart tunnel with the chosen subdomain and keep it running after shell exit
 pkill -f 'localtunnel --port 8080' 2>/dev/null || true
-
-# Start localtunnel under nohup, logging to a file so we can scrape the URL
-nohup sh -c 'npx --yes localtunnel --port 8080 >> /tmp/localtunnel.log 2>&1' >/dev/null 2>&1 & echo $! > /tmp/localtunnel.pid
-
-# Start a watcher that appends the first URL line to .port, then exits
-nohup sh -c 'tail -F /tmp/localtunnel.log | grep -m1 -Eo "https?://[^[:space:]]+" >> /workspace/.port' >/dev/null 2>&1 & echo $! > /tmp/localtunnel_watch.pid
-
-# Wait until .port has 2 lines (IP + URL) or timeout (~20s)
-for i in $(seq 1 80); do
-  [ "$(wc -l < /workspace/.port)" -ge 2 ] && break
-  sleep 0.25
-done
-
-# Optional: verify processes are alive
-ps -p "$(cat /tmp/http-server.pid 2>/dev/null)" 2>/dev/null || true
-ps -p "$(cat /tmp/localtunnel.pid 2>/dev/null)" 2>/dev/null || true
+nohup npx --yes localtunnel --port 8080 --subdomain "$SUB" >/tmp/localtunnel.log 2>&1 & echo $! > /tmp/localtunnel.pid
 ```
 
 3. Before committing changes, always run the tests and ESLint fix:
