@@ -529,6 +529,8 @@ export function hideReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
   grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
   clearTimeout(grimoireState.longPressTimer);
+  // Remove shield if no other menus are open
+  maybeRemoveContextShield({ grimoireState });
 }
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
@@ -536,6 +538,10 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   grimoireState.contextMenuTargetIndex = playerIndex;
   // Set a timestamp when the menu was opened
   grimoireState.menuOpenedAt = Date.now();
+  // Install gesture shield on touch devices to prevent page scroll and capture gesture
+  try {
+    if (isTouchDevice()) ensureContextShield({ grimoireState });
+  } catch (_) { }
   
   // Enable/disable buttons based on limits
   const canAdd = grimoireState.players.length < 20;
@@ -568,6 +574,8 @@ export function hidePlayerContextMenu({ grimoireState }) {
   grimoireState.contextMenuTargetIndex = -1;
   grimoireState.menuOpenedAt = 0;
   clearTimeout(grimoireState.longPressTimer);
+  // Remove shield if no other menus are open
+  maybeRemoveContextShield({ grimoireState });
 }
 
 export function ensurePlayerContextMenu({ grimoireState }) {
@@ -659,9 +667,103 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   return menu;
 }
 
+// Context gesture shield to reliably handle touch interaction while a context menu is open
+function ensureContextShield({ grimoireState }) {
+  let shield = document.getElementById('context-shield');
+  if (!shield) {
+    shield = document.createElement('div');
+    shield.id = 'context-shield';
+    document.body.appendChild(shield);
+  }
+
+  // Track whether we should commit selection on first release
+  let justOpened = true;
+
+  const highlightAt = (clientX, clientY) => {
+    const el = document.elementFromPoint(clientX, clientY);
+    const menu = grimoireState.playerContextMenu;
+    if (menu && menu.style.display === 'block') {
+      // Optionally add hover highlighting if buttons have :hover states via CSS
+      // No-op here; pointer events already focus the element under finger
+    }
+  };
+
+  const commitAt = (clientX, clientY) => {
+    const menu = grimoireState.playerContextMenu;
+    if (!menu || menu.style.display !== 'block') return false;
+    const el = document.elementFromPoint(clientX, clientY);
+    const button = el && el.closest && el.closest('#player-context-menu button:not(:disabled)');
+    if (button && menu.contains(button)) {
+      // Simulate a click without letting default page gestures run
+      try { button.click(); } catch (_) { }
+      return true;
+    }
+    return false;
+  };
+
+  const onPointerDown = (e) => {
+    try { e.preventDefault(); } catch (_) { }
+    // Keep interaction confined to the shield; highlight if inside menu
+    highlightAt(e.clientX, e.clientY);
+  };
+  const onPointerMove = (e) => {
+    try { e.preventDefault(); } catch (_) { }
+    highlightAt(e.clientX, e.clientY);
+  };
+  const onPointerUp = (e) => {
+    try { e.preventDefault(); } catch (_) { }
+    const selected = commitAt(e.clientX, e.clientY);
+    if (justOpened && !selected) { justOpened = false; return; }
+    // If an action was taken or it wasn't the first lift, hide the shield if menu closed
+    maybeRemoveContextShield({ grimoireState });
+  };
+
+  // Register listeners (once per open)
+  shield.addEventListener('pointerdown', onPointerDown, { passive: false });
+  shield.addEventListener('pointermove', onPointerMove, { passive: false });
+  shield.addEventListener('pointerup', onPointerUp, { passive: false });
+
+  // Prevent ghost clicks while shield is active
+  const blockClick = (ev) => {
+    const menuEl = grimoireState.playerContextMenu;
+    const remEl = grimoireState.reminderContextMenu;
+    const isInsideMenu = (menuEl && menuEl.contains(ev.target)) || (remEl && remEl.contains(ev.target));
+    if (!isInsideMenu) {
+      ev.stopPropagation();
+      ev.preventDefault();
+    }
+  };
+  document.addEventListener('click', blockClick, true);
+
+  // Store cleanup for later
+  grimoireState._contextShieldCleanup = () => {
+    try { shield.removeEventListener('pointerdown', onPointerDown, { passive: false }); } catch (_) { }
+    try { shield.removeEventListener('pointermove', onPointerMove, { passive: false }); } catch (_) { }
+    try { shield.removeEventListener('pointerup', onPointerUp, { passive: false }); } catch (_) { }
+    try { document.removeEventListener('click', blockClick, true); } catch (_) { }
+    try { shield.remove(); } catch (_) { }
+  };
+
+  return shield;
+}
+
+function maybeRemoveContextShield({ grimoireState }) {
+  const anyMenuOpen = !!(grimoireState.playerContextMenu && grimoireState.playerContextMenu.style.display === 'block') ||
+                      !!(grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block');
+  if (anyMenuOpen) return;
+  if (grimoireState._contextShieldCleanup) {
+    try { grimoireState._contextShieldCleanup(); } catch (_) { }
+    grimoireState._contextShieldCleanup = null;
+  }
+}
+
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
   const menu = ensureReminderContextMenu({ grimoireState });
   grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
+  // Install gesture shield on touch devices
+  try {
+    if (isTouchDevice()) ensureContextShield({ grimoireState });
+  } catch (_) { }
   menu.style.display = 'block';
   const margin = 6;
   requestAnimationFrame(() => {

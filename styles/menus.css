@@ -35,3 +35,16 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Full-screen gesture shield while any context menu is open */
+#context-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 4999; /* below the menu (5000), above rest of UI */
+  background: transparent;
+  touch-action: none;            /* prevent scrolling/zooming during menu open */
+  overscroll-behavior: contain;  /* block scroll chaining / rubber-band */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
