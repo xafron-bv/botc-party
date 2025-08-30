@@ -22,10 +22,10 @@ npx --yes http-server -c-1
 curl -fsSL https://loca.lt/mytunnelpassword > /workspace/.port
 
 # Stop any existing localtunnel
-[ -f /workspace/.tunnel.pid ] && kill $(cat /workspace/.tunnel.pid) 2>/dev/null || true
+[ -f /tmp/tunnel.pid ] && kill $(cat /tmp/tunnel.pid) 2>/dev/null || true
 
-# Start localtunnel in background and capture logs/PID (log in /tmp to avoid commits)
-npx --yes localtunnel --port 8080 > /tmp/tunnel.log 2>&1 & echo $! > /workspace/.tunnel.pid
+# Start localtunnel in background and capture logs/PID (log and pid in /tmp)
+npx --yes localtunnel --port 8080 > /tmp/tunnel.log 2>&1 & echo $! > /tmp/tunnel.pid
 
 # Wait for the public URL and append it to /workspace/.port
 timeout 20s bash -lc 'until grep -m1 -Eo "https?://[^[:space:]]+" /tmp/tunnel.log >> /workspace/.port; do sleep 0.5; done'
