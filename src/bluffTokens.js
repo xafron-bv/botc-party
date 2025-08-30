@@ -44,6 +44,10 @@ export function createBluffToken({ grimoireState, index }) {
   
   // Click handler
   token.addEventListener('click', (e) => {
+    // Don't handle if clicking on info icon
+    if (e.target.closest('.ability-info-icon')) {
+      return;
+    }
     // Ignore click if it was triggered by a touch event
     if (touchOccurred) {
       touchOccurred = false;
@@ -79,85 +83,32 @@ export function createBluffToken({ grimoireState, index }) {
     }
   });
   
-  // Touch handling for both tap and long press
+  // Simple touch handling - just prevent double click
   if (isTouchDevice) {
-    let touchTimer;
-    let tapActionTimer;
-    let isLongPress = false;
-    let touchStartTime = 0;
-    
     token.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      
-      // Mark that a touch occurred
-      touchOccurred = true;
-      touchStartTime = Date.now();
-      
-      // Reset long press flag
-      isLongPress = false;
-      
-      const character = grimoireState.bluffs?.[index];
-      
-      // Clear any existing timers
-      clearTimeout(touchTimer);
-      clearTimeout(tapActionTimer);
-      
-      // Long press for ability popup
-      if (character) {
-        touchTimer = setTimeout(() => {
-          isLongPress = true;
-          clearTimeout(tapActionTimer); // Cancel tap action
-          const role = grimoireState.allRoles[character];
-          if (role) {
-            const touch = e.touches[0];
-            showTouchAbilityPopup({
-              x: touch.pageX,
-              y: touch.pageY,
-              role,
-              visible: true
-            });
-          }
-        }, 700);
+      // Don't handle if clicking on info icon
+      if (e.target.closest('.ability-info-icon')) {
+        return;
       }
+      // Mark that a touch occurred to prevent click event
+      touchOccurred = true;
     });
     
     token.addEventListener('touchend', (e) => {
+      // Don't handle if clicking on info icon
+      if (e.target.closest('.ability-info-icon')) {
+        return;
+      }
+      
       e.preventDefault();
       
-      // Calculate touch duration
-      const touchDuration = Date.now() - touchStartTime;
-      
-      clearTimeout(touchTimer);
-      
-      // If it wasn't a long press and touch was quick enough, trigger the action
-      if (!isLongPress && touchDuration < 700) {
-        // Use a small delay to ensure long press timer is cancelled
-        tapActionTimer = setTimeout(() => {
-          if (!isLongPress) {
-            openBluffCharacterModal({ grimoireState, bluffIndex: index });
-          }
-        }, 50);
-      }
+      // Trigger the modal opening
+      openBluffCharacterModal({ grimoireState, bluffIndex: index });
       
       // Reset touch flag after a delay to handle any delayed click events
       setTimeout(() => {
         touchOccurred = false;
       }, 300);
-    });
-    
-    token.addEventListener('touchmove', () => {
-      clearTimeout(touchTimer);
-      clearTimeout(tapActionTimer);
-      isLongPress = false;
-      touchOccurred = false;
-    });
-    
-    token.addEventListener('touchcancel', () => {
-      clearTimeout(touchTimer);
-      clearTimeout(tapActionTimer);
-      isLongPress = false;
-      touchOccurred = false;
     });
   }
   
@@ -169,6 +120,12 @@ export function updateBluffToken({ grimoireState, index }) {
   if (!token) return;
   
   const character = grimoireState.bluffs?.[index];
+  
+  // Remove any existing info icon
+  const existingIcon = token.querySelector('.ability-info-icon');
+  if (existingIcon) {
+    existingIcon.remove();
+  }
   
   if (character && grimoireState.allRoles[character]) {
     const role = grimoireState.allRoles[character];
@@ -198,6 +155,30 @@ export function updateBluffToken({ grimoireState, index }) {
     const label = token.querySelector('.bluff-label');
     if (label) {
       label.style.display = 'none';
+    }
+    
+    // Add info icon for touch mode if role has ability
+    if (isTouchDevice && role.ability) {
+      const infoIcon = document.createElement('div');
+      infoIcon.className = 'ability-info-icon bluff-info-icon';
+      infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+      infoIcon.dataset.bluffIndex = index;
+      
+      // Handle both click and touch events
+      const handleInfoClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        showTouchAbilityPopup(infoIcon, role.ability);
+      };
+      
+      infoIcon.onclick = handleInfoClick;
+      infoIcon.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        handleInfoClick(e);
+      });
+      
+      token.appendChild(infoIcon);
     }
   } else {
     // Clear the token
