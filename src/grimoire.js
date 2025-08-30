@@ -222,8 +222,10 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         // Calculate touch duration
         const touchDuration = Date.now() - touchStartTime;
         
-        // Clear long press timer
-        clearTimeout(grimoireState.longPressTimer);
+        // Clear long press timer only if menu is not already visible
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
         
         // If it wasn't a long press and touch was quick enough, trigger the action
         if (!isLongPress && touchDuration < 600) {
@@ -250,8 +252,10 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       });
       
       tokenEl.addEventListener('touchcancel', (e) => {
-        // Clear all timers on cancel
-        clearTimeout(grimoireState.longPressTimer);
+        // Clear all timers on cancel (only clear long press timer if menu is not visible)
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
         clearTimeout(touchActionTimer);
         isLongPress = false;
         touchOccurred = false;
@@ -957,7 +961,13 @@ export function updateGrimoire({ grimoireState }) {
               showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
             }, 600);
           };
-          const onPressEnd = () => { clearTimeout(grimoireState.longPressTimer); try { iconEl.classList.remove('press-feedback'); } catch (_) { } };
+          const onPressEnd = () => { 
+            // Only clear the timer if the reminder menu is not already visible
+            if (!grimoireState.reminderContextMenu || grimoireState.reminderContextMenu.style.display !== 'block') {
+              clearTimeout(grimoireState.longPressTimer);
+            }
+            try { iconEl.classList.remove('press-feedback'); } catch (_) { } 
+          };
           iconEl.addEventListener('pointerdown', onPressStart);
           iconEl.addEventListener('pointerup', onPressEnd);
           iconEl.addEventListener('pointercancel', onPressEnd);
@@ -1091,7 +1101,13 @@ export function updateGrimoire({ grimoireState }) {
               showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
             }, 600);
           };
-          const onPressEnd2 = () => { clearTimeout(grimoireState.longPressTimer); try { reminderEl.classList.remove('press-feedback'); } catch (_) { } };
+          const onPressEnd2 = () => { 
+            // Only clear the timer if the reminder menu is not already visible
+            if (!grimoireState.reminderContextMenu || grimoireState.reminderContextMenu.style.display !== 'block') {
+              clearTimeout(grimoireState.longPressTimer);
+            }
+            try { reminderEl.classList.remove('press-feedback'); } catch (_) { } 
+          };
           reminderEl.addEventListener('pointerdown', onPressStart2);
           reminderEl.addEventListener('pointerup', onPressEnd2);
           reminderEl.addEventListener('pointercancel', onPressEnd2);
@@ -1297,8 +1313,10 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         // Calculate touch duration
         const touchDuration = Date.now() - touchStartTime2;
         
-        // Clear long press timer
-        clearTimeout(grimoireState.longPressTimer);
+        // Clear long press timer only if menu is not already visible
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
         
         // If it wasn't a long press and touch was quick enough, trigger the action
         if (!isLongPress2 && touchDuration < 600) {
@@ -1325,8 +1343,10 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       });
       
       tokenEl2.addEventListener('touchcancel', (e) => {
-        // Clear all timers on cancel
-        clearTimeout(grimoireState.longPressTimer);
+        // Clear all timers on cancel (only clear long press timer if menu is not visible)
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
         clearTimeout(touchActionTimer2);
         isLongPress2 = false;
         touchOccurred2 = false;
@@ -1480,7 +1500,12 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }, 600);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-      tokenEl.addEventListener(evt, () => { clearTimeout(grimoireState.longPressTimer); });
+      tokenEl.addEventListener(evt, () => { 
+        // Only clear the timer if the menu is not already visible
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
+      });
     });
 
     // Install one-time outside collapse handler for touch devices
