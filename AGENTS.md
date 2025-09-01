@@ -7,23 +7,7 @@
 npx --yes http-server -p 8080 -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-server.pid
 ```
 
-2. Publish the local port (default http-server port 8080):
-
-```bash
-# Preferred: use the helper script
-/workspace/scripts/publish_tunnel.sh
-
-# Or inline (equivalent) if needed:
-rm -f /workspace/.port /tmp/localtunnel.pid
-IP=$(curl -fsSL https://loca.lt/mytunnelpassword || true)
-SUB=clk$RANDOM$RANDOM
-URL=https://$SUB.loca.lt
-printf '%s\n%s\n' "$IP" "$URL" > /workspace/.port
-pkill -f 'localtunnel --port 8080' 2>/dev/null || true
-nohup npx --yes localtunnel --port 8080 --subdomain "$SUB" >/tmp/localtunnel.log 2>&1 & echo $! > /tmp/localtunnel.pid
-```
-
-3. Before committing changes, always run the tests and ESLint fix:
+2. Before committing changes, always run the tests and ESLint fix:
 
 ```bash
 # Run tests (headless)
@@ -36,4 +20,3 @@ npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://1
 # Fix lint issues
 npx eslint --fix
 ```
-

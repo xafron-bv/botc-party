@@ -11,10 +11,6 @@ steps:
     when: always
     run: npx --yes http-server -p {{server_port}} -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-server.pid
 
-  - id: publish_local_port
-    when: always
-    run: /workspace/scripts/publish_tunnel.sh
-
   - id: run_tests
     when: pre-commit
     run: npx --yes http-server -p {{test_port}} -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:{{test_port}} npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
@@ -22,4 +18,3 @@ steps:
   - id: eslint_fix
     when: pre-commit
     run: npx eslint --fix
-
