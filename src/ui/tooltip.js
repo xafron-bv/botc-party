@@ -32,7 +32,19 @@ export function showTouchAbilityPopup(targetElement, ability) {
 
   // If targetElement is the info icon, find the token for better positioning
   const isInfoIcon = targetElement.classList.contains('ability-info-icon');
-  const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
+  let referenceElement;
+  
+  if (isInfoIcon) {
+    // For bluff tokens, the parent IS the token
+    if (targetElement.parentElement.classList.contains('bluff-token')) {
+      referenceElement = targetElement.parentElement;
+    } else {
+      // For player tokens, find the .player-token within the parent
+      referenceElement = targetElement.parentElement.querySelector('.player-token') || targetElement.parentElement;
+    }
+  } else {
+    referenceElement = targetElement;
+  }
 
   const rect = referenceElement.getBoundingClientRect();
   const popupRect = popup.getBoundingClientRect();
@@ -66,8 +78,10 @@ export function hideTouchAbilityPopup() {
 
 // Hide touch popup when clicking outside
 document.addEventListener('click', (e) => {
+  // Don't hide if clicking on info icon or popup itself
   if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
-    hideTouchAbilityPopup();
+    // Small delay to prevent race conditions
+    setTimeout(() => hideTouchAbilityPopup(), 10);
   }
 });
 

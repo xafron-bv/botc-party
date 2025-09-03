@@ -83,17 +83,24 @@ describe('Jinx and Night Order Compatibility', () => {
       .find('.jinx-reason')
       .should('be.visible');
     
-    // Disable night order sorting
-    cy.get('#night-order-sort').click();
-    
-    // Jinx functionality should still work
+    // Click again to hide
     cy.get('#character-sheet .jinx-entry').first().click();
     cy.get('#character-sheet .jinx-entry').first()
       .should('not.have.class', 'show-jinx-reason');
     
+    // Disable night order sorting
+    cy.get('#night-order-sort').click();
+    
+    // Jinx functionality should still work after re-rendering
+    // Click to show
     cy.get('#character-sheet .jinx-entry').first().click();
     cy.get('#character-sheet .jinx-entry').first()
       .should('have.class', 'show-jinx-reason');
+    
+    // Click to hide
+    cy.get('#character-sheet .jinx-entry').first().click();
+    cy.get('#character-sheet .jinx-entry').first()
+      .should('not.have.class', 'show-jinx-reason');
   });
 
   it('should show jinxes in correct position when switching night phase', () => {
@@ -107,15 +114,15 @@ describe('Jinx and Night Order Compatibility', () => {
     cy.get('#night-order-sort').click();
     cy.get('#night-order-sort').should('be.checked');
     
-    // Switch to other night
-    cy.get('[data-testid="night-phase-other"]').click();
+    // Switch to other nights (use label click since radio button might be styled/hidden)
+    cy.get('label[for="other-nights-btn"]').click();
     
     // Jinxes should still be displayed
     cy.get('#character-sheet h3.team-jinxes').should('exist');
     cy.get('#character-sheet .jinx-entry').should('exist');
     
     // Switch back to first night
-    cy.get('[data-testid="night-phase-first"]').click();
+    cy.get('label[for="first-night-btn"]').click();
     
     // Jinxes should still be displayed
     cy.get('#character-sheet h3.team-jinxes').should('exist');

@@ -3,6 +3,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid } from './character.js';
 import { saveAppState } from './app.js';
+import { isTouchDevice } from './constants.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
   // Create container for bluff tokens
@@ -159,7 +160,7 @@ export function updateBluffToken({ grimoireState, index }) {
     }
 
     // Add tooltip functionality for non-touch devices (matching character token behavior)
-    if (!('ontouchstart' in window)) {
+    if (!isTouchDevice()) {
       // Get or create ability tooltip
       let abilityTooltip = document.getElementById('ability-tooltip');
       if (!abilityTooltip) {
