@@ -9,7 +9,7 @@ describe('Comprehensive Phase Change Tracking', () => {
 
     // Start a game with 7 players
     cy.get('#player-count').clear().type('7');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
 
     // Wait for player tokens to be created
     cy.get('.player-token').should('have.length', 7);

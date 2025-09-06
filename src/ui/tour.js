@@ -51,7 +51,7 @@ export function initInAppTour() {
         }
         if (animations.length > 0) {
           const timeoutId = setTimeout(finish, Math.max(250, fallbackMs));
-          Promise.all(animations.map((a) => a.finished.catch(() => {}))).then(() => {
+          Promise.all(animations.map((a) => a.finished.catch(() => { }))).then(() => {
             clearTimeout(timeoutId);
             requestAnimationFrame(() => requestAnimationFrame(finish));
           });
@@ -92,7 +92,7 @@ export function initInAppTour() {
   const steps = [
     { id: 'welcome', title: 'Quick Tour', body: 'Learn the basics: set players, load a script, assign characters, add reminders. Use Next/Back or ←/→. Press Esc to exit.', target: () => document.getElementById('sidebar-toggle'), requiresSidebarClosed: true },
     { id: 'open-sidebar', title: 'Open the sidebar', body: 'Open the sidebar to set up and load a script.', target: () => document.getElementById('sidebar-toggle'), requiresSidebarClosed: true, onBeforeNext: () => setSidebarCollapsed(false) },
-    { id: 'game-setup', title: 'Set players', body: 'Choose the player count and press Start Game to create tokens.', target: () => document.getElementById('start-game'), requiresSidebarOpen: true },
+    { id: 'game-setup', title: 'Set players', body: 'Choose the player count and press Reset Grimoire to create tokens.', target: () => document.getElementById('reset-grimoire'), requiresSidebarOpen: true },
     { id: 'scripts', title: 'Load a script', body: 'Load a built-in script to populate roles.', target: () => document.querySelector('#sidebar .script-buttons') || document.getElementById('load-status'), requiresSidebarOpen: true },
     { id: 'assign-character', title: 'Assign a character', body: 'Tap a player token to choose and assign a character.', target: () => document.querySelector('#player-circle li .player-token') || document.getElementById('player-circle'), requiresSidebarClosed: true, onEnter: () => setSidebarCollapsed(true) },
     { id: 'player-management', title: 'Add/Remove Players', body: 'right-click (or long-touch on mobile) a player to add new players before/after or remove them.', target: () => document.querySelector('#player-circle li') || document.getElementById('player-circle'), requiresSidebarClosed: true },
@@ -106,7 +106,7 @@ export function initInAppTour() {
   let idx = 0;
   function renderStep() {
     ensureVisibilityForStep(steps[idx]);
-    if (steps[idx].onEnter) { try { steps[idx].onEnter(); } catch (_) {} }
+    if (steps[idx].onEnter) { try { steps[idx].onEnter(); } catch (_) { } }
     const targetEl = steps[idx].target && steps[idx].target();
     const doRender = () => {
       const rect = targetEl ? targetEl.getBoundingClientRect() : { left: 16, top: 16, width: 300, height: 60, right: 316, bottom: 76 };
@@ -118,7 +118,7 @@ export function initInAppTour() {
       const actions = document.createElement('div'); actions.className = 'actions';
       const skipBtn = document.createElement('button'); skipBtn.className = 'button'; skipBtn.textContent = 'Skip'; skipBtn.onclick = endTour;
       const prevBtn = document.createElement('button'); prevBtn.className = 'button'; prevBtn.textContent = 'Back'; prevBtn.disabled = idx === 0; prevBtn.onclick = () => { idx = Math.max(0, idx - 1); renderStep(); };
-      const nextBtn = document.createElement('button'); nextBtn.className = 'button'; nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next'; nextBtn.onclick = () => { if (steps[idx].onBeforeNext) { try { steps[idx].onBeforeNext(); } catch (_) {} } if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); } };
+      const nextBtn = document.createElement('button'); nextBtn.className = 'button'; nextBtn.textContent = idx === steps.length - 1 ? 'Finish' : 'Next'; nextBtn.onclick = () => { if (steps[idx].onBeforeNext) { try { steps[idx].onBeforeNext(); } catch (_) { } } if (idx < steps.length - 1) { idx += 1; renderStep(); } else { endTour(); } };
       const progress = document.createElement('div'); progress.className = 'progress'; progress.textContent = `Step ${idx + 1} of ${steps.length}`;
       actions.appendChild(skipBtn); actions.appendChild(prevBtn); actions.appendChild(nextBtn);
       pop.appendChild(title); pop.appendChild(body); pop.appendChild(actions); pop.appendChild(progress);
@@ -126,7 +126,7 @@ export function initInAppTour() {
       positionPopoverNear(rect);
     };
     if (targetEl && sidebar.contains(targetEl)) {
-      try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (_) {}
+      try { targetEl.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (_) { }
     }
     waitForAnimationsToFinish(targetEl, 400).then(() => requestAnimationFrame(() => requestAnimationFrame(doRender)));
   }

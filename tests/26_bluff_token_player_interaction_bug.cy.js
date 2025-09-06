@@ -3,7 +3,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     cy.visit('/');
     // Start a game with 10 players
     cy.get('#player-count').clear().type('10');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     // Load Trouble Brewing script
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');

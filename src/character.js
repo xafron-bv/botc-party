@@ -213,6 +213,10 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
   const characterSearch = document.getElementById('character-search');
   const characterModal = document.getElementById('character-modal');
+  // Do not allow opening the modal when the grimoire is hidden
+  if (grimoireState && grimoireState.grimoireHidden) {
+    return;
+  }
   if (!grimoireState.scriptData) {
     alert('Please load a script first.');
     return;

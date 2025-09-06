@@ -14,7 +14,7 @@ describe('Night Order Display', () => {
 
     // Setup a game with 7 players (to have different night order characters)
     cy.get('#player-count').clear().type('7');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
 
     // Wait for player circle to be set up
     cy.get('#player-circle li').should('have.length', 7);
@@ -182,7 +182,7 @@ describe('Night Order Display', () => {
       cy.window().then(win => {
         // Mock touch support
         Object.defineProperty(win, 'ontouchstart', {
-          value: () => {},
+          value: () => { },
           writable: true
         });
       });
@@ -192,7 +192,7 @@ describe('Night Order Display', () => {
       cy.get('#load-tb').click();
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
       cy.get('#player-count').clear().type('7');
-      cy.get('#start-game').click();
+      cy.get('#reset-grimoire').click();
       cy.get('#player-circle li').should('have.length', 7);
       cy.get('[data-testid="day-night-toggle"]').click();
 

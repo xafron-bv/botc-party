@@ -26,11 +26,18 @@
           <input type="number" id="player-count" min="5" max="20">
         </div>
         <div id="mode-toggle" style="margin-top: 8px; display: flex; gap: 10px; align-items: center;">
-          <span>Mode:</span>
+          <span>I'm a:</span>
           <label><input type="radio" name="mode" id="mode-storyteller" value="storyteller" checked> Storyteller</label>
           <label><input type="radio" name="mode" id="mode-player" value="player"> Player</label>
         </div>
-        <button class="button" id="start-game">Start Game</button>
+        <div style="margin-top: 8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="button" id="open-player-setup">Player Setup</button>
+          <button class="button" id="reveal-assignments">Reveal Characters</button>
+        </div>
+        <div style="display:flex; flex-direction: column; gap:8px; margin-top:8px;">
+          <button class="button" id="reset-grimoire">Reset Grimoire</button>
+          <button class="button" id="assign-and-start" style="display:none;">Start Game</button>
+        </div>
         <div id="game-status" class="status" aria-live="polite"></div>
       </div>
 
@@ -159,6 +166,28 @@
       <input type="text" id="reminder-token-search" placeholder="Search tokens or characters...">
       <div id="reminder-token-grid"></div>
       <button class="button" id="close-reminder-token-modal">Cancel</button>
+    </div>
+  </div>
+
+  <div id="player-setup-panel" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow: auto; position: relative;">
+      <button class="modal-close" id="close-player-setup" aria-label="Close player setup"><i class="fas fa-times"></i></button>
+      <h3>Player Setup (Storyteller)</h3>
+      <div id="bag-count-warning" class="error" style="display:none;">Warning: Selected bag does not match player count configuration.</div>
+      <div style="margin: 8px 0; display:flex; gap:10px; align-items:stretch;">
+        <button class="button" id="bag-random-fill">Randomly Fill</button>
+        <button class="button start-selection">Start Number Selection</button>
+      </div>
+      <div id="player-setup-character-list" style="max-height: 60vh; overflow-y: auto; margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <div id="number-picker-overlay" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 600px; position: relative;">
+      <button class="modal-close" id="close-number-picker" aria-label="Close number picker"><i class="fas fa-times"></i></button>
+      <h3>Pick a number</h3>
+      <div id="number-picker-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px;"></div>
+      <div style="margin-top:10px; text-align:right;"></div>
     </div>
   </div>
 

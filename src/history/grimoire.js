@@ -179,7 +179,7 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
 
   // Only snapshot if we're loading a different state
   if (!isGrimoireStateEqual(currentState, entryState)) {
-    // Snapshot current game before loading history item (same as startGame does)
+    // Snapshot current game before loading history item (same as resetGrimoire does)
     try {
       if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
         snapshotCurrentGrimoire({

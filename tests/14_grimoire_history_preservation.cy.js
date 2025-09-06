@@ -7,7 +7,7 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#start-game').click();
+  cy.get('#reset-grimoire').click();
   cy.get('#player-circle li').should('have.length', n);
 };
 
