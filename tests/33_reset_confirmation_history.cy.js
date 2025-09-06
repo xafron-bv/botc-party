@@ -43,6 +43,52 @@ describe('Reset confirmation after loading ended game from history', () => {
     // Still should reset to current player count without blocking
     cy.get('#player-circle li').should('have.length', 5);
   });
+
+  it('asks for confirmation when loading a history item while a game is started', () => {
+    startGameWithPlayers(5);
+    cy.get('#mode-player').check({ force: true });
+    cy.get('#start-game').click();
+
+    // Create a history item by ending the game
+    cy.get('#end-game').click();
+    cy.get('#end-game-modal').should('be.visible');
+    cy.get('#good-wins-btn').click();
+    cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
+
+    // Start a new game so current session is active
+    cy.get('#start-game').click();
+
+    // Stub confirm and click a history item
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(false).as('confirmStub2'); });
+    cy.get('#grimoire-history-list .history-item').first().click();
+
+    // Should have prompted once and not changed players when cancelled
+    cy.get('@confirmStub2').should('have.callCount', 1);
+    cy.get('#player-circle li').should('have.length', 5);
+  });
+
+  it('hides End Game button after loading an ended game from history', () => {
+    // Create ended game history entry
+    startGameWithPlayers(5);
+    cy.get('#mode-player').check({ force: true });
+    cy.get('#start-game').click();
+    cy.get('#end-game').click();
+    cy.get('#end-game-modal').should('be.visible');
+    cy.get('#good-wins-btn').click();
+    cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
+
+    // Start a new game to ensure End Game is currently visible
+    cy.get('#start-game').click();
+    cy.get('#end-game').should('be.visible');
+
+    // Load the ended game; accept confirmation
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
+    cy.get('#grimoire-history-list .history-item').first().click();
+
+    // After loading an ended game, End Game should be hidden and Start Game shown
+    cy.get('#end-game').should('not.be.visible');
+    cy.get('#start-game').should('be.visible');
+  });
 });
 
 

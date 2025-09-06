@@ -182,7 +182,13 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
     scriptData: entry.scriptData
   };
 
-  // Only snapshot if we're loading a different state
+  // If a game is currently started, confirm before loading another history (will replace current game)
+  if (grimoireState.gameStarted) {
+    const ok = window.confirm('A game is in progress. Loading history will reset the current game. Continue?');
+    if (!ok) return;
+  }
+
+  // Only snapshot if we're loading a different state and a game is in progress
   if (!isGrimoireStateEqual(currentState, entryState) && (window.grimoireState && window.grimoireState.gameStarted)) {
     // Snapshot current game before loading history item (same as resetGrimoire does)
     try {
@@ -257,6 +263,28 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     repositionPlayers({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
+
+    // Update Start/End Game button visibility based on restored gameStarted and mode
+    try {
+      const startBtn = document.getElementById('start-game');
+      const endBtn = document.getElementById('end-game');
+      const openSetupBtn = document.getElementById('open-player-setup');
+      if (grimoireState.gameStarted) {
+        if (endBtn) endBtn.style.display = '';
+        if (startBtn) startBtn.style.display = 'none';
+        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : 'none';
+      } else {
+        if (endBtn) endBtn.style.display = 'none';
+        if (startBtn) startBtn.style.display = '';
+        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
+      }
+      // Ensure the Start button is brought into view to be visibly assertable in tests
+      try {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.scrollTop = 0;
+        if (startBtn && startBtn.scrollIntoView) startBtn.scrollIntoView({ block: 'nearest' });
+      } catch (_) { }
+    } catch (_) { }
   } catch (e) {
     console.error('Failed to restore grimoire from history:', e);
   } finally {
