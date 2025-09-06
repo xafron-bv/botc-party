@@ -1,4 +1,4 @@
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice } from './src/constants.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstNightBtn = document.getElementById('first-night-btn');
   const otherNightsBtn = document.getElementById('other-nights-btn');
   // Travellers toggle state key and default
+  const modeStorytellerRadio = document.getElementById('mode-storyteller');
+  const modePlayerRadio = document.getElementById('mode-player');
+  const dayNightToggleBtn = document.getElementById('day-night-toggle');
+  const dayNightSlider = document.getElementById('day-night-slider');
 
   const grimoireState = {
     includeTravellers: false,
@@ -74,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedPlayerIndex: -1,
     editingReminder: { playerIndex: -1, reminderIndex: -1 },
     isRestoringState: false,
-    outsideCollapseHandlerInstalled: false
+    outsideCollapseHandlerInstalled: false,
+    mode: 'storyteller'
   };
 
   // Make grimoireState available globally for event handlers
@@ -84,6 +89,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (backgroundSelect) {
     backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
+  }
+
+  // Initialize mode from localStorage
+  try {
+    const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
+    grimoireState.mode = storedMode === 'player' ? 'player' : 'storyteller';
+  } catch (_) {
+    grimoireState.mode = 'storyteller';
+  }
+
+  const applyModeUI = () => {
+    if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
+    if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
+    const isPlayer = grimoireState.mode === 'player';
+    if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
+    if (dayNightSlider) {
+      if (isPlayer) {
+        dayNightSlider.style.display = 'none';
+      }
+    }
+  };
+
+  if (modeStorytellerRadio && modePlayerRadio) {
+    applyModeUI();
+    const onModeChange = (e) => {
+      const val = e && e.target && e.target.value;
+      grimoireState.mode = (val === 'player') ? 'player' : 'storyteller';
+      applyModeUI();
+      try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) {}
+      saveAppState({ grimoireState });
+    };
+    modeStorytellerRadio.addEventListener('change', onModeChange);
+    modePlayerRadio.addEventListener('change', onModeChange);
   }
 
   // Initialize travellers toggle from localStorage
@@ -342,7 +380,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initExportImport();
 
   // Restore previous session (script and grimoire)
-  loadAppState({ grimoireState, grimoireHistoryList });
+  loadAppState({ grimoireState, grimoireHistoryList }).then(() => {
+    applyModeUI();
+  });
 
   // Initialize day/night tracking
   initDayNightTracking(grimoireState);

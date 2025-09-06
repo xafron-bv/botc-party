@@ -1,4 +1,4 @@
-import { INCLUDE_TRAVELLERS_KEY } from './constants.js';
+import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from './constants.js';
 import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
@@ -11,10 +11,12 @@ export function saveAppState({ grimoireState }) {
       players: grimoireState.players,
       scriptName: grimoireState.scriptMetaName,
       dayNightTracking: grimoireState.dayNightTracking,
-      bluffs: grimoireState.bluffs || [null, null, null]
+      bluffs: grimoireState.bluffs || [null, null, null],
+      mode: grimoireState.mode || 'storyteller'
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
+    try { localStorage.setItem(MODE_STORAGE_KEY, (grimoireState.mode === 'player') ? 'player' : 'storyteller'); } catch (_) { }
   } catch (_) { }
 }
 
@@ -43,6 +45,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.bluffs) {
       grimoireState.bluffs = saved.bluffs;
+    }
+    if (saved && saved.mode) {
+      grimoireState.mode = saved.mode === 'player' ? 'player' : 'storyteller';
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }
