@@ -48,53 +48,58 @@ export function initPlayerSetup({ grimoireState }) {
   function renderPlayerSetupList() {
     if (!playerSetupCharacterList) return;
     playerSetupCharacterList.innerHTML = '';
-    try {
-      playerSetupCharacterList.style.display = 'grid';
-      playerSetupCharacterList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(90px, 1fr))';
-      playerSetupCharacterList.style.gap = '10px';
-    } catch (_) { }
-    const roles = Object.values(grimoireState.allRoles || {});
-    roles.forEach(role => {
-      const tokenEl = document.createElement('div');
-      tokenEl.className = 'token role';
-      tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-      tokenEl.style.backgroundSize = '68% 68%, cover';
-      tokenEl.style.position = 'relative';
-      tokenEl.style.overflow = 'visible';
-      tokenEl.title = role.name;
-
-      // Checkbox overlay
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = (grimoireState.playerSetup.bag || []).includes(role.id);
-      checkbox.style.position = 'absolute';
-      checkbox.style.top = '6px';
-      checkbox.style.left = '6px';
-      checkbox.style.zIndex = '2';
-
-      const toggle = () => {
-        const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
-        const idx = list.indexOf(role.id);
-        if (checkbox.checked && idx === -1) list.push(role.id);
-        if (!checkbox.checked && idx !== -1) list.splice(idx, 1);
-        updateBagWarning();
-        saveAppState({ grimoireState });
-      };
-
-      checkbox.addEventListener('change', (e) => {
-        e.stopPropagation();
-        toggle();
+    const teamsOrder = [
+      { key: 'townsfolk', label: 'Townsfolk' },
+      { key: 'outsider', label: 'Outsiders' },
+      { key: 'minion', label: 'Minions' },
+      { key: 'demon', label: 'Demons' }
+    ];
+    const allRoles = Object.values(grimoireState.allRoles || {});
+    teamsOrder.forEach((team, idx) => {
+      const groupRoles = allRoles.filter(r => (r.team || '').toLowerCase() === team.key);
+      if (!groupRoles.length) return;
+      const header = document.createElement('div');
+      header.className = 'team-header';
+      header.textContent = team.label;
+      playerSetupCharacterList.appendChild(header);
+      const grid = document.createElement('div');
+      grid.className = 'team-grid';
+      groupRoles.forEach(role => {
+        const tokenEl = document.createElement('div');
+        tokenEl.className = 'token role';
+        tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+        tokenEl.style.backgroundSize = '68% 68%, cover';
+        tokenEl.style.position = 'relative';
+        tokenEl.style.overflow = 'visible';
+        tokenEl.title = role.name;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = (grimoireState.playerSetup.bag || []).includes(role.id);
+        checkbox.style.position = 'absolute';
+        checkbox.style.top = '6px';
+        checkbox.style.left = '6px';
+        checkbox.style.zIndex = '2';
+        const toggle = () => {
+          const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
+          const i = list.indexOf(role.id);
+          if (checkbox.checked && i === -1) list.push(role.id);
+          if (!checkbox.checked && i !== -1) list.splice(i, 1);
+          updateBagWarning();
+          saveAppState({ grimoireState });
+        };
+        checkbox.addEventListener('change', (e) => { e.stopPropagation(); toggle(); });
+        tokenEl.addEventListener('click', () => { checkbox.checked = !checkbox.checked; toggle(); });
+        const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
+        tokenEl.appendChild(svg);
+        tokenEl.appendChild(checkbox);
+        grid.appendChild(tokenEl);
       });
-
-      tokenEl.addEventListener('click', () => {
-        checkbox.checked = !checkbox.checked;
-        toggle();
-      });
-
-      const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
-      tokenEl.appendChild(svg);
-      tokenEl.appendChild(checkbox);
-      playerSetupCharacterList.appendChild(tokenEl);
+      playerSetupCharacterList.appendChild(grid);
+      if (idx < teamsOrder.length - 1) {
+        const sep = document.createElement('div');
+        sep.className = 'team-separator';
+        playerSetupCharacterList.appendChild(sep);
+      }
     });
   }
 

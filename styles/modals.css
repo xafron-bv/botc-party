@@ -99,6 +99,25 @@
   height: 16px;
 }
 
+/* Team grouping styles for player setup */
+#player-setup-character-list .team-header {
+  font-weight: bold;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+  padding-bottom: 4px;
+}
+
+#player-setup-character-list .team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+}
+
+#player-setup-character-list .team-separator {
+  height: 10px;
+}
+
 #character-search {
   width: 100%;
   padding: 12px 0px;
