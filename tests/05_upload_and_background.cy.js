@@ -38,6 +38,17 @@ describe('Upload & Background', () => {
     cy.contains('#load-status', 'Invalid JSON file').should('be.visible');
   });
 
+  it('shows an error for invalid script format (object instead of array)', () => {
+    cy.reload();
+    const objPath = '/tmp/cy_obj.json';
+    const invalidScript = { name: 'Object Script', characters: ['chef', 'librarian'] };
+    cy.writeFile(objPath, invalidScript);
+    cy.get('#script-file').selectFile(objPath, { force: true });
+
+    cy.get('#load-status').should('have.class', 'error');
+    cy.contains('#load-status', 'Invalid script file').should('be.visible');
+  });
+
   it('loads all characters successfully', () => {
     cy.get('#load-all-chars').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 50);
