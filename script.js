@@ -14,7 +14,7 @@ import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const startGameBtn = document.getElementById('start-game');
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
@@ -381,13 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize export/import functionality
   initExportImport();
 
-  // Restore previous session (script and grimoire)
-  loadAppState({ grimoireState, grimoireHistoryList }).then(() => {
-    applyModeUI();
-  });
-
-  // Initialize day/night tracking
+  // Initialize day/night tracking first
   initDayNightTracking(grimoireState);
+
+  // Restore previous session (script and grimoire), then apply mode UI
+  await loadAppState({ grimoireState, grimoireHistoryList });
+  applyModeUI();
 
   // In-app tour
   initInAppTour();
