@@ -64,7 +64,8 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
     cy.get('#number-picker-overlay .number').contains('1').click();
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
-    // Re-open player setup and start selection again
+    // Re-open sidebar if needed, then player setup and start selection again
+    cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel .start-selection').click();
     // Overlays should reset to '?'
@@ -83,6 +84,7 @@ describe('Player Setup - Guards and Resets', () => {
         cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
       }
     });
+    cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#assign-and-start').click();
     // Start selection again - all should be reset to '?'
     cy.get('#open-player-setup').click();

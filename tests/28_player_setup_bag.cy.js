@@ -57,6 +57,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-panel').should('not.be.visible');
     // Overlay shows "1" on first player's token and is disabled
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1').and('have.class', 'disabled');
+    // Reset grimoire during selection should cancel and remove overlays
+    cy.get('#sidebar-toggle').should('be.visible').click();
+    cy.get('#reset-grimoire').click();
+    cy.get('#player-circle li .number-overlay').should('have.length', 0);
 
     // Character not revealed on token yet
     cy.get('#player-circle li').eq(0).find('.character-name').should('have.text', '');
@@ -78,6 +82,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     });
 
     // Finalize by starting the game: assigns characters, removes overlays, shows grimoire
+    cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#assign-and-start').click();
     // Character names should appear under player tokens and overlays removed
     cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('not.equal', '');
