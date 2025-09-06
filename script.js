@@ -4,7 +4,7 @@ import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
 import { createCurvedLabelSvg } from './src/ui/svg.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire, hideGrimoire } from './src/grimoire.js';
-import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
+import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initExportImport } from './src/history/exportImport.js';
@@ -14,11 +14,16 @@ import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { initPlayerSetup } from './src/playerSetup.js';
-import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
+import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const resetGrimoireBtn = document.getElementById('reset-grimoire');
-  const assignAndStartBtn = document.getElementById('assign-and-start');
+  const startGameBtn = document.getElementById('start-game');
+  const endGameBtn = document.getElementById('end-game');
+  const endGameModal = document.getElementById('end-game-modal');
+  const closeEndGameModalBtn = document.getElementById('close-end-game-modal');
+  const goodWinsBtn = document.getElementById('good-wins-btn');
+  const evilWinsBtn = document.getElementById('evil-wins-btn');
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
   const loadSavBtn = document.getElementById('load-sav');
@@ -93,7 +98,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     isRestoringState: false,
     outsideCollapseHandlerInstalled: false,
     mode: 'storyteller',
-    grimoireHidden: false
+    grimoireHidden: false,
+    gameStarted: false
   };
 
   // Player setup state
@@ -127,11 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
-    if (assignAndStartBtn) assignAndStartBtn.style.display = isPlayer ? 'none' : '';
+    // Always show Start/End Game button in both modes
+    if (startGameBtn) startGameBtn.style.display = '';
     if (openStorytellerMessageBtn) openStorytellerMessageBtn.style.display = isPlayer ? 'none' : '';
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }
+    try { updateStartGameEnabled(); } catch (_) { }
   };
   // Hide/Show grimoire toggle (re-uses reveal button location)
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
@@ -165,8 +173,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     const onModeChange = (e) => {
       const val = e && e.target && e.target.value;
-      grimoireState.mode = (val === 'player') ? 'player' : 'storyteller';
+      const nextMode = (val === 'player') ? 'player' : 'storyteller';
+      if (nextMode === grimoireState.mode) return;
+      // If a game is in progress, confirm before resetting (which will end and save the game)
+      if (grimoireState.gameStarted) {
+        const ok = window.confirm('A game is in progress. Switching mode will reset the grimoire and end the current game. Continue?');
+        if (!ok) { applyModeUI(); return; }
+      }
+      // Reset grimoire before applying mode change
+      try { resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }); } catch (_) { }
+      try { showGrimoire({ grimoireState }); } catch (_) { }
+      try { grimoireState.winner = null; } catch (_) { }
+      grimoireState.gameStarted = false;
+      // Apply mode and UI
+      grimoireState.mode = nextMode;
       applyModeUI();
+      updateStartGameEnabled();
       try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) { }
       saveAppState({ grimoireState });
     };
@@ -282,29 +304,152 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   loadPlayerSetupTable({ grimoireState });
 
-  if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }));
-  if (assignAndStartBtn) assignAndStartBtn.addEventListener('click', () => {
-    // Only act if selection is complete
-    const sel = grimoireState.playerSetup;
-    const n = (grimoireState.players || []).length;
-    const picked = Array.isArray(sel && sel.assignments) ? sel.assignments.filter((v) => v !== null && v !== undefined).length : 0;
-    if (!sel || picked !== n) return;
-    // Apply and reveal
-    const assignments = sel.assignments || [];
-    const bag = sel.bag || [];
+  if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => {
+    if (grimoireState.gameStarted) {
+      const ok = window.confirm('A game is in progress. Resetting will end the current game and save it to history. Continue?');
+      if (!ok) return;
+    }
+    resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
+    // Always show grimoire after reset
+    try { showGrimoire({ grimoireState }); } catch (_) { }
+    // Reset game state UI: show Start, hide End, clear winner
+    try { grimoireState.winner = null; } catch (_) { }
+    grimoireState.gameStarted = false;
+    if (startGameBtn) startGameBtn.style.display = '';
+    if (endGameBtn) endGameBtn.style.display = 'none';
+    // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
+    applyModeUI();
+    updateStartGameEnabled();
+  });
+  if (startGameBtn) startGameBtn.addEventListener('click', () => {
+    // Apply any remaining number-selection assignments to players
+    const sel = grimoireState.playerSetup || {};
+    const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+    const bag = Array.isArray(sel.bag) ? sel.bag : [];
     assignments.forEach((bagIdx, idx) => {
-      const roleId = bagIdx !== null && bagIdx !== undefined ? bag[bagIdx] : null;
-      if (roleId && grimoireState.players[idx]) grimoireState.players[idx].character = roleId;
+      const roleId = (bagIdx !== null && bagIdx !== undefined) ? bag[bagIdx] : null;
+      if (roleId && grimoireState.players[idx] && !grimoireState.players[idx].character) {
+        grimoireState.players[idx].character = roleId;
+      }
     });
     try { document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
-    sel.selectionActive = false;
+    if (sel) sel.selectionActive = false;
     showGrimoire({ grimoireState });
     // Forget previously selected numbers after starting game
     if (grimoireState.playerSetup) {
       grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
       grimoireState.playerSetup.revealed = true;
     }
+    // Show feedback for starting a new game
+    const gameStatusEl = document.getElementById('game-status');
+    if (gameStatusEl) {
+      const playerCount = (grimoireState.players || []).length;
+      gameStatusEl.textContent = `New game started (${playerCount} players)`;
+      gameStatusEl.className = 'status';
+      try { clearTimeout(grimoireState._gameStatusTimer); } catch (_) { }
+      grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
+    }
+    // Show End Game button and hide Start Game until end/reset/start-selection
+    if (endGameBtn) endGameBtn.style.display = '';
+    if (startGameBtn) startGameBtn.style.display = 'none';
+    // Hide Start Player Setup during an active game
+    const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+    if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
+    grimoireState.gameStarted = true;
+
+    // Reset day/night tracking when a new game starts
+    try {
+      if (!grimoireState.dayNightTracking) {
+        grimoireState.dayNightTracking = { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} };
+      } else {
+        grimoireState.dayNightTracking.enabled = false;
+        grimoireState.dayNightTracking.phases = ['N1'];
+        grimoireState.dayNightTracking.currentPhaseIndex = 0;
+        grimoireState.dayNightTracking.reminderTimestamps = {};
+      }
+      updateDayNightUI(grimoireState);
+    } catch (_) { }
   });
+
+  // Handle End Game flow
+  if (endGameBtn) endGameBtn.addEventListener('click', () => { if (endGameModal) endGameModal.style.display = 'flex'; });
+
+  if (closeEndGameModalBtn && endGameModal) closeEndGameModalBtn.addEventListener('click', () => { endGameModal.style.display = 'none'; });
+  if (endGameModal) {
+    endGameModal.addEventListener('click', (e) => {
+      if (e.target === endGameModal) { endGameModal.style.display = 'none'; }
+    });
+  }
+
+  function declareWinner(team) {
+    if (!team) return;
+    grimoireState.winner = team; // 'good' or 'evil'
+    try { saveAppState({ grimoireState }); } catch (_) { }
+    // Refresh grimoire UI and ensure center winner message is appended immediately
+    try { updateGrimoire({ grimoireState }); } catch (_) { }
+    try {
+      const setupInfoEl = document.getElementById('setup-info');
+      if (setupInfoEl) {
+        let msgEl = document.getElementById('winner-message');
+        if (!msgEl) {
+          msgEl = document.createElement('div');
+          msgEl.id = 'winner-message';
+          msgEl.style.marginTop = '8px';
+          msgEl.style.fontWeight = 'bold';
+          setupInfoEl.appendChild(msgEl);
+        }
+        msgEl.style.color = team === 'good' ? '#6bff8a' : '#ff6b6b';
+        msgEl.textContent = `${team === 'good' ? 'Good' : 'Evil'} has won`;
+      }
+    } catch (_) { }
+    // Snapshot to history with winner info
+    try {
+      snapshotCurrentGrimoire({
+        players: grimoireState.players,
+        scriptMetaName: grimoireState.scriptMetaName,
+        scriptData: grimoireState.scriptData,
+        grimoireHistoryList,
+        dayNightTracking: grimoireState.dayNightTracking,
+        winner: team
+      });
+    } catch (_) { }
+    if (endGameModal) endGameModal.style.display = 'none';
+    // After ending game, hide End Game and show Start Game again
+    if (endGameBtn) endGameBtn.style.display = 'none';
+    if (startGameBtn) startGameBtn.style.display = '';
+    // Re-apply mode-specific UI for Start Player Setup visibility
+    applyModeUI();
+    updateStartGameEnabled();
+  }
+
+  if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good'));
+  if (evilWinsBtn) evilWinsBtn.addEventListener('click', () => declareWinner('evil'));
+
+  // Enable/disable Start Game based on character assignment completeness
+  function updateStartGameEnabled() {
+    if (!startGameBtn) return;
+    if (grimoireState.mode === 'player') {
+      startGameBtn.disabled = false;
+      return;
+    }
+    const players = grimoireState.players || [];
+    const allAssigned = players.length > 0 && players.every(p => !!p.character);
+    startGameBtn.disabled = !allAssigned;
+  }
+
+  // Initial state
+  updateStartGameEnabled();
+
+  // Observe grimoire changes to toggle Start Game
+  const observer = new MutationObserver(() => updateStartGameEnabled());
+  const playerCircle = document.getElementById('player-circle');
+  if (playerCircle) observer.observe(playerCircle, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+  // Also update when players change programmatically
+  const originalUpdateGrimoire = updateGrimoire;
+  if (typeof originalUpdateGrimoire === 'function') {
+    (window)._updateGrimoireWrapped = true;
+  }
 
   saveReminderBtn.onclick = () => {
     const text = reminderTextInput.value.trim();

@@ -199,6 +199,14 @@ export function initPlayerSetup({ grimoireState }) {
         if (bagIndex < 0 || bagIndex >= (grimoireState.playerSetup.bag || []).length) return;
 
         grimoireState.playerSetup.assignments[forIdx] = bagIndex;
+        // Immediately assign the character to the player
+        try {
+          const bag = grimoireState.playerSetup.bag || [];
+          const roleId = bag[bagIndex];
+          if (roleId && grimoireState.players && grimoireState.players[forIdx]) {
+            grimoireState.players[forIdx].character = roleId;
+          }
+        } catch (_) { }
         saveAppState({ grimoireState });
 
         // Disable picked number button
@@ -292,6 +300,16 @@ export function initPlayerSetup({ grimoireState }) {
     const grimoireHistoryList = document.getElementById('grimoire-history-list');
     resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
     if (playerSetupPanel) playerSetupPanel.style.display = 'none';
+    // When starting number selection, consider game not started: show Start, hide End
+    try {
+      const startGameBtn = document.getElementById('start-game');
+      const endGameBtn = document.getElementById('end-game');
+      const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+      if (startGameBtn) startGameBtn.style.display = '';
+      if (endGameBtn) endGameBtn.style.display = 'none';
+      if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = '';
+      if (window.grimoireState) window.grimoireState.gameStarted = false;
+    } catch (_) { }
     // Collapse sidebar to immediately show the grimoire area
     try {
       document.body.classList.add('sidebar-collapsed');

@@ -30,13 +30,14 @@
           <label><input type="radio" name="mode" id="mode-storyteller" value="storyteller" checked> Storyteller</label>
           <label><input type="radio" name="mode" id="mode-player" value="player"> Player</label>
         </div>
-        <div style="margin-top: 8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <button class="button" id="open-player-setup">Player Setup</button>
+        <div style="margin-top: 8px; display:flex; flex-direction: column; gap:8px; align-items:stretch;">
+          <button class="button" id="open-player-setup">Start Player Setup</button>
+          <button class="button" id="start-game" disabled>Start Game</button>
+          <button class="button" id="end-game" style="display:none;">End Game</button>
           <button class="button" id="reveal-assignments">Reveal Characters</button>
         </div>
         <div style="display:flex; flex-direction: column; gap:8px; margin-top:8px;">
           <button class="button" id="reset-grimoire">Reset Grimoire</button>
-          <button class="button" id="assign-and-start" style="display:none;">Start Game</button>
           <button class="button" id="open-storyteller-message" style="display: none;">Storyteller Message</button>
         </div>
         <div id="game-status" class="status" aria-live="polite"></div>
@@ -204,6 +205,17 @@
       </div>
       <div style="margin-top:10px; text-align:right;">
         <button class="button" id="reveal-confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="end-game-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px; position: relative; text-align:center;">
+      <button class="modal-close" id="close-end-game-modal" aria-label="Close end game"><i class="fas fa-times"></i></button>
+      <h3>Who won?</h3>
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+        <button class="button" id="good-wins-btn">Good Wins</button>
+        <button class="button" id="evil-wins-btn">Evil Wins</button>
       </div>
     </div>
   </div>

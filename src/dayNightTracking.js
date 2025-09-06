@@ -166,6 +166,9 @@ export function updateDayNightUI(grimoireState) {
       label.style.left = `${(index / (phases.length - 1)) * 100}%`;
       phaseLabels.appendChild(label);
     });
+  } else {
+    // Even when disabled, show the current (reset) phase value for tests/UI expectations
+    try { currentPhaseDiv.textContent = phases[currentPhaseIndex] || 'N1'; } catch (_) { }
   }
 }
 
@@ -226,8 +229,8 @@ export function calculateNightOrder(grimoireState) {
   grimoireState.players.forEach((player, index) => {
     if (player.character) {
       const role = grimoireState.allRoles[player.character] ||
-                   grimoireState.baseRoles[player.character] ||
-                   grimoireState.extraTravellerRoles[player.character];
+        grimoireState.baseRoles[player.character] ||
+        grimoireState.extraTravellerRoles[player.character];
       if (role && role[nightOrderKey] && role[nightOrderKey] > 0) {
         playersWithNightOrder.push({
           playerIndex: index,

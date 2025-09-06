@@ -91,7 +91,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     // Finalize by starting the game: assigns characters, removes overlays, shows grimoire
     cy.get('#sidebar-toggle').should('be.visible').click();
-    cy.get('#assign-and-start').click();
+    cy.get('#start-game').click();
     // Character names should appear under player tokens and overlays removed
     cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('not.equal', '');
     cy.get('#player-circle li').eq(1).find('.character-name').invoke('text').should('not.equal', '');

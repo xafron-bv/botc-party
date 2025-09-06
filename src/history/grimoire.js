@@ -68,14 +68,15 @@ function isGrimoireStateEqual(state1, state2) {
     }
   }
 
-  // Compare script data
+  // Compare script data and winner
   if (state1.scriptName !== state2.scriptName) return false;
   if (JSON.stringify(state1.scriptData) !== JSON.stringify(state2.scriptData)) return false;
+  if ((state1.winner || null) !== (state2.winner || null)) return false;
 
   return true;
 }
 
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking }) {
+export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking, winner }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
 
@@ -83,7 +84,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
     const currentState = {
       players,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData
+      scriptData,
+      winner: winner || null
     };
 
     // Check against ALL history entries, not just the most recent
@@ -91,7 +93,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       const historyState = {
         players: historyEntry.players,
         scriptName: historyEntry.scriptName,
-        scriptData: historyEntry.scriptData
+        scriptData: historyEntry.scriptData,
+        winner: historyEntry.winner || null
       };
 
       if (isGrimoireStateEqual(currentState, historyState)) {
@@ -109,7 +112,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       players: snapPlayers,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
       scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null,
-      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null
+      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null,
+      winner: winner || null
     };
     history.grimoireHistory.unshift(entry);
     saveHistories();
@@ -178,7 +182,7 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   };
 
   // Only snapshot if we're loading a different state
-  if (!isGrimoireStateEqual(currentState, entryState)) {
+  if (!isGrimoireStateEqual(currentState, entryState) && (window.grimoireState && window.grimoireState.gameStarted)) {
     // Snapshot current game before loading history item (same as resetGrimoire does)
     try {
       if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
@@ -187,7 +191,8 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
           scriptMetaName: grimoireState.scriptMetaName,
           scriptData: grimoireState.scriptData,
           grimoireHistoryList,
-          dayNightTracking: grimoireState.dayNightTracking
+          dayNightTracking: grimoireState.dayNightTracking,
+          winner: grimoireState.winner
         });
       }
     } catch (_) { }
@@ -234,6 +239,9 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     }
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
+
+    // Restore winner state to render center message
+    grimoireState.winner = entry.winner || null;
 
     // Restore day/night tracking state if present
     if (entry.dayNightTracking) {
