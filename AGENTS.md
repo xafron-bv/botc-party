@@ -30,3 +30,14 @@ npx eslint --fix
 
 - Use Conventional Commits (e.g., `feat:`, `fix:`, `docs:`, `refactor:`).
 - Keep the subject line strictly under 80 characters.
+
+5. Require Green Tests Before Commit/Push
+
+- Always run the full Cypress suite before committing or pushing.
+- If any tests fail, fix the code or tests, then re-run until all pass.
+- Do not commit/push with failing tests.
+
+6. Static Imports Only
+
+- Do not use dynamic `require`/`import()` within functions or blocks.
+- Always place all imports at the top of the module.
