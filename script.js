@@ -12,6 +12,7 @@ import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
+import { initPlayerSetup } from './src/playerSetup.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -82,6 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     mode: 'storyteller'
   };
 
+  // Player setup state
+  grimoireState.playerSetup = grimoireState.playerSetup || { bag: [], assignments: [], revealed: false };
+
   // Make grimoireState available globally for event handlers
   window.grimoireState = grimoireState;
 
@@ -108,6 +112,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       dayNightSlider.classList.remove('open');
       dayNightSlider.style.display = 'none';
     }
+    const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+    if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }
@@ -125,6 +131,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     modeStorytellerRadio.addEventListener('change', onModeChange);
     modePlayerRadio.addEventListener('change', onModeChange);
   }
+
+  // Initialize player setup module
+  initPlayerSetup({ grimoireState });
 
   // Initialize travellers toggle from localStorage
   try {

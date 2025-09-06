@@ -30,6 +30,9 @@
           <label><input type="radio" name="mode" id="mode-storyteller" value="storyteller" checked> Storyteller</label>
           <label><input type="radio" name="mode" id="mode-player" value="player"> Player</label>
         </div>
+        <div style="margin-top: 8px;">
+          <button class="button" id="open-player-setup">Player Setup</button>
+        </div>
         <button class="button" id="start-game">Start Game</button>
         <div id="game-status" class="status" aria-live="polite"></div>
       </div>
@@ -159,6 +162,28 @@
       <input type="text" id="reminder-token-search" placeholder="Search tokens or characters...">
       <div id="reminder-token-grid"></div>
       <button class="button" id="close-reminder-token-modal">Cancel</button>
+    </div>
+  </div>
+
+  <div id="player-setup-panel" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow: auto;">
+      <h3>Player Setup (Storyteller)</h3>
+      <div id="bag-count-warning" class="error" style="display:none;">Warning: Selected bag does not match player count configuration.</div>
+      <div style="margin: 8px 0; display:flex; gap:10px; align-items:center;">
+        <button class="button" id="bag-random-fill">Randomly Fill</button>
+        <button class="button start-selection">Start Number Selection</button>
+        <button class="button" id="reveal-assignments">Reveal Characters</button>
+        <button class="button" id="close-player-setup">Close</button>
+      </div>
+      <div id="player-setup-character-list" style="max-height: 60vh; overflow-y: auto; margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <div id="number-picker-overlay" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <h3>Pick a number</h3>
+      <div id="number-picker-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px;"></div>
+      <div style="margin-top:10px; text-align:right;"><button class="button" id="close-number-picker">Cancel</button></div>
     </div>
   </div>
 
