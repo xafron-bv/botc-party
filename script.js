@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
   const storytellerMessageModal = document.getElementById('storyteller-message-modal');
   const closeStorytellerMessageBtn = document.getElementById('close-storyteller-message');
+  const storytellerMessageEdit = document.getElementById('storyteller-message-edit');
+  const closeStorytellerMessageEditBtn = document.getElementById('close-storyteller-message-edit');
   const storytellerMessagePicker = document.getElementById('storyteller-message-picker');
   const storytellerMessageInput = document.getElementById('storyteller-message-input');
   const showStorytellerMessageBtn = document.getElementById('show-storyteller-message');
@@ -577,6 +579,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (closeStorytellerMessageBtn && storytellerMessageModal) {
     closeStorytellerMessageBtn.addEventListener('click', () => { storytellerMessageModal.style.display = 'none'; });
+  }
+
+  // Edit modal close behavior to match character modal
+  if (closeStorytellerMessageEditBtn && storytellerMessageEdit) {
+    closeStorytellerMessageEditBtn.addEventListener('click', () => { storytellerMessageEdit.style.display = 'none'; });
+  }
+  if (storytellerMessageEdit) {
+    storytellerMessageEdit.addEventListener('click', (e) => {
+      const content = storytellerMessageEdit.querySelector('.modal-content');
+      if (e.target === storytellerMessageEdit) { storytellerMessageEdit.style.display = 'none'; return; }
+      if (content && !content.contains(e.target)) { storytellerMessageEdit.style.display = 'none'; }
+    });
   }
 
   // Fullscreen overlay element (created once)
