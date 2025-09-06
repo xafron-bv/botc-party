@@ -70,6 +70,35 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
+/* Match hover/touch effect for player setup token grid */
+#player-setup-character-list .token {
+  width: 70px;
+  height: 70px;
+  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: visible;
+}
+
+#player-setup-character-list .token:hover {
+  border-color: #D4AF37;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Checkbox overlay styling */
+#player-setup-character-list .token input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 #character-search {
   width: 100%;
   padding: 12px 0px;

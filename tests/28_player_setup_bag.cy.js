@@ -2,7 +2,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     // Ensure storyteller mode
     cy.get('#mode-storyteller').should('exist').and('be.checked');
     // Load a base script

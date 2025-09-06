@@ -52,7 +52,7 @@ export function initPlayerSetup({ grimoireState }) {
       playerSetupCharacterList.style.display = 'grid';
       playerSetupCharacterList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(90px, 1fr))';
       playerSetupCharacterList.style.gap = '10px';
-    } catch (_) {}
+    } catch (_) { }
     const roles = Object.values(grimoireState.allRoles || {});
     roles.forEach(role => {
       const tokenEl = document.createElement('div');
