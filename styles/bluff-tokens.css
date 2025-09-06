@@ -98,29 +98,35 @@
   }
 }
 
-/* Info icon for bluff tokens */
+/* Info icon for bluff tokens - match character tokens (no border/background, no movement) */
 .bluff-token .ability-info-icon {
   position: absolute;
   top: -8px;
   right: -8px;
+  left: auto;
   width: 24px;
   height: 24px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
+  background: none;
+  border: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   cursor: pointer;
-  border: 2px solid #D4AF37;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
   z-index: 2;
+  transform: none;
 }
 
 .bluff-token .ability-info-icon:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
+  background: none;
+  transform: none;
+}
+
+/* Prevent active press animation from global .ability-info-icon from shifting bluff icon */
+.bluff-token .ability-info-icon:active {
+  transform: none;
 }
 
 /* Very small screens */
@@ -142,5 +148,15 @@
     font-size: 12px;
     top: -6px;
     right: -6px;
+  }
+}
+
+/* On touch devices, do not move bluff tokens on tap */
+@media (hover: none) and (pointer: coarse) {
+  .bluff-token:hover {
+    transform: none;
+    box-shadow:
+      0 0 20px rgba(139, 69, 19, 0.8),
+      inset 0 0 15px rgba(0, 0, 0, 0.3);
   }
 }
