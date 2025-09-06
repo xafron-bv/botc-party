@@ -24,6 +24,21 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
+.modal .modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #D4AF37;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal .modal-close:hover {
+  color: #fff;
+}
+
 #character-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
@@ -116,6 +131,12 @@
 
 #player-setup-character-list .team-separator {
   height: 10px;
+}
+
+/* Ensure reveal button in sidebar is clickable above modal overlays */
+#reveal-assignments {
+  position: relative;
+  z-index: 5001;
 }
 
 #character-search {

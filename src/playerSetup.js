@@ -155,7 +155,10 @@ export function initPlayerSetup({ grimoireState }) {
         btn.classList.add('disabled');
         btn.disabled = true;
         numberPickerOverlay.style.display = 'none';
-        maybeReopenPanel();
+        if (playerSetupPanel) {
+          playerSetupPanel.style.display = 'flex';
+          try { playerSetupPanel.scrollIntoView({ block: 'center' }); } catch (_) { }
+        }
       });
       numberPickerGrid.appendChild(btn);
     }
@@ -196,8 +199,6 @@ export function initPlayerSetup({ grimoireState }) {
   if (openPlayerSetupBtn && playerSetupPanel) {
     openPlayerSetupBtn.addEventListener('click', () => {
       if (grimoireState.mode === 'player') return;
-      // Make modal overlay fully cover UI and ensure visibility
-      try { playerSetupPanel.style.position = 'fixed'; playerSetupPanel.style.inset = '0'; playerSetupPanel.style.zIndex = '9998'; } catch (_) { }
       playerSetupPanel.style.display = 'flex';
       renderPlayerSetupList();
       updateBagWarning();
@@ -217,6 +218,23 @@ export function initPlayerSetup({ grimoireState }) {
   if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); });
   const revealBtn = document.getElementById('reveal-assignments');
   if (revealBtn) revealBtn.addEventListener('click', revealAssignments);
+
+  // Close by clicking outside modal content to match other modals
+  if (playerSetupPanel) {
+    playerSetupPanel.addEventListener('click', (e) => {
+      if (e.target === playerSetupPanel) { playerSetupPanel.style.display = 'none'; return; }
+      const content = playerSetupPanel.querySelector('.modal-content');
+      if (content && !content.contains(e.target)) { playerSetupPanel.style.display = 'none'; }
+    });
+  }
+
+  if (numberPickerOverlay) {
+    numberPickerOverlay.addEventListener('click', (e) => {
+      if (e.target === numberPickerOverlay) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); return; }
+      const content = numberPickerOverlay.querySelector('.modal-content');
+      if (content && !content.contains(e.target)) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); }
+    });
+  }
 }
 
 
