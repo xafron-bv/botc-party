@@ -107,9 +107,6 @@ npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://1
 
 ## Deployment
 
-- **GitHub Pages**: Pushes to `main` are deployed to GitHub Pages via `.github/workflows/deploy.yml`.
-- **CI**: Pull requests run Cypress tests via `.github/workflows/pr-tests.yml`.
-- **Cache Busting**: On PR merge to `main`, `.github/workflows/bump-cache.yml` auto-increments the `CACHE_NAME` in `service-worker.js` to ensure clients fetch the latest assets.
 - **Other Hosts**: This is a static site—host the repo contents on any static hosting provider.
 
 ## License
