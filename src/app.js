@@ -45,8 +45,6 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.bluffs) {
       grimoireState.bluffs = saved.bluffs;
-      // Ensure bluff tokens reflect restored state
-      updateGrimoire({ grimoireState });
     }
     if (saved && saved.mode) {
       grimoireState.mode = saved.mode === 'player' ? 'player' : 'storyteller';
