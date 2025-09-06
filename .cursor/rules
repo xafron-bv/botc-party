@@ -34,3 +34,7 @@ steps:
   - id: require_green_tests
     when: pre-commit
     run: echo "Require: Do not commit/push if tests fail. Fix and re-run until green."
+
+  - id: static_imports_only
+    when: always
+    run: echo "Code style: Use only top-level static imports. No dynamic require/import()."

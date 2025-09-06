@@ -12,7 +12,7 @@ import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
-import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
+import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const startGameBtn = document.getElementById('start-game');
@@ -108,9 +108,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       dayNightSlider.classList.remove('open');
       dayNightSlider.style.display = 'none';
     }
-    if (isPlayer && grimoireState.dayNightTracking) {
-      grimoireState.dayNightTracking.enabled = false;
-    }
   };
 
   if (modeStorytellerRadio && modePlayerRadio) {
@@ -119,6 +116,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const val = e && e.target && e.target.value;
       grimoireState.mode = (val === 'player') ? 'player' : 'storyteller';
       applyModeUI();
+      // If switching to player mode, disable day/night tracking statefully
+      if (grimoireState.mode === 'player' && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        grimoireState.dayNightTracking.enabled = false;
+        updateDayNightUI(grimoireState);
+      }
       try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) { }
       saveAppState({ grimoireState });
     };
