@@ -92,6 +92,26 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
   });
+
+  it('collapses night slider and disables tracking when switching to player', () => {
+    // Ensure slider is closed initially
+    cy.get('#day-night-slider').should('not.be.visible');
+
+    // Enable tracking (storyteller mode)
+    cy.get('#day-night-toggle').should('be.visible').click();
+    cy.get('#day-night-slider').should('be.visible');
+    cy.get('#day-night-slider').should('have.class', 'open');
+
+    // Switch to player mode
+    cy.get('#mode-player').click({ force: true });
+
+    // Slider should be collapsed/hidden and tracking disabled
+    cy.get('#day-night-slider').should('not.be.visible');
+    cy.get('#day-night-slider').should('not.have.class', 'open');
+    cy.window().then((win) => {
+      expect(win.grimoireState.dayNightTracking.enabled).to.eq(false);
+    });
+  });
 });
 
 

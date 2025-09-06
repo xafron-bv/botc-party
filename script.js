@@ -104,10 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
     const isPlayer = grimoireState.mode === 'player';
     if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
-    if (dayNightSlider) {
-      if (isPlayer) {
-        dayNightSlider.style.display = 'none';
-      }
+    if (dayNightSlider && isPlayer) {
+      dayNightSlider.classList.remove('open');
+      dayNightSlider.style.display = 'none';
+    }
+    if (isPlayer && grimoireState.dayNightTracking) {
+      grimoireState.dayNightTracking.enabled = false;
     }
   };
 
