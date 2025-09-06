@@ -18,26 +18,29 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
     // Build per-character reminders from the current script: use the character's icon and reminder text as label
     const scriptReminderTokens = [];
+    const isPlayerMode = grimoireState && grimoireState.mode === 'player';
     try {
       Object.values(grimoireState.allRoles || {}).forEach(role => {
         const roleImage = resolveAssetPath(role.image);
-        if (role && Array.isArray(role.reminders) && role.reminders.length) {
-          role.reminders.forEach(rem => {
-            const label = String(rem || '').trim();
-            if (!label) return;
-            const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-            const id = `${role.id}-${norm}`;
-            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-          });
-        }
-        if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
-          role.remindersGlobal.forEach(rem => {
-            const label = String(rem || '').trim();
-            if (!label) return;
-            const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-            const id = `${role.id}-global-${norm}`;
-            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-          });
+        if (!isPlayerMode) {
+          if (role && Array.isArray(role.reminders) && role.reminders.length) {
+            role.reminders.forEach(rem => {
+              const label = String(rem || '').trim();
+              if (!label) return;
+              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+              const id = `${role.id}-${norm}`;
+              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+            });
+          }
+          if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
+            role.remindersGlobal.forEach(rem => {
+              const label = String(rem || '').trim();
+              if (!label) return;
+              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+              const id = `${role.id}-global-${norm}`;
+              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+            });
+          }
         }
       });
     } catch (_) { }
@@ -51,8 +54,20 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       { id: 'custom-note', image: '/assets/reminders/custom-CLofFTEi.webp', label: 'Custom note' },
       { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
     ];
-    // Merge: generic + per-character + file-provided
-    reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
+    // In player mode, instead of character-specific reminders, add each character as a token by name
+    let playerModeCharacterTokens = [];
+    if (isPlayerMode) {
+      try {
+        Object.values(grimoireState.allRoles || {}).forEach(role => {
+          const roleImage = resolveAssetPath(role.image);
+          playerModeCharacterTokens.push({ id: `character-${role.id}`, image: roleImage, label: role.name, characterName: role.name, characterId: role.id });
+        });
+      } catch (_) { }
+    }
+    // Merge: generic + (per-character reminders or character tokens) + file-provided
+    reminderTokens = isPlayerMode
+      ? [...genericTokens, ...playerModeCharacterTokens, ...reminderTokens]
+      : [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
     const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
     reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
     // Put custom option at the top

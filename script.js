@@ -1,4 +1,4 @@
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice } from './src/constants.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
@@ -14,7 +14,7 @@ import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const startGameBtn = document.getElementById('start-game');
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstNightBtn = document.getElementById('first-night-btn');
   const otherNightsBtn = document.getElementById('other-nights-btn');
   // Travellers toggle state key and default
+  const modeStorytellerRadio = document.getElementById('mode-storyteller');
+  const modePlayerRadio = document.getElementById('mode-player');
+  const dayNightToggleBtn = document.getElementById('day-night-toggle');
+  const dayNightSlider = document.getElementById('day-night-slider');
 
   const grimoireState = {
     includeTravellers: false,
@@ -74,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedPlayerIndex: -1,
     editingReminder: { playerIndex: -1, reminderIndex: -1 },
     isRestoringState: false,
-    outsideCollapseHandlerInstalled: false
+    outsideCollapseHandlerInstalled: false,
+    mode: 'storyteller'
   };
 
   // Make grimoireState available globally for event handlers
@@ -84,6 +89,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (backgroundSelect) {
     backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
+  }
+
+  // Initialize mode from localStorage
+  try {
+    const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
+    grimoireState.mode = storedMode === 'player' ? 'player' : 'storyteller';
+  } catch (_) {
+    grimoireState.mode = 'storyteller';
+  }
+
+  const applyModeUI = () => {
+    if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
+    if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
+    const isPlayer = grimoireState.mode === 'player';
+    if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
+    if (dayNightSlider && isPlayer) {
+      dayNightSlider.classList.remove('open');
+      dayNightSlider.style.display = 'none';
+    }
+    if (isPlayer && grimoireState.dayNightTracking) {
+      grimoireState.dayNightTracking.enabled = false;
+    }
+  };
+
+  if (modeStorytellerRadio && modePlayerRadio) {
+    applyModeUI();
+    const onModeChange = (e) => {
+      const val = e && e.target && e.target.value;
+      grimoireState.mode = (val === 'player') ? 'player' : 'storyteller';
+      applyModeUI();
+      try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) { }
+      saveAppState({ grimoireState });
+    };
+    modeStorytellerRadio.addEventListener('change', onModeChange);
+    modePlayerRadio.addEventListener('change', onModeChange);
   }
 
   // Initialize travellers toggle from localStorage
@@ -114,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
       try {
         localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
-      } catch (_) {}
+      } catch (_) { }
 
       if (nightOrderControls) {
         nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
@@ -137,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grimoireState.nightPhase = e.target.value;
       try {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
-      } catch (_) {}
+      } catch (_) { }
 
       // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {
@@ -341,11 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize export/import functionality
   initExportImport();
 
-  // Restore previous session (script and grimoire)
-  loadAppState({ grimoireState, grimoireHistoryList });
-
-  // Initialize day/night tracking
+  // Initialize day/night tracking first
   initDayNightTracking(grimoireState);
+
+  // Restore previous session (script and grimoire), then apply mode UI
+  await loadAppState({ grimoireState, grimoireHistoryList });
+  applyModeUI();
 
   // In-app tour
   initInAppTour();
