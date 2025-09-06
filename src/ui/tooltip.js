@@ -30,9 +30,12 @@ export function showTouchAbilityPopup(targetElement, ability) {
   popup.textContent = ability;
   popup.classList.add('show');
 
-  // If targetElement is the info icon, find the token for better positioning
+  // If targetElement is the info icon, find the nearest token element for better positioning
   const isInfoIcon = targetElement.classList.contains('ability-info-icon');
-  const referenceElement = isInfoIcon ? targetElement.parentElement.querySelector('.player-token') : targetElement;
+  const parent = targetElement.parentElement;
+  const referenceElement = isInfoIcon
+    ? (parent && (parent.querySelector('.player-token, .bluff-token') || parent))
+    : targetElement;
 
   const rect = referenceElement.getBoundingClientRect();
   const popupRect = popup.getBoundingClientRect();
