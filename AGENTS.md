@@ -20,3 +20,13 @@ npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://1
 # Fix lint issues
 npx eslint --fix
 ```
+
+3. Test-Driven Development (TDD)
+
+- Start each feature or bugfix by writing a failing Cypress test that defines the behavior.
+- Implement the minimal changes to make the test pass, then refactor if needed.
+
+4. Conventional Commits (< 80 chars)
+
+- Use Conventional Commits (e.g., `feat:`, `fix:`, `docs:`, `refactor:`).
+- Keep the subject line strictly under 80 characters.
