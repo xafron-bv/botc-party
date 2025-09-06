@@ -112,6 +112,11 @@ select {
   display: none;
 }
 
+/* Ensure load-status is visible when populated */
+#load-status {
+  display: block;
+}
+
 .error {
   color: #F44336;
   font-size: 14px;

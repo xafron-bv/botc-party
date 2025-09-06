@@ -76,6 +76,7 @@
   margin-top: 12px;
   text-align: center;
   transition: all 0.3s ease;
+  display: block;
 }
 
 #load-status.status {
