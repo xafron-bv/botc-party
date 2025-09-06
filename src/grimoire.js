@@ -47,9 +47,9 @@ function isPlayerOverlapping({ listItem }) {
 
     // Check if rectangles overlap
     const overlap = !(rect1.right < rect2.left ||
-                     rect1.left > rect2.right ||
-                     rect1.bottom < rect2.top ||
-                     rect1.top > rect2.bottom);
+      rect1.left > rect2.right ||
+      rect1.bottom < rect2.top ||
+      rect1.top > rect2.bottom);
 
     if (overlap) {
       // Check if the other player has a higher z-index (is on top)
@@ -542,7 +542,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   try {
     if (isTouchDevice()) ensureContextShield({ grimoireState });
   } catch (_) { }
-  
+
   // Enable/disable buttons based on limits
   const canAdd = grimoireState.players.length < 20;
   const canRemove = grimoireState.players.length > 5;
@@ -596,17 +596,17 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   const addButtonHandler = (button, action) => {
     let touchMoved = false;
     let lastTouchEnd = 0;
-    
+
     button.addEventListener('touchstart', (e) => {
       touchMoved = false;
       e.stopPropagation();
     });
-    
+
     button.addEventListener('touchmove', (e) => {
       touchMoved = true;
       e.stopPropagation();
     });
-    
+
     button.addEventListener('touchend', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -615,7 +615,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
         action();
       }
     });
-    
+
     button.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -637,7 +637,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     grimoireState.players.splice(idx, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
-  
+
   addButtonHandler(addAfterBtn, () => {
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
@@ -648,7 +648,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     grimoireState.players.splice(idx + 1, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
-  
+
   addButtonHandler(removeBtn, () => {
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
@@ -749,7 +749,7 @@ function ensureContextShield({ grimoireState }) {
 
 function maybeRemoveContextShield({ grimoireState }) {
   const anyMenuOpen = !!(grimoireState.playerContextMenu && grimoireState.playerContextMenu.style.display === 'block') ||
-                      !!(grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block');
+    !!(grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block');
   if (anyMenuOpen) return;
   if (grimoireState._contextShieldCleanup) {
     try { grimoireState._contextShieldCleanup(); } catch (_) { }
@@ -859,7 +859,7 @@ export function updateGrimoire({ grimoireState }) {
       li.classList.remove('is-north');
     }
 
-    const tokenDiv = li.querySelector('.player-token');
+    let tokenDiv = li.querySelector('.player-token');
     const charNameDiv = li.querySelector('.character-name');
     // Remove any previous arc label overlay
     const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
@@ -870,7 +870,23 @@ export function updateGrimoire({ grimoireState }) {
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
 
-    if (player.character) {
+    // In hidden mode, purge any prior ability icons and event listeners
+    if (grimoireState.grimoireHidden && tokenDiv) {
+      li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
+      const cloned = tokenDiv.cloneNode(true);
+      tokenDiv.replaceWith(cloned);
+      tokenDiv = cloned;
+    }
+
+    // When grimoire is hidden, strip any prior listeners/icons to avoid leaks
+    if (grimoireState.grimoireHidden && tokenDiv) {
+      li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
+      const clone = tokenDiv.cloneNode(true);
+      tokenDiv.replaceWith(clone);
+      tokenDiv = clone;
+    }
+
+    if (!grimoireState.grimoireHidden && player.character) {
       const role = getRoleById({ grimoireState, roleId: player.character });
       if (role) {
         tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
@@ -885,6 +901,7 @@ export function updateGrimoire({ grimoireState }) {
         // Add tooltip functionality for non-touch devices
         if (!('ontouchstart' in window)) {
           tokenDiv.addEventListener('mouseenter', (e) => {
+            if (grimoireState.grimoireHidden) return;
             if (role.ability) {
               abilityTooltip.textContent = role.ability;
               abilityTooltip.classList.add('show');
@@ -895,7 +912,7 @@ export function updateGrimoire({ grimoireState }) {
           tokenDiv.addEventListener('mouseleave', () => {
             abilityTooltip.classList.remove('show');
           });
-        } else if (role.ability) {
+        } else if (role.ability && !grimoireState.grimoireHidden) {
           // Add info icon for touch mode - will be positioned after circle layout
           const infoIcon = document.createElement('div');
           infoIcon.className = 'ability-info-icon';
@@ -1814,7 +1831,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', (e) => {
   const grimoireState = window.grimoireState;
   if (!grimoireState) return;
-  
+
   // Handle player context menu
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
@@ -1826,7 +1843,7 @@ document.addEventListener('click', (e) => {
       }
     }
   }
-  
+
   // Handle reminder context menu
   if (grimoireState.reminderContextMenu) {
     const menu = grimoireState.reminderContextMenu;
@@ -1839,7 +1856,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('touchstart', (e) => {
   const grimoireState = window.grimoireState;
   if (!grimoireState) return;
-  
+
   // Handle player context menu
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
@@ -1851,7 +1868,7 @@ document.addEventListener('touchstart', (e) => {
       }
     }
   }
-  
+
   // Handle reminder context menu
   if (grimoireState.reminderContextMenu) {
     const menu = grimoireState.reminderContextMenu;
@@ -1865,11 +1882,11 @@ document.addEventListener('touchstart', (e) => {
 document.addEventListener('touchend', (e) => {
   const grimoireState = window.grimoireState;
   if (!grimoireState) return;
-  
+
   if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.contains(e.target)) {
     e.stopPropagation();
   }
-  
+
   if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.contains(e.target)) {
     e.stopPropagation();
   }
@@ -1878,12 +1895,12 @@ document.addEventListener('touchend', (e) => {
 document.addEventListener('keydown', (e) => {
   const grimoireState = window.grimoireState;
   if (!grimoireState) return;
-  
+
   if (e.key === 'Escape') {
     if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.style.display === 'block') {
       hidePlayerContextMenu({ grimoireState });
     }
-    
+
     if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.style.display === 'block') {
       hideReminderContextMenu({ grimoireState });
     }

@@ -128,10 +128,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Apply bag assignments to players (used when revealing)
+  function applyAssignmentsFromBag() {
+    const assignments = (grimoireState.playerSetup && grimoireState.playerSetup.assignments) || [];
+    const bag = (grimoireState.playerSetup && grimoireState.playerSetup.bag) || [];
+    if (!Array.isArray(assignments) || assignments.length === 0) return;
+    assignments.forEach((bagIdx, playerIdx) => {
+      if (bagIdx !== null && bagIdx !== undefined) {
+        const roleId = bag[bagIdx];
+        if (roleId) {
+          if (!grimoireState.players[playerIdx]) return;
+          grimoireState.players[playerIdx].character = roleId;
+        }
+      }
+    });
+    if (grimoireState.playerSetup) grimoireState.playerSetup.revealed = true;
+  }
+
   if (revealToggleBtn) {
     revealToggleBtn.addEventListener('click', () => {
       grimoireState.grimoireHidden = !grimoireState.grimoireHidden;
+      // If we are switching to show, reveal assignments if any
+      if (!grimoireState.grimoireHidden) {
+        applyAssignmentsFromBag();
+      }
       applyGrimoireHiddenUI();
+      // Immediately re-render grimoire so tokens/names/labels update without refresh
+      updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     });
   }
@@ -414,6 +437,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAppState({ grimoireState, grimoireHistoryList });
   applyModeUI();
   applyGrimoireHiddenUI();
+  // Ensure grimoire visual state is consistent after applying hidden UI
+  updateGrimoire({ grimoireState });
 
   // In-app tour
   initInAppTour();

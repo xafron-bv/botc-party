@@ -40,6 +40,34 @@ describe('Grimoire Hide/Show Toggle', () => {
     cy.get('#bluff-tokens-container').should('be.visible');
   });
 
+  it('assigned tokens show no name/curved label and match unassigned in hidden mode', () => {
+    // Load a base script so character modal has content
+    cy.get('#load-tb').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    // Assign a character to first player
+    cy.get('#player-circle li').eq(0).find('.player-token').click();
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-grid .token').first().click();
+    cy.get('#character-modal').should('not.be.visible');
+
+    // Hide grimoire
+    cy.get('#reveal-assignments').click();
+
+    // No curved label
+    cy.get('#player-circle li').eq(0).find('.icon-reminder-svg').should('not.exist');
+    // Character name should be hidden/empty
+    cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('equal', '');
+
+    // Visual parity: first (assigned) and second (unassigned) tokens should have identical backgroundImage
+    cy.get('#player-circle li .player-token').then(($els) => {
+      const s0 = window.getComputedStyle($els[0]);
+      const s1 = window.getComputedStyle($els[1]);
+      expect(s0.backgroundImage).to.equal(s1.backgroundImage);
+    });
+
+    // Show back
+    cy.get('#reveal-assignments').click();
+  });
   it('works in player mode as well', () => {
     // Switch to player mode
     cy.get('#mode-player').click();

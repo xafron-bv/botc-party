@@ -133,11 +133,7 @@
   height: 10px;
 }
 
-/* Ensure reveal button in sidebar is clickable above modal overlays */
-#reveal-assignments {
-  position: relative;
-  z-index: 5001;
-}
+/* Reveal button should not float above modals - follow normal stacking */
 
 #character-search {
   width: 100%;

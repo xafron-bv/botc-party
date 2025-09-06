@@ -1,4 +1,5 @@
 import { saveAppState } from './app.js';
+import { updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 export function initPlayerSetup({ grimoireState }) {
@@ -200,6 +201,13 @@ export function initPlayerSetup({ grimoireState }) {
     if (playerSetupPanel) playerSetupPanel.style.display = 'none';
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = true;
+    // Auto-hide grimoire when starting number selection
+    grimoireState.grimoireHidden = true;
+    try { document.body.classList.add('grimoire-hidden'); } catch (_) { }
+    const revealToggleBtn = document.getElementById('reveal-assignments');
+    if (revealToggleBtn) revealToggleBtn.textContent = 'Show Grimoire';
+    updateGrimoire({ grimoireState });
+    saveAppState({ grimoireState });
     installSelectionHandler();
   });
   if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); });

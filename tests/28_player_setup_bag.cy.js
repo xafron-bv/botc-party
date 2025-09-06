@@ -71,11 +71,28 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li').eq(1).click();
     cy.get('#number-picker-overlay .number').contains('2').click();
 
-    // Reveal characters
-    cy.get('#reveal-assignments').click();
+    // Close the player setup panel first (button is behind modal)
+    cy.get('#close-player-setup').click();
+    // Reveal characters (toggle shows Show/Hide; click once to show grimoire)
+    cy.get('#reveal-assignments').should('be.visible').and('contain', 'Show').click();
     // Character names should appear under player tokens
     cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('not.equal', '');
     cy.get('#player-circle li').eq(1).find('.character-name').invoke('text').should('not.equal', '');
+  });
+
+  it('auto-hides grimoire and updates button label on start selection', () => {
+    // Open and random fill the bag
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#bag-random-fill').click();
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    // Start selection should auto-hide and update button label
+    cy.get('#player-setup-panel .start-selection').click();
+    cy.get('#reveal-assignments').should('contain', 'Show Grimoire');
+    // Number picker should open after choosing a player
+    cy.get('#player-circle li').eq(0).click();
+    cy.get('#number-picker-overlay').should('be.visible');
   });
 });
 
