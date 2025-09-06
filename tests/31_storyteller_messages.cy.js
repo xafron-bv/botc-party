@@ -114,6 +114,55 @@ describe('Storyteller Messages', () => {
     cy.get('#storyteller-message-display').should('be.visible');
     cy.get('#storyteller-slots-display .bluff-token').should('have.length', 0);
   });
+
+  it('placeholder slot size matches grimoire token size', () => {
+    let tokenSizePx = 0;
+    let borderWidthPx = 0;
+    cy.document().then((doc) => {
+      const temp = doc.createElement('div');
+      temp.style.width = 'var(--token-size)';
+      temp.style.position = 'absolute';
+      temp.style.left = '-9999px';
+      doc.body.appendChild(temp);
+      tokenSizePx = parseFloat(getComputedStyle(temp).width);
+      borderWidthPx = 4; // Grimoire token border width
+      temp.remove();
+    });
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-slots .bluff-token').first().then(($slot) => {
+      const cs = getComputedStyle($slot[0]);
+      const w = parseFloat(cs.width);
+      expect(Math.abs(w - tokenSizePx)).to.be.lte(2);
+      expect(cs.borderTopStyle).to.eq('solid');
+      expect(parseFloat(cs.borderTopWidth)).to.be.closeTo(borderWidthPx, 1);
+      expect(cs.borderRadius).to.match(/50%|9999px/);
+    });
+  });
+
+  it('displayed slot size matches grimoire token size', () => {
+    let tokenSizePx = 0;
+    cy.document().then((doc) => {
+      const temp = doc.createElement('div');
+      temp.style.width = 'var(--token-size)';
+      temp.style.position = 'absolute';
+      temp.style.left = '-9999px';
+      doc.body.appendChild(temp);
+      tokenSizePx = parseFloat(getComputedStyle(temp).width);
+      temp.remove();
+    });
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-slots-display .bluff-token').first().then(($slot) => {
+      const cs = getComputedStyle($slot[0]);
+      const w = parseFloat(cs.width);
+      expect(Math.abs(w - tokenSizePx)).to.be.lte(2);
+      expect(cs.borderTopStyle).to.eq('solid');
+      expect(parseFloat(cs.borderTopWidth)).to.be.greaterThan(2);
+    });
+    cy.get('#close-storyteller-message-display').click();
+  });
 });
 
 
