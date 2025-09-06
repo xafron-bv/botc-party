@@ -76,7 +76,7 @@ function isGrimoireStateEqual(state1, state2) {
   return true;
 }
 
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking, winner }) {
+export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking, winner, gameStarted = true }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
 
@@ -113,7 +113,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
       scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null,
       dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null,
-      winner: winner || null
+      winner: winner || null,
+      gameStarted: !!gameStarted
     };
     history.grimoireHistory.unshift(entry);
     saveHistories();
@@ -242,6 +243,9 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
 
     // Restore winner state to render center message
     grimoireState.winner = entry.winner || null;
+
+    // Restore gameStarted from history if present (ended games should set false)
+    grimoireState.gameStarted = !!entry.gameStarted;
 
     // Restore day/night tracking state if present
     if (entry.dayNightTracking) {

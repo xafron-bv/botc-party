@@ -410,7 +410,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         scriptData: grimoireState.scriptData,
         grimoireHistoryList,
         dayNightTracking: grimoireState.dayNightTracking,
-        winner: team
+        winner: team,
+        gameStarted: false
       });
     } catch (_) { }
     if (endGameModal) endGameModal.style.display = 'none';
