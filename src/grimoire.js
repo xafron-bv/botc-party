@@ -175,7 +175,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       if (target && target.classList.contains('ability-info-icon')) {
         return; // handled by info icon
       }
-      openCharacterModal({ grimoireState, playerIndex: i });
+      if (grimoireState && !grimoireState.grimoireHidden) {
+        openCharacterModal({ grimoireState, playerIndex: i });
+      }
     };
 
     // Add touchstart handler for player token with two-tap behavior
@@ -837,6 +839,11 @@ export function updateGrimoire({ grimoireState }) {
   // Update setup info (which now includes alive count)
   renderSetupInfo({ grimoireState });
 
+  // Ensure any lingering tooltip is hidden if we are masking the grimoire
+  if (grimoireState.grimoireHidden && abilityTooltip) {
+    abilityTooltip.classList.remove('show');
+  }
+
   listItems.forEach((li, i) => {
     const player = grimoireState.players[i];
     const playerNameEl = li.querySelector('.player-name');
@@ -870,20 +877,9 @@ export function updateGrimoire({ grimoireState }) {
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
 
-    // In hidden mode, purge any prior ability icons and event listeners
+    // In hidden mode, remove any touch-mode ability icons; keep token node (preserves click handler)
     if (grimoireState.grimoireHidden && tokenDiv) {
       li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
-      const cloned = tokenDiv.cloneNode(true);
-      tokenDiv.replaceWith(cloned);
-      tokenDiv = cloned;
-    }
-
-    // When grimoire is hidden, strip any prior listeners/icons to avoid leaks
-    if (grimoireState.grimoireHidden && tokenDiv) {
-      li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
-      const clone = tokenDiv.cloneNode(true);
-      tokenDiv.replaceWith(clone);
-      tokenDiv = clone;
     }
 
     if (!grimoireState.grimoireHidden && player.character) {
@@ -1504,7 +1500,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       if (target && target.classList.contains('ability-info-icon')) {
         return;
       }
-      openCharacterModal({ grimoireState, playerIndex: i });
+      if (grimoireState && !grimoireState.grimoireHidden) {
+        openCharacterModal({ grimoireState, playerIndex: i });
+      }
     };
 
     // Add touchstart handler for player token with two-tap behavior
@@ -1565,7 +1563,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
                 e,
                 listItem,
                 actionCallback: () => {
-                  openCharacterModal({ grimoireState, playerIndex: i });
+                  if (grimoireState && !grimoireState.grimoireHidden) {
+                    openCharacterModal({ grimoireState, playerIndex: i });
+                  }
                 },
                 grimoireState,
                 playerIndex: i
