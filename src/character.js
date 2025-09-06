@@ -52,6 +52,31 @@ export function populateCharacterGrid({ grimoireState }) {
 export function assignCharacter({ grimoireState, roleId }) {
   const characterModal = document.getElementById('character-modal');
 
+  // Intercept temporary storyteller slot selection (from storyteller messages)
+  if (grimoireState._tempStorytellerSlotIndex !== undefined) {
+    const slotIndex = grimoireState._tempStorytellerSlotIndex;
+    try {
+      if (!Array.isArray(grimoireState.storytellerTempSlots)) {
+        grimoireState.storytellerTempSlots = [];
+      }
+      grimoireState.storytellerTempSlots[slotIndex] = roleId;
+      const slotsEl = document.getElementById('storyteller-message-slots');
+      if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
+        const slotEl = slotsEl.children[slotIndex];
+        const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
+        if (role && role.image) {
+          slotEl.style.backgroundImage = `url('${role.image}')`;
+        } else {
+          slotEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+        }
+      }
+    } catch (_) { }
+    characterModal.style.display = 'none';
+    delete grimoireState._tempStorytellerSlotIndex;
+    saveAppState({ grimoireState });
+    return;
+  }
+
   // Check if this is for a bluff token
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
     assignBluffCharacter({ grimoireState, roleId });

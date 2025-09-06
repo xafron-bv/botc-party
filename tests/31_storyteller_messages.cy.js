@@ -1,0 +1,71 @@
+describe('Storyteller Messages', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.viewport(1280, 900);
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.get('#mode-storyteller').should('exist').and('be.checked');
+    cy.get('#load-tb').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+  });
+
+  it('opens edit popup after choosing a message from list', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.get('#storyteller-message-modal').should('be.visible');
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-modal').should('not.be.visible');
+    cy.get('#storyteller-message-edit').should('be.visible');
+    cy.get('#storyteller-message-input').should('be.visible').and('have.value', 'YOU ARE');
+    cy.get('#storyteller-message-slots').should('be.visible');
+  });
+
+  it('clicking placeholder token opens character selection and returns to edit popup', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-slots .token').first().click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-grid .token').first().click();
+    // Character modal closes and edit stays open
+    cy.get('#character-modal').should('not.be.visible');
+    cy.get('#storyteller-message-edit').should('be.visible');
+  });
+
+  it('show message hides grimoire and shows fullscreen modal; dismiss returns', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE GOOD').click();
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-message-display').should('be.visible');
+    cy.get('body').should('have.class', 'grimoire-hidden');
+    cy.get('#close-storyteller-message-display').click();
+    cy.get('#storyteller-message-display').should('not.be.visible');
+  });
+
+  it('the NOT IN PLAY message toggles bluffs view', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'THESE CHARACTERS ARE NOT IN PLAY').click();
+    cy.get('#toggle-bluffs-view').should('be.visible');
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-message-display').should('be.visible');
+    cy.get('#toggle-bluffs-view').click({ force: true });
+    cy.get('#storyteller-message-display .bluffs-container').should('be.visible');
+    cy.get('#toggle-bluffs-view').click({ force: true });
+    cy.get('#storyteller-message-display .bluffs-container').should('not.be.visible');
+  });
+
+  it('closes edit message popup via X and by clicking outside', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-edit').should('be.visible');
+    // Close via X
+    cy.get('#close-storyteller-message-edit').click();
+    cy.get('#storyteller-message-edit').should('not.be.visible');
+
+    // Reopen and close by clicking outside
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-edit').should('be.visible');
+    cy.get('#storyteller-message-edit').click('topLeft');
+    cy.get('#storyteller-message-edit').should('not.be.visible');
+  });
+});
+
+

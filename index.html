@@ -37,6 +37,7 @@
         <div style="display:flex; flex-direction: column; gap:8px; margin-top:8px;">
           <button class="button" id="reset-grimoire">Reset Grimoire</button>
           <button class="button" id="assign-and-start" style="display:none;">Start Game</button>
+          <button class="button" id="open-storyteller-message" style="display: none;">Storyteller Message</button>
         </div>
         <div id="game-status" class="status" aria-live="polite"></div>
       </div>
@@ -188,6 +189,37 @@
       <h3>Pick a number</h3>
       <div id="number-picker-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px;"></div>
       <div style="margin-top:10px; text-align:right;"></div>
+    </div>
+  </div>
+
+  <div id="storyteller-message-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 700px; position: relative;">
+      <button class="modal-close" id="close-storyteller-message" aria-label="Close storyteller message"><i class="fas fa-times"></i></button>
+      <h3>Storyteller Messages</h3>
+      <div id="storyteller-message-picker" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;"></div>
+    </div>
+  </div>
+
+  <div id="storyteller-message-edit" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 700px; position: relative;">
+      <button class="modal-close" id="close-storyteller-message-edit" aria-label="Close edit storyteller message"><i class="fas fa-times"></i></button>
+      <h3>Edit Message</h3>
+      <textarea id="storyteller-message-input" style="width:100%; min-height: 120px; font-size: 18px;"></textarea>
+      <div id="storyteller-message-slots" style="display:none; margin-top:10px; gap:10px; align-items:center;"></div>
+      <div id="storyteller-role-grid" style="display:none; margin-top:10px; max-height:40vh; overflow:auto; display:grid; grid-template-columns: repeat(5, 1fr); gap:10px;"></div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="button" id="show-storyteller-message">Show Message</button>
+        <button class="button" id="toggle-bluffs-view" style="display:none;">Show bluffs</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="storyteller-message-display" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 900px; position: relative; text-align:center;">
+      <button class="modal-close" id="close-storyteller-message-display" aria-label="Close message"><i class="fas fa-times"></i></button>
+      <div class="message-text"></div>
+      <div id="storyteller-slots-display" style="display:flex; gap:16px; justify-content:center; align-items:center; margin-top:16px;"></div>
+      <div class="bluffs-container" style="margin-top:16px;"></div>
     </div>
   </div>
 
