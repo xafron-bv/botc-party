@@ -7,7 +7,7 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#start-game').click();
+  cy.get('#reset-grimoire').click();
   cy.get('#player-circle li').should('have.length', n);
 };
 
@@ -154,7 +154,7 @@ describe('Death & Reminders', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     // Start game
     cy.get('#player-count').then(($el) => { const el = $el[0]; el.value = '5'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     // Add one reminder to first player so there is a collapsed stack
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');

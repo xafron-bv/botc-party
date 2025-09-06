@@ -23,7 +23,7 @@ specs.forEach(({ name, viewport }) => {
 
       // Start a small game
       cy.get('#player-count').clear().type('5');
-      cy.get('#start-game').click();
+      cy.get('#reset-grimoire').click();
       cy.get('#player-circle li').should('have.length', 5);
 
       // Assign one character

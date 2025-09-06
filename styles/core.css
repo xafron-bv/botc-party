@@ -32,6 +32,13 @@ body.grimoire-hidden #bluff-tokens-container {
   display: none !important;
 }
 
+/* During number selection, hide reminders and bluffs like hidden mode */
+body.selection-active #player-circle li .reminders,
+body.selection-active #player-circle li .reminder-placeholder,
+body.selection-active #bluff-tokens-container {
+  display: none !important;
+}
+
 /* Redact character artwork on player tokens but keep the base token visible */
 body.grimoire-hidden #player-circle li .player-token {
   background-image: url('/assets/img/token-BqDQdWeO.webp') !important;

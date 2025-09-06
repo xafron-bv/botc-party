@@ -7,7 +7,7 @@ describe('Grimoire Hide/Show Toggle', () => {
     cy.get('#mode-storyteller').should('exist').and('be.checked');
     // Start game with 5 players
     cy.get('#player-count').clear().type('5');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 5);
   });
 

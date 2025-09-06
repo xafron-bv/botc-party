@@ -10,7 +10,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     // Start with 10 players for stable counts
     cy.get('#player-count').clear().type('10');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 10);
   });
 
@@ -45,16 +45,18 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     // Enter selection flow: pick a player, then choose a number
     cy.get('#player-setup-panel .start-selection').click();
-    cy.get('#player-circle li').eq(0).click();
-
-    // Fullscreen picker
+    // Name click opens the picker
+    cy.get('#player-circle li').eq(0).find('.player-name').click();
     cy.get('#number-picker-overlay').should('be.visible');
     // Choose number 1
     cy.get('#number-picker-overlay .number').contains('1').click();
     // Number 1 becomes disabled
     cy.get('#number-picker-overlay .number').contains('1').should('have.class', 'disabled');
-    // Overlay closes to prevent peeking
+    // Overlay closes for next player; Player Setup modal should stay hidden
     cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-setup-panel').should('not.be.visible');
+    // Badge "1" appears on first player's token and cannot re-pick
+    cy.get('#player-circle li').eq(0).find('.number-badge').should('contain', '1');
 
     // Character not revealed on token yet
     cy.get('#player-circle li').eq(0).find('.character-name').should('have.text', '');
@@ -65,19 +67,23 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#open-player-setup').click();
     cy.get('#bag-random-fill').click();
     cy.get('#player-setup-panel .start-selection').click();
-    cy.get('#player-circle li').eq(0).click();
+    cy.get('#player-circle li').eq(0).find('.player-name').click();
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .number').contains('1').click();
-    cy.get('#player-setup-panel .start-selection').click();
-    cy.get('#player-circle li').eq(1).click();
+    // Next player opens picker by clicking name
+    cy.get('#player-circle li').eq(1).find('.player-name').click();
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .number').contains('2').click();
+    // Verify badges present
+    cy.get('#player-circle li').eq(0).find('.number-badge').should('contain', '1');
+    cy.get('#player-circle li').eq(1).find('.number-badge').should('contain', '2');
 
-    // Close the player setup panel first (button is behind modal)
-    cy.get('#close-player-setup').click();
-    // Reveal characters (toggle shows Show/Hide; click once to show grimoire)
-    cy.get('#reveal-assignments').should('be.visible').and('contain', 'Show').click();
-    // Character names should appear under player tokens
+    // Finalize by starting the game: assigns characters, removes badges, shows grimoire
+    cy.get('#reset-grimoire').click();
+    // Character names should appear under player tokens and badges removed
     cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('not.equal', '');
     cy.get('#player-circle li').eq(1).find('.character-name').invoke('text').should('not.equal', '');
+    cy.get('#player-circle li .number-badge').should('have.length', 0);
   });
 
   it('auto-hides grimoire and updates button label on start selection', () => {
@@ -87,11 +93,11 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#bag-random-fill').click();
     cy.get('#bag-count-warning').should('not.be.visible');
 
-    // Start selection should auto-hide and update button label
+    // Start selection should leave grimoire visible and set button to Hide
     cy.get('#player-setup-panel .start-selection').click();
-    cy.get('#reveal-assignments').should('contain', 'Show Grimoire');
-    // Number picker should open after choosing a player
-    cy.get('#player-circle li').eq(0).click();
+    cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
+    // Number picker should open after choosing a player name
+    cy.get('#player-circle li').eq(0).find('.player-name').click();
     cy.get('#number-picker-overlay').should('be.visible');
   });
 });

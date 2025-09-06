@@ -23,7 +23,7 @@ A Progressive Web App (PWA) version of the Blood on the Clocktower Grimoire that
 2. **Load a Script**:
    - Click one of: "Trouble Brewing", "Bad Moon Rising", "Sects & Violets", or "Load All Characters"
    - Or upload a custom JSON script (same schema as `characters.json`)
-3. **Start Game**: Click "Start Game" to create the player circle
+3. **Reset Grimoire**: Click "Reset Grimoire" to create the player circle
 4. **Assign Characters**: Click player tokens to assign characters from the loaded script
 5. **Add Reminders**: Use the + button on players for text or token-based reminders
 6. **Optional**:

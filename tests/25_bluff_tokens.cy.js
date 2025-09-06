@@ -3,7 +3,7 @@ describe('Bluff Tokens', () => {
     cy.visit('/');
     // Start a game with 10 players
     cy.get('#player-count').clear().type('10');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     // Load Trouble Brewing script
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
@@ -151,7 +151,7 @@ describe('Bluff Tokens', () => {
 
     // Start a new game - sidebar should already be visible
     cy.get('#player-count').clear().type('12');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
 
     // Verify bluff tokens are reset
     cy.get('#bluff-tokens-container .bluff-token').each(($token) => {

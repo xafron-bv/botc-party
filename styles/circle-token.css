@@ -52,6 +52,24 @@
   z-index: 5;
 }
 
+/* Temporary number badge shown during number selection */
+.number-badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  background: #D4AF37;
+  color: #000;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid #000;
+  z-index: 6;
+}
+
 /* Debug: line from token center to circle center */
 .alignment-line {
   position: absolute;

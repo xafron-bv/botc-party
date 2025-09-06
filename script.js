@@ -2,7 +2,7 @@ import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/c
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, startGame, updateGrimoire } from './src/grimoire.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire } from './src/grimoire.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
@@ -16,7 +16,8 @@ import { initPlayerSetup } from './src/playerSetup.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const startGameBtn = document.getElementById('start-game');
+  const resetGrimoireBtn = document.getElementById('reset-grimoire');
+  const assignAndStartBtn = document.getElementById('assign-and-start');
   const loadTbBtn = document.getElementById('load-tb');
   const loadBmrBtn = document.getElementById('load-bmr');
   const loadSavBtn = document.getElementById('load-sav');
@@ -116,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
+    if (assignAndStartBtn) assignAndStartBtn.style.display = isPlayer ? 'none' : '';
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }
@@ -143,15 +145,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
     if (grimoireState.playerSetup) grimoireState.playerSetup.revealed = true;
+    // Clear any temporary number badges after revealing
+    try {
+      document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove());
+    } catch (_) { }
   }
 
   if (revealToggleBtn) {
     revealToggleBtn.addEventListener('click', () => {
       grimoireState.grimoireHidden = !grimoireState.grimoireHidden;
-      // If we are switching to show, reveal assignments if any
-      if (!grimoireState.grimoireHidden) {
-        applyAssignmentsFromBag();
-      }
       applyGrimoireHiddenUI();
       // Immediately re-render grimoire so tokens/names/labels update without refresh
       updateGrimoire({ grimoireState });
@@ -280,7 +282,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   loadPlayerSetupTable({ grimoireState });
 
-  startGameBtn.addEventListener('click', () => startGame({ grimoireState, grimoireHistoryList, playerCountInput }));
+  if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }));
+  if (assignAndStartBtn) assignAndStartBtn.addEventListener('click', () => {
+    // Only act if selection is complete
+    const sel = grimoireState.playerSetup;
+    const n = (grimoireState.players || []).length;
+    const picked = Array.isArray(sel && sel.assignments) ? sel.assignments.filter((v) => v !== null && v !== undefined).length : 0;
+    if (!sel || picked !== n) return;
+    // Apply and reveal
+    const assignments = sel.assignments || [];
+    const bag = sel.bag || [];
+    assignments.forEach((bagIdx, idx) => {
+      const roleId = bagIdx !== null && bagIdx !== undefined ? bag[bagIdx] : null;
+      if (roleId && grimoireState.players[idx]) grimoireState.players[idx].character = roleId;
+    });
+    try { document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
+    sel.selectionActive = false;
+    grimoireState.grimoireHidden = false;
+    updateGrimoire({ grimoireState });
+    saveAppState({ grimoireState });
+  });
 
   saveReminderBtn.onclick = () => {
     const text = reminderTextInput.value.trim();

@@ -175,7 +175,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       if (target && target.classList.contains('ability-info-icon')) {
         return; // handled by info icon
       }
-      if (grimoireState && !grimoireState.grimoireHidden) {
+      if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+        if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+      } else if (grimoireState && !grimoireState.grimoireHidden) {
         openCharacterModal({ grimoireState, playerIndex: i });
       }
     };
@@ -238,7 +240,11 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
                 e,
                 listItem,
                 actionCallback: () => {
-                  openCharacterModal({ grimoireState, playerIndex: i });
+                  if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+                    if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+                  } else if (grimoireState && !grimoireState.grimoireHidden) {
+                    openCharacterModal({ grimoireState, playerIndex: i });
+                  }
                 },
                 grimoireState,
                 playerIndex: i
@@ -1379,7 +1385,32 @@ export function updateGrimoire({ grimoireState }) {
   // Update bluff tokens
   updateAllBluffTokens({ grimoireState });
 }
-export function startGame({ grimoireState, grimoireHistoryList, playerCountInput }) {
+export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }) {
+  // If selection flow is active and all players have selected numbers, finalize instead of resetting
+  const sel = grimoireState.playerSetup;
+  if (sel && sel.selectionActive) {
+    const n = (grimoireState.players || []).length;
+    const pickedCount = Array.isArray(sel.assignments) ? sel.assignments.filter((v) => v !== null && v !== undefined).length : 0;
+    const allPicked = pickedCount === n && n > 0;
+    if (allPicked) {
+      try {
+        // Apply assignments
+        const assignments = sel.assignments || [];
+        const bag = sel.bag || [];
+        assignments.forEach((bagIdx, idx) => {
+          const roleId = bagIdx !== null && bagIdx !== undefined ? bag[bagIdx] : null;
+          if (roleId && grimoireState.players[idx]) grimoireState.players[idx].character = roleId;
+        });
+        // Remove temporary number badges
+        document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove());
+        sel.selectionActive = false;
+        grimoireState.grimoireHidden = false;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
+        return; // Do not perform new game reset
+      } catch (_) { /* fallthrough to normal start if something goes wrong */ }
+    }
+  }
   const playerCount = parseInt(playerCountInput.value, 10);
   if (!(playerCount >= 5 && playerCount <= 20)) {
     alert('Player count must be an integer from 5 to 20.');
@@ -1402,7 +1433,7 @@ export function startGame({ grimoireState, grimoireHistoryList, playerCountInput
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
 
-  // Reset bluffs when starting a new game
+  // Reset bluffs when resetting grimoire
   grimoireState.bluffs = [null, null, null];
 
   // Reset day/night tracking when starting a new game
@@ -1563,7 +1594,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
                 e,
                 listItem,
                 actionCallback: () => {
-                  if (grimoireState && !grimoireState.grimoireHidden) {
+                  if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+                    if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+                  } else if (grimoireState && !grimoireState.grimoireHidden) {
                     openCharacterModal({ grimoireState, playerIndex: i });
                   }
                 },

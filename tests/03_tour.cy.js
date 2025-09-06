@@ -5,14 +5,14 @@ describe('Tour', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
   it('starts next to a target element and can go back/next/skip; sidebar state changes when required', () => {
     // Start a game first so bluff tokens are created
     cy.get('#player-count').clear().type('8');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
 
@@ -67,7 +67,7 @@ describe('Tour', () => {
   it('includes a day/night toggle step with proper content and positioning', () => {
     // Start a game first so bluff tokens are created
     cy.get('#player-count').clear().type('8');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
 
@@ -111,7 +111,7 @@ describe('Tour', () => {
   it('includes a step for adding/removing players via right-click or long-touch', () => {
     // Start a game first so bluff tokens are created
     cy.get('#player-count').clear().type('8');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#load-tb').click();
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
 

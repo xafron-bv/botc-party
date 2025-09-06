@@ -7,14 +7,14 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#start-game').click();
+  cy.get('#reset-grimoire').click();
   cy.get('#player-circle li').should('have.length', n);
 };
 
 describe('Player context menu - desktop right-click', () => {
   beforeEach(() => {
     cy.visit('/');
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(7);
@@ -61,7 +61,7 @@ describe('Player context menu - desktop right-click', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 6);
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
   });
@@ -112,7 +112,7 @@ describe('Player context menu - touch long-press', () => {
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);

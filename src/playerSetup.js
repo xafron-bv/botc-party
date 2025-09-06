@@ -154,11 +154,23 @@ export function initPlayerSetup({ grimoireState }) {
         // Mark this number as used before closing overlay
         btn.classList.add('disabled');
         btn.disabled = true;
-        numberPickerOverlay.style.display = 'none';
-        if (playerSetupPanel) {
-          playerSetupPanel.style.display = 'flex';
-          try { playerSetupPanel.scrollIntoView({ block: 'center' }); } catch (_) { }
+        // Render number badge on the player token
+        const playerCircle = document.getElementById('player-circle');
+        const li = playerCircle && playerCircle.children && playerCircle.children[forPlayerIndex];
+        if (li) {
+          const token = li.querySelector('.player-token');
+          if (token) {
+            let badge = li.querySelector('.number-badge');
+            if (!badge) {
+              badge = document.createElement('div');
+              badge.className = 'number-badge';
+              li.appendChild(badge);
+            }
+            badge.textContent = String(i);
+          }
         }
+        // Close overlay; next player must click their name to open again
+        numberPickerOverlay.style.display = 'none';
       });
       numberPickerGrid.appendChild(btn);
     }
@@ -167,17 +179,24 @@ export function initPlayerSetup({ grimoireState }) {
     try { numberPickerOverlay.style.position = 'fixed'; numberPickerOverlay.style.inset = '0'; numberPickerOverlay.style.zIndex = '9999'; } catch (_) { }
   }
 
+  // Expose a safe opener for other modules (e.g., token clicks)
+  try { window.openNumberPickerForSelection = (idx) => openNumberPicker(idx); } catch (_) { }
+
   function installSelectionHandler() {
     const playerCircle = document.getElementById('player-circle');
     if (!playerCircle) return;
     const handler = (e) => {
-      const li = e.target.closest && e.target.closest('li');
+      if (!grimoireState.playerSetup || !grimoireState.playerSetup.selectionActive) return;
+      const nameEl = e.target.closest && e.target.closest('.player-name');
+      if (!nameEl) return;
+      const li = e.target.closest('li');
       if (!li) return;
+      const index = Array.from(playerCircle.children).indexOf(li);
+      const assigned = Array.isArray(grimoireState.playerSetup.assignments) && grimoireState.playerSetup.assignments[index] !== null && grimoireState.playerSetup.assignments[index] !== undefined;
+      if (assigned) return; // do nothing if already picked
       e.stopPropagation();
       e.preventDefault();
-      const index = Array.from(playerCircle.children).indexOf(li);
       openNumberPicker(index);
-      playerCircle.removeEventListener('click', handler, true);
     };
     playerCircle.addEventListener('click', handler, true);
   }
@@ -198,14 +217,19 @@ export function initPlayerSetup({ grimoireState }) {
   }
   if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
   if (startSelectionBtn) startSelectionBtn.addEventListener('click', () => {
+    // Reset grimoire before starting number selection
+    const resetBtn = document.getElementById('reset-grimoire') || document.getElementById('start-game');
+    if (resetBtn) try { resetBtn.click(); } catch (_) { }
     if (playerSetupPanel) playerSetupPanel.style.display = 'none';
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
-    grimoireState.playerSetup._reopenOnPickerClose = true;
-    // Auto-hide grimoire when starting number selection
-    grimoireState.grimoireHidden = true;
-    try { document.body.classList.add('grimoire-hidden'); } catch (_) { }
+    grimoireState.playerSetup._reopenOnPickerClose = false;
+    grimoireState.playerSetup.selectionActive = true;
+    try { document.body.classList.add('selection-active'); } catch (_) { }
+    // Ensure grimoire is visible during number selection
+    grimoireState.grimoireHidden = false;
+    try { document.body.classList.remove('grimoire-hidden'); } catch (_) { }
     const revealToggleBtn = document.getElementById('reveal-assignments');
-    if (revealToggleBtn) revealToggleBtn.textContent = 'Show Grimoire';
+    if (revealToggleBtn) revealToggleBtn.textContent = 'Hide Grimoire';
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
     installSelectionHandler();
