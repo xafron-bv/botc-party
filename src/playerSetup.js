@@ -1,5 +1,4 @@
 import { saveAppState } from './app.js';
-import { updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 export function initPlayerSetup({ grimoireState }) {
@@ -182,19 +181,7 @@ export function initPlayerSetup({ grimoireState }) {
     playerCircle.addEventListener('click', handler, true);
   }
 
-  function revealAssignments() {
-    grimoireState.playerSetup.revealed = true;
-    (grimoireState.playerSetup.assignments || []).forEach((bagIdx, playerIdx) => {
-      if (bagIdx !== null && bagIdx !== undefined) {
-        const roleId = (grimoireState.playerSetup.bag || [])[bagIdx];
-        if (roleId) {
-          grimoireState.players[playerIdx].character = roleId;
-        }
-      }
-    });
-    updateGrimoire({ grimoireState });
-    saveAppState({ grimoireState });
-  }
+  // no-op placeholder removed; assignments applied during reveal elsewhere
 
   if (openPlayerSetupBtn && playerSetupPanel) {
     openPlayerSetupBtn.addEventListener('click', () => {
@@ -216,8 +203,7 @@ export function initPlayerSetup({ grimoireState }) {
     installSelectionHandler();
   });
   if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); });
-  const revealBtn = document.getElementById('reveal-assignments');
-  if (revealBtn) revealBtn.addEventListener('click', revealAssignments);
+  // Player Setup no longer directly reveals; sidebar toggle now handles hide/show.
 
   // Close by clicking outside modal content to match other modals
   if (playerSetupPanel) {

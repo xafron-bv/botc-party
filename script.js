@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const modePlayerRadio = document.getElementById('mode-player');
   const dayNightToggleBtn = document.getElementById('day-night-toggle');
   const dayNightSlider = document.getElementById('day-night-slider');
+  const revealToggleBtn = document.getElementById('reveal-assignments');
 
   const grimoireState = {
     includeTravellers: false,
@@ -80,7 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     editingReminder: { playerIndex: -1, reminderIndex: -1 },
     isRestoringState: false,
     outsideCollapseHandlerInstalled: false,
-    mode: 'storyteller'
+    mode: 'storyteller',
+    grimoireHidden: false
   };
 
   // Player setup state
@@ -118,6 +120,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.dayNightTracking.enabled = false;
     }
   };
+  // Hide/Show grimoire toggle (re-uses reveal button location)
+  function applyGrimoireHiddenUI() {
+    document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden);
+    if (revealToggleBtn) {
+      revealToggleBtn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
+    }
+  }
+
+  if (revealToggleBtn) {
+    revealToggleBtn.addEventListener('click', () => {
+      grimoireState.grimoireHidden = !grimoireState.grimoireHidden;
+      applyGrimoireHiddenUI();
+      saveAppState({ grimoireState });
+    });
+  }
 
   if (modeStorytellerRadio && modePlayerRadio) {
     applyModeUI();
@@ -396,6 +413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Restore previous session (script and grimoire), then apply mode UI
   await loadAppState({ grimoireState, grimoireHistoryList });
   applyModeUI();
+  applyGrimoireHiddenUI();
 
   // In-app tour
   initInAppTour();

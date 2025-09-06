@@ -13,6 +13,7 @@ export function saveAppState({ grimoireState }) {
       dayNightTracking: grimoireState.dayNightTracking,
       bluffs: grimoireState.bluffs || [null, null, null],
       mode: grimoireState.mode || 'storyteller',
+      grimoireHidden: !!grimoireState.grimoireHidden,
       playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false }
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
@@ -49,6 +50,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.mode) {
       grimoireState.mode = saved.mode === 'player' ? 'player' : 'storyteller';
+    }
+    if (saved && typeof saved.grimoireHidden === 'boolean') {
+      grimoireState.grimoireHidden = !!saved.grimoireHidden;
     }
     if (saved && saved.playerSetup) {
       grimoireState.playerSetup = saved.playerSetup;

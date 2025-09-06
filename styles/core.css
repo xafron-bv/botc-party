@@ -25,6 +25,18 @@ body {
   background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
 }
 
+/* Grimoire hidden state: hide reminders, plus, bluffs; keep blank circles */
+body.grimoire-hidden #player-circle li .reminders,
+body.grimoire-hidden #player-circle li .reminder-placeholder,
+body.grimoire-hidden #bluff-tokens-container {
+  display: none !important;
+}
+
+/* Redact character artwork on player tokens but keep the base token visible */
+body.grimoire-hidden #player-circle li .player-token {
+  background-image: url('/assets/img/token-BqDQdWeO.webp') !important;
+}
+
 /* Sidebar toggle button */
 .sidebar-toggle {
   position: absolute;
