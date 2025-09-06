@@ -23,10 +23,13 @@ describe('Storyteller Messages', () => {
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
     cy.get('#storyteller-message-slots .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
-    cy.get('#character-grid .token').first().click();
+    // Pick a non-empty role
+    cy.get('#character-grid .token').eq(1).click();
     // Character modal closes and edit stays open
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#storyteller-message-edit').should('be.visible');
+    // Curved label under slot should not be 'None'
+    cy.get('#storyteller-message-slots .bluff-token svg textPath').invoke('text').should('not.eq', 'None');
   });
 
   it('show message hides grimoire and shows fullscreen modal; dismiss returns', () => {
@@ -161,6 +164,20 @@ describe('Storyteller Messages', () => {
       expect(cs.borderTopStyle).to.eq('solid');
       expect(parseFloat(cs.borderTopWidth)).to.be.greaterThan(2);
     });
+    cy.get('#close-storyteller-message-display').click();
+  });
+
+  it('display modal shows chosen character name, not "None"', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-slots .bluff-token').first().click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-grid .token').eq(1).click();
+    cy.get('#character-modal').should('not.be.visible');
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-slots-display .bluff-token svg textPath')
+      .invoke('text')
+      .should('not.eq', 'None');
     cy.get('#close-storyteller-message-display').click();
   });
 });

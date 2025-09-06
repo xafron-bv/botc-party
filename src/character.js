@@ -64,10 +64,28 @@ export function assignCharacter({ grimoireState, roleId }) {
       if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
         const slotEl = slotsEl.children[slotIndex];
         const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
+        // Clear any existing curved label
+        const existingSvg = slotEl.querySelector('svg');
+        if (existingSvg) existingSvg.remove();
         if (role && role.image) {
-          slotEl.style.backgroundImage = `url('${role.image}')`;
+          // Match character/bluff token layering
+          slotEl.classList.remove('empty');
+          slotEl.classList.add('has-character');
+          slotEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+          slotEl.style.backgroundSize = '68% 68%, cover';
+          slotEl.style.backgroundPosition = 'center, center';
+          slotEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+          const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
+          slotEl.appendChild(svg);
         } else {
+          slotEl.classList.add('empty');
+          slotEl.classList.remove('has-character');
           slotEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+          slotEl.style.backgroundSize = 'cover';
+          slotEl.style.backgroundPosition = 'center';
+          slotEl.style.backgroundRepeat = 'no-repeat';
+          const svg = createCurvedLabelSvg('story-slot-empty', 'None');
+          slotEl.appendChild(svg);
         }
       }
     } catch (_) { }
