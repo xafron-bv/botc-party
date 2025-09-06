@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = e && e.target && e.target.value;
       grimoireState.mode = (val === 'player') ? 'player' : 'storyteller';
       applyModeUI();
-      try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) {}
+      try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) { }
       saveAppState({ grimoireState });
     };
     modeStorytellerRadio.addEventListener('change', onModeChange);
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
       try {
         localStorage.setItem('nightOrderSort', grimoireState.nightOrderSort ? '1' : '0');
-      } catch (_) {}
+      } catch (_) { }
 
       if (nightOrderControls) {
         nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grimoireState.nightPhase = e.target.value;
       try {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
-      } catch (_) {}
+      } catch (_) { }
 
       // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {
