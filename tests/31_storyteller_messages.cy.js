@@ -21,7 +21,7 @@ describe('Storyteller Messages', () => {
   it('clicking placeholder token opens character selection and returns to edit popup', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
-    cy.get('#storyteller-message-slots .token').first().click({ force: true });
+    cy.get('#storyteller-message-slots .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token').first().click();
     // Character modal closes and edit stays open
@@ -65,6 +65,54 @@ describe('Storyteller Messages', () => {
     cy.get('#storyteller-message-edit').should('be.visible');
     cy.get('#storyteller-message-edit').click('topLeft');
     cy.get('#storyteller-message-edit').should('not.be.visible');
+  });
+
+  it('placeholder and display tokens match character/bluff token styling', () => {
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    cy.get('#storyteller-message-slots .bluff-token').should('have.length', 1)
+      .and('be.visible')
+      .and(($el) => {
+        const bg = getComputedStyle($el[0]).backgroundImage;
+        expect(bg).to.contain('token-BqDQdWeO.webp');
+      });
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-message-display').should('be.visible');
+    cy.get('#storyteller-slots-display .bluff-token').should('have.length', 1)
+      .and('be.visible')
+      .and(($el) => {
+        const bg = getComputedStyle($el[0]).backgroundImage;
+        expect(bg).to.contain('token-BqDQdWeO.webp');
+      });
+    cy.get('#close-storyteller-message-display').click();
+  });
+
+  it('clears previous slots when switching to a message without slots', () => {
+    // First show a message with a slot and assign something
+    cy.get('#open-storyteller-message').click();
+    cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
+    // Open character picker for the slot and pick first role
+    cy.get('#storyteller-message-slots .bluff-token').first().click();
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-grid .token').eq(1).click();
+    cy.get('#character-modal').should('not.be.visible');
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-message-display').should('be.visible');
+    cy.get('#close-storyteller-message-display').click();
+
+    // Now open a message without slots and ensure no token is displayed
+    cy.get('#open-storyteller-message').click({ force: true });
+    // Close the edit modal if still open over the list
+    cy.get('#storyteller-message-edit').then(($el) => {
+      if ($el.is(':visible')) {
+        cy.get('#close-storyteller-message-edit').click();
+      }
+    });
+    cy.contains('#storyteller-message-picker .button', 'SELECT A PLAYER').click({ force: true });
+    cy.get('#storyteller-message-slots').should('not.be.visible');
+    cy.get('#show-storyteller-message').click();
+    cy.get('#storyteller-message-display').should('be.visible');
+    cy.get('#storyteller-slots-display .bluff-token').should('have.length', 0);
   });
 });
 

@@ -1,4 +1,5 @@
 import { populateCharacterGrid } from './character.js';
+import { createCurvedLabelSvg } from './ui/svg.js';
 import { hideGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
 
@@ -43,17 +44,54 @@ export function initStorytellerMessages({ grimoireState }) {
   }
 
   let currentSlotTargets = [];
+  let currentMessageSlotCount = 0;
+
+  function applyRoleLookToToken(tokenEl, roleId) {
+    if (!tokenEl) return;
+    // Remove any existing curved label
+    const existingSvg = tokenEl.querySelector('svg');
+    if (existingSvg) existingSvg.remove();
+
+    if (roleId && grimoireState.allRoles[roleId]) {
+      const role = grimoireState.allRoles[roleId];
+      tokenEl.classList.remove('empty');
+      tokenEl.classList.add('has-character');
+      const characterImage = role.image || "./assets/img/token-BqDQdWeO.webp";
+      tokenEl.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
+      tokenEl.style.backgroundSize = '68% 68%, cover';
+      tokenEl.style.backgroundPosition = 'center, center';
+      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+      tokenEl.style.backgroundColor = 'transparent';
+      const svg = createCurvedLabelSvg(`story-msg-slot-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
+      tokenEl.appendChild(svg);
+    } else {
+      tokenEl.classList.add('empty');
+      tokenEl.classList.remove('has-character');
+      tokenEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+      tokenEl.style.backgroundSize = 'cover';
+      tokenEl.style.backgroundPosition = 'center';
+      tokenEl.style.backgroundRepeat = 'no-repeat';
+      // Optional curved label to match character picker empty token
+      const svg = createCurvedLabelSvg('story-msg-slot-empty', 'None');
+      tokenEl.appendChild(svg);
+    }
+  }
 
   function renderMessageSlots(count) {
     if (!messageSlotsEl) return;
     messageSlotsEl.innerHTML = '';
     currentSlotTargets = new Array(Math.max(0, count)).fill(null);
+    currentMessageSlotCount = count;
+    // If switching to a message with different slot count, reset any temp selections
+    if (!Array.isArray(grimoireState.storytellerTempSlots) || grimoireState.storytellerTempSlots.length !== count) {
+      grimoireState.storytellerTempSlots = new Array(Math.max(0, count)).fill(null);
+    }
     if (count > 0) {
       messageSlotsEl.style.display = 'flex';
       for (let i = 0; i < count; i++) {
         const slot = document.createElement('div');
         slot.className = 'bluff-token empty';
-        slot.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+        applyRoleLookToToken(slot, null);
         slot.addEventListener('click', () => openRoleGridForSlot(i));
         messageSlotsEl.appendChild(slot);
       }
@@ -145,26 +183,18 @@ export function initStorytellerMessages({ grimoireState }) {
     const slotsDisplay = document.getElementById('storyteller-slots-display');
     if (slotsDisplay) {
       slotsDisplay.innerHTML = '';
-      const selectedSlots = Array.isArray(grimoireState.storytellerTempSlots) && grimoireState.storytellerTempSlots.length
-        ? grimoireState.storytellerTempSlots
-        : (currentSlotTargets || []);
-      selectedSlots.forEach((roleId) => {
-        const slot = document.createElement('div');
-        slot.className = 'bluff-token';
-        slot.style.width = '96px';
-        slot.style.height = '96px';
-        slot.style.border = '2px solid #D4AF37';
-        slot.style.borderRadius = '50%';
-        if (roleId) {
-          const role = grimoireState.allRoles[roleId];
-          slot.style.backgroundImage = role ? `url('${role.image}')` : "url('./assets/img/token-BqDQdWeO.webp')";
-          slot.style.backgroundSize = 'cover';
-        } else {
-          slot.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-          slot.style.backgroundSize = 'cover';
-        }
-        slotsDisplay.appendChild(slot);
-      });
+      const count = currentMessageSlotCount || 0;
+      if (count > 0) {
+        const selectedSlots = (Array.isArray(grimoireState.storytellerTempSlots) && grimoireState.storytellerTempSlots.length === count)
+          ? grimoireState.storytellerTempSlots
+          : new Array(count).fill(null);
+        selectedSlots.forEach((roleId) => {
+          const slot = document.createElement('div');
+          slot.className = 'bluff-token';
+          applyRoleLookToToken(slot, roleId || null);
+          slotsDisplay.appendChild(slot);
+        });
+      }
     }
     messageDisplayModal.style.display = 'flex';
     hideGrimoire({ grimoireState });

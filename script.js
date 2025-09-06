@@ -2,6 +2,7 @@ import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/c
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
+import { createCurvedLabelSvg } from './src/ui/svg.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire, hideGrimoire } from './src/grimoire.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
@@ -481,7 +482,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (editModal) editModal.style.display = 'flex';
         storytellerMessageInput.value = label;
         toggleBluffsViewBtn.style.display = (label === 'THESE CHARACTERS ARE NOT IN PLAY') ? '' : 'none';
-        renderMessageSlots(typeof entry === 'object' ? (entry.slots || 0) : 0);
+        const slotCount = typeof entry === 'object' ? (entry.slots || 0) : 0;
+        grimoireState.storytellerTempSlots = new Array(Math.max(0, slotCount)).fill(null);
+        renderMessageSlots(slotCount);
         if (typeof entry === 'object' && entry.freeText) {
           storytellerMessageInput.value = '';
           storytellerMessageInput.placeholder = 'Type your message...';
@@ -497,6 +500,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const roleGridEl = document.getElementById('storyteller-role-grid');
   let currentSlotTargets = [];
 
+  function applyStoryMsgRoleLook(tokenEl, roleId) {
+    const existingSvg = tokenEl.querySelector('svg');
+    if (existingSvg) existingSvg.remove();
+    if (roleId && grimoireState.allRoles[roleId]) {
+      const role = grimoireState.allRoles[roleId];
+      tokenEl.classList.remove('empty');
+      tokenEl.classList.add('has-character');
+      const characterImage = role.image || "./assets/img/token-BqDQdWeO.webp";
+      tokenEl.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
+      tokenEl.style.backgroundSize = '68% 68%, cover';
+      tokenEl.style.backgroundPosition = 'center, center';
+      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+      tokenEl.style.backgroundColor = 'transparent';
+      const svg = createCurvedLabelSvg(`story-msg-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
+      tokenEl.appendChild(svg);
+    } else {
+      tokenEl.classList.add('empty');
+      tokenEl.classList.remove('has-character');
+      tokenEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+      tokenEl.style.backgroundSize = 'cover';
+      tokenEl.style.backgroundPosition = 'center';
+      tokenEl.style.backgroundRepeat = 'no-repeat';
+      const svg = createCurvedLabelSvg('story-msg-empty', 'None');
+      tokenEl.appendChild(svg);
+    }
+  }
+
   function renderMessageSlots(count) {
     if (!messageSlotsEl) return;
     messageSlotsEl.innerHTML = '';
@@ -505,15 +535,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       messageSlotsEl.style.display = 'flex';
       for (let i = 0; i < count; i++) {
         const slot = document.createElement('div');
-        slot.className = 'token role';
-        slot.style.width = '72px';
-        slot.style.height = '72px';
-        slot.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-        slot.style.backgroundSize = 'cover';
-        slot.style.border = '2px solid #D4AF37';
-        slot.style.borderRadius = '50%';
-        slot.style.cursor = 'pointer';
-        slot.title = 'Click to choose character';
+        slot.className = 'bluff-token empty';
+        applyStoryMsgRoleLook(slot, null);
         slot.addEventListener('click', () => openRoleGridForSlot(i));
         messageSlotsEl.appendChild(slot);
       }
@@ -548,9 +571,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!roleId) return;
       e.preventDefault();
       currentSlotTargets[slotIndex] = roleId;
-      const role = grimoireState.allRoles[roleId];
       const slot = messageSlotsEl.children[slotIndex];
-      slot.style.backgroundImage = role ? `url('${role.image}')` : "url('./assets/img/token-BqDQdWeO.webp')";
+      applyStoryMsgRoleLook(slot, roleId);
       characterModal.style.display = 'none';
       grid.removeEventListener('click', handler, true);
       delete grimoireState._tempStorytellerSlotIndex;
@@ -607,26 +629,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const slotsDisplay = document.getElementById('storyteller-slots-display');
     if (slotsDisplay) {
       slotsDisplay.innerHTML = '';
-      const selectedSlots = Array.isArray(grimoireState.storytellerTempSlots) && grimoireState.storytellerTempSlots.length
+      const selectedSlots = Array.isArray(grimoireState.storytellerTempSlots)
         ? grimoireState.storytellerTempSlots
         : (currentSlotTargets || []);
-      selectedSlots.forEach((roleId) => {
-        const slot = document.createElement('div');
-        slot.className = 'token role';
-        slot.style.width = '96px';
-        slot.style.height = '96px';
-        slot.style.border = '2px solid #D4AF37';
-        slot.style.borderRadius = '50%';
-        if (roleId) {
-          const role = grimoireState.allRoles[roleId];
-          slot.style.backgroundImage = role ? `url('${role.image}')` : "url('./assets/img/token-BqDQdWeO.webp')";
-          slot.style.backgroundSize = 'cover';
-        } else {
-          slot.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-          slot.style.backgroundSize = 'cover';
-        }
-        slotsDisplay.appendChild(slot);
-      });
+      if (selectedSlots.length > 0) {
+        selectedSlots.forEach((roleId) => {
+          const slot = document.createElement('div');
+          slot.className = 'bluff-token';
+          applyStoryMsgRoleLook(slot, roleId || null);
+          slotsDisplay.appendChild(slot);
+        });
+      }
     }
     messageDisplayModal.style.display = 'flex';
     // Hide grimoire while showing message using centralized helper
