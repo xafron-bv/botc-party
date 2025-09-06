@@ -7,14 +7,14 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#start-game').click();
+  cy.get('#reset-grimoire').click();
   cy.get('#player-circle li').should('have.length', n);
 };
 
 describe('Player context menu - desktop right-click', () => {
   beforeEach(() => {
     cy.visit('/');
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(7);
@@ -61,7 +61,7 @@ describe('Player context menu - desktop right-click', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 6);
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
   });
@@ -70,13 +70,13 @@ describe('Player context menu - desktop right-click', () => {
     // Right-click to open context menu
     cy.get('#player-circle li').eq(0).rightclick();
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Wait a bit to ensure any grace period has passed
     cy.wait(150);
-    
+
     // Click on the center element (grimoire area) outside the menu
     cy.get('#center').click({ force: true });
-    
+
     // Menu should be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
@@ -87,18 +87,18 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token').first().click();
     cy.get('#character-modal').should('not.be.visible');
-    
+
     // Now right-click on the character token (desktop mode uses right-click, not long press)
     cy.get('#player-circle li').first().rightclick();
-    
+
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Wait for grace period
     cy.wait(200);
-    
+
     // Click outside the menu
     cy.get('#center').click({ force: true });
-    
+
     // Menu should be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
@@ -112,7 +112,7 @@ describe('Player context menu - touch long-press', () => {
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
@@ -151,15 +151,15 @@ describe('Player context menu - touch long-press', () => {
       .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
       .wait(650)
       .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
-    
+
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Wait a bit to ensure the grace period has passed
     cy.wait(150);
-    
+
     // Touch outside the menu (on the body or another element)
     cy.get('body').trigger('touchstart', { force: true, clientX: 10, clientY: 10 });
-    
+
     // Menu should now be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
@@ -171,21 +171,21 @@ describe('Player context menu - touch long-press', () => {
       .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
       .wait(650)
       .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
-    
+
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Immediately touch outside (within grace period)
     cy.get('body').trigger('touchstart', { force: true, clientX: 10, clientY: 10 });
-    
+
     // Menu should still be visible due to grace period
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Wait for grace period to expire
     cy.wait(150);
-    
+
     // Touch outside again
     cy.get('body').trigger('touchstart', { force: true, clientX: 10, clientY: 10 });
-    
+
     // Now menu should be hidden
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
@@ -194,21 +194,21 @@ describe('Player context menu - touch long-press', () => {
     cy.viewport('iphone-6');
     // Start with 5 players
     cy.get('#player-circle li').should('have.length', 5);
-    
+
     // Long-press to open context menu
     cy.get('#player-circle li .player-token').first()
       .trigger('pointerdown', { force: true })
       .wait(650)
       .trigger('pointerup', { force: true });
-    
+
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Click the button (this is what the original test did)
     cy.get('#player-menu-add-after').click();
-    
+
     // Should have 6 players now
     cy.get('#player-circle li').should('have.length', 6);
-    
+
     // Menu should be closed after action
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
@@ -217,24 +217,24 @@ describe('Player context menu - touch long-press', () => {
     cy.viewport('iphone-6');
     // Start with 5 players
     cy.get('#player-circle li').should('have.length', 5);
-    
+
     // Long-press to open context menu
     cy.get('#player-circle li .player-token').first()
       .trigger('pointerdown', { force: true })
       .wait(650)
       .trigger('pointerup', { force: true });
-    
+
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
-    
+
     // Touch and move on the button (should not trigger action)
     cy.get('#player-menu-add-after')
       .trigger('touchstart', { force: true, clientX: 100, clientY: 100 })
       .trigger('touchmove', { force: true, clientX: 150, clientY: 150 })
       .trigger('touchend', { force: true, clientX: 150, clientY: 150 });
-    
+
     // Should still have 5 players (no action triggered)
     cy.get('#player-circle li').should('have.length', 5);
-    
+
     // Menu should still be open
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
   });

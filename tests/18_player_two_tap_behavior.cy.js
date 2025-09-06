@@ -3,7 +3,7 @@ describe('Player two-tap behavior in touch mode', () => {
     cy.viewport(800, 600);
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.reload();
 
@@ -23,7 +23,7 @@ describe('Player two-tap behavior in touch mode', () => {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    cy.get('#start-game').click({ force: true });
+    cy.get('#reset-grimoire').click({ force: true });
     cy.get('#player-circle li').should('have.length', 20);
   });
 

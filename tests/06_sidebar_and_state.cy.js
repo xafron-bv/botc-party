@@ -7,7 +7,7 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#start-game').click();
+  cy.get('#reset-grimoire').click();
   cy.get('#player-circle li').should('have.length', n);
 };
 
@@ -16,7 +16,7 @@ describe('Sidebar & State', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);

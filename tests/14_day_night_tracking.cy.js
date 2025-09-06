@@ -14,7 +14,7 @@ describe('Day/Night Tracking Feature', () => {
 
     // Setup a game with 5 players
     cy.get('#player-count').clear().type('5');
-    cy.get('#start-game').click();
+    cy.get('#reset-grimoire').click();
 
     // Wait for player circle to be set up
     cy.get('#player-circle li').should('have.length', 5);
