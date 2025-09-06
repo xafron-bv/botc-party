@@ -54,7 +54,6 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     // Merge: generic + per-character + file-provided
     reminderTokens = [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
     const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
-    // Normalize image paths for gh-pages subpath
     reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
     // Put custom option at the top
     const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
