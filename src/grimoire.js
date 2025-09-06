@@ -123,6 +123,28 @@ function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   return count;
 }
 
+// Centralized grimoire visibility helpers
+export function applyGrimoireHiddenState({ grimoireState }) {
+  try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
+  const btn = document.getElementById('reveal-assignments');
+  if (btn) btn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
+  // Re-render so token visuals/labels match hidden state immediately
+  updateGrimoire({ grimoireState });
+}
+
+export function setGrimoireHidden({ grimoireState, hidden }) {
+  grimoireState.grimoireHidden = !!hidden;
+  applyGrimoireHiddenState({ grimoireState });
+  saveAppState({ grimoireState });
+}
+
+export function toggleGrimoireHidden({ grimoireState }) {
+  setGrimoireHidden({ grimoireState, hidden: !grimoireState.grimoireHidden });
+}
+
+export function hideGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: true }); }
+export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
+
 // A lot of similar code in rebuildPlayerCircleUiPreserveState
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
@@ -176,7 +198,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         return; // handled by info icon
       }
       if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-        if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+        const overlay = listItem.querySelector('.number-overlay');
+        const canPick = overlay && !overlay.classList.contains('disabled');
+        if (canPick && window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
       } else if (grimoireState && !grimoireState.grimoireHidden) {
         openCharacterModal({ grimoireState, playerIndex: i });
       }
@@ -1386,30 +1410,15 @@ export function updateGrimoire({ grimoireState }) {
   updateAllBluffTokens({ grimoireState });
 }
 export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }) {
-  // If selection flow is active and all players have selected numbers, finalize instead of resetting
+  // If number selection is active, cancel it and remove any overlays before resetting
   const sel = grimoireState.playerSetup;
   if (sel && sel.selectionActive) {
-    const n = (grimoireState.players || []).length;
-    const pickedCount = Array.isArray(sel.assignments) ? sel.assignments.filter((v) => v !== null && v !== undefined).length : 0;
-    const allPicked = pickedCount === n && n > 0;
-    if (allPicked) {
-      try {
-        // Apply assignments
-        const assignments = sel.assignments || [];
-        const bag = sel.bag || [];
-        assignments.forEach((bagIdx, idx) => {
-          const roleId = bagIdx !== null && bagIdx !== undefined ? bag[bagIdx] : null;
-          if (roleId && grimoireState.players[idx]) grimoireState.players[idx].character = roleId;
-        });
-        // Remove temporary number badges
-        document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove());
-        sel.selectionActive = false;
-        grimoireState.grimoireHidden = false;
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-        return; // Do not perform new game reset
-      } catch (_) { /* fallthrough to normal start if something goes wrong */ }
-    }
+    try {
+      document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove());
+    } catch (_) { }
+    sel.selectionActive = false;
+    sel.assignments = new Array((grimoireState.players || []).length).fill(null);
+    try { saveAppState({ grimoireState }); } catch (_) { }
   }
   const playerCount = parseInt(playerCountInput.value, 10);
   if (!(playerCount >= 5 && playerCount <= 20)) {

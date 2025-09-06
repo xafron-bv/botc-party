@@ -32,6 +32,12 @@ body.grimoire-hidden #bluff-tokens-container {
   display: none !important;
 }
 
+/* Also hide death UI while hidden */
+body.grimoire-hidden #player-circle li .player-token .death-ribbon,
+body.grimoire-hidden #player-circle li .player-token .death-vote-indicator {
+  display: none !important;
+}
+
 /* During number selection, hide reminders and bluffs like hidden mode */
 body.selection-active #player-circle li .reminders,
 body.selection-active #player-circle li .reminder-placeholder,

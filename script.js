@@ -2,7 +2,7 @@ import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/c
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire } from './src/grimoire.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire } from './src/grimoire.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
@@ -123,12 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
   // Hide/Show grimoire toggle (re-uses reveal button location)
-  function applyGrimoireHiddenUI() {
-    document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden);
-    if (revealToggleBtn) {
-      revealToggleBtn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
-    }
-  }
+  function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
   // Apply bag assignments to players (used when revealing)
   function applyAssignmentsFromBag() {
@@ -145,20 +140,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
     if (grimoireState.playerSetup) grimoireState.playerSetup.revealed = true;
-    // Clear any temporary number badges after revealing
+    // Clear any temporary number overlays/badges after revealing
     try {
-      document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove());
+      document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove());
     } catch (_) { }
   }
 
   if (revealToggleBtn) {
-    revealToggleBtn.addEventListener('click', () => {
-      grimoireState.grimoireHidden = !grimoireState.grimoireHidden;
-      applyGrimoireHiddenUI();
-      // Immediately re-render grimoire so tokens/names/labels update without refresh
-      updateGrimoire({ grimoireState });
-      saveAppState({ grimoireState });
-    });
+    revealToggleBtn.addEventListener('click', () => toggleGrimoireHidden({ grimoireState }));
   }
 
   if (modeStorytellerRadio && modePlayerRadio) {
@@ -296,11 +285,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const roleId = bagIdx !== null && bagIdx !== undefined ? bag[bagIdx] : null;
       if (roleId && grimoireState.players[idx]) grimoireState.players[idx].character = roleId;
     });
-    try { document.querySelectorAll('#player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
+    try { document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
     sel.selectionActive = false;
-    grimoireState.grimoireHidden = false;
-    updateGrimoire({ grimoireState });
-    saveAppState({ grimoireState });
+    showGrimoire({ grimoireState });
+    // Forget previously selected numbers after starting game
+    if (grimoireState.playerSetup) {
+      grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
+      grimoireState.playerSetup.revealed = true;
+    }
   });
 
   saveReminderBtn.onclick = () => {
@@ -458,8 +450,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAppState({ grimoireState, grimoireHistoryList });
   applyModeUI();
   applyGrimoireHiddenUI();
-  // Ensure grimoire visual state is consistent after applying hidden UI
-  updateGrimoire({ grimoireState });
 
   // In-app tour
   initInAppTour();

@@ -34,7 +34,7 @@
           <button class="button" id="open-player-setup">Player Setup</button>
           <button class="button" id="reveal-assignments">Reveal Characters</button>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+        <div style="display:flex; flex-direction: column; gap:8px; margin-top:8px;">
           <button class="button" id="reset-grimoire">Reset Grimoire</button>
           <button class="button" id="assign-and-start" style="display:none;">Start Game</button>
         </div>
@@ -174,7 +174,7 @@
       <button class="modal-close" id="close-player-setup" aria-label="Close player setup"><i class="fas fa-times"></i></button>
       <h3>Player Setup (Storyteller)</h3>
       <div id="bag-count-warning" class="error" style="display:none;">Warning: Selected bag does not match player count configuration.</div>
-      <div style="margin: 8px 0; display:flex; gap:10px; align-items:center;">
+      <div style="margin: 8px 0; display:flex; gap:10px; align-items:stretch;">
         <button class="button" id="bag-random-fill">Randomly Fill</button>
         <button class="button start-selection">Start Number Selection</button>
       </div>

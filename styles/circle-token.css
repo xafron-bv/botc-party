@@ -53,21 +53,31 @@
 }
 
 /* Temporary number badge shown during number selection */
-.number-badge {
+/* Half-opaque number selection overlay */
+.number-overlay {
   position: absolute;
-  bottom: -10px;
-  right: -10px;
-  background: #D4AF37;
-  color: #000;
+  inset: 0;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  border: 2px solid #000;
-  z-index: 6;
+  font-weight: 800;
+  font-size: clamp(18px, 4.5vmin, 32px);
+  line-height: 1;
+  z-index: 100;
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.number-overlay.disabled {
+  background: rgba(212, 175, 55, 0.85);
+  color: #000;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Debug: line from token center to circle center */
