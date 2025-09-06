@@ -504,8 +504,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const existingSvg = tokenEl.querySelector('svg');
     if (existingSvg) existingSvg.remove();
     // Match grimoire token size and frame
-    tokenEl.style.width = 'var(--token-size)';
-    tokenEl.style.height = 'var(--token-size)';
+    tokenEl.style.width = 'calc(var(--token-size) * 2)';
+    tokenEl.style.height = 'calc(var(--token-size) * 2)';
     tokenEl.style.border = '4px solid #D4AF37';
     tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
     tokenEl.style.borderRadius = '50%';
