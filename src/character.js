@@ -52,6 +52,49 @@ export function populateCharacterGrid({ grimoireState }) {
 export function assignCharacter({ grimoireState, roleId }) {
   const characterModal = document.getElementById('character-modal');
 
+  // Intercept temporary storyteller slot selection (from storyteller messages)
+  if (grimoireState._tempStorytellerSlotIndex !== undefined) {
+    const slotIndex = grimoireState._tempStorytellerSlotIndex;
+    try {
+      if (!Array.isArray(grimoireState.storytellerTempSlots)) {
+        grimoireState.storytellerTempSlots = [];
+      }
+      grimoireState.storytellerTempSlots[slotIndex] = roleId;
+      const slotsEl = document.getElementById('storyteller-message-slots');
+      if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
+        const slotEl = slotsEl.children[slotIndex];
+        const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
+        // Clear any existing curved label
+        const existingSvg = slotEl.querySelector('svg');
+        if (existingSvg) existingSvg.remove();
+        if (role && role.image) {
+          // Match character/bluff token layering
+          slotEl.classList.remove('empty');
+          slotEl.classList.add('has-character');
+          slotEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+          slotEl.style.backgroundSize = '68% 68%, cover';
+          slotEl.style.backgroundPosition = 'center, center';
+          slotEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+          const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
+          slotEl.appendChild(svg);
+        } else {
+          slotEl.classList.add('empty');
+          slotEl.classList.remove('has-character');
+          slotEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
+          slotEl.style.backgroundSize = 'cover';
+          slotEl.style.backgroundPosition = 'center';
+          slotEl.style.backgroundRepeat = 'no-repeat';
+          const svg = createCurvedLabelSvg('story-slot-empty', 'None');
+          slotEl.appendChild(svg);
+        }
+      }
+    } catch (_) { }
+    characterModal.style.display = 'none';
+    delete grimoireState._tempStorytellerSlotIndex;
+    saveAppState({ grimoireState });
+    return;
+  }
+
   // Check if this is for a bluff token
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
     assignBluffCharacter({ grimoireState, roleId });

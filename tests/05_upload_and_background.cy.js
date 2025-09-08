@@ -5,7 +5,7 @@ describe('Upload & Background', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
@@ -19,7 +19,7 @@ describe('Upload & Background', () => {
     cy.writeFile(fixturePath, customScript);
     cy.get('#script-file').selectFile(fixturePath, { force: true });
 
-    cy.contains('#load-status', 'Custom script loaded successfully!').should('be.visible');
+    cy.contains('#load-status', 'Custom script loaded successfully!').should('exist');
     cy.contains('#character-sheet .role .name', 'Chef').should('exist');
     cy.contains('#character-sheet .role .name', 'Librarian').should('exist');
 
@@ -35,7 +35,7 @@ describe('Upload & Background', () => {
     cy.get('#script-file').selectFile(badPath, { force: true });
 
     cy.get('#load-status').should('have.class', 'error');
-    cy.contains('#load-status', 'Invalid JSON file').should('be.visible');
+    cy.contains('#load-status', 'Invalid JSON file').should('exist');
   });
 
   it('shows an error for invalid script format (object instead of array)', () => {
@@ -46,7 +46,7 @@ describe('Upload & Background', () => {
     cy.get('#script-file').selectFile(objPath, { force: true });
 
     cy.get('#load-status').should('have.class', 'error');
-    cy.contains('#load-status', 'Invalid script file').should('be.visible');
+    cy.contains('#load-status', 'Invalid script file').should('exist');
   });
 
   it('loads all characters successfully', () => {

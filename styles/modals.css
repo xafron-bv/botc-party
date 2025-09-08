@@ -12,6 +12,11 @@
   backdrop-filter: blur(5px);
 }
 
+/* Ensure character modal appears above other modals (e.g., edit message) */
+#character-modal {
+  z-index: 5000;
+}
+
 .modal-content {
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   padding: 30px;
@@ -159,4 +164,12 @@
   font-size: clamp(14px, 1.8vmin, 18px);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
   text-indent: 10px;
+}
+
+/* Center message slots in edit modal */
+#storyteller-message-slots {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
 }
