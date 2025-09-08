@@ -503,9 +503,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyStoryMsgRoleLook(tokenEl, roleId) {
     const existingSvg = tokenEl.querySelector('svg');
     if (existingSvg) existingSvg.remove();
-    // Match message/reveal token size (2x standard)
-    tokenEl.style.width = 'calc(var(--token-size) * 2)';
-    tokenEl.style.height = 'calc(var(--token-size) * 2)';
+    // Match view/edit message token size (1.5x standard)
+    tokenEl.style.width = 'calc(var(--token-size) * 1.5)';
+    tokenEl.style.height = 'calc(var(--token-size) * 1.5)';
     tokenEl.style.border = '4px solid #D4AF37';
     tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
     tokenEl.style.borderRadius = '50%';
