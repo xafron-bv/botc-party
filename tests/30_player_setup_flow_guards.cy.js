@@ -63,6 +63,8 @@ describe('Player Setup - Guards and Resets', () => {
     // Pick a number for Player 1
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
     cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('#player-reveal-modal').should('be.visible');
+    cy.get('#reveal-confirm-btn').click();
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
     // Re-open sidebar if needed, then player setup and start selection again
     cy.get('#sidebar-toggle').should('be.visible').click();
@@ -82,12 +84,18 @@ describe('Player Setup - Guards and Resets', () => {
       for (let i = 0; i < 5; i++) {
         cy.get('#player-circle li').eq(i).find('.number-overlay').click();
         cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
+        cy.get('#player-reveal-modal').should('be.visible');
+        cy.get('#reveal-confirm-btn').click();
       }
     });
     cy.get('#sidebar-toggle').should('be.visible').click();
-    cy.get('#assign-and-start').click();
+    cy.get('#start-game').click();
+    // End current game to allow starting selection again
+    cy.get('#end-game').click();
+    cy.get('#end-game-modal').should('be.visible');
+    cy.get('#good-wins-btn').click();
     // Start selection again - all should be reset to '?'
-    cy.get('#open-player-setup').click();
+    cy.get('#open-player-setup').should('be.visible').click();
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('#player-circle li .number-overlay').should('have.length', 5);
     cy.get('#player-circle li').each(($li) => {

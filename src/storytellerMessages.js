@@ -1,7 +1,6 @@
 import { populateCharacterGrid } from './character.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { hideGrimoire } from './grimoire.js';
-import { saveAppState } from './app.js';
 
 export function initStorytellerMessages({ grimoireState }) {
   const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
@@ -52,9 +51,9 @@ export function initStorytellerMessages({ grimoireState }) {
     const existingSvg = tokenEl.querySelector('svg');
     if (existingSvg) existingSvg.remove();
 
-    // Match grimoire token size and frame
-    tokenEl.style.width = 'var(--token-size)';
-    tokenEl.style.height = 'var(--token-size)';
+    // Match view/edit message token size (1.5x standard)
+    tokenEl.style.width = 'calc(var(--token-size) * 1.5)';
+    tokenEl.style.height = 'calc(var(--token-size) * 1.5)';
     tokenEl.style.border = '4px solid #D4AF37';
     tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
     tokenEl.style.borderRadius = '50%';
@@ -63,7 +62,7 @@ export function initStorytellerMessages({ grimoireState }) {
       const role = grimoireState.allRoles[roleId];
       tokenEl.classList.remove('empty');
       tokenEl.classList.add('has-character');
-      const characterImage = role.image || "./assets/img/token-BqDQdWeO.webp";
+      const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
       tokenEl.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
       tokenEl.style.backgroundSize = '68% 68%, cover';
       tokenEl.style.backgroundPosition = 'center, center';
@@ -97,7 +96,7 @@ export function initStorytellerMessages({ grimoireState }) {
       messageSlotsEl.style.display = 'flex';
       for (let i = 0; i < count; i++) {
         const slot = document.createElement('div');
-        slot.className = 'bluff-token empty';
+        slot.className = 'token empty';
         applyRoleLookToToken(slot, null);
         slot.addEventListener('click', () => openRoleGridForSlot(i));
         messageSlotsEl.appendChild(slot);
@@ -197,7 +196,7 @@ export function initStorytellerMessages({ grimoireState }) {
           : new Array(count).fill(null);
         selectedSlots.forEach((roleId) => {
           const slot = document.createElement('div');
-          slot.className = 'bluff-token';
+          slot.className = 'token';
           applyRoleLookToToken(slot, roleId || null);
           slotsDisplay.appendChild(slot);
         });

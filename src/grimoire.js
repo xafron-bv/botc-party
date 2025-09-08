@@ -150,8 +150,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
   try {
-    if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
+    if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
     }
   } catch (_) { }
   console.log('Setting up grimoire with', count, 'players');
@@ -858,6 +858,15 @@ export function renderSetupInfo({ grimoireState }) {
   }
 
   setupInfoEl.innerHTML = displayHtml;
+  if (grimoireState.winner) {
+    const msg = document.createElement('div');
+    msg.id = 'winner-message';
+    msg.style.marginTop = '8px';
+    msg.style.fontWeight = 'bold';
+    msg.style.color = grimoireState.winner === 'good' ? '#6bff8a' : '#ff6b6b';
+    msg.textContent = `${grimoireState.winner === 'good' ? 'Good' : 'Evil'} has won`;
+    setupInfoEl.appendChild(msg);
+  }
 }
 
 
@@ -1418,6 +1427,11 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     } catch (_) { }
     sel.selectionActive = false;
     sel.assignments = new Array((grimoireState.players || []).length).fill(null);
+    // Also close any open number picker overlay/modal
+    try {
+      const numberPickerOverlay = document.getElementById('number-picker-overlay');
+      if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';
+    } catch (_) { }
     try { saveAppState({ grimoireState }); } catch (_) { }
   }
   const playerCount = parseInt(playerCountInput.value, 10);
@@ -1427,8 +1441,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
   }
 
   try {
-    if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking });
+    if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
     }
   } catch (_) { }
 
@@ -1458,13 +1472,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     updateDayNightUI(grimoireState);
   } catch (_) { }
 
-  const gameStatusEl = document.getElementById('game-status');
-  if (gameStatusEl) {
-    gameStatusEl.textContent = `New game started (${playerCount} players)`;
-    gameStatusEl.className = 'status';
-    try { clearTimeout(grimoireState._gameStatusTimer); } catch (_) { }
-    grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
-  }
+  // Feedback for starting a new game is shown when Start Game is clicked, not on reset
 
   // Persist reset state
   try { saveAppState({ grimoireState }); } catch (_) { }
