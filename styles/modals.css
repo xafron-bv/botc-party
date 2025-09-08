@@ -166,6 +166,26 @@
   text-indent: 10px;
 }
 
+/* Match player count input styling for reveal name input */
+#player-reveal-modal #reveal-name-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#player-reveal-modal #reveal-name-input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
 /* Center message slots in edit modal */
 #storyteller-message-slots {
   display: flex !important;
