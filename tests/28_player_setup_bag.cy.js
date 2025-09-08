@@ -51,8 +51,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Choose number 1 -> reveal modal should appear
     cy.get('#number-picker-overlay .number').contains('1').click();
     cy.get('#player-reveal-modal').should('be.visible');
-    // Modal shows character info and name input
-    cy.get('#reveal-character-name').invoke('text').should('not.equal', '');
+    // Modal shows character token and ability, plus name input
+    cy.get('#reveal-character-token .token').should('exist');
     cy.get('#reveal-ability').invoke('text').should('not.equal', '');
     cy.get('#reveal-name-input').clear().type('Alice');
     cy.get('#reveal-confirm-btn').click();

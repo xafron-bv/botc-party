@@ -16,7 +16,7 @@ export function initPlayerSetup({ grimoireState }) {
   const closeNumberPickerBtn = document.getElementById('close-number-picker');
   const playerRevealModal = document.getElementById('player-reveal-modal');
   const closePlayerRevealModalBtn = document.getElementById('close-player-reveal-modal');
-  const revealCharacterNameEl = document.getElementById('reveal-character-name');
+  const revealCharacterTokenEl = document.getElementById('reveal-character-token');
   const revealAbilityEl = document.getElementById('reveal-ability');
   const revealNameInput = document.getElementById('reveal-name-input');
   const revealConfirmBtn = document.getElementById('reveal-confirm-btn');
@@ -228,7 +228,15 @@ export function initPlayerSetup({ grimoireState }) {
           const role = grimoireState.allRoles && roleId ? grimoireState.allRoles[roleId] : null;
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
-            if (revealCharacterNameEl) revealCharacterNameEl.textContent = role.name || '';
+            if (revealCharacterTokenEl) {
+              revealCharacterTokenEl.innerHTML = '';
+              const token = document.createElement('div');
+              token.className = 'token role';
+              token.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+              token.style.backgroundSize = '68% 68%, cover';
+              token.title = role.name || '';
+              revealCharacterTokenEl.appendChild(token);
+            }
             if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
             const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
             if (revealNameInput) {
