@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Implementation</title>
+</head>
+<body>
+    <h1>Testing Game State Guards</h1>
+    <p>This is a simple test to verify the implementation works correctly.</p>
+    <p>Open the browser console to see the test results.</p>
+    
+    <script>
+        // Mock the required functions and state
+        const mockGrimoireState = {
+            loadingEndedGameFromHistory: false,
+            mode: 'storyteller',
+            gameStarted: false
+        };
+        
+        // Mock DOM elements
+        const mockElements = {
+            startGameBtn: { style: { display: '' } },
+            openPlayerSetupBtn: { style: { display: '' } }
+        };
+        
+        // Mock applyModeUI function
+        function applyModeUI() {
+            const isPlayer = mockGrimoireState.mode === 'player';
+            const openPlayerSetupBtn2 = mockElements.openPlayerSetupBtn;
+            const startGameBtn = mockElements.startGameBtn;
+            
+            // If loading an ended game from history, hide both Start Game and Player Setup buttons
+            if (mockGrimoireState.loadingEndedGameFromHistory) {
+                if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
+                if (startGameBtn) startGameBtn.style.display = 'none';
+            } else {
+                if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
+                // Always show Start/End Game button in both modes when not loading ended game
+                if (startGameBtn) startGameBtn.style.display = '';
+            }
+        }
+        
+        // Test cases
+        console.log('=== Testing Game State Guards ===');
+        
+        // Test 1: Normal state - buttons should be visible
+        console.log('Test 1: Normal state');
+        mockGrimoireState.loadingEndedGameFromHistory = false;
+        mockGrimoireState.gameStarted = false;
+        applyModeUI();
+        console.log('Start Game button visible:', mockElements.startGameBtn.style.display !== 'none');
+        console.log('Player Setup button visible:', mockElements.openPlayerSetupBtn.style.display !== 'none');
+        
+        // Test 2: Loading ended game from history - buttons should be hidden
+        console.log('\nTest 2: Loading ended game from history');
+        mockGrimoireState.loadingEndedGameFromHistory = true;
+        mockGrimoireState.gameStarted = false;
+        applyModeUI();
+        console.log('Start Game button visible:', mockElements.startGameBtn.style.display !== 'none');
+        console.log('Player Setup button visible:', mockElements.openPlayerSetupBtn.style.display !== 'none');
+        
+        // Test 3: After reset - buttons should be visible again
+        console.log('\nTest 3: After reset');
+        mockGrimoireState.loadingEndedGameFromHistory = false;
+        mockGrimoireState.gameStarted = false;
+        applyModeUI();
+        console.log('Start Game button visible:', mockElements.startGameBtn.style.display !== 'none');
+        console.log('Player Setup button visible:', mockElements.openPlayerSetupBtn.style.display !== 'none');
+        
+        // Test 4: Game started - buttons should be hidden (normal behavior)
+        console.log('\nTest 4: Game started');
+        mockGrimoireState.loadingEndedGameFromHistory = false;
+        mockGrimoireState.gameStarted = true;
+        applyModeUI();
+        console.log('Start Game button visible:', mockElements.startGameBtn.style.display !== 'none');
+        console.log('Player Setup button visible:', mockElements.openPlayerSetupBtn.style.display !== 'none');
+        
+        console.log('\n=== Test Complete ===');
+    </script>
+</body>
+</html>

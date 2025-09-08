@@ -99,7 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     outsideCollapseHandlerInstalled: false,
     mode: 'storyteller',
     grimoireHidden: false,
-    gameStarted: false
+    gameStarted: false,
+    // Flag to track when loading an ended game from history
+    loadingEndedGameFromHistory: false
   };
 
   // Player setup state
@@ -132,15 +134,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       dayNightSlider.style.display = 'none';
     }
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
-    if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
-    // Always show Start/End Game button in both modes
-    if (startGameBtn) startGameBtn.style.display = '';
+    
+    // If loading an ended game from history, hide both Start Game and Player Setup buttons
+    if (grimoireState.loadingEndedGameFromHistory) {
+      if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
+      if (startGameBtn) startGameBtn.style.display = 'none';
+    } else {
+      if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
+      // Always show Start/End Game button in both modes when not loading ended game
+      if (startGameBtn) startGameBtn.style.display = '';
+    }
+    
     if (openStorytellerMessageBtn) openStorytellerMessageBtn.style.display = isPlayer ? 'none' : '';
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }
     try { updateStartGameEnabled(); } catch (_) { }
   };
+  
+  // Make applyModeUI available globally for history restoration
+  window.applyModeUI = applyModeUI;
   // Hide/Show grimoire toggle (re-uses reveal button location)
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
@@ -315,6 +328,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Reset game state UI: show Start, hide End, clear winner
     try { grimoireState.winner = null; } catch (_) { }
     grimoireState.gameStarted = false;
+    // Clear the flag that indicates we're loading an ended game from history
+    grimoireState.loadingEndedGameFromHistory = false;
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
     // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
@@ -356,6 +371,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
     grimoireState.gameStarted = true;
+    // Clear the flag that indicates we're loading an ended game from history
+    grimoireState.loadingEndedGameFromHistory = false;
 
     // Reset day/night tracking when a new game starts
     try {
@@ -418,6 +435,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // After ending game, hide End Game and show Start Game again
     if (endGameBtn) endGameBtn.style.display = 'none';
     if (startGameBtn) startGameBtn.style.display = '';
+    // Clear the flag that indicates we're loading an ended game from history
+    grimoireState.loadingEndedGameFromHistory = false;
     // Re-apply mode-specific UI for Start Player Setup visibility
     applyModeUI();
     updateStartGameEnabled();

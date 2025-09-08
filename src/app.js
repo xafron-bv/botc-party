@@ -14,7 +14,8 @@ export function saveAppState({ grimoireState }) {
       bluffs: grimoireState.bluffs || [null, null, null],
       mode: grimoireState.mode || 'storyteller',
       grimoireHidden: !!grimoireState.grimoireHidden,
-      playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false }
+      playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
+      loadingEndedGameFromHistory: !!grimoireState.loadingEndedGameFromHistory
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
@@ -57,5 +58,16 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     if (saved && saved.playerSetup) {
       grimoireState.playerSetup = saved.playerSetup;
     }
-  } catch (_) { } finally { grimoireState.isRestoringState = false; }
+    if (saved && typeof saved.loadingEndedGameFromHistory === 'boolean') {
+      grimoireState.loadingEndedGameFromHistory = !!saved.loadingEndedGameFromHistory;
+    }
+  } catch (_) { } finally { 
+    grimoireState.isRestoringState = false;
+    // Call applyModeUI to ensure buttons are properly shown/hidden based on loadingEndedGameFromHistory flag
+    try {
+      if (window.applyModeUI) {
+        window.applyModeUI();
+      }
+    } catch (_) { }
+  }
 }

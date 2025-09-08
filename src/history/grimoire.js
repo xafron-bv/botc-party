@@ -253,6 +253,10 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     // Restore gameStarted from history if present (ended games should set false)
     grimoireState.gameStarted = !!entry.gameStarted;
 
+    // Set flag to indicate we're loading an ended game from history if the game is not started
+    // This will hide the Start Game and Player Setup buttons
+    grimoireState.loadingEndedGameFromHistory = !grimoireState.gameStarted;
+
     // Restore day/night tracking state if present
     if (entry.dayNightTracking) {
       grimoireState.dayNightTracking = JSON.parse(JSON.stringify(entry.dayNightTracking));
@@ -264,26 +268,19 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
 
-    // Update Start/End Game button visibility based on restored gameStarted and mode
+    // Call applyModeUI to handle button visibility based on loadingEndedGameFromHistory flag
+    try {
+      if (window.applyModeUI) {
+        window.applyModeUI();
+      }
+    } catch (_) { }
+
+    // Ensure the Start button is brought into view to be visibly assertable in tests
     try {
       const startBtn = document.getElementById('start-game');
-      const endBtn = document.getElementById('end-game');
-      const openSetupBtn = document.getElementById('open-player-setup');
-      if (grimoireState.gameStarted) {
-        if (endBtn) endBtn.style.display = '';
-        if (startBtn) startBtn.style.display = 'none';
-        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : 'none';
-      } else {
-        if (endBtn) endBtn.style.display = 'none';
-        if (startBtn) startBtn.style.display = '';
-        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
-      }
-      // Ensure the Start button is brought into view to be visibly assertable in tests
-      try {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.scrollTop = 0;
-        if (startBtn && startBtn.scrollIntoView) startBtn.scrollIntoView({ block: 'nearest' });
-      } catch (_) { }
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.scrollTop = 0;
+      if (startBtn && startBtn.scrollIntoView) startBtn.scrollIntoView({ block: 'nearest' });
     } catch (_) { }
   } catch (e) {
     console.error('Failed to restore grimoire from history:', e);

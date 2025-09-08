@@ -20,7 +20,7 @@ describe('Ended Game Loading Guards', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
   });
 
-  it('prevents starting a new game when loading an ended game from history', () => {
+  it('hides start game and player setup buttons when loading an ended game from history', () => {
     // Start with 5 players
     startGameWithPlayers(5);
 
@@ -67,15 +67,11 @@ describe('Ended Game Loading Guards', () => {
     
     // Verify we're back to the 5-player ended game
     cy.get('#player-circle li').should('have.length', 5);
-    cy.get('#start-game').should('be.visible');
-    cy.get('#end-game').should('not.be.visible');
     
-    // Try to start the game - this should be blocked
-    cy.get('#start-game').click();
-    
-    // The game should not start - Start Game button should still be visible
-    cy.get('#start-game').should('be.visible');
+    // When loading an ended game from history, Start Game and Player Setup buttons should be hidden
+    cy.get('#start-game').should('not.be.visible');
     cy.get('#end-game').should('not.be.visible');
+    cy.get('#open-player-setup').should('not.be.visible');
     
     // Verify no "New game started" message appears
     cy.contains('#game-status', 'New game started').should('not.exist');
@@ -106,18 +102,18 @@ describe('Ended Game Loading Guards', () => {
     // Load the ended game from history
     cy.get('#grimoire-history-list .history-item').first().click();
     
-    // Verify we're back to the ended game
+    // Verify we're back to the ended game with buttons hidden
     cy.get('#player-circle li').should('have.length', 5);
-    cy.get('#start-game').should('be.visible');
+    cy.get('#start-game').should('not.be.visible');
     cy.get('#end-game').should('not.be.visible');
-    
-    // Try to start the game - this should be blocked
-    cy.get('#start-game').click();
-    cy.get('#start-game').should('be.visible');
-    cy.get('#end-game').should('not.be.visible');
+    cy.get('#open-player-setup').should('not.be.visible');
     
     // Reset the grimoire
     cy.get('#reset-grimoire').click();
+    
+    // After reset, buttons should be visible again
+    cy.get('#start-game').should('be.visible');
+    cy.get('#open-player-setup').should('be.visible');
     
     // Now we should be able to start a new game
     cy.get('#start-game').click();
@@ -218,7 +214,7 @@ describe('Ended Game Loading Guards', () => {
     cy.get('#player-circle li').should('have.length', 6);
   });
 
-  it('prevents player setup when loading an ended game from history', () => {
+  it('shows buttons again after resetting an ended game from history', () => {
     // Start with 5 players
     startGameWithPlayers(5);
 
@@ -243,19 +239,20 @@ describe('Ended Game Loading Guards', () => {
     // Load the ended game from history
     cy.get('#grimoire-history-list .history-item').first().click();
     
-    // Verify we're back to the ended game
+    // Verify we're back to the ended game with buttons hidden
     cy.get('#player-circle li').should('have.length', 5);
-    
-    // Try to open player setup - this should be blocked
-    cy.get('#open-player-setup').click();
-    
-    // Player setup panel should not be visible
-    cy.get('#player-setup-panel').should('not.be.visible');
+    cy.get('#start-game').should('not.be.visible');
+    cy.get('#end-game').should('not.be.visible');
+    cy.get('#open-player-setup').should('not.be.visible');
     
     // Reset the grimoire
     cy.get('#reset-grimoire').click();
     
-    // Now player setup should work
+    // After reset, buttons should be visible again
+    cy.get('#start-game').should('be.visible');
+    cy.get('#open-player-setup').should('be.visible');
+    
+    // Player setup should work
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
   });
