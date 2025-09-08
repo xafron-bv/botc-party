@@ -21,7 +21,7 @@ describe('Storyteller Messages', () => {
   it('clicking placeholder token opens character selection and returns to edit popup', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
-    cy.get('#storyteller-message-slots .bluff-token').first().click({ force: true });
+    cy.get('#storyteller-message-slots .token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     // Pick a non-empty role
     cy.get('#character-grid .token').eq(1).click();
@@ -29,7 +29,7 @@ describe('Storyteller Messages', () => {
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#storyteller-message-edit').should('be.visible');
     // Curved label under slot should not be 'None'
-    cy.get('#storyteller-message-slots .bluff-token svg textPath').invoke('text').should('not.eq', 'None');
+    cy.get('#storyteller-message-slots .token svg textPath').invoke('text').should('not.eq', 'None');
   });
 
   it('show message hides grimoire and shows fullscreen modal; dismiss returns', () => {
@@ -73,7 +73,7 @@ describe('Storyteller Messages', () => {
   it('placeholder and display tokens match character/bluff token styling', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
-    cy.get('#storyteller-message-slots .bluff-token').should('have.length', 1)
+    cy.get('#storyteller-message-slots .token').should('have.length', 1)
       .and('be.visible')
       .and(($el) => {
         const bg = getComputedStyle($el[0]).backgroundImage;
@@ -81,7 +81,7 @@ describe('Storyteller Messages', () => {
       });
     cy.get('#show-storyteller-message').click();
     cy.get('#storyteller-message-display').should('be.visible');
-    cy.get('#storyteller-slots-display .bluff-token').should('have.length', 1)
+    cy.get('#storyteller-slots-display .token').should('have.length', 1)
       .and('be.visible')
       .and(($el) => {
         const bg = getComputedStyle($el[0]).backgroundImage;
@@ -95,7 +95,7 @@ describe('Storyteller Messages', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
     // Open character picker for the slot and pick first role
-    cy.get('#storyteller-message-slots .bluff-token').first().click();
+    cy.get('#storyteller-message-slots .token').first().click();
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token').eq(1).click();
     cy.get('#character-modal').should('not.be.visible');
@@ -115,7 +115,7 @@ describe('Storyteller Messages', () => {
     cy.get('#storyteller-message-slots').should('not.be.visible');
     cy.get('#show-storyteller-message').click();
     cy.get('#storyteller-message-display').should('be.visible');
-    cy.get('#storyteller-slots-display .bluff-token').should('have.length', 0);
+    cy.get('#storyteller-slots-display .token').should('have.length', 0);
   });
 
   it('placeholder slot size matches grimoire token size', () => {
@@ -123,7 +123,7 @@ describe('Storyteller Messages', () => {
     let borderWidthPx = 0;
     cy.document().then((doc) => {
       const temp = doc.createElement('div');
-      temp.style.width = 'var(--token-size)';
+      temp.style.width = 'calc(var(--token-size) * 1.5)';
       temp.style.position = 'absolute';
       temp.style.left = '-9999px';
       doc.body.appendChild(temp);
@@ -133,7 +133,7 @@ describe('Storyteller Messages', () => {
     });
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
-    cy.get('#storyteller-message-slots .bluff-token').first().then(($slot) => {
+    cy.get('#storyteller-message-slots .token').first().then(($slot) => {
       const cs = getComputedStyle($slot[0]);
       const w = parseFloat(cs.width);
       expect(Math.abs(w - tokenSizePx)).to.be.lte(2);
@@ -147,7 +147,7 @@ describe('Storyteller Messages', () => {
     let tokenSizePx = 0;
     cy.document().then((doc) => {
       const temp = doc.createElement('div');
-      temp.style.width = 'var(--token-size)';
+      temp.style.width = 'calc(var(--token-size) * 1.5)';
       temp.style.position = 'absolute';
       temp.style.left = '-9999px';
       doc.body.appendChild(temp);
@@ -157,7 +157,7 @@ describe('Storyteller Messages', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
     cy.get('#show-storyteller-message').click();
-    cy.get('#storyteller-slots-display .bluff-token').first().then(($slot) => {
+    cy.get('#storyteller-slots-display .token').first().then(($slot) => {
       const cs = getComputedStyle($slot[0]);
       const w = parseFloat(cs.width);
       expect(Math.abs(w - tokenSizePx)).to.be.lte(2);
@@ -170,12 +170,12 @@ describe('Storyteller Messages', () => {
   it('display modal shows chosen character name, not "None"', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
-    cy.get('#storyteller-message-slots .bluff-token').first().click({ force: true });
+    cy.get('#storyteller-message-slots .token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token').eq(1).click();
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#show-storyteller-message').click();
-    cy.get('#storyteller-slots-display .bluff-token svg textPath')
+    cy.get('#storyteller-slots-display .token svg textPath')
       .invoke('text')
       .should('not.eq', 'None');
     cy.get('#close-storyteller-message-display').click();

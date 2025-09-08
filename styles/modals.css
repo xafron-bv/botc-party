@@ -1,3 +1,7 @@
+#end-game-modal .modal-content h3 {
+  margin-bottom: 10px;
+}
+
 .modal {
   display: none;
   position: fixed;
@@ -164,6 +168,41 @@
   font-size: clamp(14px, 1.8vmin, 18px);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
   text-indent: 10px;
+}
+
+/* Match player count input styling for reveal name input */
+#player-reveal-modal #reveal-name-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#player-reveal-modal #reveal-name-input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Make reveal token look like the message view token and non-interactive */
+#player-reveal-modal .token {
+  width: calc(var(--token-size) * 2);
+  height: calc(var(--token-size) * 2);
+  border-radius: 50%;
+  border: 4px solid #D4AF37;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
+  cursor: default;
+}
+
+#player-reveal-modal .token:hover {
+  transform: none;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Center message slots in edit modal */

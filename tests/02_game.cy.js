@@ -151,6 +151,12 @@ describe('Game', () => {
 
   it('grimoire history create/rename/load/delete', () => {
     startGameWithPlayers(6);
+    // Start & end a game to create an initial snapshot for 6-player state
+    cy.get('#mode-player').check({ force: true });
+    cy.get('#start-game').click();
+    cy.get('#end-game').click();
+    cy.get('#end-game-modal').should('be.visible');
+    cy.get('#good-wins-btn').click();
     // Perform a few actions to ensure a snapshot will exist when count changes
     cy.get('#player-circle li .player-token').eq(0).click();
     cy.get('#character-modal').should('be.visible');
@@ -158,7 +164,13 @@ describe('Game', () => {
     cy.get('#character-grid .token').first().click();
 
     // Changing player count snapshots previous grimoire
-    startGameWithPlayers(7); // triggers snapshot of the 6-player state
+    // Changing player count while a game is ended should not snapshot yet
+    // Confirm reset prompt if shown
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
+    startGameWithPlayers(7); // restore 7 players (no snapshot yet)
+    // Start game so loading 6-player history snapshots the current 7-player state
+    cy.get('#mode-player').check({ force: true });
+    cy.get('#start-game').click();
 
     // There should be at least one grimoire history entry
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);

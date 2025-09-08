@@ -51,8 +51,8 @@ describe('Reset Grimoire preserves names but clears assignments/reminders/death'
     // Click Reset Grimoire again with same count; expect reset but name preserved
     cy.get('#reset-grimoire').click();
 
-    // Feedback message appears
-    cy.contains('#game-status', 'New game started').should('exist');
+    // No start message on reset (shown only when Start Game is clicked)
+    cy.contains('#game-status', 'New game started').should('not.exist');
 
     // Names preserved
     cy.get('#player-circle li .player-name').first().should('contain', 'Alice');

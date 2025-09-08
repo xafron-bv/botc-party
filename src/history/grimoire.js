@@ -68,14 +68,15 @@ function isGrimoireStateEqual(state1, state2) {
     }
   }
 
-  // Compare script data
+  // Compare script data and winner
   if (state1.scriptName !== state2.scriptName) return false;
   if (JSON.stringify(state1.scriptData) !== JSON.stringify(state2.scriptData)) return false;
+  if ((state1.winner || null) !== (state2.winner || null)) return false;
 
   return true;
 }
 
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking }) {
+export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking, winner, gameStarted = true }) {
   try {
     if (!Array.isArray(players) || players.length === 0) return;
 
@@ -83,7 +84,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
     const currentState = {
       players,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData
+      scriptData,
+      winner: winner || null
     };
 
     // Check against ALL history entries, not just the most recent
@@ -91,7 +93,8 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       const historyState = {
         players: historyEntry.players,
         scriptName: historyEntry.scriptName,
-        scriptData: historyEntry.scriptData
+        scriptData: historyEntry.scriptData,
+        winner: historyEntry.winner || null
       };
 
       if (isGrimoireStateEqual(currentState, historyState)) {
@@ -109,7 +112,9 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       players: snapPlayers,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
       scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null,
-      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null
+      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null,
+      winner: winner || null,
+      gameStarted: !!gameStarted
     };
     history.grimoireHistory.unshift(entry);
     saveHistories();
@@ -177,8 +182,14 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
     scriptData: entry.scriptData
   };
 
-  // Only snapshot if we're loading a different state
-  if (!isGrimoireStateEqual(currentState, entryState)) {
+  // If a game is currently started, confirm before loading another history (will replace current game)
+  if (grimoireState.gameStarted) {
+    const ok = window.confirm('A game is in progress. Loading history will reset the current game. Continue?');
+    if (!ok) return;
+  }
+
+  // Only snapshot if we're loading a different state and a game is in progress
+  if (!isGrimoireStateEqual(currentState, entryState) && (window.grimoireState && window.grimoireState.gameStarted)) {
     // Snapshot current game before loading history item (same as resetGrimoire does)
     try {
       if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
@@ -187,7 +198,8 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
           scriptMetaName: grimoireState.scriptMetaName,
           scriptData: grimoireState.scriptData,
           grimoireHistoryList,
-          dayNightTracking: grimoireState.dayNightTracking
+          dayNightTracking: grimoireState.dayNightTracking,
+          winner: grimoireState.winner
         });
       }
     } catch (_) { }
@@ -235,6 +247,12 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 });
     grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
 
+    // Restore winner state to render center message
+    grimoireState.winner = entry.winner || null;
+
+    // Restore gameStarted from history if present (ended games should set false)
+    grimoireState.gameStarted = !!entry.gameStarted;
+
     // Restore day/night tracking state if present
     if (entry.dayNightTracking) {
       grimoireState.dayNightTracking = JSON.parse(JSON.stringify(entry.dayNightTracking));
@@ -245,6 +263,28 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     repositionPlayers({ grimoireState });
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
+
+    // Update Start/End Game button visibility based on restored gameStarted and mode
+    try {
+      const startBtn = document.getElementById('start-game');
+      const endBtn = document.getElementById('end-game');
+      const openSetupBtn = document.getElementById('open-player-setup');
+      if (grimoireState.gameStarted) {
+        if (endBtn) endBtn.style.display = '';
+        if (startBtn) startBtn.style.display = 'none';
+        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : 'none';
+      } else {
+        if (endBtn) endBtn.style.display = 'none';
+        if (startBtn) startBtn.style.display = '';
+        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
+      }
+      // Ensure the Start button is brought into view to be visibly assertable in tests
+      try {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.scrollTop = 0;
+        if (startBtn && startBtn.scrollIntoView) startBtn.scrollIntoView({ block: 'nearest' });
+      } catch (_) { }
+    } catch (_) { }
   } catch (e) {
     console.error('Failed to restore grimoire from history:', e);
   } finally {
