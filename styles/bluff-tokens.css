@@ -72,7 +72,8 @@
 
 /* Specific text size for bluff tokens (they're smaller) */
 .bluff-token .icon-reminder-text {
-  font-size: 10px !important; /* Override the calc-based size since bluff tokens are fixed size */
+  font-size: 10px !important;
+  /* Override the calc-based size since bluff tokens are fixed size */
 }
 
 /* Responsive adjustments */
@@ -82,17 +83,17 @@
     left: 10px;
     gap: 10px;
   }
-  
+
   .bluff-token {
     width: 60px;
     height: 60px;
   }
-  
+
   .bluff-label {
     font-size: 10px;
     bottom: -20px;
   }
-  
+
   .bluff-token .icon-reminder-text {
     font-size: 8px !important;
   }
@@ -136,12 +137,12 @@
     left: 5px;
     gap: 8px;
   }
-  
+
   .bluff-token {
     width: 50px;
     height: 50px;
   }
-  
+
   .bluff-token .ability-info-icon {
     width: 20px;
     height: 20px;
@@ -159,4 +160,16 @@
       0 0 20px rgba(139, 69, 19, 0.8),
       inset 0 0 15px rgba(0, 0, 0, 0.3);
   }
+}
+
+/* Ensure storyteller message tokens match grimoire token size/style */
+#storyteller-message-edit .bluff-token,
+#storyteller-message-display .bluff-token {
+  width: var(--token-size);
+  height: var(--token-size);
+  border-radius: 50%;
+  border: 4px solid #D4AF37;
+  box-shadow:
+    0 0 20px rgba(212, 175, 55, 0.6),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
