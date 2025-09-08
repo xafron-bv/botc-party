@@ -96,7 +96,7 @@ export function initStorytellerMessages({ grimoireState }) {
       messageSlotsEl.style.display = 'flex';
       for (let i = 0; i < count; i++) {
         const slot = document.createElement('div');
-        slot.className = 'bluff-token empty';
+        slot.className = 'token empty';
         applyRoleLookToToken(slot, null);
         slot.addEventListener('click', () => openRoleGridForSlot(i));
         messageSlotsEl.appendChild(slot);
@@ -196,7 +196,7 @@ export function initStorytellerMessages({ grimoireState }) {
           : new Array(count).fill(null);
         selectedSlots.forEach((roleId) => {
           const slot = document.createElement('div');
-          slot.className = 'bluff-token';
+          slot.className = 'token';
           applyRoleLookToToken(slot, roleId || null);
           slotsDisplay.appendChild(slot);
         });

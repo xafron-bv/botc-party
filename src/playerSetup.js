@@ -231,7 +231,7 @@ export function initPlayerSetup({ grimoireState }) {
             if (revealCharacterTokenEl) {
               revealCharacterTokenEl.innerHTML = '';
               const token = document.createElement('div');
-              token.className = 'bluff-token has-character';
+              token.className = 'token has-character';
               token.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
               token.style.backgroundSize = '68% 68%, cover';
               token.style.backgroundPosition = 'center, center';
