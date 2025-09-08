@@ -214,6 +214,22 @@
     </div>
   </div>
 
+  <div id="player-reveal-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 600px; position: relative;">
+      <button class="modal-close" id="close-player-reveal-modal" aria-label="Close player reveal"><i class="fas fa-times"></i></button>
+      <h3>Your Character</h3>
+      <div id="reveal-character-name" style="font-weight: bold; margin-bottom: 6px;"></div>
+      <div id="reveal-ability" style="opacity: 0.9;"></div>
+      <div style="margin-top: 12px;">
+        <label for="reveal-name-input">Your name:</label>
+        <input type="text" id="reveal-name-input" placeholder="Enter your name">
+      </div>
+      <div style="margin-top:10px; text-align:right;">
+        <button class="button" id="reveal-confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <div id="storyteller-message-display" class="modal" style="display:none;">
     <div class="modal-content" style="max-width: 900px; position: relative; text-align:center;">
       <button class="modal-close" id="close-storyteller-message-display" aria-label="Close message"><i class="fas fa-times"></i></button>

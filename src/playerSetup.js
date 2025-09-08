@@ -1,5 +1,5 @@
 import { saveAppState } from './app.js';
-import { updateGrimoire, resetGrimoire, setGrimoireHidden, showGrimoire } from './grimoire.js';
+import { resetGrimoire, setGrimoireHidden } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 export function initPlayerSetup({ grimoireState }) {
@@ -14,6 +14,14 @@ export function initPlayerSetup({ grimoireState }) {
   const numberPickerOverlay = document.getElementById('number-picker-overlay');
   const numberPickerGrid = document.getElementById('number-picker-grid');
   const closeNumberPickerBtn = document.getElementById('close-number-picker');
+  const playerRevealModal = document.getElementById('player-reveal-modal');
+  const closePlayerRevealModalBtn = document.getElementById('close-player-reveal-modal');
+  const revealCharacterNameEl = document.getElementById('reveal-character-name');
+  const revealAbilityEl = document.getElementById('reveal-ability');
+  const revealNameInput = document.getElementById('reveal-name-input');
+  const revealConfirmBtn = document.getElementById('reveal-confirm-btn');
+  let revealCurrentPlayerIndex = null;
+  let isNumberGridHandlerAttached = false;
 
   if (!grimoireState.playerSetup) {
     grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
@@ -169,18 +177,37 @@ export function initPlayerSetup({ grimoireState }) {
       const alreadyUsed = (grimoireState.playerSetup.assignments || []).includes(bagIndex);
       if (alreadyUsed) btn.classList.add('disabled');
       btn.disabled = alreadyUsed;
-      btn.addEventListener('click', () => {
-        if (btn.disabled) return;
-        if (bagIndex >= 0 && bagIndex < (grimoireState.playerSetup.bag || []).length) {
-          grimoireState.playerSetup.assignments[forPlayerIndex] = bagIndex;
-          saveAppState({ grimoireState });
-        }
-        // Mark this number as used before closing overlay
-        btn.classList.add('disabled');
-        btn.disabled = true;
-        // Render/Update half-opaque overlay with selected number and disable further clicks
+      btn.dataset.bagIndex = String(bagIndex);
+      btn.dataset.playerIndex = String(forPlayerIndex);
+      numberPickerGrid.appendChild(btn);
+    }
+    numberPickerOverlay.style.display = 'flex';
+    // Ensure overlay visually covers the app
+    try { numberPickerOverlay.style.position = 'fixed'; numberPickerOverlay.style.inset = '0'; numberPickerOverlay.style.zIndex = '9999'; } catch (_) { }
+
+    if (!isNumberGridHandlerAttached) {
+      isNumberGridHandlerAttached = true;
+      numberPickerGrid.addEventListener('click', (e) => {
+        const target = e.target && (e.target.closest && e.target.closest('button.number'));
+        if (!target) return;
+        if (target.disabled || target.classList.contains('disabled')) return;
+        const bagIndexStr = target.getAttribute('data-bag-index');
+        const forIdxStr = target.getAttribute('data-player-index');
+        const bagIndex = bagIndexStr ? parseInt(bagIndexStr, 10) : NaN;
+        const forIdx = forIdxStr ? parseInt(forIdxStr, 10) : NaN;
+        if (!Number.isInteger(bagIndex) || !Number.isInteger(forIdx)) return;
+        if (bagIndex < 0 || bagIndex >= (grimoireState.playerSetup.bag || []).length) return;
+
+        grimoireState.playerSetup.assignments[forIdx] = bagIndex;
+        saveAppState({ grimoireState });
+
+        // Disable picked number button
+        target.classList.add('disabled');
+        target.disabled = true;
+
+        // Update player's overlay
         const playerCircle = document.getElementById('player-circle');
-        const li = playerCircle && playerCircle.children && playerCircle.children[forPlayerIndex];
+        const li = playerCircle && playerCircle.children && playerCircle.children[forIdx];
         if (li) {
           let overlay = li.querySelector('.number-overlay');
           if (!overlay) {
@@ -188,18 +215,31 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.className = 'number-overlay';
             li.appendChild(overlay);
           }
-          overlay.textContent = String(i);
+          overlay.textContent = String(bagIndex + 1);
           overlay.classList.add('disabled');
           overlay.onclick = null;
         }
-        // Close number picker modal
+
+        // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
+        try {
+          const bag = grimoireState.playerSetup.bag || [];
+          const roleId = bag[bagIndex];
+          const role = grimoireState.allRoles && roleId ? grimoireState.allRoles[roleId] : null;
+          if (playerRevealModal && role) {
+            revealCurrentPlayerIndex = forIdx;
+            if (revealCharacterNameEl) revealCharacterNameEl.textContent = role.name || '';
+            if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
+            const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
+            if (revealNameInput) {
+              revealNameInput.value = currentName;
+              try { revealNameInput.focus(); } catch (_) { }
+            }
+            playerRevealModal.style.display = 'flex';
+          }
+        } catch (_) { }
       });
-      numberPickerGrid.appendChild(btn);
     }
-    numberPickerOverlay.style.display = 'flex';
-    // Ensure overlay visually covers the app
-    try { numberPickerOverlay.style.position = 'fixed'; numberPickerOverlay.style.inset = '0'; numberPickerOverlay.style.zIndex = '9999'; } catch (_) { }
   }
 
   // Expose a safe opener for other modules (e.g., token clicks)
@@ -297,6 +337,44 @@ export function initPlayerSetup({ grimoireState }) {
       if (e.target === numberPickerOverlay) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); return; }
       const content = numberPickerOverlay.querySelector('.modal-content');
       if (content && !content.contains(e.target)) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); }
+    });
+  }
+
+  // Reveal modal behavior
+  if (playerRevealModal && revealConfirmBtn) {
+    revealConfirmBtn.onclick = () => {
+      try {
+        if (revealCurrentPlayerIndex !== null && grimoireState.players && grimoireState.players[revealCurrentPlayerIndex]) {
+          const inputName = (revealNameInput && revealNameInput.value ? revealNameInput.value : '').trim();
+          if (inputName) {
+            grimoireState.players[revealCurrentPlayerIndex].name = inputName;
+            const playerCircle = document.getElementById('player-circle');
+            const li = playerCircle && playerCircle.children && playerCircle.children[revealCurrentPlayerIndex];
+            if (li) {
+              const nameEl = li.querySelector('.player-name');
+              if (nameEl) nameEl.textContent = inputName;
+            }
+            saveAppState({ grimoireState });
+          }
+        }
+      } catch (_) { }
+      playerRevealModal.style.display = 'none';
+      revealCurrentPlayerIndex = null;
+    };
+  }
+
+  if (closePlayerRevealModalBtn && playerRevealModal) {
+    closePlayerRevealModalBtn.addEventListener('click', () => {
+      playerRevealModal.style.display = 'none';
+      revealCurrentPlayerIndex = null;
+    });
+  }
+
+  if (playerRevealModal) {
+    playerRevealModal.addEventListener('click', (e) => {
+      if (e.target === playerRevealModal) { playerRevealModal.style.display = 'none'; revealCurrentPlayerIndex = null; return; }
+      const content = playerRevealModal.querySelector('.modal-content');
+      if (content && !content.contains(e.target)) { playerRevealModal.style.display = 'none'; revealCurrentPlayerIndex = null; }
     });
   }
 }

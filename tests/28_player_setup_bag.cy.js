@@ -48,15 +48,20 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Overlay should show a '?' before selection and be clickable
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('contain', '?').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    // Choose number 1
+    // Choose number 1 -> reveal modal should appear
     cy.get('#number-picker-overlay .number').contains('1').click();
-    // Number 1 becomes disabled
-    cy.get('#number-picker-overlay .number').contains('1').should('have.class', 'disabled');
-    // Overlay closes for next player; Player Setup modal stays hidden
-    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-reveal-modal').should('be.visible');
+    // Modal shows character info and name input
+    cy.get('#reveal-character-name').invoke('text').should('not.equal', '');
+    cy.get('#reveal-ability').invoke('text').should('not.equal', '');
+    cy.get('#reveal-name-input').clear().type('Alice');
+    cy.get('#reveal-confirm-btn').click();
+    // Modal closes; Player Setup modal stays hidden
+    cy.get('#player-reveal-modal').should('not.be.visible');
     cy.get('#player-setup-panel').should('not.be.visible');
-    // Overlay shows "1" on first player's token and is disabled
+    // Overlay shows "1" on first player's token and is disabled, name updated
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1').and('have.class', 'disabled');
+    cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'Alice');
     // Reset grimoire during selection should cancel and remove overlays
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#reset-grimoire').click();
@@ -77,7 +82,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
         cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();
         cy.get('#number-picker-overlay').should('be.visible');
         cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
-        cy.get('#number-picker-overlay').should('not.be.visible');
+        // Confirm the reveal modal for each player
+        cy.get('#player-reveal-modal').should('be.visible');
+        cy.get('#reveal-confirm-btn').click();
+        cy.get('#player-reveal-modal').should('not.be.visible');
       }
     });
 
