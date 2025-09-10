@@ -1,0 +1,1 @@
+npx --yes http-server -c-1
