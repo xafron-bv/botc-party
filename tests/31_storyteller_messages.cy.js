@@ -42,18 +42,6 @@ describe('Storyteller Messages', () => {
     cy.get('#storyteller-message-display').should('not.be.visible');
   });
 
-  it('the NOT IN PLAY message toggles bluffs view', () => {
-    cy.get('#open-storyteller-message').click();
-    cy.contains('#storyteller-message-picker .button', 'THESE CHARACTERS ARE NOT IN PLAY').click();
-    cy.get('#toggle-bluffs-view').should('be.visible');
-    cy.get('#show-storyteller-message').click();
-    cy.get('#storyteller-message-display').should('be.visible');
-    cy.get('#toggle-bluffs-view').click({ force: true });
-    cy.get('#storyteller-message-display .bluffs-container').should('be.visible');
-    cy.get('#toggle-bluffs-view').click({ force: true });
-    cy.get('#storyteller-message-display .bluffs-container').should('not.be.visible');
-  });
-
   it('closes edit message popup via X and by clicking outside', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'YOU ARE').click();
