@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const storytellerMessagePicker = document.getElementById('storyteller-message-picker');
   const storytellerMessageInput = document.getElementById('storyteller-message-input');
   const showStorytellerMessageBtn = document.getElementById('show-storyteller-message');
-  const toggleBluffsViewBtn = document.getElementById('toggle-bluffs-view');
 
   const grimoireState = {
     includeTravellers: false,
@@ -627,7 +626,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (listModal) listModal.style.display = 'none';
         if (editModal) editModal.style.display = 'flex';
         storytellerMessageInput.value = label;
-        toggleBluffsViewBtn.style.display = (label === 'THESE CHARACTERS ARE NOT IN PLAY') ? '' : 'none';
         const slotCount = typeof entry === 'object' ? (entry.slots || 0) : 0;
         grimoireState.storytellerTempSlots = new Array(Math.max(0, slotCount)).fill(null);
         renderMessageSlots(slotCount);
@@ -821,45 +819,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       showStorytellerOverlay(storytellerMessageInput.value.trim());
       storytellerMessageModal.style.display = 'none';
       // If message is the special bluffs one, show toggle button in modal earlier (handled in picker)
-    });
-  }
-
-  if (toggleBluffsViewBtn) {
-    toggleBluffsViewBtn.addEventListener('click', () => {
-      // Toggle between text and bluff view
-      const bluffsDiv = messageDisplayModal.querySelector('.bluffs-container');
-      const textDiv = messageDisplayModal.querySelector('.message-text');
-      if (messageDisplayModal.style.display !== 'flex') {
-        // ensure overlay visible
-        showStorytellerOverlay('');
-      }
-      const showingBluffs = bluffsDiv.style.display !== 'none';
-      if (showingBluffs) {
-        bluffsDiv.style.display = 'none';
-        textDiv.style.display = '';
-        toggleBluffsViewBtn.textContent = 'Show bluffs';
-      } else {
-        // Render a copy of bluff tokens into the overlay (non-mutating to main grimoire)
-        bluffsDiv.innerHTML = '';
-        const currentBluffs = (grimoireState.bluffs || [null, null, null]).slice();
-        currentBluffs.forEach((roleId, idx) => {
-          const btn = document.createElement('button');
-          btn.className = 'button';
-          btn.textContent = roleId ? (grimoireState.allRoles[roleId]?.name || 'Unknown') : 'Select Bluff';
-          btn.addEventListener('click', () => {
-            // Open character modal for selecting a temporary bluff; do not mutate main grimoire
-            const pick = prompt('Enter character id for temporary bluff:', roleId || '');
-            if (pick) {
-              currentBluffs[idx] = pick;
-              btn.textContent = grimoireState.allRoles[pick]?.name || pick;
-            }
-          });
-          bluffsDiv.appendChild(btn);
-        });
-        textDiv.style.display = 'none';
-        bluffsDiv.style.display = 'flex';
-        toggleBluffsViewBtn.textContent = 'Show message';
-      }
     });
   }
 

@@ -11,7 +11,6 @@ export function initStorytellerMessages({ grimoireState }) {
   const closeStorytellerMessageEditBtn = document.getElementById('close-storyteller-message-edit');
   const storytellerMessageInput = document.getElementById('storyteller-message-input');
   const showStorytellerMessageBtn = document.getElementById('show-storyteller-message');
-  const toggleBluffsViewBtn = document.getElementById('toggle-bluffs-view');
   const messageSlotsEl = document.getElementById('storyteller-message-slots');
   const roleGridEl = document.getElementById('storyteller-role-grid');
 
@@ -29,7 +28,6 @@ export function initStorytellerMessages({ grimoireState }) {
         if (storytellerMessageModal) storytellerMessageModal.style.display = 'none';
         if (storytellerMessageEdit) storytellerMessageEdit.style.display = 'flex';
         storytellerMessageInput.value = label;
-        if (toggleBluffsViewBtn) toggleBluffsViewBtn.style.display = (label === 'THESE CHARACTERS ARE NOT IN PLAY') ? '' : 'none';
         renderMessageSlots(typeof entry === 'object' ? (entry.slots || 0) : 0);
         if (typeof entry === 'object' && entry.freeText) {
           storytellerMessageInput.value = '';
@@ -229,41 +227,6 @@ export function initStorytellerMessages({ grimoireState }) {
       showStorytellerOverlay(storytellerMessageInput.value.trim());
       if (storytellerMessageModal) storytellerMessageModal.style.display = 'none';
       if (storytellerMessageEdit) storytellerMessageEdit.style.display = 'none';
-    });
-  }
-
-  if (toggleBluffsViewBtn) {
-    toggleBluffsViewBtn.addEventListener('click', () => {
-      const bluffsDiv = messageDisplayModal.querySelector('.bluffs-container');
-      const textDiv = messageDisplayModal.querySelector('.message-text');
-      if (messageDisplayModal.style.display !== 'flex') {
-        showStorytellerOverlay('');
-      }
-      const showingBluffs = bluffsDiv.style.display !== 'none';
-      if (showingBluffs) {
-        bluffsDiv.style.display = 'none';
-        textDiv.style.display = '';
-        toggleBluffsViewBtn.textContent = 'Show bluffs';
-      } else {
-        bluffsDiv.innerHTML = '';
-        const currentBluffs = (grimoireState.bluffs || [null, null, null]).slice();
-        currentBluffs.forEach((roleId, idx) => {
-          const btn = document.createElement('button');
-          btn.className = 'button';
-          btn.textContent = roleId ? (grimoireState.allRoles[roleId]?.name || 'Unknown') : 'Select Bluff';
-          btn.addEventListener('click', () => {
-            const pick = prompt('Enter character id for temporary bluff:', roleId || '');
-            if (pick) {
-              currentBluffs[idx] = pick;
-              btn.textContent = grimoireState.allRoles[pick]?.name || pick;
-            }
-          });
-          bluffsDiv.appendChild(btn);
-        });
-        textDiv.style.display = 'none';
-        bluffsDiv.style.display = 'flex';
-        toggleBluffsViewBtn.textContent = 'Show message';
-      }
     });
   }
 
