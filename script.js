@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadAllCharsBtn = document.getElementById('load-all-chars');
   const scriptFileInput = document.getElementById('script-file');
   const playerCountInput = document.getElementById('player-count');
+  const addPlayersBtn = document.getElementById('add-players');
 
   const characterModal = document.getElementById('character-modal');
   const closeCharacterModalBtn = document.getElementById('close-character-modal');
@@ -106,6 +107,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Make grimoireState available globally for event handlers
   window.grimoireState = grimoireState;
+  // Make updateButtonStates available globally
+  window.updateButtonStates = updateButtonStates;
 
   initGrimoireBackground();
 
@@ -319,6 +322,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
     applyModeUI();
     updateStartGameEnabled();
+    updateButtonStates();
+  });
+
+  if (addPlayersBtn) addPlayersBtn.addEventListener('click', () => {
+    resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
+    // Always show grimoire after adding players
+    try { showGrimoire({ grimoireState }); } catch (_) { }
+    // Reset game state UI: show Start, hide End, clear winner
+    try { grimoireState.winner = null; } catch (_) { }
+    grimoireState.gameStarted = false;
+    if (startGameBtn) startGameBtn.style.display = '';
+    if (endGameBtn) endGameBtn.style.display = 'none';
+    // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
+    applyModeUI();
+    updateStartGameEnabled();
+    updateButtonStates();
   });
   if (startGameBtn) startGameBtn.addEventListener('click', () => {
     // Apply any remaining number-selection assignments to players
@@ -386,6 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { saveAppState({ grimoireState }); } catch (_) { }
     // Refresh grimoire UI and ensure center winner message is appended immediately
     try { updateGrimoire({ grimoireState }); } catch (_) { }
+    updateButtonStates();
     try {
       const setupInfoEl = document.getElementById('setup-info');
       if (setupInfoEl) {
@@ -437,11 +457,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     startGameBtn.disabled = !allAssigned;
   }
 
+  // Update button states based on grimoire state
+  function updateButtonStates() {
+    const players = grimoireState.players || [];
+    const hasPlayers = players.length > 0;
+    const addPlayersBtn = document.getElementById('add-players');
+
+    // Show/hide ADD PLAYERS button - only show when no players exist
+    if (addPlayersBtn) {
+      addPlayersBtn.style.display = hasPlayers ? 'none' : 'block';
+    }
+  }
+
   // Initial state
   updateStartGameEnabled();
+  updateButtonStates();
 
-  // Observe grimoire changes to toggle Start Game
-  const observer = new MutationObserver(() => updateStartGameEnabled());
+  // Observe grimoire changes to toggle Start Game and button states
+  const observer = new MutationObserver(() => {
+    updateStartGameEnabled();
+    updateButtonStates();
+  });
   const playerCircle = document.getElementById('player-circle');
   if (playerCircle) observer.observe(playerCircle, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 
@@ -470,6 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
     }
     updateGrimoire({ grimoireState });
+    updateButtonStates();
     saveAppState({ grimoireState });
     textReminderModal.style.display = 'none';
   };

@@ -137,6 +137,15 @@ export function initPlayerSetup({ grimoireState }) {
 
   function randomFillBag() {
     const totalPlayers = grimoireState.players.length;
+    if (totalPlayers === 0) {
+      if (bagCountWarning) {
+        bagCountWarning.textContent = 'Error: No players in grimoire. Please add players first.';
+        bagCountWarning.style.display = 'block';
+        bagCountWarning.classList.add('error');
+        try { bagCountWarning.scrollIntoView({ block: 'nearest' }); } catch (_) { }
+      }
+      return;
+    }
     const row = (grimoireState.playerSetupTable || []).find(r => Number(r.players) === Number(totalPlayers));
     if (!row) return;
     const groups = { townsfolk: [], outsiders: [], minions: [], demons: [] };
@@ -283,8 +292,18 @@ export function initPlayerSetup({ grimoireState }) {
   }
   if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
   if (startSelectionBtn) startSelectionBtn.addEventListener('click', () => {
-    // Prevent starting selection unless bag size matches number of players
+    // Prevent starting selection if no players exist
     const totalPlayers = grimoireState.players.length;
+    if (totalPlayers === 0) {
+      if (bagCountWarning) {
+        bagCountWarning.textContent = 'Error: No players in grimoire. Please add players first.';
+        bagCountWarning.style.display = 'block';
+        bagCountWarning.classList.add('error');
+        try { bagCountWarning.scrollIntoView({ block: 'nearest' }); } catch (_) { }
+      }
+      return;
+    }
+    // Prevent starting selection unless bag size matches number of players
     const selectedCount = (grimoireState.playerSetup && grimoireState.playerSetup.bag) ? grimoireState.playerSetup.bag.length : 0;
     if (selectedCount !== totalPlayers) {
       if (bagCountWarning) {

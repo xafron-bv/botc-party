@@ -21,9 +21,12 @@
       <button class="button sidebar-close" id="sidebar-close" aria-label="Close sidebar">Close Sidebar</button>
       <div class="section">
         <h3>Game Setup</h3>
-        <div>
-          <label for="player-count">Player Count:</label>
-          <input type="number" id="player-count" min="5" max="20">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <div style="flex: 1;">
+            <label for="player-count">Player Count:</label>
+            <input type="number" id="player-count" min="5" max="20">
+          </div>
+          <button class="button" id="add-players" style="display: none;">ADD PLAYERS</button>
         </div>
         <div id="mode-toggle" style="margin-top: 8px; display: flex; gap: 10px; align-items: center;">
           <span>I'm a:</span>
