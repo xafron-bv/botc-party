@@ -462,11 +462,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     const players = grimoireState.players || [];
     const hasPlayers = players.length > 0;
     const addPlayersBtn = document.getElementById('add-players');
+    const openPlayerSetupBtn = document.getElementById('open-player-setup');
+    const startGameBtn = document.getElementById('start-game');
+    const resetGrimoireBtn = document.getElementById('reset-grimoire');
+    const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
 
     // Show/hide ADD PLAYERS button - only show when no players exist
     if (addPlayersBtn) {
       addPlayersBtn.style.display = hasPlayers ? 'none' : 'block';
     }
+
+    // Disable game setup buttons when no players exist
+    if (openPlayerSetupBtn) {
+      openPlayerSetupBtn.disabled = !hasPlayers;
+    }
+    // Don't disable reset-grimoire as it's used to start the game
+    // Don't disable storyteller message as it's a tool that works without players
+
+    // Start game button should be disabled if no players, but also respect existing character assignment logic
+    if (startGameBtn) {
+      if (!hasPlayers) {
+        startGameBtn.disabled = true;
+      } else {
+        // Re-apply the character assignment logic
+        updateStartGameEnabled();
+      }
+    }
+
+    // Disable mode toggle when no players
+    const modeStorytellerRadio = document.getElementById('mode-storyteller');
+    const modePlayerRadio = document.getElementById('mode-player');
+    if (modeStorytellerRadio) modeStorytellerRadio.disabled = !hasPlayers;
+    if (modePlayerRadio) modePlayerRadio.disabled = !hasPlayers;
   }
 
   // Initial state
