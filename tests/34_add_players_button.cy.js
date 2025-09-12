@@ -30,11 +30,15 @@ describe('ADD PLAYERS Button and Disabled State', () => {
   });
 
   it('should disable game setup buttons when no players exist', () => {
-    // All game setup buttons should be disabled when no players
+    // Most game setup buttons should be disabled when no players
     cy.get('#open-player-setup').should('be.disabled');
     cy.get('#start-game').should('be.disabled');
-    cy.get('#reset-grimoire').should('be.disabled');
-    cy.get('#open-storyteller-message').should('be.disabled');
+    
+    // Reset grimoire should remain enabled as it's used to start the game
+    cy.get('#reset-grimoire').should('not.be.disabled');
+    
+    // Storyteller message should remain enabled as it's a tool that works without players
+    cy.get('#open-storyteller-message').should('not.be.disabled');
     
     // Mode toggle should also be disabled
     cy.get('#mode-storyteller').should('be.disabled');
@@ -46,11 +50,13 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     cy.get('#player-count').clear().type('5');
     cy.get('#add-players').click();
     
-    // All game setup buttons should be enabled after adding players
+    // Most game setup buttons should be enabled after adding players
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
     cy.get('#reset-grimoire').should('not.be.disabled');
     cy.get('#open-storyteller-message').should('not.be.disabled');
+    
+    // Start game should be disabled until characters are assigned
+    cy.get('#start-game').should('be.disabled');
     
     // Mode toggle should also be enabled
     cy.get('#mode-storyteller').should('not.be.disabled');
@@ -106,10 +112,12 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     // Reset grimoire
     cy.get('#reset-grimoire').click();
     
-    // Buttons should still be enabled because players still exist
+    // Most buttons should still be enabled because players still exist
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
     cy.get('#reset-grimoire').should('not.be.disabled');
+    
+    // Start game should be disabled until characters are assigned
+    cy.get('#start-game').should('be.disabled');
   });
 
   it('should disable buttons when all players are removed', () => {
@@ -123,10 +131,13 @@ describe('ADD PLAYERS Button and Disabled State', () => {
       win.updateButtonStates();
     });
     
-    // Buttons should be disabled again
+    // Most buttons should be disabled again
     cy.get('#open-player-setup').should('be.disabled');
     cy.get('#start-game').should('be.disabled');
-    cy.get('#reset-grimoire').should('be.disabled');
+    
+    // Reset grimoire should remain enabled as it's used to start the game
+    cy.get('#reset-grimoire').should('not.be.disabled');
+    
     cy.get('#add-players').should('be.visible');
   });
 
@@ -147,8 +158,10 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     // Button should be hidden
     cy.get('#add-players').should('not.be.visible');
     
-    // All buttons should be enabled
+    // Most buttons should be enabled
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
+    
+    // Start game should be disabled until characters are assigned
+    cy.get('#start-game').should('be.disabled');
   });
 });
