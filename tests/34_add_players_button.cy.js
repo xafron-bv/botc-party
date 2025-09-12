@@ -14,6 +14,10 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     // Initially no players should exist
     cy.get('#add-players').should('be.visible');
     cy.get('#add-players').should('contain', 'ADD PLAYERS');
+    // Button should be positioned below player count input and above mode toggle
+    cy.get('#player-count').should('exist');
+    cy.get('#mode-toggle').should('exist');
+    cy.get('#add-players').should('be.visible');
   });
 
   it('should hide ADD PLAYERS button when players exist', () => {
