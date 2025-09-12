@@ -24,12 +24,12 @@ describe('Game', () => {
 
   it('starts a game with 5 and 20 players (tokens rendered, no overlap)', () => {
     // 5 players
-    cy.startGameWithPlayers(5);
+    startGameWithPlayers(5);
     // sanity: tokens present
     cy.get('#player-circle li .player-token').should('have.length', 5);
 
     // 20 players
-    cy.startGameWithPlayers(20);
+    startGameWithPlayers(20);
     cy.get('#player-circle li .player-token').should('have.length', 20);
     // Ensure tokens have size and are reasonably separated (center-to-center distance)
     cy.get('#player-circle li .player-token').then(($els) => {
