@@ -905,7 +905,7 @@ export function updateGrimoire({ grimoireState }) {
       li.classList.remove('is-north');
     }
 
-    let tokenDiv = li.querySelector('.player-token');
+    const tokenDiv = li.querySelector('.player-token');
     const charNameDiv = li.querySelector('.character-name');
     // Remove any previous arc label overlay
     const existingArc = tokenDiv.querySelector('.icon-reminder-svg');

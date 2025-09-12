@@ -200,6 +200,10 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
   applyTravellerToggleAndRefresh({ grimoireState });
   saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
+  // Update button states after script is loaded
+  if (typeof window.updateButtonStates === 'function') {
+    window.updateButtonStates();
+  }
   if (addToHistory) {
     const histName = grimoireState.scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
     if (!isExcludedScriptName(histName)) {

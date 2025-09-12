@@ -22,3 +22,4 @@ Cypress.on('window:before:load', (win) => {
     Object.defineProperty(win.navigator, 'serviceWorker', { value: sw, configurable: true });
   } catch (_) {}
 });
+

@@ -186,21 +186,21 @@ export function updateBluffToken({ grimoireState, index }) {
       infoIcon.className = 'ability-info-icon bluff-info-icon';
       infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
       infoIcon.dataset.bluffIndex = index;
-      
+
       // Handle both click and touch events
       const handleInfoClick = (e) => {
         e.stopPropagation();
         e.preventDefault();
         showTouchAbilityPopup(infoIcon, role.ability);
       };
-      
+
       infoIcon.onclick = handleInfoClick;
       infoIcon.addEventListener('touchstart', (e) => {
         e.stopPropagation();
         e.preventDefault();
         handleInfoClick(e);
       });
-      
+
       token.appendChild(infoIcon);
     }
   } else {

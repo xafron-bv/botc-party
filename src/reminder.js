@@ -55,7 +55,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       { id: 'virgin-noability', image: '/assets/reminders/virgin_g-DfRSMLSj.webp', label: 'No Ability' }
     ];
     // In player mode, instead of character-specific reminders, add each character as a token by name
-    let playerModeCharacterTokens = [];
+    const playerModeCharacterTokens = [];
     if (isPlayerMode) {
       try {
         Object.values(grimoireState.allRoles || {}).forEach(role => {
