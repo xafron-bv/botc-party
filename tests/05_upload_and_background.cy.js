@@ -56,21 +56,21 @@ describe('Upload & Background', () => {
   });
 
   it('background selection applies and persists across reloads', () => {
-    // Choose Background 1
-    cy.get('#background-select').select('Background 1');
+    // Choose Blue background
+    cy.get('#background-select').select('blue');
     // Style applied
     cy.get('#center')
       .should(($el) => {
-        const bg = getComputedStyle($el[0]).backgroundImage;
-        expect(bg).to.contain('background4-X8jQb4tv.webp');
+        const bg = getComputedStyle($el[0]).backgroundColor;
+        expect(bg).to.contain('rgb(68, 68, 255)'); // #4444ff in rgb
       });
     // Persist in storage and reload
     cy.reload();
-    cy.get('#background-select').should('have.value', 'background4-X8jQb4tv.webp');
+    cy.get('#background-select').should('have.value', 'blue');
     cy.get('#center')
       .should(($el) => {
-        const bg = getComputedStyle($el[0]).backgroundImage;
-        expect(bg).to.contain('background4-X8jQb4tv.webp');
+        const bg = getComputedStyle($el[0]).backgroundColor;
+        expect(bg).to.contain('rgb(68, 68, 255)'); // #4444ff in rgb
       });
   });
 });

@@ -1483,11 +1483,21 @@ export function applyGrimoireBackground(value) {
   if (!centerEl) return;
   if (!value || value === 'none') {
     centerEl.style.backgroundImage = 'none';
+    centerEl.style.backgroundColor = 'transparent';
   } else {
-    const url = `./assets/img/${value}`;
-    centerEl.style.backgroundImage = `url('${url}')`;
-    centerEl.style.backgroundSize = 'cover';
-    centerEl.style.backgroundPosition = 'center';
+    // Map color names to actual color values
+    const colorMap = {
+      'red': '#ff4444',
+      'blue': '#4444ff',
+      'purple': '#8844ff',
+      'green': '#44ff44',
+      'orange': '#ff8844',
+      'dark': '#222222'
+    };
+    
+    const color = colorMap[value] || value; // Use mapped color or the value itself if it's already a hex color
+    centerEl.style.backgroundImage = 'none';
+    centerEl.style.backgroundColor = color;
   }
 }
 
@@ -1496,7 +1506,7 @@ export function initGrimoireBackground() {
   const backgroundSelect = document.getElementById('background-select');
   if (!centerEl) return;
   try {
-    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'background4-C7TzDZ7M.webp';
+    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'blue';
     applyGrimoireBackground(savedBg);
     if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
   } catch (_) { }
