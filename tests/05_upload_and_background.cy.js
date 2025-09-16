@@ -55,23 +55,34 @@ describe('Upload & Background', () => {
     cy.contains('#setup-info', 'All Characters').should('exist');
   });
 
-  it('background selection applies and persists across reloads', () => {
-    // Choose Blue background
-    cy.get('#background-select').select('blue');
-    // Style applied
+  it('background selection applies and persists across reloads (class based)', () => {
+    // Initial default should be dark
+    cy.get('#background-select').should('have.value', 'dark');
+    cy.get('#center').should('have.class', 'bg-dark');
+
+    // Switch to red gradient
+    cy.get('#background-select').select('red-gradient');
     cy.get('#center')
-      .should(($el) => {
-        const bg = getComputedStyle($el[0]).backgroundColor;
-        expect(bg).to.contain('rgb(68, 68, 255)'); // #4444ff in rgb
-      });
-    // Persist in storage and reload
+      .should('have.class', 'bg-red-gradient')
+      .and('not.have.class', 'bg-dark')
+      .and('not.have.class', 'bg-dark-purple');
+
+    // Switch to wood texture
+    cy.get('#background-select').select('wood');
+    cy.get('#center')
+      .should('have.class', 'bg-wood')
+      .and('not.have.class', 'bg-red-gradient');
+
+    // Reload and ensure persistence of last choice (wood)
     cy.reload();
-    cy.get('#background-select').should('have.value', 'blue');
+    cy.get('#background-select').should('have.value', 'wood');
+    cy.get('#center').should('have.class', 'bg-wood');
+
+    // Change to cosmic and verify
+    cy.get('#background-select').select('cosmic');
     cy.get('#center')
-      .should(($el) => {
-        const bg = getComputedStyle($el[0]).backgroundColor;
-        expect(bg).to.contain('rgb(68, 68, 255)'); // #4444ff in rgb
-      });
+      .should('have.class', 'bg-cosmic')
+      .and('not.have.class', 'bg-wood');
   });
 });
 

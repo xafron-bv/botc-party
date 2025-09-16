@@ -55,6 +55,38 @@ body {
   background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
 }
 
+/* Background variants applied to #center via JS */
+#center.bg-dark {
+  background-color: #111;
+  background-image: none;
+}
+
+#center.bg-red-gradient {
+  background: radial-gradient(circle at 50% 45%, #7a0000 0%, #4a0000 55%, #220000 100%);
+}
+
+#center.bg-dark-purple {
+  background: radial-gradient(circle at 50% 50%, #1d0028 0%, #12001b 55%, #07000d 100%);
+}
+
+/* Wood texture (attachment provided) */
+#center.bg-wood {
+  background-image: url('/assets/img/bg-wood.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #3b2412;
+}
+
+/* Cosmic vortex (attachment provided) */
+#center.bg-cosmic {
+  background-image: url('/assets/img/bg-cosmic.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #05060a;
+}
+
 /* Grimoire hidden state: hide reminders, plus, bluffs; keep blank circles */
 body.grimoire-hidden #player-circle li .reminders,
 body.grimoire-hidden #player-circle li .reminder-placeholder,
