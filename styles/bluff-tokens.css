@@ -44,6 +44,27 @@
   background-color: transparent;
 }
 
+/* Readability improvements for curved labels on bluff & storyteller tokens */
+.bluff-token svg.icon-reminder-svg .icon-reminder-text,
+#storyteller-message-edit .token svg.icon-reminder-svg .icon-reminder-text,
+#storyteller-message-display .token svg.icon-reminder-svg .icon-reminder-text {
+  fill: #fff;
+  paint-order: stroke fill;
+  stroke: rgba(0,0,0,0.675); /* 25% lighter */
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.675)) drop-shadow(0 0 4px rgba(0,0,0,0.6375));
+}
+
+.bluff-token svg.icon-reminder-svg path[id^="bluff-role-arc"],
+#storyteller-message-edit .token svg.icon-reminder-svg path[id^="story-msg"],
+#storyteller-message-display .token svg.icon-reminder-svg path[id^="story-msg"],
+#storyteller-message-edit .token svg.icon-reminder-svg path[id^="story-slot"],
+#storyteller-message-display .token svg.icon-reminder-svg path[id^="story-slot"] {
+  stroke: none;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.525)); /* 25% lighter */
+}
+
 /* Bluff Label (shown when empty) */
 .bluff-label {
   position: absolute;
