@@ -16,7 +16,8 @@ export function repositionPlayers({ grimoireState }) {
   const tokenDiameter = sampleToken.offsetWidth || 100;
   const tokenRadius = tokenDiameter / 2;
   const chordNeeded = tokenDiameter * 1.25;
-  const radius = Math.max(120, chordNeeded / (2 * Math.sin(Math.PI / count)));
+  const minScreenRadius = Math.min(window.innerWidth, window.innerHeight) / 4;
+  const radius = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
   const margin = 24;
   const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
