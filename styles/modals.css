@@ -65,6 +65,33 @@
   /* Space for the curved text */
 }
 
+/* Readability improvements for curved token names inside modals */
+#character-grid .token svg.icon-reminder-svg .icon-reminder-text,
+#player-setup-character-list .token svg.icon-reminder-svg .icon-reminder-text {
+  /* Bright text with strong multi-layer shadow + stroke */
+  fill: #fff;
+  paint-order: stroke fill;
+  stroke: rgba(0,0,0,0.675); /* 25% lighter */
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.675)) drop-shadow(0 0 4px rgba(0,0,0,0.6));
+}
+
+/* Provide a subtle darkened arc region behind the text for very bright token faces */
+#character-grid .token svg.icon-reminder-svg path[id^="picker-role-arc"],
+#player-setup-character-list .token svg.icon-reminder-svg path[id^="setup-role-arc"],
+#player-setup-character-list .token svg.icon-reminder-svg path[id^="reveal-token"],
+#character-grid .token svg.icon-reminder-svg path[id^="picker-role-arc-empty"],
+#character-grid .token svg.icon-reminder-svg path[id^="picker-role-arc-"],
+#character-grid .token svg.icon-reminder-svg path[id^="story-slot"],
+#character-grid .token svg.icon-reminder-svg path[id^="story-msg"],
+#character-grid .token svg.icon-reminder-svg path[id^="bluff-role-arc"],
+#player-setup-character-list .token svg.icon-reminder-svg path[id^="bluff-role-arc"] {
+  stroke: none;
+  /* Create a dark feathered backdrop via shadow-only fill */
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.525)); /* 25% lighter */
+}
+
 @media (max-width: 600px) {
   .token {
     width: 60px;
