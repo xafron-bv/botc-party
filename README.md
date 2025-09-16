@@ -115,7 +115,7 @@ This project is for educational and personal use. Blood on the Clocktower is a t
 
 ## Acknowledgments
 
-Some of the assets including the jinxes and the character info are from the [pocket-grimoire](https://github.com/Skateside/pocket-grimoire) project.
+Token icons (image assets) and character information (names, ability text, and jinx relationships) used here are derived from the excellent [pocket-grimoire](https://github.com/Skateside/pocket-grimoire) project (GPLv3) by Skateside. That project aggregates and structures the publicly shared character data and jinx information. Attribution is gratefully provided and all original rights remain with their respective owners.
 
 - [Blood on the Clocktower](https://bloodontheclocktower.com/)
 - [pocket-grimoire](https://github.com/Skateside/pocket-grimoire)
