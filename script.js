@@ -340,6 +340,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateButtonStates();
   });
   if (startGameBtn) startGameBtn.addEventListener('click', () => {
+    // In player mode, starting a game should reset the grimoire (fresh state for players)
+    // In storyteller mode, we preserve current assignments/reminders/death states.
+    try {
+      if (grimoireState.mode === 'player') {
+        const playerCountInputEl = document.getElementById('player-count');
+        const grimoireHistoryListEl = document.getElementById('grimoire-history-list');
+        if (playerCountInputEl) {
+          resetGrimoire({ grimoireState, grimoireHistoryList: grimoireHistoryListEl, playerCountInput: playerCountInputEl });
+        }
+      }
+    } catch (_) { }
     // Apply any remaining number-selection assignments to players
     const sel = grimoireState.playerSetup || {};
     const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
@@ -464,8 +475,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addPlayersBtn = document.getElementById('add-players');
     const openPlayerSetupBtn = document.getElementById('open-player-setup');
     const startGameBtn = document.getElementById('start-game');
-    const resetGrimoireBtn = document.getElementById('reset-grimoire');
-    const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
 
     // Show/hide ADD PLAYERS button - only show when no players exist
     if (addPlayersBtn) {
