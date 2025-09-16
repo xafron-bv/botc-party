@@ -712,7 +712,8 @@ function ensureContextShield({ grimoireState }) {
   let justOpened = true;
 
   const highlightAt = (clientX, clientY) => {
-    const el = document.elementFromPoint(clientX, clientY);
+    // highlightAt helper currently only relies on elementFromPoint side-effects; remove unused variable to satisfy linter
+    document.elementFromPoint(clientX, clientY);
     const menu = grimoireState.playerContextMenu;
     if (menu && menu.style.display === 'block') {
       // Optionally add hover highlighting if buttons have :hover states via CSS
@@ -1481,23 +1482,32 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
 export function applyGrimoireBackground(value) {
   const centerEl = document.getElementById('center');
   if (!centerEl) return;
-  if (!value || value === 'none') {
-    centerEl.style.backgroundImage = 'none';
-    centerEl.style.backgroundColor = 'transparent';
-  } else {
-    // Map color names to actual color values
-    const colorMap = {
-      'red': '#ff4444',
-      'blue': '#4444ff',
-      'purple': '#8844ff',
-      'green': '#44ff44',
-      'orange': '#ff8844',
-      'dark': '#222222'
-    };
-    
-    const color = colorMap[value] || value; // Use mapped color or the value itself if it's already a hex color
-    centerEl.style.backgroundImage = 'none';
-    centerEl.style.backgroundColor = color;
+  const classList = ['bg-dark', 'bg-red-gradient', 'bg-dark-purple', 'bg-wood', 'bg-cosmic'];
+  // Remove all variant classes first
+  classList.forEach(c => centerEl.classList.remove(c));
+  // Legacy mapping: treat missing/none/unknown as 'dark'
+  if (!value || value === 'none') value = 'dark';
+
+  switch (value) {
+    case 'dark':
+      centerEl.classList.add('bg-dark');
+      break;
+    case 'red-gradient':
+      centerEl.classList.add('bg-red-gradient');
+      break;
+    case 'dark-purple':
+      centerEl.classList.add('bg-dark-purple');
+      break;
+    case 'wood':
+      centerEl.classList.add('bg-wood');
+      break;
+    case 'cosmic':
+      centerEl.classList.add('bg-cosmic');
+      break;
+    default:
+      // Fallback: treat as color hex code or CSS color
+      centerEl.style.backgroundImage = 'none';
+      centerEl.style.backgroundColor = value;
   }
 }
 
@@ -1506,9 +1516,14 @@ export function initGrimoireBackground() {
   const backgroundSelect = document.getElementById('background-select');
   if (!centerEl) return;
   try {
-    const savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'blue';
+    let savedBg = localStorage.getItem(BG_STORAGE_KEY) || 'dark';
+    if (savedBg === 'none') {
+      // Migrate legacy 'none' selection to 'dark'
+      savedBg = 'dark';
+      try { localStorage.setItem(BG_STORAGE_KEY, 'dark'); } catch (_) { }
+    }
     applyGrimoireBackground(savedBg);
-    if (backgroundSelect) backgroundSelect.value = savedBg === 'none' ? 'none' : savedBg;
+    if (backgroundSelect) backgroundSelect.value = savedBg;
   } catch (_) { }
 }
 
