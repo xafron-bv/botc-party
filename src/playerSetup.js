@@ -1,5 +1,5 @@
 import { saveAppState } from './app.js';
-import { resetGrimoire, setGrimoireHidden } from './grimoire.js';
+import { setGrimoireHidden, resetGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 export function initPlayerSetup({ grimoireState }) {
@@ -281,6 +281,15 @@ export function initPlayerSetup({ grimoireState }) {
   if (openPlayerSetupBtn && playerSetupPanel) {
     openPlayerSetupBtn.addEventListener('click', () => {
       if (grimoireState.mode === 'player') return;
+      // Model B: Ensure a clean baseline when entering player setup before game start.
+      // Only reset if game has not started (avoid wiping mid-game accidentally) and players exist.
+      try {
+        if (!grimoireState.gameStarted) {
+          const playerCountInput = document.getElementById('player-count');
+          const grimoireHistoryList = document.getElementById('grimoire-history-list');
+          resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
+        }
+      } catch (_) { }
       playerSetupPanel.style.display = 'flex';
       renderPlayerSetupList();
       updateBagWarning();
@@ -315,9 +324,8 @@ export function initPlayerSetup({ grimoireState }) {
       return;
     }
     // Reset grimoire before starting number selection (direct function call)
-    const playerCountInput = document.getElementById('player-count');
-    const grimoireHistoryList = document.getElementById('grimoire-history-list');
-    resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
+  // Do NOT reset the grimoire here anymore; just prepare selection overlays.
+  // We intentionally keep existing players, characters, reminders until an explicit reset.
     if (playerSetupPanel) playerSetupPanel.style.display = 'none';
     // When starting number selection, consider game not started: show Start, hide End
     try {
@@ -341,9 +349,10 @@ export function initPlayerSetup({ grimoireState }) {
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
     grimoireState.playerSetup.selectionActive = true;
-    // Always reset previously selected numbers
-    grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
-    grimoireState.playerSetup.revealed = false;
+  // Always reset previously selected numbers for a new selection session (local to selection flow)
+  if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
+  grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
+  grimoireState.playerSetup.revealed = false;
     saveAppState({ grimoireState });
     // Hide the grimoire during selection via central state
     setGrimoireHidden({ grimoireState, hidden: true });

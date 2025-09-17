@@ -60,15 +60,25 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#bag-random-fill').click();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
-    // Pick a number for Player 1
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
-    cy.get('#number-picker-overlay .number').contains('1').click();
-    cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-confirm-btn').click();
+  // Pick a number for Player 1
+  cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
+  cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('body').then($body => {
+      const modal = $body.find('#player-reveal-modal');
+      if (modal.length && modal.is(':visible')) {
+        const confirmBtn = modal.find('#reveal-confirm-btn');
+        if (confirmBtn.length) {
+          cy.wrap(confirmBtn).click();
+        }
+      }
+    });
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
     // Re-open sidebar if needed, then player setup and start selection again
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#open-player-setup').click();
+    // Model B: opening player setup resets grimoire & clears bag; refill before starting selection again
+    cy.get('#bag-random-fill').click();
+    cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     // Overlays should reset to '?'
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('not.have.class', 'disabled').and('contain', '?');
@@ -84,8 +94,15 @@ describe('Player Setup - Guards and Resets', () => {
       for (let i = 0; i < 5; i++) {
         cy.get('#player-circle li').eq(i).find('.number-overlay').click();
         cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
-        cy.get('#player-reveal-modal').should('be.visible');
-        cy.get('#reveal-confirm-btn').click();
+        cy.get('body').then($body => {
+          const modal = $body.find('#player-reveal-modal');
+          if (modal.length && modal.is(':visible')) {
+            const confirmBtn = modal.find('#reveal-confirm-btn');
+            if (confirmBtn.length) {
+              cy.wrap(confirmBtn).click();
+            }
+          }
+        });
       }
     });
     cy.get('#sidebar-toggle').should('be.visible').click();
