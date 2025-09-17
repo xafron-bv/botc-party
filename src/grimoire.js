@@ -1447,6 +1447,19 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     }
   } catch (_) { }
 
+  // Reset meta states per new requirement: unhide grimoire, clear winner, clear player setup bag.
+  try { grimoireState.grimoireHidden = false; } catch (_) { }
+  try { grimoireState.winner = null; } catch (_) { }
+  try {
+    if (!grimoireState.playerSetup) {
+      grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
+    } else {
+      grimoireState.playerSetup.bag = [];
+      grimoireState.playerSetup.assignments = [];
+      grimoireState.playerSetup.revealed = false;
+    }
+  } catch (_) { }
+
   const existingPlayers = Array.isArray(grimoireState.players) ? grimoireState.players : [];
   const newPlayers = Array.from({ length: playerCount }, (_, i) => {
     const existing = existingPlayers[i];
@@ -1477,6 +1490,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
 
   // Persist reset state
   try { saveAppState({ grimoireState }); } catch (_) { }
+  // Apply hidden state UI after forcing visible
+  try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
 }
 
 export function applyGrimoireBackground(value) {
