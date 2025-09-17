@@ -1447,7 +1447,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     }
   } catch (_) { }
 
-  // Reset meta states per new requirement: unhide grimoire, clear winner, clear player setup bag.
+  // Reset meta states per requirement: unhide grimoire, clear winner, clear player setup bag.
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
   try {
@@ -1469,6 +1469,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
   grimoireState.players = newPlayers;
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
+
+  // Assignments will be repopulated via player setup when needed.
 
   // Reset bluffs when resetting grimoire
   grimoireState.bluffs = [null, null, null];
