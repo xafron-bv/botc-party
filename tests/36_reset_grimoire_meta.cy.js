@@ -6,9 +6,9 @@ describe('Reset Grimoire meta state', () => {
     cy.get('#player-count').clear().type('5');
     cy.get('#reset-grimoire').click();
 
-  // Load a script so roles populate
-  cy.get('#load-tb').click();
-  cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    // Load a script so roles populate
+    cy.get('#load-tb').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
     // Hide grimoire (sets grimoireHidden)
     cy.get('#reveal-assignments').click();
@@ -26,7 +26,7 @@ describe('Reset Grimoire meta state', () => {
     cy.get('#player-setup-panel .close-button, #close-player-setup').click({ multiple: true, force: true });
 
     // Declare winner via button
-  cy.get('#good-wins-btn').click({ force: true });
+    cy.get('#good-wins-btn').click({ force: true });
     cy.get('#winner-message').should('contain.text', 'Good has won');
 
     // Perform Reset Grimoire

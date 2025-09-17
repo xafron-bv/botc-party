@@ -60,9 +60,9 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#bag-random-fill').click();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
-  // Pick a number for Player 1
-  cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
-  cy.get('#number-picker-overlay .number').contains('1').click();
+    // Pick a number for Player 1
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
+    cy.get('#number-picker-overlay .number').contains('1').click();
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {

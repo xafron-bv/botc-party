@@ -324,8 +324,8 @@ export function initPlayerSetup({ grimoireState }) {
       return;
     }
     // Reset grimoire before starting number selection (direct function call)
-  // Do NOT reset the grimoire here anymore; just prepare selection overlays.
-  // We intentionally keep existing players, characters, reminders until an explicit reset.
+    // Do NOT reset the grimoire here anymore; just prepare selection overlays.
+    // We intentionally keep existing players, characters, reminders until an explicit reset.
     if (playerSetupPanel) playerSetupPanel.style.display = 'none';
     // When starting number selection, consider game not started: show Start, hide End
     try {
@@ -349,10 +349,10 @@ export function initPlayerSetup({ grimoireState }) {
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
     grimoireState.playerSetup.selectionActive = true;
-  // Always reset previously selected numbers for a new selection session (local to selection flow)
-  if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
-  grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
-  grimoireState.playerSetup.revealed = false;
+    // Always reset previously selected numbers for a new selection session (local to selection flow)
+    if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
+    grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
+    grimoireState.playerSetup.revealed = false;
     saveAppState({ grimoireState });
     // Hide the grimoire during selection via central state
     setGrimoireHidden({ grimoireState, hidden: true });
