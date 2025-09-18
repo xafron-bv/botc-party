@@ -9,7 +9,7 @@ const startGameWithPlayers = (n) => {
   });
   // Use native click dispatch to avoid actionability failures if covered by panels
   cy.window().then((win) => {
-    try { win.document.body.classList.remove('character-panel-open'); } catch (_) {}
+    try { win.document.body.classList.remove('character-panel-open'); } catch (_) { }
     const btn = win.document.getElementById('reset-grimoire');
     if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
   });
