@@ -307,7 +307,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadPlayerSetupTable({ grimoireState });
 
   if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => {
-    if (grimoireState.gameStarted) {
+    // Only prompt if an active game is in progress (started and no winner declared yet)
+    if (grimoireState.gameStarted && !grimoireState.winner) {
       const ok = window.confirm('A game is in progress. Resetting will end the current game and save it to history. Continue?');
       if (!ok) return;
     }
