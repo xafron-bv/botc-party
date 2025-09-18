@@ -3,7 +3,9 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: clamp(260px, 26vw, 480px);
+  /* Allow a bit more width on larger screens while capping sensibly */
+  --character-panel-width: clamp(300px, 30vw, 560px);
+  width: var(--character-panel-width);
   max-width: 90vw;
   height: 100dvh;
   background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
@@ -90,13 +92,14 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   max-height: 70vh;
   max-width: 38px;
   overflow: hidden;
+  /* Static position; simply hide when panel is open */
 }
-body.character-panel-open .character-panel-toggle { right: calc(clamp(260px, 26vw, 480px)); }
+body.character-panel-open .character-panel-toggle { display: none; }
 
 /* Smaller viewports overlay adjustments */
 @media (max-width: 900px) {
   /* Make better use of horizontal space on mobile */
-  #character-panel { width: min(480px, 95vw); max-width: 95vw; }
+  #character-panel { --character-panel-width: min(480px, 95vw); width: var(--character-panel-width); max-width: 95vw; }
   /* Keep script toggle at right edge near top, but ensure sidebar toggle sits below it */
   .character-panel-toggle { top: 12px; bottom: auto; writing-mode: vertical-rl; max-width:38px; }
   /* Prevent overflow horizontally: ensure button stays inside viewport even when panel closed */
@@ -108,7 +111,7 @@ body.character-panel-open .character-panel-toggle { right: calc(clamp(260px, 26v
   @media (max-width: 340px) {
     .character-panel-toggle { font-size:11px; padding:6px 4px 8px 4px; }
   }
-  body.character-panel-open .character-panel-toggle { right: min(480px, 95vw); }
+  /* (Rule consolidated above) */
 }
 
 /* Accessibility focus ring */

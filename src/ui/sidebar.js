@@ -102,7 +102,9 @@ export function initSidebarToggle({
     document.body.classList.toggle('sidebar-open', !collapsed && useOverlay);
     if (sidebarBackdrop) sidebarBackdrop.style.display = (!collapsed && useOverlay) ? 'block' : 'none';
     sidebarToggleBtn.textContent = 'Open Sidebar';
-    sidebarToggleBtn.style.display = (collapsed && !document.body.classList.contains('character-panel-open')) ? 'inline-block' : 'none';
+    // Show toggle whenever sidebar is collapsed. Desktop: always visible even if character panel open.
+    // Mobile hiding when character panel open handled purely in CSS media query.
+    sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
     sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
     localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
     requestAnimationFrame(() => repositionPlayers && repositionPlayers({ grimoireState }));

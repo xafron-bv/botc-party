@@ -119,8 +119,8 @@ body.sidebar-collapsed #sidebar-resizer {
   background: rgba(212, 175, 55, 0.3);
 }
 
-/* Mutual exclusivity: hide sidebar toggle whenever character panel is open (desktop & mobile) */
-body.character-panel-open .sidebar-toggle { display: none !important; }
+/* Mutual exclusivity note: on desktop keep sidebar toggle visible even when script panel is open.
+  Hiding is handled only inside the mobile media query below. */
 
 body.resizing {
   cursor: col-resize;
