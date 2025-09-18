@@ -71,12 +71,8 @@ The service worker caches core assets and data for reliable offline usage. Notab
 2. Serve the directory with any static web server (required for service workers):
 
 ```bash
-npx --yes http-server -p 5173 -c- . > /dev/null 2>&1
+./server.sh
 ```
-
-3. Open `http://127.0.0.1:5173` in your browser
-
-> Note: Opening via `file://` will prevent the service worker from registering. Use an HTTP server.
 
 ## Browser Support
 
@@ -96,13 +92,7 @@ The app is built with vanilla HTML, CSS, and JavaScript. No build process or dep
 - You can run Cypress via `npx` without installing it globally. This command serves the app and runs headlessly:
 
 ```bash
-npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
-```
-
-- Or open the interactive test runner:
-
-```bash
-npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress open --config-file tests/cypress.config.js ; kill %1 || true
+./test.sh
 ```
 
 ## Deployment

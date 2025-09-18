@@ -2,7 +2,7 @@ name: PR - Cypress Tests
 
 on:
   pull_request:
-    branches: [ "**" ]
+    branches: ["**"]
 
 jobs:
   cypress:
@@ -14,16 +14,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Run Cypress tests (via npx)
         shell: bash
         run: |
           set -euxo pipefail
-          npx --yes http-server -p 5173 -c- . > /dev/null 2>&1 & echo $! > server.pid
-          for i in {1..60}; do curl -fsS http://127.0.0.1:5173 >/dev/null && break || sleep 0.5; done
-          CYPRESS_BASE_URL=http://127.0.0.1:5173 npx --yes cypress run --config-file tests/cypress.config.js --browser electron
-          kill $(cat server.pid) || true
+          ./test.sh
 
       - name: Upload Cypress artifacts (on failure)
         if: failure()
@@ -34,4 +31,3 @@ jobs:
             cypress/screenshots
             cypress/videos
           if-no-files-found: ignore
-
