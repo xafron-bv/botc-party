@@ -1,0 +1,443 @@
+[
+  {
+    "background": "https://i.imgur.com/44Ilwt2.jpg",
+    "author": "Gordon Fitzgerald",
+    "name": "High Seas of Mutiny",
+    "isOfficial": false,
+    "id": "_meta"
+  },
+  {
+    "id": "bilgerat-MWaIL2",
+    "name": "Bilge Rat",
+    "image": [
+      "https://i.imgur.com/6WCZxn9.png",
+      "https://i.imgur.com/uayaNWO.png",
+      "https://i.imgur.com/8O7xUxT.png"
+    ],
+    "ability": "Once per game, at night, choose a dead player: their ghost vote counts as 3 votes.",
+    "edition": "HSoM",
+    "otherNight": 1,
+    "otherNightReminder": "The Bilge Rat might choose a player. :reminder:",
+    "reminders": ["3 Votes", "No Ability"],
+    "team": "traveller"
+  },
+  {
+    "id": "scruveyscalawag-psOFgL",
+    "name": "Scurvy Scalawag",
+    "image": [
+      "https://i.imgur.com/mqCfQpa.png",
+      "https://i.imgur.com/JtH5p2T.png",
+      "https://i.imgur.com/2g3oYxv.png"
+    ],
+    "ability": "Each night, choose a player (not yourself): they get a 1d6 vote die. Tomorrow, if they vote, their vote counts the number rolled. A 6 executes themselves.",
+    "edition": "HSoM",
+    "firstNight": 2,
+    "firstNightReminder": "The Scurvy Scalawag chooses a player. Wake that player to roll a d6 and add a reminder token for for their vote value. If a 6, they die. :reminder:",
+    "otherNight": 2,
+    "otherNightReminder": "The Scurvy Scalawag chooses a player. Wake that player to roll a d6 and add a reminder token for for their vote value. If a 6, they die. :reminder:",
+    "reminders": ["2 Votes", "3 Votes", "4 Votes", "5 Votes", "Dead"],
+    "team": "traveller"
+  },
+  {
+    "id": "commodore-UxmUMy",
+    "name": "Commodore",
+    "image": [
+      "https://i.imgur.com/VXvt367.png",
+      "https://i.imgur.com/I1DLYqo.png",
+      "https://i.imgur.com/Gv4YAik.png"
+    ],
+    "ability": "Once per game, publicly choose a player that talked like a pirate today. If they are a different alignment than you, they die.",
+    "edition": "HSoM",
+    "reminders": ["Dead", "No Ability"],
+    "team": "traveller"
+  },
+  {
+    "id": "cursedmutineer-ubmjfd",
+    "name": "Cursed Mutineer",
+    "image": [
+      "https://i.imgur.com/1slvS66.png",
+      "https://i.imgur.com/8Dew8sS.png",
+      "https://i.imgur.com/nrIgISi.png"
+    ],
+    "ability": "If there is a dead player in-play, only you & dead players can nominate.",
+    "edition": "HSoM",
+    "team": "traveller"
+  },
+  {
+    "id": "castaway-zaYpHW",
+    "name": "Castaway",
+    "image": [
+      "https://i.imgur.com/5RSifQZ.png",
+      "https://i.imgur.com/TyyzngV.png",
+      "https://i.imgur.com/hfx1Nke.png"
+    ],
+    "ability": "If you cast a ghost vote today, you gain an in-play ability (even if dead). You can't call for your own exile.",
+    "edition": "HSoM",
+    "reminders": ["Has Ability"],
+    "team": "traveller"
+  },
+  {
+    "id": "oldseadog-7-YDTn",
+    "name": "Old Seadog",
+    "image": [
+      "https://i.imgur.com/k39Xmch.png",
+      "https://i.imgur.com/l0Khig7.png"
+    ],
+    "ability": "You start knowing 5 characters: 3 not in play & 2 in play.",
+    "edition": "HSoM",
+    "firstNight": 25,
+    "firstNightReminder": "Show 5 character tokens, exactly 2 of which are in-play.",
+    "team": "townsfolk"
+  },
+  {
+    "id": "navigator-aaYve2",
+    "name": "Navigator",
+    "image": [
+      "https://i.imgur.com/XpuIxJ8.png",
+      "https://i.imgur.com/OiXAFl0.png"
+    ],
+    "ability": "You start knowing 3 players: 1 a Townsfolk, 1 an Outsider, & 1 a Minion. [−1 or +1 Outsider]",
+    "edition": "HSoM",
+    "firstNight": 26,
+    "firstNightReminder": "Point to 1 Townsfolk, 1 Outsider, and 1 Minion. (Order is arbitrary.)",
+    "reminders": ["Known", "Known", "Known"],
+    "setup": true,
+    "team": "townsfolk"
+  },
+  {
+    "id": "boatswain-U2bJlV",
+    "name": "Boatswain",
+    "image": [
+      "https://i.imgur.com/1usGD0a.png",
+      "https://i.imgur.com/GUNDBF7.png"
+    ],
+    "ability": "You start knowing the largest number of good players neighboring each other.",
+    "edition": "HSoM",
+    "firstNight": 27,
+    "firstNightReminder": "Give a finger signal.",
+    "team": "townsfolk"
+  },
+  {
+    "id": "deckhand-zyH5Vo",
+    "name": "Deckhand",
+    "image": [
+      "https://i.imgur.com/nwlUvWo.png",
+      "https://i.imgur.com/15zDhIy.png"
+    ],
+    "ability": "You start knowing an in-play character. If a character you learned was executed & died today, tonight you learn an in-play character of a different alignment.",
+    "edition": "HSoM",
+    "firstNight": 28,
+    "firstNightReminder": "Show an in-play character token. :reminder:",
+    "otherNight": 12,
+    "otherNightReminder": "If the previously known character was executed and died today, show an in-play character token of a differing alignment. :reminder:",
+    "reminders": ["Known", "Died Today"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "captain-0OkVVg",
+    "name": "Captain",
+    "image": [
+      "https://i.imgur.com/5m0eAeo.png",
+      "https://i.imgur.com/38nxM17.png"
+    ],
+    "ability": "Each night*, choose 2 players (not yourself). If the 1st dies tonight, the other dies instead. If a Demon would die to this ability, deaths are arbitrary tonight.",
+    "edition": "HSoM",
+    "otherNight": 4,
+    "otherNightReminder": "The Captain chooses 2 players. Mark the 1st as 'Protected' and the 2nd as 'Marked'. :reminder: :reminder:",
+    "reminders": ["Protected", "Marked", "Dead"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "buccaneer-ZCupow",
+    "name": "Buccaneer",
+    "image": [
+      "https://i.imgur.com/g6UfiGF.png",
+      "https://i.imgur.com/dSTwUou.png"
+    ],
+    "ability": "Each night*, choose 2 players (not yourself): if they are different alignmnents, you die.",
+    "edition": "HSoM",
+    "otherNight": 5,
+    "otherNightReminder": "The Buccaneer chooses 2 players: if they are different alignments, the Buccaneer dies. :reminder:",
+    "reminders": ["Reawake", "Dead"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "landlubber-xSH5_L",
+    "name": "Landlubber",
+    "image": [
+      "https://i.imgur.com/mf8iTiR.png",
+      "https://i.imgur.com/FNGcwT0.png"
+    ],
+    "ability": "Each night*, if you nominated a Minion today, you die.",
+    "edition": "HSoM",
+    "otherNight": 13,
+    "otherNightReminder": "If the Landlubber is due, they die. :reminder:",
+    "reminders": ["Dead"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "wench-lb1TvB",
+    "name": "Wench",
+    "image": [
+      "https://i.imgur.com/enGPWJ8.png",
+      "https://i.imgur.com/BpNt3BG.png"
+    ],
+    "ability": "Each day, you may privately visit the Storyteller & learn a true statement about a living neighbor.",
+    "edition": "HSoM",
+    "team": "townsfolk"
+  },
+  {
+    "id": "privateer-tibj0I",
+    "name": "Privateer",
+    "image": [
+      "https://i.imgur.com/ykfyVbK.png",
+      "https://i.imgur.com/UJpSybI.png"
+    ],
+    "ability": "Each day, you may privately visit the Storyteller & learn a task. Each night*, if you completed the previous task, you learn an in-play character.",
+    "edition": "HSoM",
+    "otherNight": 14,
+    "otherNightReminder": "If the previous task was completed, show an in-play character token.",
+    "reminders": ["Task Complete"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "firstmate-dX9QOx",
+    "name": "First Mate",
+    "image": [
+      "https://i.imgur.com/hsOWoTm.png",
+      "https://i.imgur.com/SN65swP.png"
+    ],
+    "ability": "Once per game, at night, choose ‘R’, ‘I’ or ‘C’: you learn how many in-play characters’ names contain that letter.",
+    "edition": "HSoM",
+    "firstNight": 29,
+    "firstNightReminder": "The First Mate might choose a letter. Give a finger signal. :reminder:",
+    "otherNight": 15,
+    "otherNightReminder": "The First Mate might choose a letter. Give a finger signal. :reminder:",
+    "reminders": ["No Ability"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "powdermonkey-kn0aJC",
+    "name": "Powder Monkey",
+    "image": [
+      "https://i.imgur.com/bMIE7Sk.png",
+      "https://i.imgur.com/tVztqgk.png"
+    ],
+    "ability": "On your 1st day, publicly choose 2 players: if either is a Minion, you & a chosen Minion die tonight.",
+    "edition": "HSoM",
+    "otherNight": 11,
+    "otherNightReminder": "If the Powder Monkey is due to kill a Minion, they both die. :reminder: :reminder:",
+    "reminders": ["Dead", "Dead"],
+    "team": "townsfolk"
+  },
+  {
+    "id": "corsair-IqOmDX",
+    "name": "Corsair",
+    "image": [
+      "https://i.imgur.com/p8YsrZS.png",
+      "https://i.imgur.com/cTa53Rm.png"
+    ],
+    "ability": "If you die at night, choose a player & a Townsfolk: if not the Demon, they become that Townsfolk.",
+    "edition": "HSoM",
+    "otherNight": 16,
+    "otherNightReminder": "If the Corsair died tonight, the Corsair chooses a player & a character. If the player is not the Demon: Put the Corsair to sleep. Wake the target. Show the *YOU ARE* token & their new character token.",
+    "team": "townsfolk"
+  },
+  {
+    "id": "hermitcrab-dZ60oB",
+    "name": "Hermit Crab",
+    "image": [
+      "https://i.imgur.com/SLRZcx2.png",
+      "https://i.imgur.com/gkC5J3B.png"
+    ],
+    "ability": "If only 3 players are alive & you've never nominated a player: your team wins. [+1 Outsider]",
+    "edition": "HSoM",
+    "reminders": ["Nominated"],
+    "setup": true,
+    "team": "townsfolk"
+  },
+  {
+    "id": "barnacle--X-UuN",
+    "name": "Barnacle",
+    "image": [
+      "https://i.imgur.com/p0sFBR2.png",
+      "https://i.imgur.com/nVUNVuV.png"
+    ],
+    "ability": "On your 1st night, choose a player: you may only vote if they vote. You win if & only if they win, even if you are dead.",
+    "edition": "HSoM",
+    "firstNight": 30,
+    "firstNightReminder": "The Barnacle chooses a player. :reminder:",
+    "reminders": ["Encrusted"],
+    "team": "outsider"
+  },
+  {
+    "id": "grogblossom-k0kF7D",
+    "name": "Grog Blossom",
+    "image": [
+      "https://i.imgur.com/wlWW00z.png",
+      "https://i.imgur.com/51XoW7o.png"
+    ],
+    "ability": "You do not know you are Grog Blossom. You think you are a Townsfolk character, but you are not. You register as evil & as a Minion or Outsider.",
+    "edition": "HSoM",
+    "remindersGlobal": ["Is the Grog Blossom"],
+    "setup": true,
+    "team": "outsider",
+    "special": [
+      { "type": "selection", "name": "bag-disabled" },
+      { "type": "reveal", "name": "replace-character" }
+    ]
+  },
+  {
+    "id": "mermaid-hs9ykp",
+    "name": "Mermaid",
+    "image": [
+      "https://i.imgur.com/WeGkkuk.png",
+      "https://i.imgur.com/HzBhOAW.png"
+    ],
+    "ability": "Players (not yourself or the Demon) that nominate you are drunk until you are nominated again, even if you are dead.",
+    "edition": "HSoM",
+    "reminders": ["Drunk"],
+    "team": "outsider"
+  },
+  {
+    "id": "stowaway-NJY_tl",
+    "name": "Stowaway",
+    "image": [
+      "https://i.imgur.com/X2IebgS.png",
+      "https://i.imgur.com/sIk4lJH.png"
+    ],
+    "ability": "If you are “mad” about being an in-play Townsfolk, you cannot die at night. When you die, a Minion sees the Grimoire each night.",
+    "edition": "HSoM",
+    "otherNight": 2,
+    "otherNightReminder": "If the Stowaway has died, show the Grimoire to a Minion for as long as needed.",
+    "reminders": ["Sees Grimoire"],
+    "team": "outsider",
+    "special": [
+      {
+        "type": "signal",
+        "name": "grimoire",
+        "time": "night",
+        "global": "minion"
+      }
+    ]
+  },
+  {
+    "id": "mysticpriestess-rSu9DG",
+    "name": "Mystic Priestess",
+    "image": [
+      "https://i.imgur.com/snOBOyh.png",
+      "https://i.imgur.com/OHw4Zkw.png"
+    ],
+    "ability": "If an evil player nominates a Demon: the nominated Demon swaps characters with you & is poisoned until dawn. If there are 4 or less players alive, you lose this ability.",
+    "edition": "HSoM",
+    "reminders": ["No Ability", "Swap Tonight", "Swap Tonight"],
+    "team": "minion"
+  },
+  {
+    "id": "undeadpirate-F-xWdd",
+    "name": "Undead Pirate",
+    "image": [
+      "https://i.imgur.com/jFejeUW.png",
+      "https://i.imgur.com/Hb070Ra.png"
+    ],
+    "ability": "After you are executed & die, tonight you may choose a living good neighbour: they die.",
+    "edition": "HSoM",
+    "otherNight": 6,
+    "otherNightReminder": "If the Undead Pirate was executed and died today, they choose a living good neighbor. :reminder:",
+    "reminders": ["No Ability", "Dead"],
+    "team": "minion"
+  },
+  {
+    "id": "seaspirit-TeeSNL",
+    "name": "Sea Spirit",
+    "image": [
+      "https://i.imgur.com/PyBWPSH.png",
+      "https://i.imgur.com/hmuzZMD.png"
+    ],
+    "ability": "On your 1st night, choose a good player: they are poisoned. If they live while only 3 players live, your team wins, even if you are dead. 1 good player knows a Sea Spirit is in play.",
+    "edition": "HSoM",
+    "firstNight": 21,
+    "firstNightReminder": "The Sea Spirit chooses a player. :reminder: Put the Sea Spirit to sleep. Wake 1 good player. Show the Sea Spirit character token. :reminder:",
+    "reminders": ["Beloved", "Knows"],
+    "team": "minion"
+  },
+  {
+    "id": "flesheater-NDrZem",
+    "name": "Flesh-Eater",
+    "image": [
+      "https://i.imgur.com/LNyqSB6.png",
+      "https://i.imgur.com/6gcpm4P.png"
+    ],
+    "ability": "Each night, choose a player: their Townsfolk ability yields false info until dusk. If they die tonight, they die tomorrow night.",
+    "edition": "HSoM",
+    "firstNight": 22,
+    "firstNightReminder": "The Flesh-Eater chooses a player. :reminder:",
+    "otherNight": 3,
+    "otherNightReminder": "The Flesh-Eater chooses a player. :reminder: A previously chosen player that survived due to the Flesh-Eater's ability, dies. :reminder:",
+    "reminders": ["Munchies", "Dead"],
+    "team": "minion"
+  },
+  {
+    "id": "kraken-ZCqeJT",
+    "name": "Kraken",
+    "image": [
+      "https://i.imgur.com/ZYrcFpy.png",
+      "https://i.imgur.com/vCCT593.png"
+    ],
+    "ability": "Each night*, choose a player: they die. The 1st time you kill an Outsider, 1 of their living good neighbors die too. [−1 or +1 Outsider]",
+    "edition": "HSoM",
+    "otherNight": 7,
+    "otherNightReminder": "The Kraken chooses a player. :reminder: If that player is an Outsider (once only): Kill a neighboring living good player. :reminder:",
+    "reminders": ["Dead", "Dead"],
+    "setup": true,
+    "team": "demon"
+  },
+  {
+    "id": "calypso-GcNm4r",
+    "name": "Calypso",
+    "image": [
+      "https://i.imgur.com/zkuiY7L.png",
+      "https://i.imgur.com/jIWJkcJ.png"
+    ],
+    "ability": "Each night, choose 3 players. The 1st player you chose last night dies. If that player was executed today, the other 2 players die tonight.",
+    "edition": "HSoM",
+    "firstNight": 23,
+    "firstNightReminder": "The Calypso chooses 3 players. :reminder: :reminder: :reminder:",
+    "otherNight": 8,
+    "otherNightReminder": "The 1st player previously chosen dies. :reminder: If that player was executed today, all previously chosen players die. :reminder: :reminder: The Calypso chooses 3 players. :reminder: :reminder: :reminder:",
+    "reminders": ["1st", "2nd", "3rd", "Dead", "Dead", "Dead"],
+    "team": "demon"
+  },
+  {
+    "id": "rusalka-t7whxS",
+    "name": "Rusalka",
+    "image": [
+      "https://i.imgur.com/zirCpWD.png",
+      "https://i.imgur.com/f7QsSSq.png"
+    ],
+    "ability": "You do not know what your ability is, but learn a hint each night. 1 good player knows your ability. If they are “mad” that the Rusalka is in play, you learn your ability.",
+    "edition": "HSoM",
+    "firstNight": 24,
+    "firstNightReminder": "Show the Rusalka a hint about their ability. Prompt the Rusalka to choose, or show any information needed based on the ability. Put the Rusalka to sleep. Wake 1 good player. Show the Rusalka character token. :reminder:",
+    "otherNight": 9,
+    "otherNightReminder": "Show the Rusalka a hint about their ability. Prompt the Rusalka to choose, or show any information needed based on the ability. :reminder:",
+    "reminders": ["Cursed", "Dead"],
+    "team": "demon"
+  },
+  {
+    "id": "umibozu-AbVxKc",
+    "name": "Umibōzu",
+    "image": [
+      "https://i.imgur.com/mlnGfWq.png",
+      "https://i.imgur.com/gMaxrgN.png"
+    ],
+    "ability": "Each night*, choose a player: they die. This ability malfunctions if another Demon chooses a different player. You might register as a Minion. [1 Minion is Umibōzu]",
+    "edition": "HSoM",
+    "otherNight": 10,
+    "otherNightReminder": "The Umibōzu chooses a player. :reminder:",
+    "reminders": ["Dead"],
+    "setup": true,
+    "team": "demon",
+    "special": [{ "type": "selection", "name": "bag-duplicate" }]
+  }
+]
