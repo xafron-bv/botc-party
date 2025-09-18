@@ -2,14 +2,10 @@ name: Project Agent Rules
 description: Enforce AGENTS.md workflow for background AI agents in Cursor.
 version: 1
 
-env:
-  server_port: 8080
-  test_port: 5173
-
 steps:
   - id: start_local_server
     when: always
-    run: npx --yes http-server -p {{server_port}} -c-1 . > /dev/null 2>&1 & echo $! > /tmp/http-server.pid
+    run: ./server.sh
 
   - id: tdd_guideline
     when: always
@@ -17,7 +13,7 @@ steps:
 
   - id: run_tests
     when: pre-commit
-    run: npx --yes http-server -p {{test_port}} -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:{{test_port}} npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
+    run: ./test.sh
 
   - id: eslint_fix
     when: pre-commit
@@ -29,7 +25,7 @@ steps:
 
   - id: run_tests_pre_push
     when: pre-push
-    run: npx --yes http-server -p {{test_port}} -c- . > /dev/null 2>&1 & CYPRESS_BASE_URL=http://127.0.0.1:{{test_port}} npx --yes cypress run --config-file tests/cypress.config.js ; kill %1 || true
+    run: ./test.sh
 
   - id: require_green_tests
     when: pre-commit
