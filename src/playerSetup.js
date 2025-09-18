@@ -87,7 +87,8 @@ export function initPlayerSetup({ grimoireState }) {
       { key: 'demon', label: 'Demons' }
     ];
     teamsOrder.forEach((team, idx) => {
-      const groupRoles = allRoles.filter(r => (r.team || '').toLowerCase() === team.key);
+      const groupRoles = allRoles
+        .filter(r => (r.team || '').toLowerCase() === team.key);
       if (!groupRoles.length) return;
       const header = document.createElement('div');
       header.className = 'team-header';
@@ -96,6 +97,12 @@ export function initPlayerSetup({ grimoireState }) {
       const grid = document.createElement('div');
       grid.className = 'team-grid';
       groupRoles.forEach(role => {
+        const isBagDisabled = Array.isArray(role.special) && role.special.some(s => s && s.name === 'bag-disabled');
+        // If somehow persisted in bag (e.g., older save), purge it.
+        if (isBagDisabled && Array.isArray(grimoireState.playerSetup.bag)) {
+          const idxInBag = grimoireState.playerSetup.bag.indexOf(role.id);
+          if (idxInBag !== -1) grimoireState.playerSetup.bag.splice(idxInBag, 1);
+        }
         const tokenEl = document.createElement('div');
         tokenEl.className = 'token role';
         tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
@@ -105,12 +112,18 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.title = role.name;
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = (grimoireState.playerSetup.bag || []).includes(role.id);
+        checkbox.checked = (grimoireState.playerSetup.bag || []).includes(role.id) && !isBagDisabled;
         checkbox.style.position = 'absolute';
         checkbox.style.top = '6px';
         checkbox.style.left = '6px';
         checkbox.style.zIndex = '2';
+        if (isBagDisabled) {
+          checkbox.disabled = true;
+          checkbox.classList.add('bag-disabled');
+          tokenEl.classList.add('bag-disabled');
+        }
         const toggle = () => {
+          if (isBagDisabled) return; // no-op for disabled roles
           const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
           const i = list.indexOf(role.id);
           if (checkbox.checked && i === -1) list.push(role.id);
@@ -118,9 +131,9 @@ export function initPlayerSetup({ grimoireState }) {
           updateBagWarning();
           saveAppState({ grimoireState });
         };
-        checkbox.addEventListener('click', (e) => { e.stopPropagation(); });
-        checkbox.addEventListener('change', (e) => { e.stopPropagation(); toggle(); });
-        tokenEl.addEventListener('click', () => { checkbox.checked = !checkbox.checked; toggle(); });
+        checkbox.addEventListener('click', (e) => { e.stopPropagation(); if (isBagDisabled) e.preventDefault(); });
+        checkbox.addEventListener('change', (e) => { e.stopPropagation(); if (isBagDisabled) { e.preventDefault(); return; } toggle(); });
+        tokenEl.addEventListener('click', () => { if (isBagDisabled) return; checkbox.checked = !checkbox.checked; toggle(); });
         const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
         tokenEl.appendChild(svg);
         tokenEl.appendChild(checkbox);
@@ -150,6 +163,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (!row) return;
     const groups = { townsfolk: [], outsiders: [], minions: [], demons: [] };
     Object.values(grimoireState.allRoles || {}).forEach(role => {
+      if (role && Array.isArray(role.special) && role.special.some(s => s && s.name === 'bag-disabled')) return;
       if (role.team === 'townsfolk') groups.townsfolk.push(role.id);
       else if (role.team === 'outsider') groups.outsiders.push(role.id);
       else if (role.team === 'minion') groups.minions.push(role.id);
