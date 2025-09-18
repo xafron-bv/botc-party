@@ -1001,25 +1001,24 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       const player = grimoireState.players[i];
-
-      if (player.dead && player.deathVote) {
-        // If player is dead and has used death vote, revive them
-        grimoireState.players[i].dead = false;
-        grimoireState.players[i].deathVote = false;
-      } else {
-        // Otherwise, toggle dead state normally
-        grimoireState.players[i].dead = !grimoireState.players[i].dead;
-        // Reset death vote when marking alive
-        if (!grimoireState.players[i].dead) {
+      // Phase 1: Alive -> Dead
+      if (!player.dead) { // Phase 1: Alive -> Dead
+        grimoireState.players[i].dead = true;
+        grimoireState.players[i].deathVote = false; // initialize unused vote
+      } else if (player.dead && !player.deathVote) { // Phase 2: mark vote used
+        grimoireState.players[i].deathVote = true;
+      } else if (player.dead && player.deathVote) { // Phase 3: confirm resurrect
+        if (window.confirm('Resurrect this player?')) {
+          grimoireState.players[i].dead = false;
           grimoireState.players[i].deathVote = false;
+        } else {
+          return; // abort update/save if cancelled
         }
       }
 
-      // Save phase state if day/night tracking is enabled
       if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
         saveCurrentPhaseState(grimoireState);
       }
-
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
@@ -1062,16 +1061,16 @@ export function updateGrimoire({ grimoireState }) {
       const deathVoteIndicator = createDeathVoteIndicatorSvg();
       const handleDeathVoteClick = (e) => {
         e.stopPropagation();
-        // Use death vote (can only be used once)
-        grimoireState.players[i].deathVote = true;
-
-        // Save phase state if day/night tracking is enabled
-        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-          saveCurrentPhaseState(grimoireState);
+        const player = grimoireState.players[i];
+        // Ghost vote click mirrors ribbon second phase: mark vote used if still available
+        if (player.dead && !player.deathVote) {
+          grimoireState.players[i].deathVote = true;
+          if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+            saveCurrentPhaseState(grimoireState);
+          }
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
         }
-
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
       };
 
       deathVoteIndicator.addEventListener('click', handleDeathVoteClick);

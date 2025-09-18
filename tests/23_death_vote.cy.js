@@ -148,31 +148,35 @@ describe('Death Vote Indicator', () => {
     cy.get('#setup-info').should('contain', '7/8');
   });
 
-  it('resets death vote when player is marked alive without using vote', () => {
+  it('follows 3-phase sequence (dead, vote used, resurrect)', () => {
     startGameWithPlayers(8);
 
-    // Mark first player as dead
+    // Phase 1: Alive -> Dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
     });
-
-    // Death vote indicator should appear
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
     cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
 
-    // Toggle back to alive without using death vote
+    // Phase 2: Use ghost vote via ribbon click (indicator disappears)
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
     });
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('not.exist');
 
-    // Player should be alive
+    // Stub confirm dialog to auto-confirm resurrection
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true).as('confirmStub'); });
+
+    // Phase 3: Resurrect (with confirmation)
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
+      cy.get('rect, path').first().click({ force: true });
+    });
+    cy.get('@confirmStub').should('have.been.called');
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
 
-    // Mark dead again
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
-
-    // Death vote indicator should appear again (vote was reset)
+    // Cycle again to ensure state resets cleanly
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => { cy.get('rect, path').first().click({ force: true }); });
     cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
   });
 
