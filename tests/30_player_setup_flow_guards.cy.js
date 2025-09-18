@@ -97,7 +97,7 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('not.have.class', 'disabled').and('contain', '?');
   });
 
-  it('forgets previously selected numbers after Start Game', () => {
+  it('forgets previously selected numbers after Start Game (requires reset after winner)', () => {
     cy.get('#open-player-setup').click();
     cy.get('#bag-random-fill').click();
     cy.get('#bag-count-warning').should('not.be.visible');
@@ -120,14 +120,20 @@ describe('Player Setup - Guards and Resets', () => {
     });
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#start-game').click();
-    // End current game to allow starting selection again
+    // End current game declaring a winner (winner gating engages)
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
-    // Start selection again - all should be reset to '?'
-    cy.get('#open-player-setup').should('be.visible').click();
-    cy.get('#player-setup-panel .start-selection').click();
-    cy.get('#player-circle li .number-overlay').should('have.length', 5);
+    // After winner, Open Player Setup should be disabled until reset
+    cy.get('#open-player-setup').should('be.disabled');
+    // Reset grimoire (no confirmation expected because gameStarted is false and winner set)
+  cy.get('#reset-grimoire').click();
+  cy.get('#open-player-setup').should('not.be.disabled').click();
+  // Re-fill bag and start selection again after reset to regenerate overlays
+  cy.get('#bag-random-fill').click();
+  cy.get('#bag-count-warning').should('not.be.visible');
+  cy.get('#player-setup-panel .start-selection').click();
+  cy.get('#player-circle li .number-overlay').should('have.length', 5);
     cy.get('#player-circle li').each(($li) => {
       cy.wrap($li).find('.number-overlay').should('contain', '?');
     });
