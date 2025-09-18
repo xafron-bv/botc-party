@@ -82,7 +82,7 @@ describe('Ability UI - Touch', () => {
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
     cy.window().then((win) => {
-      try { win.document.body.classList.remove('character-panel-open'); } catch (_) {}
+      try { win.document.body.classList.remove('character-panel-open'); } catch (_) { }
       const btn = win.document.getElementById('reset-grimoire');
       if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
     });
