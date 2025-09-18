@@ -123,7 +123,7 @@
   left: 50%;
   top: -6%;
   transform: translateX(-50%);
-  width: clamp(36%, 42%, 48%);
+  width: clamp(54%, 63%, 72%);
   height: auto;
   opacity: 0.18;
   /* visible but subtle by default */
