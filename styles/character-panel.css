@@ -95,7 +95,8 @@ body.character-panel-open .character-panel-toggle { right: calc(clamp(260px, 26v
 
 /* Smaller viewports overlay adjustments */
 @media (max-width: 900px) {
-  #character-panel { width: min(420px, 100vw); }
+  /* Make better use of horizontal space on mobile */
+  #character-panel { width: min(480px, 95vw); max-width: 95vw; }
   /* Keep script toggle at right edge near top, but ensure sidebar toggle sits below it */
   .character-panel-toggle { top: 12px; bottom: auto; writing-mode: vertical-rl; max-width:38px; }
   /* Prevent overflow horizontally: ensure button stays inside viewport even when panel closed */
@@ -107,7 +108,7 @@ body.character-panel-open .character-panel-toggle { right: calc(clamp(260px, 26v
   @media (max-width: 340px) {
     .character-panel-toggle { font-size:11px; padding:6px 4px 8px 4px; }
   }
-  body.character-panel-open .character-panel-toggle { right: calc(min(420px, 100vw)); }
+  body.character-panel-open .character-panel-toggle { right: min(480px, 95vw); }
 }
 
 /* Accessibility focus ring */

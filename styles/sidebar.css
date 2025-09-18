@@ -134,8 +134,9 @@ body.resizing {
     left: 0;
     bottom: 0;
     height: 100dvh;
-    max-width: 85vw;
-    width: var(--sidebar-width, 320px);
+    /* Use most of the horizontal space on mobile while keeping a margin */
+    width: min(480px, 95vw);
+    max-width: 95vw;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 2002;
