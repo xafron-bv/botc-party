@@ -31,6 +31,7 @@ trap cleanup EXIT INT TERM
 
 echo "Running Cypress with base url ${BASE_URL} ${SPECS_ARG}" >&2
 
-CYPRESS_BASE_URL=$BASE_URL npx --yes cypress run --browser electron --config-file "$CONFIG_FILE" $SPECS_ARG || true
+# Run Cypress; do NOT swallow its exit code so CI can reflect failures properly.
+CYPRESS_BASE_URL=$BASE_URL npx --yes cypress run --browser electron --config-file "$CONFIG_FILE" $SPECS_ARG
 
 # Cleanup handled by trap

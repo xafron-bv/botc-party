@@ -2,10 +2,6 @@ name: Project Agent Rules
 description: Enforce AGENTS.md workflow for background AI agents in Cursor.
 version: 1
 
-env:
-  server_port: 8080
-  test_port: 5173
-
 steps:
   - id: start_local_server
     when: always

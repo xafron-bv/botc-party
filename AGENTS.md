@@ -3,7 +3,7 @@
 1. Start local server (from repo root):
 
 ```bash
-# Run in background on port 8080 and store PID (recommended for agents)
+# Run in background on port 8080 and store PID
 ./server.sh
 ```
 
