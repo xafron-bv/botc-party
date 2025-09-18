@@ -127,13 +127,13 @@ describe('Player Setup - Guards and Resets', () => {
     // After winner, Open Player Setup should be disabled until reset
     cy.get('#open-player-setup').should('be.disabled');
     // Reset grimoire (no confirmation expected because gameStarted is false and winner set)
-  cy.get('#reset-grimoire').click();
-  cy.get('#open-player-setup').should('not.be.disabled').click();
-  // Re-fill bag and start selection again after reset to regenerate overlays
-  cy.get('#bag-random-fill').click();
-  cy.get('#bag-count-warning').should('not.be.visible');
-  cy.get('#player-setup-panel .start-selection').click();
-  cy.get('#player-circle li .number-overlay').should('have.length', 5);
+    cy.get('#reset-grimoire').click();
+    cy.get('#open-player-setup').should('not.be.disabled').click();
+    // Re-fill bag and start selection again after reset to regenerate overlays
+    cy.get('#bag-random-fill').click();
+    cy.get('#bag-count-warning').should('not.be.visible');
+    cy.get('#player-setup-panel .start-selection').click();
+    cy.get('#player-circle li .number-overlay').should('have.length', 5);
     cy.get('#player-circle li').each(($li) => {
       cy.wrap($li).find('.number-overlay').should('contain', '?');
     });
