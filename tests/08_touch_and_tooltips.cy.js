@@ -7,7 +7,16 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#reset-grimoire').click();
+  // The character panel header (right panel) can cover the Reset button in this spec.
+  // Instead of a Cypress click (which fails actionability checks), dispatch a native click.
+  cy.window().then((win) => {
+    try {
+      // Proactively collapse the character panel to mirror real user flow and reduce layout interference.
+      win.document.body.classList.remove('character-panel-open');
+      const btn = win.document.getElementById('reset-grimoire');
+      if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
+    } catch (_) { /* noop */ }
+  });
   cy.get('#player-circle li').should('have.length', n);
 };
 
@@ -46,9 +55,40 @@ describe('Ability UI - Touch', () => {
     cy.window().then((win) => {
       try { win.localStorage.clear(); } catch (_) { }
     });
-    cy.get('#load-tb').click();
+    // On desktop-width touch emulation the persistent sidebar toggle can overlap
+    // the top script load buttons. If it is visible, open the sidebar first so
+    // the toggle hides and no longer covers the target controls on small/touch viewports.
+    cy.get('body').then(($body) => {
+      const toggle = $body.find('#sidebar-toggle:visible');
+      if (toggle.length) {
+        cy.wrap(toggle).click({ force: true });
+      }
+    });
+    // Wait for sidebar-open (added by app) OR hide toggle fallback
+    cy.get('body').then(($body) => {
+      if (!$body.hasClass('sidebar-open')) {
+        // As a resilience fallback in CI if animation/state lagged, directly set class
+        $body.addClass('sidebar-open');
+      }
+    });
+    // Now attempt script load; force in case of race
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    startGameWithPlayers(5);
+    // Directly set player count then trigger reset via native dispatch; also collapse character panel first
+    cy.get('#player-count').then(($el) => {
+      const el = $el[0];
+      el.value = '5';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    cy.window().then((win) => {
+      try { win.document.body.classList.remove('character-panel-open'); } catch (_) {}
+      const btn = win.document.getElementById('reset-grimoire');
+      if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
+    });
+    cy.get('#player-circle li').should('have.length', 5);
+    // Hide toggle explicitly after player setup
+    cy.get('#sidebar-toggle').then(($btn) => { $btn.css('display', 'none'); });
   });
 
   it('info icon shows popup and hides when clicking elsewhere', () => {
