@@ -319,6 +319,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     grimoireState.gameStarted = false;
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
+    // Explicitly re-enable gated buttons after reset
+    try {
+      if (startGameBtn) { startGameBtn.disabled = false; startGameBtn.title = ''; }
+      const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+      if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
+    } catch (_) { }
     // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
     applyModeUI();
     updateStartGameEnabled();
@@ -334,6 +340,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     grimoireState.gameStarted = false;
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
+    try {
+      if (startGameBtn) { startGameBtn.disabled = false; startGameBtn.title = ''; }
+      const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+      if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
+    } catch (_) { }
     // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
     applyModeUI();
     updateStartGameEnabled();
@@ -451,6 +462,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Re-apply mode-specific UI for Start Player Setup visibility
     applyModeUI();
     updateStartGameEnabled();
+    // Gate further starts or player setup until grimoire reset (winner flag presence is the gate)
+    try {
+      const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
+      if (startGameBtn) {
+        startGameBtn.disabled = true;
+        startGameBtn.title = 'Reset grimoire to start a new game';
+      }
+      if (openPlayerSetupBtn2) {
+        openPlayerSetupBtn2.disabled = true;
+        openPlayerSetupBtn2.title = 'Reset grimoire to configure a new game';
+      }
+    } catch (_) { }
   }
 
   if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good'));
@@ -460,12 +483,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateStartGameEnabled() {
     if (!startGameBtn) return;
     if (grimoireState.mode === 'player') {
-      startGameBtn.disabled = false;
+      // In player mode winner gate still applies
+      startGameBtn.disabled = !!grimoireState.winner;
       return;
     }
     const players = grimoireState.players || [];
     const allAssigned = players.length > 0 && players.every(p => !!p.character);
-    startGameBtn.disabled = !allAssigned;
+    startGameBtn.disabled = grimoireState.winner ? true : !allAssigned;
   }
 
   // Update button states based on grimoire state
@@ -483,7 +507,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Disable game setup buttons when no players exist
     if (openPlayerSetupBtn) {
-      openPlayerSetupBtn.disabled = !hasPlayers;
+      openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner;
+      if (grimoireState.winner) {
+        openPlayerSetupBtn.title = 'Reset grimoire to configure a new game';
+      } else if (!hasPlayers) {
+        openPlayerSetupBtn.title = 'Add players first';
+      } else {
+        openPlayerSetupBtn.title = '';
+      }
     }
     // Don't disable reset-grimoire as it's used to start the game
     // Don't disable storyteller message as it's a tool that works without players
@@ -495,6 +526,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         // Re-apply the character assignment logic
         updateStartGameEnabled();
+      }
+      if (grimoireState.winner) {
+        startGameBtn.title = 'Reset grimoire to start a new game';
+      } else if (!hasPlayers) {
+        startGameBtn.title = 'Add players first';
+      } else {
+        startGameBtn.title = '';
       }
     }
 
