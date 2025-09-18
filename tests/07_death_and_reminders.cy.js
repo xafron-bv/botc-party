@@ -36,24 +36,34 @@ describe('Death & Reminders', () => {
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
-    // Assign one character to enable ability UI
-    cy.get('#player-circle li .player-token').first().click();
+    // Assign one character to enable ability UI (click the inner death-overlay to avoid ribbon interception)
+    cy.get('#player-circle li .player-token').first().find('.death-overlay').click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
   });
 
-  it('toggles death ribbon and persists visual state', () => {
-    // Click the death ribbon shapes (rect/path) to ensure event binding is hit
+  it('toggles death ribbon through 3-phase cycle (dead -> vote used -> resurrect)', () => {
+    // Phase 1: Alive -> Dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
     });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
 
-    // Toggle back via another shape click
+    // Phase 2: Use ghost vote (indicator removed but still dead)
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').last().click({ force: true });
+      cy.get('rect, path').eq(1).click({ force: true });
     });
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('not.exist');
+
+    // Phase 3: Resurrect (stub confirm dialog to auto-confirm)
+    cy.window().then((win) => { cy.stub(win, 'confirm').returns(true).as('confirmStub'); });
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
+      cy.get('rect, path').eq(2).click({ force: true });
+    });
+    cy.get('@confirmStub').should('have.been.called');
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
 

@@ -15,15 +15,15 @@ describe('Comprehensive Phase Change Tracking', () => {
     cy.get('.player-token').should('have.length', 7);
 
     // Assign some initial characters
-    cy.get('.player-token').eq(0).click();
+    cy.get('.player-token').eq(0).find('.death-overlay').click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token[title="Washerwoman"]').click();
 
-    cy.get('.player-token').eq(1).click();
+    cy.get('.player-token').eq(1).find('.death-overlay').click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token[title="Imp"]').click();
 
-    cy.get('.player-token').eq(2).click();
+    cy.get('.player-token').eq(2).find('.death-overlay').click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token[title="Baron"]').click();
 
@@ -79,7 +79,8 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
 
       // Change character of player 3 (who doesn't have a character yet)
-      cy.get('.player-token').eq(3).click();
+      // Use inner overlay to open character modal (avoids ribbon intercept)
+      cy.get('.player-token').eq(3).find('.death-overlay').click({ force: true });
       cy.get('#character-modal').should('be.visible');
       cy.get('#character-grid .token[title="Fortune Teller"]').click();
       cy.get('#character-modal').should('not.be.visible');
@@ -112,16 +113,16 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
 
-      // Resurrect player 0 and kill player 1
+      // Use player 0's ghost vote (still dead, indicator removed)
       cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
+        cy.get('rect, path').eq(1).click({ force: true });
       });
       cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
         cy.get('rect, path').first().click({ force: true });
       });
 
       // Change character of player 2
-      cy.get('.player-token').eq(2).click();
+      cy.get('.player-token').eq(2).find('.death-overlay').click({ force: true });
       cy.get('#character-modal').should('be.visible');
       cy.get('#character-grid .token[title="Drunk"]').click();
       cy.get('#character-modal').should('not.be.visible');
@@ -147,7 +148,8 @@ describe('Comprehensive Phase Change Tracking', () => {
       // Go to D1
       cy.get('#phase-slider').invoke('val', 1).trigger('input');
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
-      cy.get('.player-token').eq(0).should('not.have.class', 'is-dead');
+      // Player 0 should still be dead (ghost vote used but not resurrected)
+      cy.get('.player-token').eq(0).should('have.class', 'is-dead');
       cy.get('.player-token').eq(1).should('have.class', 'is-dead');
       cy.get('.player-token').eq(2).should('not.have.class', 'is-dead');
       cy.get('.player-token').eq(2).should('have.class', 'has-character');
@@ -155,7 +157,7 @@ describe('Comprehensive Phase Change Tracking', () => {
       // Go to N2
       cy.get('#phase-slider').invoke('val', 2).trigger('input');
       cy.get('[data-testid="current-phase"]').should('contain', 'N2');
-      cy.get('.player-token').eq(0).should('not.have.class', 'is-dead');
+      cy.get('.player-token').eq(0).should('have.class', 'is-dead');
       cy.get('.player-token').eq(1).should('have.class', 'is-dead');
       cy.get('.player-token').eq(2).should('have.class', 'is-dead');
       cy.get('.player-token').eq(2).should('have.class', 'has-character');
