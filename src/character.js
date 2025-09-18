@@ -129,6 +129,11 @@ export function assignCharacter({ grimoireState, roleId }) {
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
   const characterModal = document.getElementById('character-modal');
   grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
+  // Always include travellers explicitly present in the script
+  if (grimoireState.scriptTravellerRoles) {
+    grimoireState.allRoles = { ...grimoireState.allRoles, ...grimoireState.scriptTravellerRoles };
+  }
+  // Include all travellers from the dataset only if the toggle is on
   if (grimoireState.includeTravellers) {
     grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
   }
@@ -183,7 +188,8 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         if (canonicalId && roleLookup[canonicalId]) {
           const role = roleLookup[canonicalId];
           if (role.team === 'traveller') {
-            grimoireState.extraTravellerRoles[canonicalId] = role;
+            grimoireState.extraTravellerRoles[canonicalId] = role; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[canonicalId] = role; // Explicitly in script
           } else {
             grimoireState.baseRoles[canonicalId] = role;
           }
@@ -198,7 +204,8 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         if (canonicalId && roleLookup[canonicalId]) {
           const role = roleLookup[canonicalId];
           if (role.team === 'traveller') {
-            grimoireState.extraTravellerRoles[canonicalId] = role;
+            grimoireState.extraTravellerRoles[canonicalId] = role; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[canonicalId] = role; // Explicitly in script
           } else {
             grimoireState.baseRoles[canonicalId] = role;
           }
@@ -226,7 +233,8 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
           if (typeof characterItem.firstNightReminder === 'string') customRole.firstNightReminder = characterItem.firstNightReminder;
           if (typeof characterItem.otherNightReminder === 'string') customRole.otherNightReminder = characterItem.otherNightReminder;
           if (customRole.team === 'traveller') {
-            grimoireState.extraTravellerRoles[characterItem.id] = customRole;
+            grimoireState.extraTravellerRoles[characterItem.id] = customRole; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[characterItem.id] = customRole; // Explicitly in script
           } else {
             grimoireState.baseRoles[characterItem.id] = customRole;
           }
@@ -269,6 +277,9 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
           if (typeof characterItem.otherNightReminder === 'string') customFallback.otherNightReminder = characterItem.otherNightReminder;
           if (customFallback.team === 'traveller') {
             grimoireState.extraTravellerRoles[characterItem.id] = customFallback;
+            if (grimoireState.scriptTravellerRoles) {
+              grimoireState.scriptTravellerRoles[characterItem.id] = customFallback;
+            }
           } else {
             grimoireState.baseRoles[characterItem.id] = customFallback;
           }
