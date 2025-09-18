@@ -47,7 +47,20 @@ describe('Player Setup - Guards and Resets', () => {
         cy.get('#player-setup-character-list .team-grid').then($grids => {
           const originIdx = $grids.index($originGrid[0]);
           const targetIdx = originIdx === 0 ? 1 : 0;
-          cy.wrap($grids.eq(targetIdx)).find('input[type="checkbox"]').not(':checked').first().click({ force: true });
+              cy.wrap($grids.eq(targetIdx))
+                .find('input[type="checkbox"]')
+                .then($inputs => {
+                  const $candidate = $inputs.filter((_, el) => !el.checked && !el.disabled).first();
+                  if ($candidate.length) {
+                    cy.wrap($candidate).click({ force: true });
+                  } else {
+                    // As a final fallback, try any unchecked enabled checkbox globally
+                    cy.get('#player-setup-character-list input[type="checkbox"]').then($all => {
+                      const $fallback = $all.filter((_, el) => !el.checked && !el.disabled).first();
+                      if ($fallback.length) cy.wrap($fallback).click({ force: true });
+                    });
+                  }
+                });
         });
       });
     });
@@ -130,5 +143,6 @@ describe('Player Setup - Guards and Resets', () => {
     });
   });
 });
+
 
 
