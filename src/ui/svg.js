@@ -21,7 +21,7 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
   // Truncate display on token to avoid overcrowding, but keep tooltip full
   const full = String(labelText || '');
   const maxChars = 14;
-  const display = full.length > maxChars ? `${full.slice(0, maxChars - 1)  }…` : full;
+  const display = full.length > maxChars ? `${full.slice(0, maxChars - 1)}…` : full;
   const len = display.length;
   // Dynamic font size based on length
   let fontSize = 12;
@@ -79,13 +79,37 @@ export function createDeathRibbonSvg() {
   rect.setAttribute('stroke-width', '6');
   rect.setAttribute('pointer-events', 'visiblePainted');
 
-  // Notch
-  const notch = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  notch.setAttribute('d', 'M22 88 L50 120 L78 88 Z');
-  notch.setAttribute('fill', 'url(#deathPattern)');
-  notch.setAttribute('stroke', '#000');
-  notch.setAttribute('stroke-width', '6');
-  notch.setAttribute('pointer-events', 'visiblePainted');
+  // Two separate true right triangles (90°) under the rectangle:
+  // Each triangle has a right angle formed by the rectangle bottom horizontal (y=88) and a vertical leg.
+  // Geometry choices:
+  //  - Maintain a 6px gap: inner vertical edges at x=47 and x=53.
+  //  - Depth: 24px (bottom y=112) for a slightly shorter drop.
+  // Left triangle vertices: (22,88) -> (47,88) -> (22,112).
+  //   Right angle at (22,88) (vertical leg down to (22,112), horizontal leg to (47,88)).
+  // Right triangle vertices: (53,88) -> (78,88) -> (78,112).
+  //   Right angle at (78,88) (vertical leg down to (78,112), horizontal leg to (53,88)).
+  const notchGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const leftTri = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  leftTri.setAttribute('d', [
+    'M22 88',    // right angle
+    'L47 88',    // along top
+    'L22 112',   // down vertical leg
+    'Z'
+  ].join(' '));
+  const rightTri = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  rightTri.setAttribute('d', [
+    'M53 88',    // along top
+    'L78 88',    // right angle
+    'L78 112',   // down vertical leg
+    'Z'
+  ].join(' '));
+  [leftTri, rightTri].forEach(tri => {
+    tri.setAttribute('fill', 'url(#deathPattern)');
+    tri.setAttribute('stroke', '#000');
+    tri.setAttribute('stroke-width', '6');
+    tri.setAttribute('pointer-events', 'visiblePainted');
+    notchGroup.appendChild(tri);
+  });
 
   // Subtle inner shadow
   const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -99,7 +123,7 @@ export function createDeathRibbonSvg() {
   shadow.setAttribute('pointer-events', 'none');
 
   svg.appendChild(rect);
-  svg.appendChild(notch);
+  svg.appendChild(notchGroup);
   svg.appendChild(shadow);
   return svg;
 }
