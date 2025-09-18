@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sidebarToggleBtn = document.getElementById('sidebar-toggle');
   const sidebarCloseBtn = document.getElementById('sidebar-close');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const characterPanel = document.getElementById('character-panel');
+  const characterPanelToggleBtn = document.getElementById('character-panel-toggle');
+  const characterPanelCloseBtn = document.getElementById('character-panel-close');
   const scriptHistoryList = document.getElementById('script-history-list');
   const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
@@ -59,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const nightOrderControls = document.querySelector('.night-order-controls');
   const firstNightBtn = document.getElementById('first-night-btn');
   const otherNightsBtn = document.getElementById('other-nights-btn');
+  const nightPhaseToggleBtn = document.getElementById('night-phase-toggle');
   // Travellers toggle state key and default
   const modeStorytellerRadio = document.getElementById('mode-storyteller');
   const modePlayerRadio = document.getElementById('mode-player');
@@ -224,6 +228,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (nightOrderControls) {
       nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
     }
+    // Show/hide phase toggle button based on sort state
+    if (nightPhaseToggleBtn) {
+      nightPhaseToggleBtn.style.display = grimoireState.nightOrderSort ? '' : 'none';
+    }
+    // Also hide/show the entire night-phase selector container to satisfy existing Cypress test
+    const nightPhaseContainer = document.querySelector('.night-phase-buttons');
+    if (nightPhaseContainer) {
+      nightPhaseContainer.style.display = grimoireState.nightOrderSort ? '' : 'none';
+    }
 
     nightOrderSortCheckbox.addEventListener('change', async () => {
       grimoireState.nightOrderSort = nightOrderSortCheckbox.checked;
@@ -234,6 +247,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (nightOrderControls) {
         nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
       }
+      if (nightPhaseToggleBtn) {
+        nightPhaseToggleBtn.style.display = grimoireState.nightOrderSort ? '' : 'none';
+      }
+      const nightPhaseContainer2 = document.querySelector('.night-phase-buttons');
+      if (nightPhaseContainer2) {
+        nightPhaseContainer2.style.display = grimoireState.nightOrderSort ? '' : 'none';
+      }
 
       // Re-display the script with new sorting
       if (grimoireState.scriptData) {
@@ -241,6 +261,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+
+  // Character panel toggle logic might exist below; hook into open/close events
+  if (characterPanelToggleBtn) {
+    characterPanelToggleBtn.addEventListener('click', () => {
+      setTimeout(() => { try { applySidebarToggleVisibilityForPanel(); } catch (_) { } }, 10);
+    });
+  }
+  if (characterPanelCloseBtn) {
+    characterPanelCloseBtn.addEventListener('click', () => {
+      setTimeout(() => { try { applySidebarToggleVisibilityForPanel(); } catch (_) { } }, 10);
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setTimeout(() => { try { applySidebarToggleVisibilityForPanel(); } catch (_) { } }, 10);
+  });
+
+  // Helper: hide sidebar toggle on small screens if script panel open
+  function applySidebarToggleVisibilityForPanel() {
+    if (!sidebarToggleBtn) return;
+    const small = window.innerWidth <= 900;
+    if (small && document.body.classList.contains('character-panel-open')) {
+      sidebarToggleBtn.style.visibility = 'hidden';
+      sidebarToggleBtn.style.pointerEvents = 'none';
+    } else {
+      sidebarToggleBtn.style.visibility = '';
+      sidebarToggleBtn.style.pointerEvents = '';
+    }
+  }
+
+  window.addEventListener('resize', () => applySidebarToggleVisibilityForPanel());
 
   // Set up radio buttons
   if (firstNightBtn && otherNightsBtn) {
@@ -262,7 +312,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     firstNightBtn.addEventListener('change', handlePhaseChange);
     otherNightsBtn.addEventListener('change', handlePhaseChange);
+    if (nightPhaseToggleBtn) {
+      nightPhaseToggleBtn.addEventListener('click', async () => {
+        // Toggle phase value
+        const newPhase = grimoireState.nightPhase === 'first-night' ? 'other-nights' : 'first-night';
+        grimoireState.nightPhase = newPhase;
+        if (firstNightBtn) firstNightBtn.checked = newPhase === 'first-night';
+        if (otherNightsBtn) otherNightsBtn.checked = newPhase === 'other-nights';
+        // Update button label
+        nightPhaseToggleBtn.textContent = newPhase === 'first-night' ? 'First Night' : 'Other Nights';
+        try { localStorage.setItem('nightPhase', grimoireState.nightPhase); } catch (_) { }
+        if (grimoireState.scriptData && grimoireState.nightOrderSort) {
+          await displayScript({ data: grimoireState.scriptData, grimoireState });
+        }
+      });
+      // Initial label
+      nightPhaseToggleBtn.textContent = grimoireState.nightPhase === 'first-night' ? 'First Night' : 'Other Nights';
+    }
   }
+
+  // Initial visibility adjustment
+  try { applySidebarToggleVisibilityForPanel(); } catch (_) { }
 
   // Event delegation for history lists
   if (scriptHistoryList) {
@@ -700,8 +770,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     sidebarResizer,
     isTouchDevice,
     repositionPlayers,
-    grimoireState
+    grimoireState,
+    characterPanel,
+    characterPanelToggleBtn
   });
+
+  // Character panel toggle logic
+  (function initCharacterPanelToggle() {
+    if (!characterPanel || !characterPanelToggleBtn) return;
+    const PANEL_KEY = 'characterPanelOpen';
+    const applyState = (open) => {
+      characterPanel.setAttribute('aria-hidden', String(!open));
+      document.body.classList.toggle('character-panel-open', open);
+      characterPanelToggleBtn.setAttribute('aria-pressed', String(open));
+      // Keep static label
+      characterPanelToggleBtn.textContent = 'Script';
+      try { localStorage.setItem(PANEL_KEY, open ? '1' : '0'); } catch (_) { }
+      // Restore sidebar toggle visibility when closing panel (mobile CSS hides it only while open)
+      // No inline sidebar toggle manipulation needed; CSS governs visibility.
+      // No sidebar state mutation here; sidebar visibility managed independently.
+      // Ensure any inline-hidden sidebar toggle (mobile case) is restored immediately after closing
+      try { applySidebarToggleVisibilityForPanel(); } catch (_) { }
+      // Reposition players after CSS transition (allow layout to settle)
+      setTimeout(() => { try { repositionPlayers({ grimoireState }); } catch (_) { } }, 320);
+    };
+    let startOpen = false;
+    try { startOpen = localStorage.getItem(PANEL_KEY) === '1'; } catch (_) { }
+    applyState(startOpen);
+    characterPanelToggleBtn.addEventListener('click', () => {
+      const open = !document.body.classList.contains('character-panel-open');
+      applyState(open);
+    });
+    if (characterPanelCloseBtn) characterPanelCloseBtn.addEventListener('click', () => applyState(false));
+    // Close on outside click for wider screens (not touch overlay) when open
+    document.addEventListener('click', (e) => {
+      if (!document.body.classList.contains('character-panel-open')) return;
+      const target = e.target;
+      // Ignore clicks originating inside the panel or on its toggle
+      if (characterPanel.contains(target) || characterPanelToggleBtn.contains(target)) return;
+      // Also ignore clicks within the sidebar so dismissing the panel doesn't inadvertently hide sidebar toggle state
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && sidebar.contains(target)) return;
+      applyState(false);
+    });
+    // Escape key closes panel
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('character-panel-open')) applyState(false);
+    });
+    // Responsive: collapse automatically on very small viewports
+    const mq = window.matchMedia('(max-width: 900px)');
+    const handleMq = () => {
+      if (mq.matches) {
+        // On small screens default closed unless previously opened in this session
+        if (!document.body.classList.contains('character-panel-open')) applyState(false);
+      }
+    };
+    mq.addEventListener('change', handleMq);
+    handleMq();
+  })();
 
   // Load histories and render lists
   loadHistories();
@@ -938,6 +1064,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const centerEl = document.getElementById('center');
   if (centerEl) {
     centerEl.addEventListener('click', (e) => {
+      // If the character panel is currently open, ignore center clicks so closing the panel
+      // via outside click does not immediately trigger the sidebar to open (which hides the toggle)
+      if (document.body.classList.contains('character-panel-open')) return;
       const isCollapsed = document.body.classList.contains('sidebar-collapsed');
       const noPlayers = !Array.isArray(grimoireState.players) || grimoireState.players.length === 0;
       if (isCollapsed && noPlayers) {

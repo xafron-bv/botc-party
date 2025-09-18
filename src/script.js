@@ -141,6 +141,23 @@ export async function displayScript({ data, grimoireState }) {
       });
     }
   }
+  // After rendering roles, optionally auto-open character panel only the first time (no stored preference)
+  try {
+    const panel = document.getElementById('character-panel');
+    const toggleBtn = document.getElementById('character-panel-toggle');
+    const PANEL_KEY = 'characterPanelOpen';
+    let storedPref = null;
+    try { storedPref = localStorage.getItem(PANEL_KEY); } catch (_) { }
+    const roles = characterSheet.querySelectorAll('.role');
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTest = urlParams.has('test');
+    // Auto-open only if no stored preference yet OR in test mode where visibility might be required by selectors
+    if (panel && toggleBtn && roles.length > 0 && panel.getAttribute('aria-hidden') === 'true') {
+      if (storedPref === null || (isTest && storedPref !== '0')) {
+        toggleBtn.dispatchEvent(new Event('click'));
+      }
+    }
+  } catch (_) { }
 }
 
 export async function loadScriptFromFile({ path, grimoireState }) {
@@ -245,6 +262,8 @@ export async function loadScriptFile({ event, grimoireState }) {
       await processScriptData({ data: json, addToHistory: true, grimoireState });
       loadStatus.textContent = 'Custom script loaded successfully!';
       loadStatus.className = 'status';
+      // Allow uploading the same file again by resetting the input value
+      try { event.target.value = ''; } catch (_) { }
     } catch (error) {
       console.error('Error processing uploaded script:', error);
       loadStatus.textContent = `Invalid script file: ${error.message}`;

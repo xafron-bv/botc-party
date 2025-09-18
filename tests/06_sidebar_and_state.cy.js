@@ -13,16 +13,23 @@ const startGameWithPlayers = (n) => {
 
 describe('Sidebar & State', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
+    cy.visit('/', {
+      onBeforeLoad: (win) => {
+        try { win.localStorage.clear(); } catch (_) { }
+      }
     });
+    cy.viewport(1280, 900);
     cy.get('#load-tb').click();
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    // Character roles now live in the right-side script panel; loading script still needed for rest of tests.
   });
 
   it('sidebar toggle open/close and persists collapsed state', () => {
+    // Ensure character panel is closed (mutual exclusivity sanity)
+    cy.get('body').then(($b) => {
+      if ($b.hasClass('character-panel-open')) {
+        cy.get('#character-panel-toggle').click();
+      }
+    });
     // Initially on desktop, sidebar may be open; collapse it via Close button
     cy.get('#sidebar-close').click();
     cy.get('body').should('have.class', 'sidebar-collapsed');
@@ -30,9 +37,13 @@ describe('Sidebar & State', () => {
     // Reload and verify it stays collapsed (localStorage persistence)
     cy.reload();
     cy.get('body').should('have.class', 'sidebar-collapsed');
-
-    // Open using the toggle button
-    cy.get('#sidebar-toggle').click();
+    // Sidebar toggle only visible when collapsed and script panel not open
+    cy.get('#character-panel').should('have.attr', 'aria-hidden', 'true');
+    cy.get('#sidebar-toggle').should(($btn) => {
+      const style = getComputedStyle($btn[0]);
+      expect(style.display === 'inline-block' || style.display === 'block').to.be.true;
+      expect(style.visibility).to.not.equal('hidden');
+    }).click();
     cy.get('body').should('not.have.class', 'sidebar-collapsed');
   });
 
@@ -98,33 +109,42 @@ describe('Sidebar & State', () => {
     cy.get('#player-circle li .character-name').first().should('contain', 'Chef');
   });
 
-  it('background selection appears after character sheet in sidebar', () => {
+  it('background section present (character sheet moved to panel)', () => {
     // Ensure sidebar is open
     cy.get('#sidebar-toggle').then(($btn) => {
       if ($btn.is(':visible')) {
         cy.wrap($btn).click();
       }
     });
-
-    // Find the character sheet section
-    cy.get('#character-sheet').should('exist');
-
-    // Find the background section
+    // Character sheet now resides in right panel; just assert background section exists
     cy.get('#sidebar').within(() => {
       cy.contains('h3', 'Background').should('exist');
     });
+  });
 
-    // Verify that the background section comes after the character sheet
-    cy.get('#character-sheet').then(($charSheet) => {
-      const charSheetBottom = $charSheet[0].getBoundingClientRect().bottom;
-
-      cy.get('#sidebar').contains('h3', 'Background').then(($bgHeader) => {
-        const bgTop = $bgHeader[0].getBoundingClientRect().top;
-
-        // Background section should appear below the character sheet
-        expect(bgTop).to.be.greaterThan(charSheetBottom);
-      });
+  it('character panel outside click restores sidebar toggle visibility (mobile scenario)', () => {
+    cy.viewport(480, 800);
+    // Ensure sidebar starts collapsed so toggle logic is deterministic after closing the panel
+    cy.get('#sidebar-close').click();
+    cy.get('body').should('have.class', 'sidebar-collapsed');
+    // Explicitly open character panel (mutually exclusive with sidebar)
+    cy.get('#character-panel-toggle').click();
+    cy.get('body').should('have.class', 'character-panel-open');
+    // Sidebar toggle hidden while panel open (display none OR visibility hidden on mobile)
+    cy.get('#sidebar-toggle').should(($btn) => {
+      const style = getComputedStyle($btn[0]);
+      expect(style.display === 'none' || style.visibility === 'hidden').to.be.true;
     });
+    // Click outside (body) to close panel
+    cy.get('body').click(10, 100, { force: true });
+    cy.get('body').should('not.have.class', 'character-panel-open');
+    // Toggle visible again because sidebar still collapsed
+    cy.get('#sidebar-toggle').should(($btn) => {
+      const style = getComputedStyle($btn[0]);
+      expect(['inline-block', 'block']).to.include(style.display);
+      expect(style.visibility).to.not.equal('hidden');
+    }).click();
+    cy.get('body').should('not.have.class', 'sidebar-collapsed');
   });
 });
 

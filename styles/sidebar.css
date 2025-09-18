@@ -119,6 +119,9 @@ body.sidebar-collapsed #sidebar-resizer {
   background: rgba(212, 175, 55, 0.3);
 }
 
+/* Mutual exclusivity: hide sidebar toggle whenever character panel is open (desktop & mobile) */
+body.character-panel-open .sidebar-toggle { display: none !important; }
+
 body.resizing {
   cursor: col-resize;
   user-select: none;
@@ -151,6 +154,7 @@ body.resizing {
     top: 12px;
     left: 12px;
     z-index: 2001;
+    display: inline-block;
   }
 
   .sidebar-backdrop {
@@ -170,9 +174,8 @@ body.resizing {
     transform: translateX(-100%) !important;
   }
 
-  body.sidebar-collapsed .sidebar-toggle {
-    display: inline-block;
-  }
+  body.sidebar-open .sidebar-toggle,
+  body.character-panel-open .sidebar-toggle { display: none; }
 }
 
 /* History lists in sidebar */
