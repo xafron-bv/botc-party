@@ -22,7 +22,7 @@ describe('Start Game button conditional reset', () => {
 
   it('Player mode: Start Game resets grimoire (clears characters/reminders/death)', () => {
     preparePlayers(5);
-  // Assign a character and death state to first player
+    // Assign a character and death state to first player
     cy.get('#player-circle li .player-token').first().click();
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
@@ -40,9 +40,9 @@ describe('Start Game button conditional reset', () => {
     cy.get('#mode-player').check({ force: true });
     cy.get('#start-game').should('not.be.disabled').click({ force: true });
 
-  // After starting game in player mode we expect a reset state: characters cleared, not dead
-  cy.get('#player-circle li .player-token').first().should('not.have.class', 'has-character');
-  cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
+    // After starting game in player mode we expect a reset state: characters cleared, not dead
+    cy.get('#player-circle li .player-token').first().should('not.have.class', 'has-character');
+    cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
 
   it('Storyteller mode: Start Game does NOT reset grimoire (state preserved)', () => {
@@ -65,14 +65,14 @@ describe('Start Game button conditional reset', () => {
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
       cy.get('rect, path').first().click({ force: true });
     });
-  cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
     // Ensure storyteller mode (default) and click Start Game
     cy.get('#mode-storyteller').should('be.checked');
     cy.get('#start-game').should('not.be.disabled').click({ force: true });
 
-  // After starting game in storyteller mode we expect state preserved for first player
-  cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
-  cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+    // After starting game in storyteller mode we expect state preserved for first player
+    cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
   });
 });
