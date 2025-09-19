@@ -136,7 +136,8 @@ describe('Night Order Sorting', () => {
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
 
       // Select other nights
-      cy.get('label[for="other-nights-btn"]').click();
+      // Use single phase toggle button instead of label buttons
+      cy.get('#night-phase-toggle').click();
     });
 
     it('should display characters sorted by other night order', () => {
@@ -183,13 +184,10 @@ describe('Night Order Sorting', () => {
       cy.get('[data-testid="night-phase-selector"]').should('exist');
       cy.get('[data-testid="night-phase-selector"]').should('be.visible');
 
-      // Should have first night and other nights radio buttons
+      // Radios still exist (hidden) and toggle button present
       cy.get('#first-night-btn').should('exist');
       cy.get('#other-nights-btn').should('exist');
-      cy.get('label[for="first-night-btn"]').should('contain', 'First Night');
-      cy.get('label[for="other-nights-btn"]').should('contain', 'Other Nights');
-
-      // Default to first night
+      cy.get('#night-phase-toggle').should('contain', 'First Night');
       cy.get('#first-night-btn').should('be.checked');
 
       // Disable night order sorting
@@ -204,7 +202,7 @@ describe('Night Order Sorting', () => {
     it('should remember night order sorting preference across page reloads', () => {
       // Enable night order sorting
       cy.get('[data-testid="night-order-sort-checkbox"]').click();
-      cy.get('label[for="other-nights-btn"]').click();
+      cy.get('#night-phase-toggle').click();
 
       // Reload the page
       cy.reload();

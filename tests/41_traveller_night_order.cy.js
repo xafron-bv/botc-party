@@ -44,7 +44,9 @@ describe('Traveller Night Order Integration', () => {
     cy.contains('#load-status', 'Custom script loaded successfully!', { timeout: 15000 }).should('exist');
 
     cy.get('[data-testid="night-order-sort-checkbox"]').click();
-    cy.get('label[for="other-nights-btn"]').click();
+    cy.get('#night-phase-toggle').should('contain', 'First Night');
+    cy.get('#night-phase-toggle').click();
+    cy.get('#night-phase-toggle').should('contain', 'Other Nights');
 
     cy.contains('#character-sheet .role .name', 'Buccaneer', { timeout: 15000 }).should('exist');
     cy.contains('#character-sheet .role .name', 'Kraken', { timeout: 15000 }).should('exist');
