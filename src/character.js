@@ -129,6 +129,11 @@ export function assignCharacter({ grimoireState, roleId }) {
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
   const characterModal = document.getElementById('character-modal');
   grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
+  // Always include travellers explicitly present in the script
+  if (grimoireState.scriptTravellerRoles) {
+    grimoireState.allRoles = { ...grimoireState.allRoles, ...grimoireState.scriptTravellerRoles };
+  }
+  // Include all travellers from the dataset only if the toggle is on
   if (grimoireState.includeTravellers) {
     grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
   }
@@ -183,7 +188,8 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         if (canonicalId && roleLookup[canonicalId]) {
           const role = roleLookup[canonicalId];
           if (role.team === 'traveller') {
-            grimoireState.extraTravellerRoles[canonicalId] = role;
+            grimoireState.extraTravellerRoles[canonicalId] = role; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[canonicalId] = role; // Explicitly in script
           } else {
             grimoireState.baseRoles[canonicalId] = role;
           }
@@ -198,25 +204,37 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         if (canonicalId && roleLookup[canonicalId]) {
           const role = roleLookup[canonicalId];
           if (role.team === 'traveller') {
-            grimoireState.extraTravellerRoles[canonicalId] = role;
+            grimoireState.extraTravellerRoles[canonicalId] = role; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[canonicalId] = role; // Explicitly in script
           } else {
             grimoireState.baseRoles[canonicalId] = role;
           }
           console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
         } else if (characterItem.name && characterItem.team && characterItem.ability) {
+          // Support image being an array (common in some homebrew exports). Use the first valid string.
+          let img = characterItem.image;
+          if (Array.isArray(img)) {
+            img = img.find(v => typeof v === 'string' && v.trim().length > 0) || null;
+          }
           const customRole = {
             id: characterItem.id,
             name: characterItem.name,
             team: String(characterItem.team || '').toLowerCase(),
             ability: characterItem.ability,
-            image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
+            image: img ? resolveAssetPath(img) : './assets/img/token-BqDQdWeO.webp'
           };
           if (characterItem.reminders) customRole.reminders = characterItem.reminders;
           if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
           if (characterItem.setup !== undefined) customRole.setup = characterItem.setup;
           if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
+          // Preserve night order properties if provided in custom script objects so night order logic works
+          if (typeof characterItem.firstNight === 'number') customRole.firstNight = characterItem.firstNight;
+          if (typeof characterItem.otherNight === 'number') customRole.otherNight = characterItem.otherNight;
+          if (typeof characterItem.firstNightReminder === 'string') customRole.firstNightReminder = characterItem.firstNightReminder;
+          if (typeof characterItem.otherNightReminder === 'string') customRole.otherNightReminder = characterItem.otherNightReminder;
           if (customRole.team === 'traveller') {
-            grimoireState.extraTravellerRoles[characterItem.id] = customRole;
+            grimoireState.extraTravellerRoles[characterItem.id] = customRole; // All travellers (toggle pool)
+            grimoireState.scriptTravellerRoles[characterItem.id] = customRole; // Explicitly in script
           } else {
             grimoireState.baseRoles[characterItem.id] = customRole;
           }
@@ -242,15 +260,26 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
       } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
         // Handle custom character objects even in error case
         if (characterItem.name && characterItem.team && characterItem.ability) {
+          let img = characterItem.image;
+          if (Array.isArray(img)) {
+            img = img.find(v => typeof v === 'string' && v.trim().length > 0) || null;
+          }
           const customFallback = {
             id: characterItem.id,
             name: characterItem.name,
             team: String(characterItem.team || '').toLowerCase(),
             ability: characterItem.ability,
-            image: characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp'
+            image: img ? resolveAssetPath(img) : './assets/img/token-BqDQdWeO.webp'
           };
+          if (typeof characterItem.firstNight === 'number') customFallback.firstNight = characterItem.firstNight;
+          if (typeof characterItem.otherNight === 'number') customFallback.otherNight = characterItem.otherNight;
+          if (typeof characterItem.firstNightReminder === 'string') customFallback.firstNightReminder = characterItem.firstNightReminder;
+          if (typeof characterItem.otherNightReminder === 'string') customFallback.otherNightReminder = characterItem.otherNightReminder;
           if (customFallback.team === 'traveller') {
             grimoireState.extraTravellerRoles[characterItem.id] = customFallback;
+            if (grimoireState.scriptTravellerRoles) {
+              grimoireState.scriptTravellerRoles[characterItem.id] = customFallback;
+            }
           } else {
             grimoireState.baseRoles[characterItem.id] = customFallback;
           }

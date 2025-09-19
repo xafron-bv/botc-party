@@ -28,15 +28,9 @@ export async function displayScript({ data, grimoireState }) {
     // Separate characters into different categories
     const nightOrderCharacters = [];
     const noNightOrderCharacters = [];
-    const travellers = [];
-    const fabled = [];
 
     Object.values(grimoireState.allRoles).forEach(role => {
-      if (role.team === 'traveller') {
-        travellers.push(role);
-      } else if (role.team === 'fabled') {
-        fabled.push(role);
-      } else if (role[nightOrderKey] && role[nightOrderKey] > 0) {
+      if (role[nightOrderKey] && role[nightOrderKey] > 0) {
         nightOrderCharacters.push(role);
       } else {
         noNightOrderCharacters.push(role);
@@ -47,7 +41,8 @@ export async function displayScript({ data, grimoireState }) {
     nightOrderCharacters.sort((a, b) => a[nightOrderKey] - b[nightOrderKey]);
 
     // Display all characters in order
-    const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters, ...travellers, ...fabled];
+    // Travelers & fabled now already included appropriately by night order or fallback grouping
+    const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters];
 
     allCharactersInOrder.forEach(role => {
       const roleEl = document.createElement('div');
@@ -182,6 +177,8 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
   grimoireState.allRoles = {};
   grimoireState.baseRoles = {};
   grimoireState.extraTravellerRoles = {};
+  // Travellers explicitly included in the script (should always be shown even if the traveller toggle is off)
+  grimoireState.scriptTravellerRoles = {};
   // Extract metadata name if present
   try {
     const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
