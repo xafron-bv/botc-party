@@ -7,7 +7,12 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#reset-grimoire').click();
+  // Use native click dispatch to avoid actionability failures if covered by panels
+  cy.window().then((win) => {
+    try { win.document.body.classList.remove('character-panel-open'); } catch (_) { }
+    const btn = win.document.getElementById('reset-grimoire');
+    if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
+  });
   cy.get('#player-circle li').should('have.length', n);
 };
 

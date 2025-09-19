@@ -16,6 +16,17 @@
 </head>
 
 <body>
+  <script>
+    (function(){
+      try {
+        if (localStorage.getItem('characterPanelOpen') === '1') {
+          // Apply before first paint so sidebar toggle never flashes
+          var apply = function(){ document.body && document.body.classList.add('character-panel-open'); };
+          if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply, { once: true });
+        }
+      } catch(_){ /* ignore */ }
+    })();
+  </script>
   <div id="app">
     <div id="sidebar">
       <button class="button sidebar-close" id="sidebar-close" aria-label="Close sidebar">Close Sidebar</button>
@@ -64,27 +75,6 @@
       </div>
 
       <div class="section">
-        <h3>Character Sheet</h3>
-        <div style="margin-bottom: 8px;">
-          <label><input type="checkbox" id="include-travellers" data-testid="include-travellers-checkbox"> Include
-            Travellers</label>
-        </div>
-        <div style="margin-bottom: 8px;" class="night-order-controls">
-          <label data-testid="night-order-sort-label">
-            <input type="checkbox" id="night-order-sort" data-testid="night-order-sort-checkbox"> Sort by night order
-          </label>
-          <div class="night-phase-buttons" data-testid="night-phase-selector">
-            <input type="radio" name="night-phase" id="first-night-btn" value="first-night" checked>
-            <label for="first-night-btn">First Night</label>
-            <input type="radio" name="night-phase" id="other-nights-btn" value="other-nights">
-            <label for="other-nights-btn">Other Nights</label>
-          </div>
-        </div>
-        <div id="character-sheet">
-          <p>Load a script to see available characters.</p>
-        </div>
-      </div>
-      <div class="section">
         <h3>Background</h3>
         <div>
           <select id="background-select">
@@ -125,6 +115,7 @@
     <div id="grimoire">
       <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Toggle sidebar" aria-pressed="false">Close
         Sidebar</button>
+  <button id="character-panel-toggle" class="button character-panel-toggle" aria-label="Toggle script panel" aria-pressed="false" data-testid="character-panel-toggle">Script</button>
       <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle"
         aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
         <i class="fas fa-moon"></i>
@@ -143,6 +134,29 @@
             aria-label="Add next phase">+</button>
         </div>
       </div>
+      <aside id="character-panel" class="character-panel" aria-label="Character panel" aria-hidden="true">
+        <div class="character-panel-header">
+          <h3>Script</h3>
+          <button id="character-panel-close" class="panel-close" aria-label="Close character panel">&times;</button>
+        </div>
+        <div class="panel-controls">
+          <label><input type="checkbox" id="include-travellers" data-testid="include-travellers-checkbox"> Include Travellers</label>
+          <div class="night-order-controls">
+            <label data-testid="night-order-sort-label">
+              <input type="checkbox" id="night-order-sort" data-testid="night-order-sort-checkbox"> Sort by night order
+            </label>
+            <div class="night-phase-buttons" data-testid="night-phase-selector">
+              <!-- Hidden radios retained for state/tests if needed -->
+              <input type="radio" name="night-phase" id="first-night-btn" value="first-night" checked class="sr-only">
+              <input type="radio" name="night-phase" id="other-nights-btn" value="other-nights" class="sr-only">
+              <button type="button" id="night-phase-toggle" aria-live="polite" aria-label="Toggle night phase" data-testid="night-phase-toggle">First Night</button>
+            </div>
+          </div>
+        </div>
+        <div id="character-sheet" class="panel-body">
+          <p>Load a script to see available characters.</p>
+        </div>
+      </aside>
     </div>
   </div>
 

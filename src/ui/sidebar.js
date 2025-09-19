@@ -75,20 +75,46 @@ export function initSidebarToggle({
   sidebarEl,
   sidebarResizer,
   repositionPlayers,
-  grimoireState
+  grimoireState,
+  characterPanel,
+  characterPanelToggleBtn
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';
+  const ensureMutualExclusivity = () => {
+    // If both somehow open, prefer character panel OR enforce collapse of the other.
+    const panelOpen = document.body.classList.contains('character-panel-open');
+    const sidebarCollapsed = document.body.classList.contains('sidebar-collapsed');
+    if (panelOpen && !sidebarCollapsed) {
+      // Collapse sidebar silently
+      document.body.classList.add('sidebar-collapsed');
+      document.body.classList.remove('sidebar-open');
+      sidebarToggleBtn.style.display = 'inline-block';
+      sidebarToggleBtn.setAttribute('aria-pressed', 'false');
+    }
+    if (!panelOpen && sidebarCollapsed) {
+      // Toggle visibility rule remains handled in applyCollapsed; nothing extra.
+    }
+  };
   const applyCollapsed = (collapsed) => {
     document.body.classList.toggle('sidebar-collapsed', collapsed);
     const useOverlay = prefersOverlaySidebar.matches;
     document.body.classList.toggle('sidebar-open', !collapsed && useOverlay);
     if (sidebarBackdrop) sidebarBackdrop.style.display = (!collapsed && useOverlay) ? 'block' : 'none';
     sidebarToggleBtn.textContent = 'Open Sidebar';
+    // Show toggle whenever sidebar is collapsed. Desktop: always visible even if character panel open.
+    // Mobile hiding when character panel open handled purely in CSS media query.
     sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
     sidebarToggleBtn.setAttribute('aria-pressed', String(!collapsed));
     localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
     requestAnimationFrame(() => repositionPlayers && repositionPlayers({ grimoireState }));
+    if (!collapsed && document.body.classList.contains('character-panel-open')) {
+      // Close character panel to honor mutual exclusivity
+      document.body.classList.remove('character-panel-open');
+      if (characterPanel) characterPanel.setAttribute('aria-hidden', 'true');
+      if (characterPanelToggleBtn) characterPanelToggleBtn.setAttribute('aria-pressed', 'false');
+    }
+    ensureMutualExclusivity();
   };
   const stored = localStorage.getItem(COLLAPSE_KEY);
   const startCollapsed = stored === '1' || prefersOverlaySidebar.matches;
@@ -113,5 +139,7 @@ export function initSidebarToggle({
     document.addEventListener('click', handleOutsideClick, true);
     document.addEventListener('touchstart', handleOutsideClick, { passive: true, capture: true });
   }
+  // Expose helper globally so panel code can request exclusivity after it opens
+  try { window.ensureSidebarPanelExclusivity = ensureMutualExclusivity; } catch (_) { }
 }
 

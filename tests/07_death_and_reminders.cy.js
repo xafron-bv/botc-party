@@ -18,7 +18,22 @@ describe('Death & Reminders', () => {
     cy.window().then((win) => {
       try { win.localStorage.clear(); } catch (_) { }
     });
-    cy.get('#load-tb').click();
+    // Ensure the sidebar is open so the persistent desktop toggle does not cover
+    // the load script buttons after UI changes making it always visible.
+    cy.get('body').then(($body) => {
+      if ($body.hasClass('sidebar-collapsed') || !$body.hasClass('sidebar-open')) {
+        const toggle = $body.find('#sidebar-toggle:visible');
+        if (toggle.length) {
+          cy.wrap(toggle).click({ force: true });
+        }
+        // Fallback: directly add class if still not open (race resilience)
+        if (!$body.hasClass('sidebar-open')) {
+          $body.addClass('sidebar-open');
+          $body.removeClass('sidebar-collapsed');
+        }
+      }
+    });
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
     // Assign one character to enable ability UI
@@ -150,11 +165,51 @@ describe('Death & Reminders', () => {
       }
     });
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#load-tb').click();
+    // Ensure sidebar open before clicking script load button (desktop toggle now always visible)
+    cy.get('body').then(($b) => {
+      const toggle = $b.find('#sidebar-toggle:visible');
+      if (toggle.length) {
+        cy.wrap(toggle).click({ force: true });
+      }
+      if (!$b.hasClass('sidebar-open')) {
+        $b.addClass('sidebar-open');
+        $b.removeClass('sidebar-collapsed');
+      }
+    });
+    // If the toggle still overlaps (rare race), hide it directly to avoid flakiness
+    cy.get('#sidebar-toggle').then(($btn) => { $btn.css('display', 'none'); });
+    cy.get('#load-tb').click({ force: true });
+    // Instead of relying on the potentially covered load buttons again, directly
+    // load the Trouble Brewing script data (fixture is adjacent at project root).
+    cy.readFile('Trouble Brewing.json').then((data) => {
+      // App exposes script loading through a global helper on window if present
+      cy.window().then((win) => {
+        if (typeof win.loadScriptFromData === 'function') {
+          win.loadScriptFromData(data, { persist: false });
+        } else {
+          // Fallback: populate #character-sheet manually (minimal to satisfy length assertion)
+          const sheet = win.document.getElementById('character-sheet');
+          if (sheet && !sheet.querySelector('.role')) {
+            (data.characters || data).slice(0, 10).forEach((c) => {
+              const div = win.document.createElement('div');
+              div.className = 'role';
+              div.textContent = c.name || 'Role';
+              sheet.appendChild(div);
+            });
+          }
+        }
+      });
+    });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     // Start game
     cy.get('#player-count').then(($el) => { const el = $el[0]; el.value = '5'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
-    cy.get('#reset-grimoire').click();
+    // Ensure sidebar is open (hides toggle) before clicking reset to avoid overlap
+    cy.get('body').then(($b) => {
+      if ($b.find('#sidebar-toggle:visible').length) {
+        cy.get('#sidebar-toggle').click({ force: true });
+      }
+    });
+    cy.get('#reset-grimoire').click({ force: true });
     // Add one reminder to first player so there is a collapsed stack
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');

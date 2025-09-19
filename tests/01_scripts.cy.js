@@ -4,7 +4,7 @@ describe('Scripts', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
@@ -37,6 +37,8 @@ describe('Scripts', () => {
         updatedAt: Date.now()
       };
       win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([entry]));
+      // Ensure character panel starts open for this test so role elements are visible
+      win.localStorage.setItem('characterPanelOpen', '1');
     });
     cy.reload();
     cy.contains('#script-history-list .history-item .history-name', 'Test Script', { timeout: 10000 }).should('exist');

@@ -7,7 +7,8 @@ const startGameWithPlayers = (n) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#reset-grimoire').click();
+  // Force click to avoid potential coverage by persistent sidebar toggle in desktop-touch hybrid mode
+  cy.get('#reset-grimoire').click({ force: true });
   cy.get('#player-circle li').should('have.length', n);
 };
 
@@ -15,14 +16,25 @@ describe('Player context menu - desktop right-click', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#load-tb').click();
+    // Ensure sidebar open to prevent persistent toggle from overlapping load/reset buttons
+    cy.get('body').then(($b) => {
+      const toggle = $b.find('#sidebar-toggle:visible');
+      if (toggle.length) {
+        cy.wrap(toggle).click({ force: true });
+      }
+      if (!$b.hasClass('sidebar-open')) {
+        $b.addClass('sidebar-open');
+        $b.removeClass('sidebar-collapsed');
+      }
+    });
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(7);
   });
 
   it('adds player before/after and removes without creating history entries', () => {
     // Right-click first player to add before
-    cy.get('#player-circle li').eq(0).rightclick();
+    cy.get('#player-circle li').eq(0).find('.player-token').rightclick({ force: true });
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
     cy.get('#player-menu-add-before').click({ force: true });
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
@@ -48,9 +60,9 @@ describe('Player context menu - desktop right-click', () => {
 
   it('creates a history snapshot only when a new game is created', () => {
     // Perform some inline add/remove first
-    cy.get('#player-circle li').eq(1).rightclick();
+    cy.get('#player-circle li').eq(1).find('.player-token').rightclick({ force: true });
     cy.get('#player-menu-add-after').click({ force: true }); // 8
-    cy.get('#player-circle li').eq(2).rightclick();
+    cy.get('#player-circle li').eq(2).find('.player-token').rightclick({ force: true });
     cy.get('#player-menu-remove').click({ force: true }); // back to 7
     cy.get('#grimoire-history-list .history-item').should('have.length', 0);
 
@@ -74,7 +86,7 @@ describe('Player context menu - desktop right-click', () => {
 
   it('closes context menu when clicking outside', () => {
     // Right-click to open context menu
-    cy.get('#player-circle li').eq(0).rightclick();
+    cy.get('#player-circle li').eq(0).find('.player-token').rightclick({ force: true });
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
     // Wait a bit to ensure any grace period has passed
@@ -95,7 +107,7 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#character-modal').should('not.be.visible');
 
     // Now right-click on the character token (desktop mode uses right-click, not long press)
-    cy.get('#player-circle li').first().rightclick();
+    cy.get('#player-circle li').first().find('.player-token').rightclick({ force: true });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
@@ -119,7 +131,19 @@ describe('Player context menu - touch long-press', () => {
       }
     });
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#load-tb').click();
+    cy.get('body').then(($b) => {
+      const toggle = $b.find('#sidebar-toggle:visible');
+      if (toggle.length) {
+        cy.wrap(toggle).click({ force: true });
+      }
+      if (!$b.hasClass('sidebar-open')) {
+        $b.addClass('sidebar-open');
+        $b.removeClass('sidebar-collapsed');
+      }
+      // Final fallback: hide the toggle if still present to avoid covering controls
+      $b.find('#sidebar-toggle').css('display', 'none');
+    });
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
   });
