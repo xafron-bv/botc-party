@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v63';
+const CACHE_NAME = 'botc-party-grimoire-v64';
 
 // Dynamic caching patterns instead of hardcoded file lists
 const CACHE_PATTERNS = {
@@ -71,7 +71,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
           return preloaded;
         }
-      } catch (_) {}
+      } catch (_) { }
 
       try {
         const networkResponse = await fetch(event.request);
