@@ -63,27 +63,31 @@ export function repositionPlayers({ grimoireState }) {
       if (norm < 0) norm += 2 * Math.PI;
       // Determine quadrant (0: NE, 1: SE, 2: SW, 3: NW) based on standard math axes with 0 at east; we shift by +PI/2 to align
       // Easier: use sin/cos signs relative to center: NE: cos>0 & sin<0, SE: cos>0 & sin>=0, SW: cos<=0 & sin>0, NW: cos<0 & sin<=0
-      const cx = Math.cos(radialAngle);
-      const cy = Math.sin(radialAngle);
-      const isNE = cx > 0 && cy < 0;
-      const isSW = cx < 0 && cy > 0; // strictly negative cos, positive sin
-      const tangentAngleDeg = (radialAngle * 180 / Math.PI) + 90; // tangent direction
-      playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
-      playerNameEl.classList.add('curved-quadrant');
-      // Shift outward so the rotated tag sits outside the token circle
-      try {
-        const tokenEl = listItem.querySelector('.player-token');
-        const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
-        // base radial distance for name tag center (approx original offset 0.8 token sizes beyond center)
-        const baseOffset = (tokenSize * 0.8)
-        const outward = baseOffset;
-        // Convert radial position to local coordinates relative to listItem center (which is token center)
-        const dx = Math.cos(radialAngle) * outward;
-        const dy = Math.sin(radialAngle) * outward;
-        // Position name relative to token center; listItem itself is centered on token via translate
-        playerNameEl.style.left = `calc(50% + ${dx}px)`;
-        playerNameEl.style.top = `calc(50% + ${dy}px)`;
-      } catch (_e) { /* ignore positioning errors */ }
+      // Map radial angle to 0..360 degrees (0 = east, increasing CCW)
+      const deg = radialAngle * 180 / Math.PI;
+      const degNorm = ((deg % 360) + 360) % 360;
+      // Apply rotation ONLY for players between 135° and 180° (inclusive)
+      const isTargetArc = degNorm >= 135 && degNorm <= 180;
+      if (isTargetArc) {
+        const tangentAngleDeg = deg + 90; // tangent direction
+        playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
+        playerNameEl.classList.add('curved-quadrant');
+        try {
+          const tokenEl = listItem.querySelector('.player-token');
+          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+          const baseOffset = tokenSize * 0.7; // tuned outward distance
+          const outward = baseOffset;
+          const dx = Math.cos(radialAngle) * outward;
+          const dy = Math.sin(radialAngle) * outward;
+          playerNameEl.style.left = `calc(50% + ${dx}px)`;
+          playerNameEl.style.top = `calc(50% + ${dy}px)`;
+        } catch (_e) { /* ignore positioning errors */ }
+      } else {
+        playerNameEl.style.setProperty('--name-rotate', '0deg');
+        playerNameEl.classList.remove('curved-quadrant');
+        playerNameEl.style.left = '';
+        playerNameEl.style.top = '';
+      }
     }
     let visibleCount = 0;
     if (players[i] && players[i].reminders) {
