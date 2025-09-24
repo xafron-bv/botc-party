@@ -192,10 +192,12 @@ export function initPlayerSetup({ grimoireState }) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
     numberPickerGrid.innerHTML = '';
     const n = grimoireState.players.length;
+    // With simplified approach, bag itself is shuffled at selection start; numbers map 1..n to indices 0..n-1 directly.
     for (let i = 1; i <= n; i++) {
       const btn = document.createElement('button');
       btn.className = 'button number';
       btn.textContent = String(i);
+      // Map visible number i to bag index i-1 directly
       const bagIndex = i - 1;
       const alreadyUsed = (grimoireState.playerSetup.assignments || []).includes(bagIndex);
       if (alreadyUsed) btn.classList.add('disabled');
@@ -246,6 +248,7 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.className = 'number-overlay';
             li.appendChild(overlay);
           }
+          // Visible number is just bag index + 1 in simplified model
           overlay.textContent = String(bagIndex + 1);
           overlay.classList.add('disabled');
           overlay.onclick = null;
@@ -316,6 +319,7 @@ export function initPlayerSetup({ grimoireState }) {
     closePlayerSetupBtn.addEventListener('click', () => {
       playerSetupPanel.style.display = 'none';
       try { document.body.classList.remove('player-setup-open'); } catch (_) { }
+      try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
     });
   }
   if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
@@ -371,6 +375,14 @@ export function initPlayerSetup({ grimoireState }) {
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
     grimoireState.playerSetup.selectionActive = true;
+    // Simplified: directly shuffle the bag so numbers 1..N correspond to shuffled characters
+    try {
+      const list = grimoireState.playerSetup.bag || [];
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+    } catch (_) { }
     // Reflect selection active on body for CSS (hide overlay & enable interaction)
     try { document.body.classList.add('selection-active'); } catch (_) { }
     // Restore default overlay text when a new selection session begins
@@ -410,8 +422,9 @@ export function initPlayerSetup({ grimoireState }) {
         }
       });
     }
+    try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
   });
-  if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); });
+  if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { } });
   // Player Setup no longer directly reveals; sidebar toggle now handles hide/show.
 
   // Close by clicking outside modal content to match other modals
@@ -477,6 +490,7 @@ export function initPlayerSetup({ grimoireState }) {
                 openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
               }
             } catch (_) { }
+            try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
           }
         }
       } catch (_) { }

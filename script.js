@@ -106,6 +106,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     gameStarted: false
   };
 
+  // Dynamic pre-game overlay messaging depending on required next action
+  function updatePreGameOverlayMessage() {
+    const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
+    if (!overlayInner) return;
+    // Only update when in pre-game (players exist, game not started) and overlay would be visible
+    if (!document.body.classList.contains('pre-game')) return;
+    if (document.body.classList.contains('selection-active')) return; // hidden during selection
+    if (document.body.classList.contains('player-setup-open')) return; // user configuring
+    const ps = grimoireState.playerSetup || {};
+    const players = grimoireState.players || [];
+    const totalPlayers = players.length;
+    const bag = Array.isArray(ps.bag) ? ps.bag : [];
+
+    // Post-winner gating
+    if (grimoireState.winner) {
+      overlayInner.innerHTML = '<h2>Game Finished</h2><p>Reset the grimoire to start a new game.</p>';
+    } else if (ps.selectionComplete) {
+      overlayInner.innerHTML = '<h2>Number Selection Complete</h2><p>Hand the device back to the storyteller. Review roles (optional) and press Start Game when ready.</p>';
+    } else if (bag.length !== totalPlayers || totalPlayers === 0) {
+      overlayInner.innerHTML = '<h2>Configure Player Setup</h2><p>Open Player Setup to choose or randomize characters so that the bag matches the player count, then start number selection.</p>';
+    } else if (!ps.selectionActive) {
+      overlayInner.innerHTML = '<h2>Ready for Number Selection</h2><p>Click Start Number Selection to let each player privately pick their number.</p>';
+    }
+  }
+  try { window.updatePreGameOverlayMessage = updatePreGameOverlayMessage; } catch (_) { }
+
   // Helper to apply/remove pre-game class (players exist but game not started)
   function updatePreGameClass() {
     try {
@@ -631,6 +657,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Update pre-game class whenever buttons update (covers many state changes)
     updatePreGameClass();
+    try { updatePreGameOverlayMessage(); } catch (_) { }
   }
 
   // Initial state
