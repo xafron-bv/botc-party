@@ -1,15 +1,7 @@
 // Cypress E2E tests - Traveler player count adjustment
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+// Use shared cy.setupGame helper for initializing player counts (handles Start Game gating)
+const startGameWithPlayers = (n) => cy.setupGame({ players: n, loadScript: false });
 
 const assignCharacterToPlayer = (playerIndex, characterName) => {
   cy.get('#player-circle li .player-token').eq(playerIndex).click({ force: true });
@@ -26,10 +18,12 @@ describe('Traveler Player Count Adjustment', () => {
     cy.window().then((win) => {
       try { win.localStorage.clear(); } catch (_) { }
     });
-    cy.get('#load-tb').click();
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     // Enable travelers
     cy.get('#include-travellers').check({ force: true }).should('be.checked');
+    // Default start with a baseline set (some tests will override)
+    cy.setupGame({ players: 12, loadScript: false });
   });
 
   it('should show normal setup for 12 players without travelers', () => {

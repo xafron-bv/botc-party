@@ -1,15 +1,6 @@
 // Cypress E2E tests - Death ribbon, text reminders, modal behaviors, filtering
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+// Use shared cy.setupGame helper for pre-game gating
 
 describe('Death & Reminders', () => {
   beforeEach(() => {
@@ -35,9 +26,9 @@ describe('Death & Reminders', () => {
     });
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    startGameWithPlayers(5);
-    // Assign one character to enable ability UI (click the inner death-overlay to avoid ribbon interception)
-    cy.get('#player-circle li .player-token').first().find('.death-overlay').click({ force: true });
+    cy.setupGame({ players: 5, loadScript: false });
+    // Assign one character to enable ability UI
+    cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
@@ -175,51 +166,10 @@ describe('Death & Reminders', () => {
       }
     });
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Ensure sidebar open before clicking script load button (desktop toggle now always visible)
-    cy.get('body').then(($b) => {
-      const toggle = $b.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-      if (!$b.hasClass('sidebar-open')) {
-        $b.addClass('sidebar-open');
-        $b.removeClass('sidebar-collapsed');
-      }
-    });
-    // If the toggle still overlaps (rare race), hide it directly to avoid flakiness
-    cy.get('#sidebar-toggle').then(($btn) => { $btn.css('display', 'none'); });
+    // Load Trouble Brewing and start game using shared helper (handles pre-game gating)
     cy.get('#load-tb').click({ force: true });
-    // Instead of relying on the potentially covered load buttons again, directly
-    // load the Trouble Brewing script data (fixture is adjacent at project root).
-    cy.readFile('Trouble Brewing.json').then((data) => {
-      // App exposes script loading through a global helper on window if present
-      cy.window().then((win) => {
-        if (typeof win.loadScriptFromData === 'function') {
-          win.loadScriptFromData(data, { persist: false });
-        } else {
-          // Fallback: populate #character-sheet manually (minimal to satisfy length assertion)
-          const sheet = win.document.getElementById('character-sheet');
-          if (sheet && !sheet.querySelector('.role')) {
-            (data.characters || data).slice(0, 10).forEach((c) => {
-              const div = win.document.createElement('div');
-              div.className = 'role';
-              div.textContent = c.name || 'Role';
-              sheet.appendChild(div);
-            });
-          }
-        }
-      });
-    });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    // Start game
-    cy.get('#player-count').then(($el) => { const el = $el[0]; el.value = '5'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
-    // Ensure sidebar is open (hides toggle) before clicking reset to avoid overlap
-    cy.get('body').then(($b) => {
-      if ($b.find('#sidebar-toggle:visible').length) {
-        cy.get('#sidebar-toggle').click({ force: true });
-      }
-    });
-    cy.get('#reset-grimoire').click({ force: true });
+    cy.setupGame({ players: 5, loadScript: false });
     // Add one reminder to first player so there is a collapsed stack
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');

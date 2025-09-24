@@ -47,6 +47,10 @@ export function createBluffToken({ grimoireState, index }) {
     if (e.target.closest('.ability-info-icon')) {
       return;
     }
+    // Ignore if game not started (pre-game state)
+    if (!grimoireState.gameStarted) {
+      return;
+    }
     // Ignore click if it was triggered by a touch event
     if (touchOccurred) {
       touchOccurred = false;
@@ -96,6 +100,9 @@ export function createBluffToken({ grimoireState, index }) {
     token.addEventListener('touchend', (e) => {
       // Don't handle if clicking on info icon
       if (e.target.closest('.ability-info-icon')) {
+        return;
+      }
+      if (!grimoireState.gameStarted) {
         return;
       }
 

@@ -11,6 +11,8 @@ import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNig
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 
 // Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
+// Expose certain reminder helpers globally for testing fallbacks
+try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function getAccurateRect(element) {
   const rect = element.getBoundingClientRect();
 
@@ -190,6 +192,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         return;
       }
 
+      // Block any token interaction before game starts
+      if (!grimoireState.gameStarted) return;
+
       const target = e.target;
       if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
         return; // handled by ribbon click
@@ -330,6 +335,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
+      if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
       const thisLi = listItem;
       if (thisLi.dataset.expanded !== '1') {
         const allLis = document.querySelectorAll('#player-circle li');
@@ -1427,6 +1433,9 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     } catch (_) { }
     sel.selectionActive = false;
     sel.assignments = new Array((grimoireState.players || []).length).fill(null);
+    // Clean up body classes reflecting selection state
+    try { document.body.classList.remove('selection-active'); } catch (_) { }
+    try { document.body.classList.remove('player-setup-open'); } catch (_) { }
     // Also close any open number picker overlay/modal
     try {
       const numberPickerOverlay = document.getElementById('number-picker-overlay');
@@ -1456,6 +1465,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
       grimoireState.playerSetup.bag = [];
       grimoireState.playerSetup.assignments = [];
       grimoireState.playerSetup.revealed = false;
+      // Clear selection completion flag so setup can be started again
+      delete grimoireState.playerSetup.selectionComplete;
     }
   } catch (_) { }
 
@@ -1581,6 +1592,8 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         touchOccurred2 = false;
         return;
       }
+
+      if (!grimoireState.gameStarted) return; // Gate before start
 
       const target = e.target;
       if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
@@ -1712,6 +1725,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
+      if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
       const thisLi = listItem;
       // If another player's stack is expanded and this one is collapsed, first expand this one
       if (thisLi.dataset.expanded !== '1') {

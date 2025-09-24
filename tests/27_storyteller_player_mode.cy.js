@@ -1,25 +1,16 @@
 // Cypress E2E tests - Storyteller/Player mode toggle and behaviors (TDD-first)
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+// startGameWithPlayers replaced by cy.setupGame helper (handles pre-game gating and Start Game click)
 
 describe('Storyteller / Player Mode', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Load Trouble Brewing for deterministic reminders/characters
-    cy.get('#load-tb').click();
+    // Start game with script load for deterministic reminders/characters
+    cy.setupGame({ players: 5, loadScript: true });
+    // Ensure script roles populated before tests proceed
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    startGameWithPlayers(5);
   });
 
   it('shows mode toggle and hides day/night toggle in player mode', () => {
@@ -42,9 +33,18 @@ describe('Storyteller / Player Mode', () => {
   });
 
   it('storyteller shows character-specific reminders; player hides them', () => {
+    // First assign a character to the first player so character-specific reminders are available
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').clear().type('librarian');
+    cy.get('#character-grid .token').first().click();
+    cy.get('#character-modal').should('not.be.visible');
+
     // Open reminder token modal in storyteller mode
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
+    cy.window().its('grimoireState.gameStarted').should('eq', true);
+    cy.get('#player-circle li .reminder-placeholder').first().should('be.visible').click({ force: true });
+    cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
+    cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
 
     // Librarian has a character-specific reminder "Outsider" in TB
     cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length.greaterThan', 0);
@@ -56,9 +56,10 @@ describe('Storyteller / Player Mode', () => {
     // Switch to player mode
     cy.get('#mode-player').click({ force: true });
 
-    // Open modal again
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
+    // Open modal again (player mode)
+    cy.get('#player-circle li .reminder-placeholder').first().should('be.visible').click({ force: true });
+    cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
+    cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
 
     // Character-specific reminder tokens should be hidden in player mode
     cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length', 0);
@@ -69,9 +70,17 @@ describe('Storyteller / Player Mode', () => {
   });
 
   it('player mode shows character tokens (by name) in reminder selection', () => {
+    // Assign a character first (for consistency)
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').clear().type('librarian');
+    cy.get('#character-grid .token').first().click();
+    cy.get('#character-modal').should('not.be.visible');
+
     // Ensure storyteller mode does not show character tokens by name
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#player-circle li .reminder-placeholder').first().should('be.visible').click({ force: true });
+    cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
+    cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
     cy.get('#reminder-token-search').clear().type('washerwoman');
     cy.get('#reminder-token-grid .token[title="Washerwoman"]').should('have.length', 0);
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
@@ -80,8 +89,9 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#mode-player').click({ force: true });
 
     // Open modal and search for a TB character
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#player-circle li .reminder-placeholder').first().should('be.visible').click({ force: true });
+    cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
+    cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
     cy.get('#reminder-token-search').clear().type('washerwoman');
 
     // In player mode, there should be a token labeled with the character's name

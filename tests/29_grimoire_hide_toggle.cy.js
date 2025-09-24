@@ -1,14 +1,10 @@
 describe('Grimoire Hide/Show Toggle', () => {
   beforeEach(() => {
     cy.visit('/');
-    cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Ensure storyteller mode
-    cy.get('#mode-storyteller').should('exist').and('be.checked');
-    // Start game with 5 players
-    cy.get('#player-count').clear().type('5');
-    cy.get('#reset-grimoire').click();
-    cy.get('#player-circle li').should('have.length', 5);
+    // Use shared helper (after visit)
+    cy.setupGame({ players: 5, loadScript: false });
+    cy.get('#mode-storyteller').should('be.checked');
   });
 
   it('hides and shows tokens, reminders, and bluffs while keeping blank circles', () => {
@@ -41,13 +37,17 @@ describe('Grimoire Hide/Show Toggle', () => {
   });
 
   it('assigned tokens show no name/curved label and match unassigned in hidden mode', () => {
-    // Load a base script so character modal has content
-    cy.get('#load-tb').click();
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    // Assign a character to first player
-    cy.get('#player-circle li').eq(0).find('.player-token').click();
-    cy.get('#character-modal').should('be.visible');
-    cy.get('#character-grid .token').first().click();
+    // Load a base script (if not already loaded by helper) so character modal has content
+    cy.get('body').then($b => {
+      if (!$b.find('#character-sheet .role').length) {
+        cy.get('#load-tb').click({ force: true });
+        cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+      }
+    });
+    // Assign a character to first player - force click to bypass any transient overlay
+    cy.get('#player-circle li').eq(0).find('.player-token').click({ force: true });
+    cy.get('#character-modal', { timeout: 6000 }).should('be.visible');
+    cy.get('#character-grid .token').first().click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
 
     // Hide grimoire
