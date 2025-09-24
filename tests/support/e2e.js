@@ -10,17 +10,17 @@ beforeEach(() => {
 Cypress.on('window:before:load', (win) => {
   try {
     const swRegistration = {
-      update: () => {},
-      addEventListener: () => {},
-      installing: { addEventListener: () => {} }
+      update: () => { },
+      addEventListener: () => { },
+      installing: { addEventListener: () => { } }
     };
     const sw = {
       controller: null,
-      addEventListener: () => {},
+      addEventListener: () => { },
       register: () => Promise.resolve(swRegistration)
     };
     Object.defineProperty(win.navigator, 'serviceWorker', { value: sw, configurable: true });
-  } catch (_) {}
+  } catch (_) { }
 });
 
 // Custom helper commands

@@ -590,11 +590,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Disable game setup buttons when no players exist
     if (openPlayerSetupBtn) {
-      openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner;
+      const sel = grimoireState.playerSetup || {};
+      const selectionComplete = !!sel.selectionComplete;
+      openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner || selectionComplete;
       if (grimoireState.winner) {
         openPlayerSetupBtn.title = 'Reset grimoire to configure a new game';
       } else if (!hasPlayers) {
         openPlayerSetupBtn.title = 'Add players first';
+      } else if (selectionComplete) {
+        openPlayerSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
       } else {
         openPlayerSetupBtn.title = '';
       }

@@ -370,9 +370,18 @@ export function initPlayerSetup({ grimoireState }) {
     } catch (_) { }
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
-  grimoireState.playerSetup.selectionActive = true;
-  // Reflect selection active on body for CSS (hide overlay & enable interaction)
-  try { document.body.classList.add('selection-active'); } catch (_) { }
+    grimoireState.playerSetup.selectionActive = true;
+    // Reflect selection active on body for CSS (hide overlay & enable interaction)
+    try { document.body.classList.add('selection-active'); } catch (_) { }
+    // Restore default overlay text when a new selection session begins
+    try {
+      const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
+      if (overlayInner && overlayInner.dataset.initialContent) {
+        overlayInner.innerHTML = overlayInner.dataset.initialContent;
+      } else if (overlayInner && !overlayInner.dataset.initialContent) {
+        overlayInner.dataset.initialContent = overlayInner.innerHTML;
+      }
+    } catch (_) { }
     // Always reset previously selected numbers for a new selection session (local to selection flow)
     if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
@@ -442,6 +451,35 @@ export function initPlayerSetup({ grimoireState }) {
       } catch (_) { }
       playerRevealModal.style.display = 'none';
       revealCurrentPlayerIndex = null;
+
+      // After closing a reveal, if all numbers assigned, end selection and show storyteller handoff overlay
+      try {
+        const sel = grimoireState.playerSetup || {};
+        if (sel.selectionActive) {
+          const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+          const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
+          if (allAssigned) {
+            sel.selectionActive = false;
+            // Mark selection complete so other UI logic (e.g., updateButtonStates) keeps setup button disabled until reset
+            sel.selectionComplete = true;
+            try { document.body.classList.remove('selection-active'); } catch (_) { }
+            // Update overlay message to storyteller handoff prompt
+            const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
+            if (overlayInner) {
+              if (!overlayInner.dataset.initialContent) overlayInner.dataset.initialContent = overlayInner.innerHTML;
+              overlayInner.innerHTML = '<h2>Number Selection Complete</h2><p>Hand the device back to the storyteller to finish setup and start the game.</p>';
+            }
+            // Disable Start Player Setup button until a reset occurs
+            try {
+              const openSetupBtn = document.getElementById('open-player-setup');
+              if (openSetupBtn) {
+                openSetupBtn.disabled = true;
+                openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
+              }
+            } catch (_) { }
+          }
+        }
+      } catch (_) { }
     };
   }
 

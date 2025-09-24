@@ -1465,6 +1465,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
       grimoireState.playerSetup.bag = [];
       grimoireState.playerSetup.assignments = [];
       grimoireState.playerSetup.revealed = false;
+      // Clear selection completion flag so setup can be started again
+      delete grimoireState.playerSetup.selectionComplete;
     }
   } catch (_) { }
 

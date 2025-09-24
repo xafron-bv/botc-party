@@ -8,7 +8,7 @@ describe('Start Game button conditional reset', () => {
   });
 
   it('Player mode: Starting game after switching resets grimoire (clears characters/reminders/death)', () => {
-  // Game already started via beforeEach helper
+    // Game already started via beforeEach helper
     // Assign a character and death state to first player
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal', { timeout: 6000 }).should('be.visible');
@@ -36,7 +36,7 @@ describe('Start Game button conditional reset', () => {
   });
 
   it('Storyteller mode: State preserved when already started (no implicit reset)', () => {
-  // Game already started via beforeEach helper
+    // Game already started via beforeEach helper
     // Assign one character and death state, then end and restart in storyteller to ensure preservation
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal', { timeout: 6000 }).should('be.visible');
