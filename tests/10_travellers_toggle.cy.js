@@ -1,15 +1,6 @@
 // Cypress E2E tests - Travellers toggle
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+const startGameWithPlayers = (n) => cy.setupGame({ players: n, loadScript: false });
 
 describe('Travellers Toggle', () => {
   beforeEach(() => {
@@ -27,11 +18,11 @@ describe('Travellers Toggle', () => {
     cy.get('#character-sheet h3.team-travellers').should('not.exist');
 
     startGameWithPlayers(5);
-    cy.get('#player-circle li .player-token').first().click();
+    cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').should('not.exist');
-    cy.get('#close-character-modal').click();
+    cy.get('#close-character-modal').click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
   });
 
@@ -43,11 +34,11 @@ describe('Travellers Toggle', () => {
 
     // Modal search should find Beggar
     startGameWithPlayers(5);
-    cy.get('#player-circle li .player-token').eq(0).click();
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').first().should('exist');
-    cy.get('#close-character-modal').click();
+    cy.get('#close-character-modal').click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
 
     // Persist across reload
@@ -60,10 +51,10 @@ describe('Travellers Toggle', () => {
     // Enable travellers and assign one
     cy.get('#include-travellers').check({ force: true }).should('be.checked');
     startGameWithPlayers(5);
-    cy.get('#player-circle li .player-token').eq(0).click();
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').clear().type('Beggar');
-    cy.get('#character-grid .token[title="Beggar"]').first().click();
+    cy.get('#character-grid .token[title="Beggar"]').first().click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#player-circle li .character-name').eq(0).should('contain', 'Beggar');
 

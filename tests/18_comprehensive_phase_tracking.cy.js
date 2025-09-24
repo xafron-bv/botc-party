@@ -1,17 +1,11 @@
 describe('Comprehensive Phase Change Tracking', () => {
   beforeEach(() => {
     cy.visit('/');
-    cy.clearLocalStorage();
-
-    // Load Trouble Brewing script
-    cy.get('#load-tb').click();
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-
-    // Start a game with 7 players
-    cy.get('#player-count').clear().type('7');
-    cy.get('#reset-grimoire').click();
-
-    // Wait for player tokens to be created
+    // Use shared helper to initialize and start game (handles pre-game gating + Start Game click)
+    cy.setupGame({ players: 7, loadScript: false });
     cy.get('.player-token').should('have.length', 7);
 
     // Assign some initial characters

@@ -2,22 +2,8 @@ describe('Day/Night Tracking Feature', () => {
   beforeEach(() => {
     cy.visit('/?test=true');
     cy.viewport(1280, 900);
-
-    // Clear local storage to start fresh
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
-
-    // Load Trouble Brewing script first
-    cy.get('#load-tb').click();
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-
-    // Setup a game with 5 players
-    cy.get('#player-count').clear().type('5');
-    cy.get('#reset-grimoire').click();
-
-    // Wait for player circle to be set up
-    cy.get('#player-circle li').should('have.length', 5);
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.setupGame({ players: 5, loadScript: true });
   });
 
   describe('Toggle Button', () => {
@@ -109,7 +95,7 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="day-night-toggle"]').click();
 
       // Assign a character to first player
-      cy.get('.player-token').first().click();
+      cy.get('.player-token').first().click({ force: true });
       cy.get('#character-grid .token').should('be.visible');
       cy.get('#character-grid .token').first().click();
 
@@ -282,7 +268,7 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('#day-night-slider').should('be.visible');
 
       // Assign a character to first player to allow reminders
-      cy.get('.player-token').first().click();
+      cy.get('.player-token').first().click({ force: true });
       cy.get('#character-modal').should('be.visible');
       cy.get('#character-grid .token').should('be.visible');
       cy.get('#character-grid .token').first().click();

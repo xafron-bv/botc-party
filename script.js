@@ -13,7 +13,7 @@ import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
-import { initPlayerSetup } from './src/playerSetup.js';
+import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -106,6 +106,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     gameStarted: false
   };
 
+  // Dynamic pre-game overlay messaging depending on required next action
+  function updatePreGameOverlayMessage() {
+    const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
+    if (!overlayInner) return;
+    // Only update when in pre-game (players exist, game not started) and overlay would be visible
+    if (!document.body.classList.contains('pre-game')) return;
+    // If a winner has been declared, suppress overlay entirely (pre-game flow ends)
+    if (grimoireState.winner) {
+      try {
+        const overlay = document.getElementById('pre-game-overlay');
+        if (overlay) overlay.style.display = 'none';
+      } catch (_) { }
+      return;
+    }
+    if (document.body.classList.contains('selection-active')) return; // hidden during selection
+    if (document.body.classList.contains('player-setup-open')) return; // user configuring
+    const ps = grimoireState.playerSetup || {};
+    const players = grimoireState.players || [];
+    const totalPlayers = players.length;
+    const bag = Array.isArray(ps.bag) ? ps.bag : [];
+
+    if (ps.selectionComplete) {
+      overlayInner.innerHTML = '<h2>Number Selection Complete</h2><p>Hand the device back to the storyteller.</p>';
+    } else if (bag.length !== totalPlayers || totalPlayers === 0) {
+      overlayInner.innerHTML = '<h2>Configure Player Setup</h2><p>Open Player Setup to choose or randomize characters so that the bag matches the player count, then start number selection.</p>';
+    } else if (!ps.selectionActive) {
+      overlayInner.innerHTML = '<h2>Ready for Number Selection</h2><p>Click Start Number Selection to let each player privately pick their number.</p>';
+    }
+  }
+  try { window.updatePreGameOverlayMessage = updatePreGameOverlayMessage; } catch (_) { }
+
+  // Helper to apply/remove pre-game class (players exist but game not started)
+  function updatePreGameClass() {
+    try {
+      const hasPlayers = Array.isArray(grimoireState.players) && grimoireState.players.length > 0;
+      // Suppress pre-game class entirely if a winner has been declared
+      if (hasPlayers && !grimoireState.gameStarted && !grimoireState.winner) {
+        document.body.classList.add('pre-game');
+      } else {
+        document.body.classList.remove('pre-game');
+      }
+    } catch (_) { }
+  }
+
   // Player setup state
   grimoireState.playerSetup = grimoireState.playerSetup || { bag: [], assignments: [], revealed: false };
 
@@ -151,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
   // Apply bag assignments to players (used when revealing)
-  function applyAssignmentsFromBag() {
+  function _applyAssignmentsFromBag() {
     const assignments = (grimoireState.playerSetup && grimoireState.playerSetup.assignments) || [];
     const bag = (grimoireState.playerSetup && grimoireState.playerSetup.bag) || [];
     if (!Array.isArray(assignments) || assignments.length === 0) return;
@@ -400,6 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
+    updatePreGameClass();
   });
 
   if (addPlayersBtn) addPlayersBtn.addEventListener('click', () => {
@@ -420,6 +465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
+    updatePreGameClass();
   });
   if (startGameBtn) startGameBtn.addEventListener('click', () => {
     // In player mode, starting a game should reset the grimoire (fresh state for players)
@@ -445,6 +491,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     try { document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
     if (sel) sel.selectionActive = false;
+    try { document.body.classList.remove('selection-active'); } catch (_) { }
     showGrimoire({ grimoireState });
     // Forget previously selected numbers after starting game
     if (grimoireState.playerSetup) {
@@ -467,6 +514,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
     grimoireState.gameStarted = true;
+    updatePreGameClass();
+    try { saveAppState({ grimoireState }); } catch (_) { }
 
     // Reset day/night tracking when a new game starts
     try {
@@ -553,14 +602,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Enable/disable Start Game based on character assignment completeness
   function updateStartGameEnabled() {
     if (!startGameBtn) return;
-    if (grimoireState.mode === 'player') {
-      // In player mode winner gate still applies
-      startGameBtn.disabled = !!grimoireState.winner;
-      return;
-    }
     const players = grimoireState.players || [];
-    const allAssigned = players.length > 0 && players.every(p => !!p.character);
-    startGameBtn.disabled = grimoireState.winner ? true : !allAssigned;
+    // New rule: Start Game available whenever players exist (unless a winner gate requires reset)
+    const hasPlayers = players.length > 0;
+    startGameBtn.disabled = !!grimoireState.winner || !hasPlayers;
   }
 
   // Update button states based on grimoire state
@@ -578,11 +623,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Disable game setup buttons when no players exist
     if (openPlayerSetupBtn) {
-      openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner;
+      const sel = grimoireState.playerSetup || {};
+      const selectionComplete = !!sel.selectionComplete;
+      openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner || selectionComplete;
       if (grimoireState.winner) {
         openPlayerSetupBtn.title = 'Reset grimoire to configure a new game';
       } else if (!hasPlayers) {
         openPlayerSetupBtn.title = 'Add players first';
+      } else if (selectionComplete) {
+        openPlayerSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
       } else {
         openPlayerSetupBtn.title = '';
       }
@@ -612,11 +661,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modePlayerRadio = document.getElementById('mode-player');
     if (modeStorytellerRadio) modeStorytellerRadio.disabled = !hasPlayers;
     if (modePlayerRadio) modePlayerRadio.disabled = !hasPlayers;
+
+    // Update pre-game class whenever buttons update (covers many state changes)
+    updatePreGameClass();
+    try { updatePreGameOverlayMessage(); } catch (_) { }
   }
 
   // Initial state
   updateStartGameEnabled();
   updateButtonStates();
+  updatePreGameClass();
 
   // Observe grimoire changes to toggle Start Game and button states
   const observer = new MutationObserver(() => {
@@ -844,6 +898,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAppState({ grimoireState, grimoireHistoryList });
   applyModeUI();
   applyGrimoireHiddenUI();
+  // Re-apply pre-game body class and overlay messaging based on restored state
+  try {
+    updatePreGameClass();
+    if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage();
+    // If a game was in progress, ensure Start/End button visibility matches
+    const startBtn = document.getElementById('start-game');
+    const endBtn = document.getElementById('end-game');
+    const openSetupBtn = document.getElementById('open-player-setup');
+    if (grimoireState.gameStarted) {
+      if (endBtn) endBtn.style.display = '';
+      if (startBtn) startBtn.style.display = 'none';
+      if (openSetupBtn) openSetupBtn.style.display = 'none';
+    }
+    // Restore any in-progress number selection session (pre-game privacy flow)
+    try { restoreSelectionSession({ grimoireState }); } catch (_) { }
+  } catch (_) { }
 
   // In-app tour
   initInAppTour();

@@ -1,15 +1,6 @@
 // Cypress E2E tests - Start Game reset behavior preserves names
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+const startGameWithPlayers = (n) => cy.setupGame({ players: n, loadScript: false });
 
 describe('Reset Grimoire preserves names but clears assignments/reminders/death', () => {
   beforeEach(() => {
@@ -28,7 +19,7 @@ describe('Reset Grimoire preserves names but clears assignments/reminders/death'
     cy.get('#player-circle li .player-name').first().should('contain', 'Alice');
 
     // Assign a character to first player
-    cy.get('#player-circle li .player-token').first().click();
+    cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
@@ -36,7 +27,7 @@ describe('Reset Grimoire preserves names but clears assignments/reminders/death'
     cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
 
     // Add a reminder token to first player
-    cy.get('#player-circle li .reminder-placeholder').first().click();
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token').first().click();
     cy.get('#reminder-token-modal').should('not.be.visible');

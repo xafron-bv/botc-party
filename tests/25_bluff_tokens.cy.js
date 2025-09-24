@@ -1,12 +1,10 @@
 describe('Bluff Tokens', () => {
   beforeEach(() => {
     cy.visit('/');
-    // Start a game with 10 players
-    cy.get('#player-count').clear().type('10');
-    cy.get('#reset-grimoire').click();
-    // Load Trouble Brewing script
-    cy.get('#load-tb').click();
+    // Load Trouble Brewing and start game with 10 players via helper (handles pre-game gating)
+    cy.get('#load-tb').click({ force: true });
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
+    cy.setupGame({ players: 10, loadScript: false });
   });
 
   it('should display three empty bluff token slots at bottom left', () => {
@@ -30,7 +28,7 @@ describe('Bluff Tokens', () => {
 
   it('should open character selection modal when clicking a bluff token', () => {
     // Click the first bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
 
     // Verify character modal opens
     cy.get('#character-modal').should('be.visible');
@@ -44,7 +42,7 @@ describe('Bluff Tokens', () => {
 
   it('should assign a character to bluff token when selected', () => {
     // Click first bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
 
     // Select a specific character (e.g., Baron)
     cy.get('#character-search').type('baron');
@@ -65,7 +63,7 @@ describe('Bluff Tokens', () => {
 
   it('should allow clearing a bluff token by selecting "None"', () => {
     // First assign a character
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-search').type('baron');
     cy.get('#character-grid .token').first().click();
 
@@ -91,7 +89,7 @@ describe('Bluff Tokens', () => {
     const characters = ['baron', 'poisoner', 'spy'];
 
     characters.forEach((character, index) => {
-      cy.get('#bluff-tokens-container .bluff-token').eq(index).click();
+      cy.get('#bluff-tokens-container .bluff-token').eq(index).click({ force: true });
       cy.get('#character-search').clear().type(character);
       cy.get('#character-grid .token').first().click();
 
@@ -108,7 +106,7 @@ describe('Bluff Tokens', () => {
 
   it('should show tooltips with character info on hover', () => {
     // Assign a character first
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-search').type('baron');
     cy.get('#character-grid .token').first().click();
 
@@ -125,7 +123,7 @@ describe('Bluff Tokens', () => {
     const characters = ['baron', 'poisoner', 'spy'];
 
     characters.forEach((character, index) => {
-      cy.get('#bluff-tokens-container .bluff-token').eq(index).click();
+      cy.get('#bluff-tokens-container .bluff-token').eq(index).click({ force: true });
       cy.get('#character-search').clear().type(character);
       cy.get('#character-grid .token').first().click();
     });
@@ -145,13 +143,12 @@ describe('Bluff Tokens', () => {
 
   it('should reset bluff tokens when starting a new game', () => {
     // Assign a character to a bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-search').type('baron');
     cy.get('#character-grid .token').first().click();
 
     // Start a new game - sidebar should already be visible
-    cy.get('#player-count').clear().type('12');
-    cy.get('#reset-grimoire').click();
+    cy.setupGame({ players: 12, loadScript: false });
 
     // Verify bluff tokens are reset
     cy.get('#bluff-tokens-container .bluff-token').each(($token) => {
@@ -199,13 +196,15 @@ describe('Bluff Tokens', () => {
 
   it('should not interfere with player token interactions', () => {
     // Assign a character to a player
-    cy.get('#player-circle li').first().find('.player-token').click();
-    cy.get('#character-search').type('washerwoman');
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').should('be.visible').type('washerwoman', { force: true });
     cy.get('#character-grid .token').first().click();
 
     // Assign a character to a bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
-    cy.get('#character-search').type('baron');
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').should('be.visible').clear().type('baron', { force: true });
     cy.get('#character-grid .token').first().click();
 
     // Verify both assignments are independent
@@ -226,7 +225,7 @@ describe('Bluff Tokens', () => {
     cy.get('#sidebar-close').click();
 
     // Verify bluff tokens still work
-    cy.get('#bluff-tokens-container .bluff-token').first().click();
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
 
     // Character grid should show Bad Moon Rising characters

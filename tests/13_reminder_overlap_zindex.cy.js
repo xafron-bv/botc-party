@@ -1,15 +1,6 @@
 // Cypress E2E test - Touch-mode expanded reminders should stack above opposite player
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+const startGameWithPlayers = (n) => cy.setupGame({ players: n, loadScript: false });
 
 describe('Reminder overlap z-index (touch mode)', () => {
   beforeEach(() => {

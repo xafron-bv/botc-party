@@ -14,7 +14,11 @@ export function saveAppState({ grimoireState }) {
       bluffs: grimoireState.bluffs || [null, null, null],
       mode: grimoireState.mode || 'storyteller',
       grimoireHidden: !!grimoireState.grimoireHidden,
-      playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false }
+      playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
+      // Persist whether a game has started (pre-game gating relies on this)
+      gameStarted: !!grimoireState.gameStarted,
+      // Persist winner so overlay messaging can gate UI until reset
+      winner: grimoireState.winner || null
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
@@ -56,6 +60,14 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.playerSetup) {
       grimoireState.playerSetup = saved.playerSetup;
+    }
+    if (saved && typeof saved.gameStarted === 'boolean') {
+      grimoireState.gameStarted = !!saved.gameStarted;
+    } else {
+      grimoireState.gameStarted = false;
+    }
+    if (saved && saved.winner) {
+      grimoireState.winner = saved.winner;
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }

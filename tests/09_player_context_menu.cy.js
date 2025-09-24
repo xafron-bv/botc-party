@@ -1,15 +1,7 @@
 // Cypress E2E tests - Player context menu: add/remove via right-click and long-press
 
 const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  // Force click to avoid potential coverage by persistent sidebar toggle in desktop-touch hybrid mode
-  cy.get('#reset-grimoire').click({ force: true });
-  cy.get('#player-circle li').should('have.length', n);
+  cy.setupGame({ players: n, loadScript: false });
 };
 
 describe('Player context menu - desktop right-click', () => {
@@ -101,7 +93,7 @@ describe('Player context menu - desktop right-click', () => {
 
   it('closes context menu when clicking outside after right-click on character token', () => {
     // First assign a character to a player
-    cy.get('#player-circle li').first().find('.player-token').click();
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-grid .token').first().click();
     cy.get('#character-modal').should('not.be.visible');

@@ -112,6 +112,47 @@ body.grimoire-hidden #player-circle li .player-token {
   background-image: url('/assets/img/token-BqDQdWeO.webp') !important;
 }
 
+/* Pre-game overlay replaces granular grayscale disabling */
+#pre-game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(2px) saturate(120%);
+  -webkit-backdrop-filter: blur(2px) saturate(120%);
+  display: none;
+  z-index: 1500; /* above grimoire controls; still below fixed modals */
+  pointer-events: none; /* let clicks fall through; underlying elements are disabled except sidebar toggle */
+  color: #eee;
+  font-family: inherit;
+}
+body.pre-game #pre-game-overlay { display: flex; align-items: center; justify-content: center; text-align: center; }
+/* Do not show overlay during number selection flow (bag picking) */
+body.pre-game.selection-active #pre-game-overlay { display: none !important; }
+body.pre-game.player-setup-open #pre-game-overlay { display: none !important; }
+body:not(.pre-game) #pre-game-overlay { display: none; }
+#pre-game-overlay .overlay-inner { max-width: 520px; padding: 24px 28px; pointer-events: none; }
+#pre-game-overlay h2 { margin: 0 0 12px; font-size: clamp(20px, 4vmin, 34px); letter-spacing: 1px; }
+#pre-game-overlay p { margin: 0; line-height: 1.5; font-size: clamp(14px, 2.1vmin, 18px); opacity: 0.9; }
+
+/* Block pointer events on grimoire content while pre-game via wrapper (sidebar still usable) */
+/* Block pointer events on grimoire content while pre-game via overlay; allow sidebar toggle click-through */
+/* Allow sidebar toggle and day/night toggle to remain interactive during pre-game */
+body.pre-game:not(.selection-active) #grimoire > *:not(#pre-game-overlay):not(#sidebar-toggle):not(#day-night-toggle) { pointer-events: none; }
+body.pre-game #sidebar-toggle { pointer-events: auto; position: relative; z-index: 1600; }
+/* In pure pre-game (overlay visible), remove normal-flow vertical offset by absolutely positioning #center */
+/* Keep circle centered when overlay visible OR during number selection (prevent top buttons from pushing layout) */
+body.pre-game:not(.selection-active):not(.player-setup-open) #center,
+body.pre-game.selection-active #center { position: absolute; inset: 0; }
+/* Ensure script & night toggle buttons sit below overlay */
+body.pre-game #character-panel-toggle,
+body.pre-game #day-night-toggle { z-index: 100; }
+/* While still in pre-game, explicitly disable interaction with the day/night toggle.
+  Test 15 expects pointer-events: none before the game starts, then auto afterwards. */
+body.pre-game #day-night-toggle { pointer-events: none; opacity: 0.55; cursor: not-allowed; }
+body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor: pointer; }
+/* Remove layout height these buttons add so circle centers nicely under overlay */
+/* (Reverted) Keep top buttons rendered so layout remains consistent; issue not caused by these elements */
+
 /* Sidebar toggle button */
 .sidebar-toggle {
   position: absolute;
