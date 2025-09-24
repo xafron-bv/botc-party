@@ -54,22 +54,10 @@ export function repositionPlayers({ grimoireState }) {
         listItem.classList.remove('is-north');
       }
 
-      // Rotate name tags in 1st (NE) and 3rd (SW) quadrants to follow circle tangent
-      // Quadrant definitions relative to standard unit circle shifted so angle= -90deg at index 0
-      // We'll compute the local angle from center to token and then set rotation = radialAngle + 90deg (tangent)
-      const radialAngle = angle; // radians
-      // Compute normalized angle in range [0, 2PI)
-      let norm = radialAngle % (2 * Math.PI);
-      if (norm < 0) norm += 2 * Math.PI;
-      // Determine quadrant (0: NE, 1: SE, 2: SW, 3: NW) based on standard math axes with 0 at east; we shift by +PI/2 to align
-      // Easier: use sin/cos signs relative to center: NE: cos>0 & sin<0, SE: cos>0 & sin>=0, SW: cos<=0 & sin>0, NW: cos<0 & sin<=0
-      // Map radial angle to 0..360 degrees (0 = east, increasing CCW)
-      const deg = radialAngle * 180 / Math.PI;
-      const degNorm = ((deg % 360) + 360) % 360;
-      // Apply rotation ONLY for players between 135° and 180° (inclusive)
-      const isTargetArc = degNorm >= 135 && degNorm <= 180;
+      const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
+      const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
       if (isTargetArc) {
-        const tangentAngleDeg = deg + 90; // tangent direction
+        const tangentAngleDeg = mathDeg + 90; // tangent
         playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
         playerNameEl.classList.add('curved-quadrant');
         try {
@@ -77,8 +65,8 @@ export function repositionPlayers({ grimoireState }) {
           const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
           const baseOffset = tokenSize * 0.7; // tuned outward distance
           const outward = baseOffset;
-          const dx = Math.cos(radialAngle) * outward;
-          const dy = Math.sin(radialAngle) * outward;
+          const dx = Math.cos(angle) * outward;
+          const dy = Math.sin(angle) * outward;
           playerNameEl.style.left = `calc(50% + ${dx}px)`;
           playerNameEl.style.top = `calc(50% + ${dy}px)`;
         } catch (_e) { /* ignore positioning errors */ }
