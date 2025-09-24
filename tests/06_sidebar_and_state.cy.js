@@ -1,15 +1,6 @@
 // Cypress E2E tests - Sidebar toggle/resizer and state restore
 
-const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  cy.get('#reset-grimoire').click();
-  cy.get('#player-circle li').should('have.length', n);
-};
+// Using global cy.setupGame helper (pre-game gating) instead of local startGameWithPlayers
 
 describe('Sidebar & State', () => {
   beforeEach(() => {
@@ -95,9 +86,9 @@ describe('Sidebar & State', () => {
   });
 
   it('app state restores script and players on reload', () => {
-    startGameWithPlayers(6);
+    cy.setupGame({ players: 6, loadScript: false });
     // Assign a character to first player
-    cy.get('#player-circle li .player-token').first().click();
+    cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();

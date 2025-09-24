@@ -55,8 +55,8 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     cy.get('#reset-grimoire').should('not.be.disabled');
     cy.get('#open-storyteller-message').should('not.be.disabled');
 
-    // Start game should be disabled until characters are assigned
-    cy.get('#start-game').should('be.disabled');
+    // Start game should now be enabled pre-assignment (players exist, no winner yet)
+    cy.get('#start-game').should('not.be.disabled');
 
     // Mode toggle should also be enabled
     cy.get('#mode-storyteller').should('not.be.disabled');
@@ -116,8 +116,8 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     cy.get('#open-player-setup').should('not.be.disabled');
     cy.get('#reset-grimoire').should('not.be.disabled');
 
-    // Start game should be disabled until characters are assigned
-    cy.get('#start-game').should('be.disabled');
+    // Start game should now be enabled pre-assignment (players exist, no winner yet)
+    cy.get('#start-game').should('not.be.disabled');
   });
 
   it('should disable buttons when all players are removed', () => {
@@ -161,7 +161,7 @@ describe('ADD PLAYERS Button and Disabled State', () => {
     // Most buttons should be enabled
     cy.get('#open-player-setup').should('not.be.disabled');
 
-    // Start game should be disabled until characters are assigned
-    cy.get('#start-game').should('be.disabled');
+    // Start game should now be enabled pre-assignment (players exist, no winner yet)
+    cy.get('#start-game').should('not.be.disabled');
   });
 });

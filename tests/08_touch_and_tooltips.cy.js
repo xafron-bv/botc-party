@@ -1,23 +1,8 @@
 // Cypress E2E tests - Touch ability popup and desktop tooltip edge cases
 
+// startGameWithPlayers now delegated to Cypress custom command for consistency
 const startGameWithPlayers = (n) => {
-  cy.get('#player-count').then(($el) => {
-    const el = $el[0];
-    el.value = String(n);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
-  // The character panel header (right panel) can cover the Reset button in this spec.
-  // Instead of a Cypress click (which fails actionability checks), dispatch a native click.
-  cy.window().then((win) => {
-    try {
-      // Proactively collapse the character panel to mirror real user flow and reduce layout interference.
-      win.document.body.classList.remove('character-panel-open');
-      const btn = win.document.getElementById('reset-grimoire');
-      if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
-    } catch (_) { /* noop */ }
-  });
-  cy.get('#player-circle li').should('have.length', n);
+  cy.setupGame({ players: n, loadScript: false });
 };
 
 describe('Ability UI - Desktop', () => {
@@ -26,13 +11,11 @@ describe('Ability UI - Desktop', () => {
     cy.window().then((win) => {
       try { win.localStorage.clear(); } catch (_) { }
     });
-    cy.get('#load-tb').click();
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    startGameWithPlayers(5);
+    cy.setupGame({ players: 5, loadScript: true });
   });
 
   it('tooltip appears on hover; content populated', () => {
-    cy.get('#player-circle li .player-token').eq(0).click();
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
@@ -89,11 +72,13 @@ describe('Ability UI - Touch', () => {
     cy.get('#player-circle li').should('have.length', 5);
     // Hide toggle explicitly after player setup
     cy.get('#sidebar-toggle').then(($btn) => { $btn.css('display', 'none'); });
+    // Start the game so interactions are enabled
+    cy.startGame();
   });
 
   it('info icon shows popup and hides when clicking elsewhere', () => {
     cy.viewport('iphone-6');
-    // Assign a character so info icon is added
+    // Assign a character so info icon is added (game already started in setup)
     cy.get('#player-circle li .player-token').eq(1).click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').clear().type('Librarian');
@@ -110,7 +95,7 @@ describe('Ability UI - Touch', () => {
 
   it('reminder token scrolling does not accidentally select; tap still selects', () => {
     cy.viewport('iphone-6');
-    // Open reminder token modal for first player (no other stacks expanded yet)
+    // Open reminder token modal for first player (game started in setup below)
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
 
@@ -137,7 +122,7 @@ describe('Ability UI - Touch', () => {
   it('plus button first expands when another stack is expanded; second tap opens modal', () => {
     cy.viewport('iphone-6');
     // Start with two players
-    startGameWithPlayers(5);
+    // Players and started game already prepared in beforeEach
     // Deterministically mark second player as expanded and first as collapsed
     cy.get('#player-circle li').eq(1).invoke('attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '0');
@@ -165,7 +150,7 @@ describe('Ability UI - Touch', () => {
 
   it('player name: visible => single tap edits; no reminder modal', () => {
     cy.viewport('iphone-6');
-    startGameWithPlayers(5);
+    // Game already started
     // Ensure no modal initially
     cy.get('#reminder-token-modal').should('not.be.visible');
 
@@ -195,7 +180,7 @@ describe('Ability UI - Touch', () => {
 
   it('player name: partially covered => first tap raises only; second tap edits', () => {
     cy.viewport('iphone-6');
-    startGameWithPlayers(10); // More players to ensure overlap
+    startGameWithPlayers(10); // Replace players with 10 and game started inside helper
     // Ensure no modal initially
     cy.get('#reminder-token-modal').should('not.be.visible');
 
@@ -270,7 +255,7 @@ describe('Ability UI - Touch', () => {
 
   it('touch: tapping character circle does not expand collapsed reminders', () => {
     cy.viewport('iphone-6');
-    startGameWithPlayers(5);
+    // Game already started with 5 players
     // Add a reminder so there is a stack to expand
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');

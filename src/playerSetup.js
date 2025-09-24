@@ -308,10 +308,15 @@ export function initPlayerSetup({ grimoireState }) {
       renderPlayerSetupList();
       updateBagWarning();
       try { playerSetupPanel.scrollIntoView({ block: 'center' }); } catch (_) { }
+      // Mark body state for CSS to hide pre-game overlay while configuring bag
+      try { document.body.classList.add('player-setup-open'); } catch (_) { }
     });
   }
   if (closePlayerSetupBtn && playerSetupPanel) {
-    closePlayerSetupBtn.addEventListener('click', () => { playerSetupPanel.style.display = 'none'; });
+    closePlayerSetupBtn.addEventListener('click', () => {
+      playerSetupPanel.style.display = 'none';
+      try { document.body.classList.remove('player-setup-open'); } catch (_) { }
+    });
   }
   if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
   if (startSelectionBtn) startSelectionBtn.addEventListener('click', () => {
@@ -340,7 +345,10 @@ export function initPlayerSetup({ grimoireState }) {
     // Reset grimoire before starting number selection (direct function call)
     // Do NOT reset the grimoire here anymore; just prepare selection overlays.
     // We intentionally keep existing players, characters, reminders until an explicit reset.
-    if (playerSetupPanel) playerSetupPanel.style.display = 'none';
+    if (playerSetupPanel) {
+      playerSetupPanel.style.display = 'none';
+      try { document.body.classList.remove('player-setup-open'); } catch (_) { }
+    }
     // When starting number selection, consider game not started: show Start, hide End
     try {
       const startGameBtn = document.getElementById('start-game');
@@ -362,7 +370,9 @@ export function initPlayerSetup({ grimoireState }) {
     } catch (_) { }
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
-    grimoireState.playerSetup.selectionActive = true;
+  grimoireState.playerSetup.selectionActive = true;
+  // Reflect selection active on body for CSS (hide overlay & enable interaction)
+  try { document.body.classList.add('selection-active'); } catch (_) { }
     // Always reset previously selected numbers for a new selection session (local to selection flow)
     if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
@@ -398,9 +408,9 @@ export function initPlayerSetup({ grimoireState }) {
   // Close by clicking outside modal content to match other modals
   if (playerSetupPanel) {
     playerSetupPanel.addEventListener('click', (e) => {
-      if (e.target === playerSetupPanel) { playerSetupPanel.style.display = 'none'; return; }
+      if (e.target === playerSetupPanel) { playerSetupPanel.style.display = 'none'; try { document.body.classList.remove('player-setup-open'); } catch (_) { } return; }
       const content = playerSetupPanel.querySelector('.modal-content');
-      if (content && !content.contains(e.target)) { playerSetupPanel.style.display = 'none'; }
+      if (content && !content.contains(e.target)) { playerSetupPanel.style.display = 'none'; try { document.body.classList.remove('player-setup-open'); } catch (_) { } }
     });
   }
 

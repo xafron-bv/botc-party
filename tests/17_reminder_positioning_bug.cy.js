@@ -11,13 +11,8 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
     // Load Trouble Brewing script
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-
-    // Setup a game with 5 players
-    cy.get('#player-count').clear().type('5');
-    cy.get('#reset-grimoire').click();
-
-    // Wait for player circle to be set up
-    cy.get('#player-circle li').should('have.length', 5);
+    // Start game with 5 players using shared helper (handles Start Game gating)
+    cy.setupGame({ players: 5, loadScript: false });
 
     // Enable day/night tracking
     cy.get('[data-testid="day-night-toggle"]').click();
@@ -26,7 +21,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
   describe('Plus Button Positioning Bug Fix', () => {
     beforeEach(() => {
       // Assign characters to players to allow reminders
-      cy.get('.player-token').first().click();
+      cy.get('.player-token').first().click({ force: true });
       cy.get('#character-grid .token').should('be.visible');
       cy.get('#character-grid .token').first().click();
 
@@ -34,7 +29,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
 
       // Assign to second player too
-      cy.get('.player-token').eq(1).click();
+      cy.get('.player-token').eq(1).click({ force: true });
       cy.get('#character-grid .token').should('be.visible');
       cy.get('#character-grid .token').eq(1).click();
     });
@@ -95,6 +90,12 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
 
           // Save current state and reload the page
           cy.reload();
+          // After reload, if gating restored pre-game state, start the game again
+          cy.get('body').then(($b) => {
+            if ($b.hasClass('pre-game')) {
+              cy.get('#start-game').click({ force: true });
+            }
+          });
 
           // Wait for page to load and state to be restored
           cy.get('#player-circle li').should('have.length', 5);
@@ -122,7 +123,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
     it('should handle multiple players with different reminder counts correctly', () => {
       // Add reminders to multiple players in different phases
       // Player 1: 1 reminder in N1
-      cy.get('li').eq(0).find('.reminder-placeholder').click({ altKey: true });
+      cy.get('li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('P1 N1');
       cy.get('[data-testid="save-text-reminder"]').click();
@@ -166,6 +167,11 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
 
       // Reload and verify positioning is maintained
       cy.reload();
+      cy.get('body').then(($b) => {
+        if ($b.hasClass('pre-game')) {
+          cy.get('#start-game').click({ force: true });
+        }
+      });
       cy.get('#player-circle li').should('have.length', 5);
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
 

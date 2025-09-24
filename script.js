@@ -106,6 +106,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     gameStarted: false
   };
 
+  // Helper to apply/remove pre-game class (players exist but game not started)
+  function updatePreGameClass() {
+    try {
+      const hasPlayers = Array.isArray(grimoireState.players) && grimoireState.players.length > 0;
+      if (hasPlayers && !grimoireState.gameStarted) {
+        document.body.classList.add('pre-game');
+      } else {
+        document.body.classList.remove('pre-game');
+      }
+    } catch (_) { }
+  }
+
   // Player setup state
   grimoireState.playerSetup = grimoireState.playerSetup || { bag: [], assignments: [], revealed: false };
 
@@ -151,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
   // Apply bag assignments to players (used when revealing)
-  function applyAssignmentsFromBag() {
+  function _applyAssignmentsFromBag() {
     const assignments = (grimoireState.playerSetup && grimoireState.playerSetup.assignments) || [];
     const bag = (grimoireState.playerSetup && grimoireState.playerSetup.bag) || [];
     if (!Array.isArray(assignments) || assignments.length === 0) return;
@@ -400,6 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
+    updatePreGameClass();
   });
 
   if (addPlayersBtn) addPlayersBtn.addEventListener('click', () => {
@@ -420,6 +433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
+    updatePreGameClass();
   });
   if (startGameBtn) startGameBtn.addEventListener('click', () => {
     // In player mode, starting a game should reset the grimoire (fresh state for players)
@@ -445,6 +459,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     try { document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove()); } catch (_) { }
     if (sel) sel.selectionActive = false;
+    try { document.body.classList.remove('selection-active'); } catch (_) { }
     showGrimoire({ grimoireState });
     // Forget previously selected numbers after starting game
     if (grimoireState.playerSetup) {
@@ -467,6 +482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
     grimoireState.gameStarted = true;
+    updatePreGameClass();
 
     // Reset day/night tracking when a new game starts
     try {
@@ -553,14 +569,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Enable/disable Start Game based on character assignment completeness
   function updateStartGameEnabled() {
     if (!startGameBtn) return;
-    if (grimoireState.mode === 'player') {
-      // In player mode winner gate still applies
-      startGameBtn.disabled = !!grimoireState.winner;
-      return;
-    }
     const players = grimoireState.players || [];
-    const allAssigned = players.length > 0 && players.every(p => !!p.character);
-    startGameBtn.disabled = grimoireState.winner ? true : !allAssigned;
+    // New rule: Start Game available whenever players exist (unless a winner gate requires reset)
+    const hasPlayers = players.length > 0;
+    startGameBtn.disabled = !!grimoireState.winner || !hasPlayers;
   }
 
   // Update button states based on grimoire state
@@ -612,11 +624,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modePlayerRadio = document.getElementById('mode-player');
     if (modeStorytellerRadio) modeStorytellerRadio.disabled = !hasPlayers;
     if (modePlayerRadio) modePlayerRadio.disabled = !hasPlayers;
+
+    // Update pre-game class whenever buttons update (covers many state changes)
+    updatePreGameClass();
   }
 
   // Initial state
   updateStartGameEnabled();
   updateButtonStates();
+  updatePreGameClass();
 
   // Observe grimoire changes to toggle Start Game and button states
   const observer = new MutationObserver(() => {
