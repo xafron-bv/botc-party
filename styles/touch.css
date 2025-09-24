@@ -1,5 +1,13 @@
 /* Touch optimizations */
 @media (hover: none) and (pointer: coarse) {
+  #player-circle li .player-name {
+    /* Keep below all other game elements */
+    opacity: 0.5;
+    filter: blur(0.5px);
+    pointer-events: auto;
+    z-index: 0;
+  }
+
   /* Override for raised player names - must be above token z-index: 5 */
   #player-circle li[data-raised="true"] .player-name {
     opacity: 1;
