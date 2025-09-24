@@ -513,4 +513,42 @@ export function initPlayerSetup({ grimoireState }) {
   }
 }
 
+// Restore an in-progress number selection session after a page reload.
+// Re-applies body classes, hides grimoire, and reconstructs number overlays
+// based on persisted playerSetup.assignments when selectionActive is true.
+export function restoreSelectionSession({ grimoireState }) {
+  try {
+    const ps = grimoireState.playerSetup || {};
+    if (!ps.selectionActive) return; // Nothing to restore
+    if (grimoireState.gameStarted) return; // Ignore if game already started
+    // Body class so overlay hides and gating styles apply
+    try { document.body.classList.add('selection-active'); } catch (_) { }
+    // Hide grimoire for privacy during selection
+    try { setGrimoireHidden({ grimoireState, hidden: true }); } catch (_) { }
+    const assignments = Array.isArray(ps.assignments) ? ps.assignments : [];
+    const playerCircle = document.getElementById('player-circle');
+    if (!playerCircle) return;
+    Array.from(playerCircle.children).forEach((li, idx) => {
+      let overlay = li.querySelector('.number-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'number-overlay';
+        li.appendChild(overlay);
+      }
+      const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
+      if (assigned) {
+        overlay.textContent = String(assignments[idx] + 1); // visible numbering
+        overlay.classList.add('disabled');
+        overlay.onclick = null;
+      } else {
+        overlay.textContent = '?';
+        overlay.classList.remove('disabled');
+        overlay.onclick = () => {
+          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+        };
+      }
+    });
+  } catch (_) { /* swallow restoration errors */ }
+}
+
 
