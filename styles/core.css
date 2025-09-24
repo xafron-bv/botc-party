@@ -146,6 +146,10 @@ body.pre-game.selection-active #center { position: absolute; inset: 0; }
 /* Ensure script & night toggle buttons sit below overlay */
 body.pre-game #character-panel-toggle,
 body.pre-game #day-night-toggle { z-index: 100; }
+/* While still in pre-game, explicitly disable interaction with the day/night toggle.
+  Test 15 expects pointer-events: none before the game starts, then auto afterwards. */
+body.pre-game #day-night-toggle { pointer-events: none; opacity: 0.55; cursor: not-allowed; }
+body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor: pointer; }
 /* Remove layout height these buttons add so circle centers nicely under overlay */
 /* (Reverted) Keep top buttons rendered so layout remains consistent; issue not caused by these elements */
 
