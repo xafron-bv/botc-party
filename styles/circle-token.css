@@ -187,7 +187,9 @@
   position: absolute;
   left: 50%;
   top: calc(50% + var(--token-size) * 0.8);
-  transform: translate(-50%, -50%);
+  /* Base centering transform; rotation (if any) is appended via CSS var */
+  --name-rotate: 0deg;
+  transform: translate(-50%, -50%) rotate(var(--name-rotate));
   z-index: 0;
   /* Below all other game elements */
   transition: all 0.3s ease;
@@ -199,12 +201,19 @@
 .player-name:hover {
   background: linear-gradient(135deg, rgba(40, 40, 40, 0.9) 0%, rgba(60, 60, 60, 0.9) 100%);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
-  transform: translate(-50%, -50%) translateY(-2px);
+  /* Maintain rotational alignment on hover */
+  transform: translate(-50%, -50%) translateY(-2px) rotate(var(--name-rotate));
 }
 
 /* Position player names above tokens for top half of circle */
 .player-name.top-half {
   top: calc(50% - var(--token-size) * 0.8);
+}
+
+/* When in a curved quadrant (NE or SW), we rotate the tag to be tangent to the circle */
+.player-name.curved-quadrant {
+  /* Position adjusted via inline style from JS to lie on circle circumference */
+  opacity: 0.45; /* Slightly more visible due to angled orientation */
 }
 
 /* Hover effect on the list item to reveal and position the name tag */

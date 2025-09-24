@@ -53,6 +53,37 @@ export function repositionPlayers({ grimoireState }) {
         listItem.classList.add('is-south');
         listItem.classList.remove('is-north');
       }
+
+      // Rotate name tags in 1st (NE) and 3rd (SW) quadrants to follow circle tangent
+      // Quadrant definitions relative to standard unit circle shifted so angle= -90deg at index 0
+      // We'll compute the local angle from center to token and then set rotation = radialAngle + 90deg (tangent)
+      const radialAngle = angle; // radians
+      // Compute normalized angle in range [0, 2PI)
+      let norm = radialAngle % (2 * Math.PI);
+      if (norm < 0) norm += 2 * Math.PI;
+      // Determine quadrant (0: NE, 1: SE, 2: SW, 3: NW) based on standard math axes with 0 at east; we shift by +PI/2 to align
+      // Easier: use sin/cos signs relative to center: NE: cos>0 & sin<0, SE: cos>0 & sin>=0, SW: cos<=0 & sin>0, NW: cos<0 & sin<=0
+      const cx = Math.cos(radialAngle);
+      const cy = Math.sin(radialAngle);
+      const isNE = cx > 0 && cy < 0;
+      const isSW = cx < 0 && cy > 0; // strictly negative cos, positive sin
+      const tangentAngleDeg = (radialAngle * 180 / Math.PI) + 90; // tangent direction
+      playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
+      playerNameEl.classList.add('curved-quadrant');
+      // Shift outward so the rotated tag sits outside the token circle
+      try {
+        const tokenEl = listItem.querySelector('.player-token');
+        const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+        // base radial distance for name tag center (approx original offset 0.8 token sizes beyond center)
+        const baseOffset = (tokenSize * 0.8)
+        const outward = baseOffset;
+        // Convert radial position to local coordinates relative to listItem center (which is token center)
+        const dx = Math.cos(radialAngle) * outward;
+        const dy = Math.sin(radialAngle) * outward;
+        // Position name relative to token center; listItem itself is centered on token via translate
+        playerNameEl.style.left = `calc(50% + ${dx}px)`;
+        playerNameEl.style.top = `calc(50% + ${dy}px)`;
+      } catch (_e) { /* ignore positioning errors */ }
     }
     let visibleCount = 0;
     if (players[i] && players[i].reminders) {
