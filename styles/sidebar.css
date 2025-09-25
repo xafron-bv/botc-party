@@ -256,3 +256,14 @@ body.resizing {
 #sidebar .history-list .icon-btn.save:hover {
   color: #6bff8a;
 }
+
+/* Version footer */
+.sidebar-version {
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.55;
+  letter-spacing: .5px;
+  font-weight: 500;
+  padding: 10px 4px;
+}
+.sidebar-version:hover { opacity: 0.85; }

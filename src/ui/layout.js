@@ -53,6 +53,29 @@ export function repositionPlayers({ grimoireState }) {
         listItem.classList.add('is-south');
         listItem.classList.remove('is-north');
       }
+
+      const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
+      const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
+      if (isTargetArc) {
+        const tangentAngleDeg = mathDeg + 90; // tangent
+        playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
+        playerNameEl.classList.add('curved-quadrant');
+        try {
+          const tokenEl = listItem.querySelector('.player-token');
+          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+          const baseOffset = tokenSize * 0.7; // tuned outward distance
+          const outward = baseOffset;
+          const dx = Math.cos(angle) * outward;
+          const dy = Math.sin(angle) * outward;
+          playerNameEl.style.left = `calc(50% + ${dx}px)`;
+          playerNameEl.style.top = `calc(50% + ${dy}px)`;
+        } catch (_e) { /* ignore positioning errors */ }
+      } else {
+        playerNameEl.style.setProperty('--name-rotate', '0deg');
+        playerNameEl.classList.remove('curved-quadrant');
+        playerNameEl.style.left = '';
+        playerNameEl.style.top = '';
+      }
     }
     let visibleCount = 0;
     if (players[i] && players[i].reminders) {
