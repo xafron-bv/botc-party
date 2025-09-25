@@ -17,6 +17,19 @@ import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
+  try {
+    const el = document.getElementById('app-version-value');
+    if (el) {
+      fetch('./service-worker.js')
+        .then(r => r.text())
+        .then(text => {
+          const m = text.match(/CACHE_NAME\s*=\s*['"]botc-party-grimoire-v(\d+)['"]/);
+          if (m) el.textContent = m[1]; else el.textContent = '?';
+        })
+        .catch(() => { el.textContent = '?'; });
+    }
+  } catch (_) { /* ignore */ }
   const resetGrimoireBtn = document.getElementById('reset-grimoire');
   const startGameBtn = document.getElementById('start-game');
   const endGameBtn = document.getElementById('end-game');

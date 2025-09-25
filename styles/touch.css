@@ -1,14 +1,17 @@
 /* Touch optimizations */
 @media (hover: none) and (pointer: coarse) {
   #player-circle li .player-name {
-    opacity: 1;
-    filter: blur(0);
-    z-index: 0;
     /* Keep below all other game elements */
+    opacity: 0.5;
+    filter: blur(0.5px);
+    pointer-events: auto;
+    z-index: 0;
   }
 
   /* Override for raised player names - must be above token z-index: 5 */
-  #player-circle li .player-name[data-raised="true"] {
+  #player-circle li[data-raised="true"] .player-name {
+    opacity: 1;
+    filter: blur(0);
     z-index: 9999 !important;
     /* Maximum z-index to ensure it's on top */
     position: absolute !important;
