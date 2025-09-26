@@ -50,14 +50,6 @@ export function setupTouchHandling({
   let longPressTimer = null;
   let isLongPress = false;
   let touchStartTime = 0;
-  let touchMoved = false;
-  let touchStartX = 0;
-  let touchStartY = 0;
-
-  // Detect if running in PWA standalone mode
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-  // Use larger movement threshold for PWA standalone mode due to increased touch sensitivity
-  const movementThreshold = isStandalone ? 15 : 10;
 
   // Create handler functions that will be stored for cleanup
   const touchStartHandler = (e) => {
@@ -72,13 +64,10 @@ export function setupTouchHandling({
 
     // Reset flags
     isLongPress = false;
-    touchMoved = false;
 
-    // Store touch start position for long press detection and movement calculation
+    // Store touch start position for long press detection
     const x = e.touches[0].clientX;
     const y = e.touches[0].clientY;
-    touchStartX = x;
-    touchStartY = y;
 
     // Clear any existing timers
     clearTimeout(longPressTimer);
@@ -87,11 +76,9 @@ export function setupTouchHandling({
     // Start long press timer if callback provided
     if (onLongPress) {
       longPressTimer = setTimeout(() => {
-        if (!touchMoved) {  // Only trigger long press if no movement
-          isLongPress = true;
-          clearTimeout(touchActionTimer);
-          onLongPress(e, x, y);
-        }
+        isLongPress = true;
+        clearTimeout(touchActionTimer);
+        onLongPress(e, x, y);
       }, longPressDelay);
     }
   };
@@ -99,20 +86,7 @@ export function setupTouchHandling({
   element.addEventListener('touchstart', touchStartHandler);
 
   const touchMoveHandler = (e) => {
-    // Calculate movement distance from start position
-    const currentX = e.touches[0].clientX;
-    const currentY = e.touches[0].clientY;
-    const deltaX = Math.abs(currentX - touchStartX);
-    const deltaY = Math.abs(currentY - touchStartY);
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-    // Only consider it "moved" if distance exceeds threshold
-    if (distance > movementThreshold) {
-      touchMoved = true;
-      // Cancel long press timer if user moves their finger beyond threshold
-      clearTimeout(longPressTimer);
-    }
-
+    // Don't cancel long press on movement - let it complete based on time only
     e.stopPropagation();
   };
 
@@ -127,8 +101,8 @@ export function setupTouchHandling({
     // Clear long press timer
     clearTimeout(longPressTimer);
 
-    // Only trigger tap if it wasn't a long press, was quick enough, and didn't involve movement
-    if (onTap && !isLongPress && !touchMoved && touchDuration < longPressDelay) {
+    // Only trigger tap if it wasn't a long press and was quick enough
+    if (onTap && !isLongPress && touchDuration < longPressDelay) {
       // Use a small delay to ensure long press timer is cancelled
       touchActionTimer = setTimeout(() => {
         if (!isLongPress) {
@@ -152,7 +126,6 @@ export function setupTouchHandling({
     clearTimeout(longPressTimer);
     clearTimeout(touchActionTimer);
     isLongPress = false;
-    touchMoved = false;
     if (setTouchOccurred) setTouchOccurred(false);
   };
 
