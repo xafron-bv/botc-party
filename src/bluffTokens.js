@@ -3,7 +3,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid } from './character.js';
 import { saveAppState } from './app.js';
-import { setupSimpleTouchHandling } from './utils/touchHandlers.js';
+import { setupTouchHandling } from './utils/touchHandlers.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
   // Create container for bluff tokens
@@ -88,7 +88,7 @@ export function createBluffToken({ grimoireState, index }) {
   });
 
   // Enhanced touch handling with movement detection for iOS compatibility
-  setupSimpleTouchHandling({
+  setupTouchHandling({
     element: token,
     onTap: () => {
       if (!grimoireState.gameStarted) {

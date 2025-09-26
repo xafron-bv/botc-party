@@ -2,7 +2,7 @@ import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
 import { openCharacterModal } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
-import { setupEnhancedTouchHandling } from './utils/touchHandlers.js';
+import { setupTouchHandling } from './utils/touchHandlers.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
@@ -111,9 +111,9 @@ function handlePlayerElementTouch({ e, listItem, actionCallback }) {
 
 // Helper function to set up touch event handlers for player tokens
 function setupPlayerTokenTouchHandlers({ tokenEl, grimoireState, playerIndex, listItem, actionCallback, setTouchOccurred }) {
-  return setupEnhancedTouchHandling({
+  return setupTouchHandling({
     element: tokenEl,
-    onQuickTap: (e) => {
+    onTap: (e) => {
       handlePlayerElementTouch({
         e,
         listItem,

@@ -3,22 +3,22 @@
  */
 
 /**
- * Sets up enhanced touch handling with movement detection for iOS compatibility.
- * Handles the common pattern of: click for quick actions, long press for context menus.
+ * Sets up touch handling with movement detection for iOS compatibility.
+ * Can handle simple tap-only interactions or complex tap + long press patterns.
  *
  * @param {Object} config Configuration object
  * @param {HTMLElement} config.element - The element to attach touch handlers to
- * @param {Function} config.onQuickTap - Callback for quick tap actions (< 600ms, no movement)
- * @param {Function} config.onLongPress - Callback for long press actions (>= 600ms, no movement)
+ * @param {Function} config.onTap - Callback for tap actions (< longPressDelay, no movement)
+ * @param {Function} [config.onLongPress] - Optional callback for long press actions (>= longPressDelay, no movement)
  * @param {Function} config.setTouchOccurred - Callback to track touch state for click prevention
  * @param {Function} [config.shouldSkip] - Optional callback to determine if touch should be skipped
  * @param {number} [config.longPressDelay=600] - Delay in ms before long press triggers
  * @param {number} [config.actionDelay=50] - Delay in ms before quick tap action triggers
  * @param {number} [config.touchResetDelay=300] - Delay in ms before touch flag is reset
  */
-export function setupEnhancedTouchHandling({
+export function setupTouchHandling({
   element,
-  onQuickTap,
+  onTap,
   onLongPress,
   setTouchOccurred,
   shouldSkip,
@@ -84,12 +84,12 @@ export function setupEnhancedTouchHandling({
     // Clear long press timer
     clearTimeout(longPressTimer);
 
-    // Only trigger quick tap if it wasn't a long press, was quick enough, and didn't involve movement
-    if (onQuickTap && !isLongPress && !touchMoved && touchDuration < longPressDelay) {
+    // Only trigger tap if it wasn't a long press, was quick enough, and didn't involve movement
+    if (onTap && !isLongPress && !touchMoved && touchDuration < longPressDelay) {
       // Use a small delay to ensure long press timer is cancelled
       touchActionTimer = setTimeout(() => {
         if (!isLongPress) {
-          onQuickTap(e);
+          onTap(e);
         }
       }, actionDelay);
     }
@@ -118,61 +118,4 @@ export function setupEnhancedTouchHandling({
   };
 }
 
-/**
- * Simple touch handling for elements that only need click actions (no long press).
- * Prevents double-click issues and provides iOS-compatible touch behavior.
- *
- * @param {Object} config Configuration object
- * @param {HTMLElement} config.element - The element to attach touch handlers to
- * @param {Function} config.onTap - Callback for tap actions
- * @param {Function} config.setTouchOccurred - Callback to track touch state for click prevention
- * @param {Function} [config.shouldSkip] - Optional callback to determine if touch should be skipped
- * @param {number} [config.touchResetDelay=300] - Delay in ms before touch flag is reset
- */
-export function setupSimpleTouchHandling({
-  element,
-  onTap,
-  setTouchOccurred,
-  shouldSkip,
-  touchResetDelay = 300
-}) {
-  if (!('ontouchstart' in window)) return;
 
-  let touchMoved = false;
-
-  element.addEventListener('touchstart', (e) => {
-    // Allow custom skip logic
-    if (shouldSkip && shouldSkip(e)) {
-      return;
-    }
-
-    // Mark that a touch occurred and reset movement flag
-    if (setTouchOccurred) setTouchOccurred(true);
-    touchMoved = false;
-  });
-
-  element.addEventListener('touchmove', (_e) => {
-    touchMoved = true;
-  });
-
-  element.addEventListener('touchend', (e) => {
-    e.preventDefault();
-
-    // Only trigger action if there was no movement
-    if (!touchMoved && onTap) {
-      onTap(e);
-    }
-
-    // Reset touch flag after a delay
-    if (setTouchOccurred) {
-      setTimeout(() => {
-        setTouchOccurred(false);
-      }, touchResetDelay);
-    }
-  });
-
-  element.addEventListener('touchcancel', (_e) => {
-    touchMoved = false;
-    if (setTouchOccurred) setTouchOccurred(false);
-  });
-}
