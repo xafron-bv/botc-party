@@ -4,6 +4,58 @@ import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
 
+function getCurrentLayout() {
+  try {
+    return localStorage.getItem('botcLayoutV1') || 'circle';
+  } catch {
+    return 'circle';
+  }
+}
+
+function calculateToiletBowlPosition(index, count, containerWidth, containerHeight, _tokenRadius) {
+  // Create a toilet bowl shape optimized for mobile aspect ratios
+  // The shape consists of a curved bottom (bowl) and narrower top (rim)
+
+  const centerX = containerWidth / 2;
+  const centerY = containerHeight / 2;
+
+  // Adjust dimensions based on container aspect ratio
+  const aspectRatio = containerWidth / containerHeight;
+  const isMobileAspect = aspectRatio < 1.2; // Detect mobile-like aspect ratios
+
+  // Bowl dimensions - adjust for mobile
+  const bowlWidth = isMobileAspect ? containerWidth * 0.35 : containerWidth * 0.3;
+  const bowlHeight = containerHeight * 0.4;
+  const rimWidth = bowlWidth * 0.6;
+  const rimHeight = containerHeight * 0.15;
+
+  // Divide players between rim (top) and bowl (bottom)
+  const rimCount = Math.ceil(count * 0.3); // ~30% on rim
+  const bowlCount = count - rimCount;
+
+  let x, y;
+
+  if (index < rimCount) {
+    // Position on the rim (top narrow part)
+    const rimAngle = index / rimCount * Math.PI; // Half circle
+    const rimRadius = rimWidth / 2;
+    x = centerX + rimRadius * Math.cos(Math.PI - rimAngle);
+    y = centerY - bowlHeight / 2 - rimHeight / 2 + rimRadius * Math.sin(Math.PI - rimAngle);
+  } else {
+    // Position in the bowl (curved bottom part)
+    const bowlIndex = index - rimCount;
+    // Use more than half circle for bowl to create the toilet shape
+    const bowlAngle = (bowlIndex / bowlCount) * Math.PI * 1.4 + Math.PI * 0.3;
+    const bowlRadiusX = bowlWidth / 2;
+    const bowlRadiusY = bowlHeight / 2;
+
+    x = centerX + bowlRadiusX * Math.cos(bowlAngle);
+    y = centerY + bowlRadiusY * Math.sin(bowlAngle);
+  }
+
+  return { x, y };
+}
+
 export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
   const count = players.length;
@@ -15,7 +67,21 @@ export function repositionPlayers({ grimoireState }) {
   const sampleToken = listItemsForSize[0].querySelector('.player-token') || listItemsForSize[0];
   const tokenDiameter = sampleToken.offsetWidth || 100;
   const tokenRadius = tokenDiameter / 2;
-  const chordNeeded = tokenDiameter * 1.25;
+
+  const currentLayout = getCurrentLayout();
+
+  if (currentLayout === 'toilet') {
+    repositionPlayersToiletBowl({ players, circle, listItemsForSize, tokenRadius, grimoireState });
+  } else {
+    repositionPlayersCircle({ players, circle, listItemsForSize, tokenRadius, count, grimoireState });
+  }
+
+  positionInfoIcons();
+  positionNightOrderNumbers();
+}
+
+function repositionPlayersCircle({ players, circle, _listItemsForSize, tokenRadius, count, grimoireState }) {
+  const chordNeeded = (tokenRadius * 2) * 1.25;
   const minScreenRadius = Math.min(window.innerWidth, window.innerHeight) / 4;
   const radius = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
@@ -35,61 +101,115 @@ export function repositionPlayers({ grimoireState }) {
     const angle = i * angleStep - Math.PI / 2;
     const x = circleWidth / 2 + positionRadius * Math.cos(angle);
     const y = circleHeight / 2 + positionRadius * Math.sin(angle);
-    listItem.style.position = 'absolute';
-    listItem.style.left = `${x}px`;
-    listItem.style.top = `${y}px`;
-    listItem.style.transform = 'translate(-50%, -50%)';
-    listItem.dataset.angle = String(angle);
-    const playerNameEl = listItem.querySelector('.player-name');
-    if (playerNameEl) {
-      const yv = Math.sin(angle);
-      const isNorthQuadrant = yv < 0;
-      if (isNorthQuadrant) {
-        playerNameEl.classList.add('top-half');
-        listItem.classList.add('is-north');
-        listItem.classList.remove('is-south');
-      } else {
-        playerNameEl.classList.remove('top-half');
-        listItem.classList.add('is-south');
-        listItem.classList.remove('is-north');
-      }
-
-      const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
-      const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
-      if (isTargetArc) {
-        const tangentAngleDeg = mathDeg + 90; // tangent
-        playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
-        playerNameEl.classList.add('curved-quadrant');
-        try {
-          const tokenEl = listItem.querySelector('.player-token');
-          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
-          const baseOffset = tokenSize * 0.7; // tuned outward distance
-          const outward = baseOffset;
-          const dx = Math.cos(angle) * outward;
-          const dy = Math.sin(angle) * outward;
-          playerNameEl.style.left = `calc(50% + ${dx}px)`;
-          playerNameEl.style.top = `calc(50% + ${dy}px)`;
-        } catch (_e) { /* ignore positioning errors */ }
-      } else {
-        playerNameEl.style.setProperty('--name-rotate', '0deg');
-        playerNameEl.classList.remove('curved-quadrant');
-        playerNameEl.style.left = '';
-        playerNameEl.style.top = '';
-      }
-    }
-    let visibleCount = 0;
-    if (players[i] && players[i].reminders) {
-      players[i].reminders.forEach(reminder => {
-        if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
-          isReminderVisible(grimoireState, reminder.reminderId)) {
-          visibleCount++;
-        }
-      });
-    }
-    positionRadialStack(listItem, visibleCount);
+    positionPlayerToken(listItem, x, y, angle, players[i], grimoireState);
   });
-  positionInfoIcons();
-  positionNightOrderNumbers();
+}
+
+function repositionPlayersToiletBowl({ players, circle, _listItemsForSize, tokenRadius, grimoireState }) {
+  const count = players.length;
+  const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
+  const margin = 24;
+
+  // Calculate container size for toilet bowl - optimize for mobile aspect ratios
+  const maxWidth = Math.max(200, parentRect.width - margin);
+  const maxHeight = Math.max(300, parentRect.height - margin);
+
+  // Use wider aspect ratio for toilet bowl to better utilize screen space
+  const aspectRatio = maxWidth / maxHeight;
+  let containerWidth, containerHeight;
+
+  if (aspectRatio > 0.8) {
+    // Wider screens - use more width
+    containerWidth = Math.min(maxWidth, maxHeight * 1.3);
+    containerHeight = maxHeight;
+  } else {
+    // Narrow screens - maintain proportions
+    containerWidth = maxWidth;
+    containerHeight = Math.min(maxHeight, maxWidth * 1.4);
+  }
+
+  circle.style.width = `${containerWidth}px`;
+  circle.style.height = `${containerHeight}px`;
+
+  const listItems = circle.querySelectorAll('li');
+  listItems.forEach((listItem, i) => {
+    const position = calculateToiletBowlPosition(i, count, containerWidth, containerHeight, tokenRadius);
+    // Calculate angle from center for name positioning
+    const centerX = containerWidth / 2;
+    const centerY = containerHeight / 2;
+    const angle = Math.atan2(position.y - centerY, position.x - centerX);
+    positionPlayerToken(listItem, position.x, position.y, angle, players[i], grimoireState);
+  });
+}
+
+function positionPlayerToken(listItem, x, y, angle, player, grimoireState) {
+  listItem.style.position = 'absolute';
+  listItem.style.left = `${x}px`;
+  listItem.style.top = `${y}px`;
+  listItem.style.transform = 'translate(-50%, -50%)';
+  listItem.dataset.angle = String(angle);
+  const playerNameEl = listItem.querySelector('.player-name');
+  if (playerNameEl) {
+    const yv = Math.sin(angle);
+    const isNorthQuadrant = yv < 0;
+    if (isNorthQuadrant) {
+      playerNameEl.classList.add('top-half');
+      listItem.classList.add('is-north');
+      listItem.classList.remove('is-south');
+    } else {
+      playerNameEl.classList.remove('top-half');
+      listItem.classList.add('is-south');
+      listItem.classList.remove('is-north');
+    }
+
+    const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
+    const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
+    if (isTargetArc) {
+      const tangentAngleDeg = mathDeg + 90; // tangent
+      playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
+      playerNameEl.classList.add('curved-quadrant');
+      try {
+        const tokenEl = listItem.querySelector('.player-token');
+        const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+        const baseOffset = tokenSize * 0.7; // tuned outward distance
+        const outward = baseOffset;
+        const dx = Math.cos(angle) * outward;
+        const dy = Math.sin(angle) * outward;
+        playerNameEl.style.left = `calc(50% + ${dx}px)`;
+        playerNameEl.style.top = `calc(50% + ${dy}px)`;
+      } catch (_e) { /* ignore positioning errors */ }
+    } else {
+      playerNameEl.style.setProperty('--name-rotate', '0deg');
+      playerNameEl.classList.remove('curved-quadrant');
+      playerNameEl.style.left = '';
+      playerNameEl.style.top = '';
+    }
+  }
+  let visibleCount = 0;
+  if (player && player.reminders) {
+    player.reminders.forEach(reminder => {
+      if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
+          isReminderVisible(grimoireState, reminder.reminderId)) {
+        visibleCount++;
+      }
+    });
+  }
+  positionRadialStack(listItem, visibleCount);
+}
+
+export function toggleLayout() {
+  const currentLayout = getCurrentLayout();
+  const newLayout = currentLayout === 'circle' ? 'toilet' : 'circle';
+  try {
+    localStorage.setItem('botcLayoutV1', newLayout);
+  } catch {
+    // Ignore storage errors
+  }
+  return newLayout;
+}
+
+export function getLayoutDisplayName(layout) {
+  return layout === 'toilet' ? 'Toilet Bowl' : 'Circle';
 }
 
 export function positionRadialStack(li, count) {

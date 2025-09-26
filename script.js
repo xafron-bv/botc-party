@@ -8,7 +8,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrent
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initExportImport } from './src/history/exportImport.js';
-import { repositionPlayers } from './src/ui/layout.js';
+import { repositionPlayers, toggleLayout, getLayoutDisplayName } from './src/ui/layout.js';
 import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
   const backgroundSelect = document.getElementById('background-select');
+  const layoutToggleBtn = document.getElementById('layout-toggle');
   const includeTravellersCheckbox = document.getElementById('include-travellers');
   const nightOrderSortCheckbox = document.getElementById('night-order-sort');
   const nightOrderControls = document.querySelector('.night-order-controls');
@@ -175,6 +176,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (backgroundSelect) {
     backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
+  }
+
+  // Initialize layout toggle
+  const updateLayoutButton = () => {
+    if (layoutToggleBtn) {
+      try {
+        const currentLayout = localStorage.getItem('botcLayoutV1') || 'circle';
+        layoutToggleBtn.textContent = `Layout: ${getLayoutDisplayName(currentLayout)}`;
+      } catch {
+        layoutToggleBtn.textContent = 'Layout: Circle';
+      }
+    }
+  };
+
+  if (layoutToggleBtn) {
+    updateLayoutButton();
+    layoutToggleBtn.addEventListener('click', () => {
+      toggleLayout();
+      updateLayoutButton();
+      repositionPlayers({ grimoireState });
+    });
   }
 
   // Initialize mode from localStorage

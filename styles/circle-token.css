@@ -8,6 +8,7 @@
   z-index: 2;
   /* Above setup-info */
   overflow: visible;
+  transition: width 0.4s ease, height 0.4s ease;
 }
 
 .circle li {
@@ -20,6 +21,7 @@
   height: var(--token-size);
   /* serve as positioning container for absolute token */
   overflow: visible;
+  transition: left 0.4s ease, top 0.4s ease;
 }
 
 .player-token {
