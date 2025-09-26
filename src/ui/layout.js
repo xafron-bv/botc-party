@@ -36,60 +36,96 @@ function calculateToiletBowlPosition(index, count, containerWidth, containerHeig
   const top = centerY - height / 2;
   const bottom = centerY + height / 2;
 
-  // Simplified approach: divide perimeter into 4 sides and rounded corners
-  // Distribute players proportionally across each section
+  // Distribute players with proportionally larger gaps on longer sides
+  // Determine which sides are longer
 
   // Calculate side lengths (excluding corner radius)
   const topBottomLength = width - 2 * cornerRadius;
   const leftRightLength = height - 2 * cornerRadius;
   const cornerArc = Math.PI * cornerRadius / 2; // Quarter circle arc length
 
-  const totalPerimeter = 2 * topBottomLength + 2 * leftRightLength + 4 * cornerArc;
-  const stepLength = totalPerimeter / count;
-  const position = index * stepLength;
+  const isWidthLonger = topBottomLength > leftRightLength;
+  const longSideLength = isWidthLonger ? topBottomLength : leftRightLength;
+  const shortSideLength = isWidthLonger ? leftRightLength : topBottomLength;
+
+  // Calculate proportional distribution - give more "weight" to longer sides
+  const sizeRatio = longSideLength / shortSideLength;
+  const longSideWeight = sizeRatio; // Longer sides get proportionally more space
+  const shortSideWeight = 1.0; // Short sides get base spacing
+
+  // Calculate weighted perimeter for distribution
+  const longSidesWeightedLength = isWidthLonger
+    ? 2 * topBottomLength * longSideWeight
+    : 2 * leftRightLength * longSideWeight;
+  const shortSidesWeightedLength = isWidthLonger
+    ? 2 * leftRightLength * shortSideWeight
+    : 2 * topBottomLength * shortSideWeight;
+  const cornerWeightedLength = 4 * cornerArc; // Corners maintain regular spacing
+
+  const totalWeightedPerimeter = longSidesWeightedLength + shortSidesWeightedLength + cornerWeightedLength;
+  const baseStepLength = totalWeightedPerimeter / count;
+
+  // Calculate actual step lengths for each side type
+  const longSideStepLength = baseStepLength / longSideWeight;
+  const shortSideStepLength = baseStepLength / shortSideWeight;
+  const cornerStepLength = baseStepLength;
+
+  // Build cumulative distances for each section
+  const topSideEnd = isWidthLonger ? topBottomLength / longSideStepLength : topBottomLength / shortSideStepLength;
+  const topRightCornerEnd = topSideEnd + cornerArc / cornerStepLength;
+  const rightSideEnd = topRightCornerEnd + (isWidthLonger ? leftRightLength / shortSideStepLength : leftRightLength / longSideStepLength);
+  const bottomRightCornerEnd = rightSideEnd + cornerArc / cornerStepLength;
+  const bottomSideEnd = bottomRightCornerEnd + (isWidthLonger ? topBottomLength / longSideStepLength : topBottomLength / shortSideStepLength);
+  const bottomLeftCornerEnd = bottomSideEnd + cornerArc / cornerStepLength;
+  const leftSideEnd = bottomLeftCornerEnd + (isWidthLonger ? leftRightLength / shortSideStepLength : leftRightLength / longSideStepLength);
+  const topLeftCornerEnd = leftSideEnd + cornerArc / cornerStepLength;
+
+  const totalSteps = topLeftCornerEnd;
+  const normalizedIndex = (index / count) * totalSteps;
 
   let x, y;
 
   // Top edge (left to right)
-  if (position < topBottomLength) {
-    x = left + cornerRadius + position;
+  if (normalizedIndex < topSideEnd) {
+    const progress = normalizedIndex / topSideEnd;
+    x = left + cornerRadius + progress * topBottomLength;
     y = top;
-  } else if (position < topBottomLength + cornerArc) {
+  } else if (normalizedIndex < topRightCornerEnd) {
     // Top-right corner
-    const cornerProgress = (position - topBottomLength) / cornerArc;
+    const cornerProgress = (normalizedIndex - topSideEnd) / (topRightCornerEnd - topSideEnd);
     const angle = -Math.PI / 2 + cornerProgress * Math.PI / 2;
     x = right - cornerRadius + cornerRadius * Math.cos(angle);
     y = top + cornerRadius + cornerRadius * Math.sin(angle);
-  } else if (position < topBottomLength + cornerArc + leftRightLength) {
+  } else if (normalizedIndex < rightSideEnd) {
     // Right edge (top to bottom)
-    const edgeProgress = position - topBottomLength - cornerArc;
+    const progress = (normalizedIndex - topRightCornerEnd) / (rightSideEnd - topRightCornerEnd);
     x = right;
-    y = top + cornerRadius + edgeProgress;
-  } else if (position < topBottomLength + 2 * cornerArc + leftRightLength) {
+    y = top + cornerRadius + progress * leftRightLength;
+  } else if (normalizedIndex < bottomRightCornerEnd) {
     // Bottom-right corner
-    const cornerProgress = (position - topBottomLength - cornerArc - leftRightLength) / cornerArc;
+    const cornerProgress = (normalizedIndex - rightSideEnd) / (bottomRightCornerEnd - rightSideEnd);
     const angle = cornerProgress * Math.PI / 2;
     x = right - cornerRadius + cornerRadius * Math.cos(angle);
     y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
-  } else if (position < 2 * topBottomLength + 2 * cornerArc + leftRightLength) {
+  } else if (normalizedIndex < bottomSideEnd) {
     // Bottom edge (right to left)
-    const edgeProgress = position - topBottomLength - 2 * cornerArc - leftRightLength;
-    x = right - cornerRadius - edgeProgress;
+    const progress = (normalizedIndex - bottomRightCornerEnd) / (bottomSideEnd - bottomRightCornerEnd);
+    x = right - cornerRadius - progress * topBottomLength;
     y = bottom;
-  } else if (position < 2 * topBottomLength + 3 * cornerArc + leftRightLength) {
+  } else if (normalizedIndex < bottomLeftCornerEnd) {
     // Bottom-left corner
-    const cornerProgress = (position - 2 * topBottomLength - 2 * cornerArc - leftRightLength) / cornerArc;
+    const cornerProgress = (normalizedIndex - bottomSideEnd) / (bottomLeftCornerEnd - bottomSideEnd);
     const angle = Math.PI / 2 + cornerProgress * Math.PI / 2;
     x = left + cornerRadius + cornerRadius * Math.cos(angle);
     y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
-  } else if (position < 2 * topBottomLength + 3 * cornerArc + 2 * leftRightLength) {
+  } else if (normalizedIndex < leftSideEnd) {
     // Left edge (bottom to top)
-    const edgeProgress = position - 2 * topBottomLength - 3 * cornerArc - leftRightLength;
+    const progress = (normalizedIndex - bottomLeftCornerEnd) / (leftSideEnd - bottomLeftCornerEnd);
     x = left;
-    y = bottom - cornerRadius - edgeProgress;
+    y = bottom - cornerRadius - progress * leftRightLength;
   } else {
     // Top-left corner
-    const cornerProgress = (position - 2 * topBottomLength - 3 * cornerArc - 2 * leftRightLength) / cornerArc;
+    const cornerProgress = (normalizedIndex - leftSideEnd) / (topLeftCornerEnd - leftSideEnd);
     const angle = Math.PI + cornerProgress * Math.PI / 2;
     x = left + cornerRadius + cornerRadius * Math.cos(angle);
     y = top + cornerRadius + cornerRadius * Math.sin(angle);
