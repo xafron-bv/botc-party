@@ -4,6 +4,136 @@ import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
 
+function getCurrentLayout() {
+  try {
+    return localStorage.getItem('botcLayoutV1') || 'circle';
+  } catch {
+    return 'circle';
+  }
+}
+
+function calculateToiletBowlPosition(index, count, containerWidth, containerHeight, _tokenRadius) {
+  // Create a toilet bowl shape like a square but with very round edges
+  // This creates a rounded rectangle that better utilizes mobile screen space
+
+  const centerX = containerWidth / 2;
+  const centerY = containerHeight / 2;
+
+  // Adjust dimensions based on container aspect ratio
+  const aspectRatio = containerWidth / containerHeight;
+  const isMobileAspect = aspectRatio < 1.2; // Detect mobile-like aspect ratios
+
+  // Create a rounded square/rectangle shape
+  const width = isMobileAspect ? containerWidth * 0.7 : containerWidth * 0.6;
+  const height = containerHeight * 0.75;
+
+  // Corner radius for the rounded edges - make them very round
+  const cornerRadius = Math.min(width, height) * 0.3;
+
+  // Calculate the rectangle bounds
+  const left = centerX - width / 2;
+  const right = centerX + width / 2;
+  const top = centerY - height / 2;
+  const bottom = centerY + height / 2;
+
+  // Distribute players with proportionally larger gaps on longer sides
+  // Determine which sides are longer
+
+  // Calculate side lengths (excluding corner radius)
+  const topBottomLength = width - 2 * cornerRadius;
+  const leftRightLength = height - 2 * cornerRadius;
+  const cornerArc = Math.PI * cornerRadius / 2; // Quarter circle arc length
+
+  const isWidthLonger = topBottomLength > leftRightLength;
+  const longSideLength = isWidthLonger ? topBottomLength : leftRightLength;
+  const shortSideLength = isWidthLonger ? leftRightLength : topBottomLength;
+
+  // Calculate proportional distribution - give more "weight" to longer sides
+  const sizeRatio = longSideLength / shortSideLength;
+  const longSideWeight = sizeRatio; // Longer sides get proportionally more space
+  const shortSideWeight = 1.0; // Short sides get base spacing
+
+  // Calculate weighted perimeter for distribution
+  const longSidesWeightedLength = isWidthLonger
+    ? 2 * topBottomLength * longSideWeight
+    : 2 * leftRightLength * longSideWeight;
+  const shortSidesWeightedLength = isWidthLonger
+    ? 2 * leftRightLength * shortSideWeight
+    : 2 * topBottomLength * shortSideWeight;
+  const cornerWeightedLength = 4 * cornerArc; // Corners maintain regular spacing
+
+  const totalWeightedPerimeter = longSidesWeightedLength + shortSidesWeightedLength + cornerWeightedLength;
+  const baseStepLength = totalWeightedPerimeter / count;
+
+  // Calculate actual step lengths for each side type
+  const longSideStepLength = baseStepLength / longSideWeight;
+  const shortSideStepLength = baseStepLength / shortSideWeight;
+  const cornerStepLength = baseStepLength;
+
+  // Build cumulative distances for each section
+  const topSideEnd = isWidthLonger ? topBottomLength / longSideStepLength : topBottomLength / shortSideStepLength;
+  const topRightCornerEnd = topSideEnd + cornerArc / cornerStepLength;
+  const rightSideEnd = topRightCornerEnd + (isWidthLonger ? leftRightLength / shortSideStepLength : leftRightLength / longSideStepLength);
+  const bottomRightCornerEnd = rightSideEnd + cornerArc / cornerStepLength;
+  const bottomSideEnd = bottomRightCornerEnd + (isWidthLonger ? topBottomLength / longSideStepLength : topBottomLength / shortSideStepLength);
+  const bottomLeftCornerEnd = bottomSideEnd + cornerArc / cornerStepLength;
+  const leftSideEnd = bottomLeftCornerEnd + (isWidthLonger ? leftRightLength / shortSideStepLength : leftRightLength / longSideStepLength);
+  const topLeftCornerEnd = leftSideEnd + cornerArc / cornerStepLength;
+
+  const totalSteps = topLeftCornerEnd;
+  const normalizedIndex = (index / count) * totalSteps;
+
+  let x, y;
+
+  // Top edge (left to right)
+  if (normalizedIndex < topSideEnd) {
+    const progress = normalizedIndex / topSideEnd;
+    x = left + cornerRadius + progress * topBottomLength;
+    y = top;
+  } else if (normalizedIndex < topRightCornerEnd) {
+    // Top-right corner
+    const cornerProgress = (normalizedIndex - topSideEnd) / (topRightCornerEnd - topSideEnd);
+    const angle = -Math.PI / 2 + cornerProgress * Math.PI / 2;
+    x = right - cornerRadius + cornerRadius * Math.cos(angle);
+    y = top + cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (normalizedIndex < rightSideEnd) {
+    // Right edge (top to bottom)
+    const progress = (normalizedIndex - topRightCornerEnd) / (rightSideEnd - topRightCornerEnd);
+    x = right;
+    y = top + cornerRadius + progress * leftRightLength;
+  } else if (normalizedIndex < bottomRightCornerEnd) {
+    // Bottom-right corner
+    const cornerProgress = (normalizedIndex - rightSideEnd) / (bottomRightCornerEnd - rightSideEnd);
+    const angle = cornerProgress * Math.PI / 2;
+    x = right - cornerRadius + cornerRadius * Math.cos(angle);
+    y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (normalizedIndex < bottomSideEnd) {
+    // Bottom edge (right to left)
+    const progress = (normalizedIndex - bottomRightCornerEnd) / (bottomSideEnd - bottomRightCornerEnd);
+    x = right - cornerRadius - progress * topBottomLength;
+    y = bottom;
+  } else if (normalizedIndex < bottomLeftCornerEnd) {
+    // Bottom-left corner
+    const cornerProgress = (normalizedIndex - bottomSideEnd) / (bottomLeftCornerEnd - bottomSideEnd);
+    const angle = Math.PI / 2 + cornerProgress * Math.PI / 2;
+    x = left + cornerRadius + cornerRadius * Math.cos(angle);
+    y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (normalizedIndex < leftSideEnd) {
+    // Left edge (bottom to top)
+    const progress = (normalizedIndex - bottomLeftCornerEnd) / (leftSideEnd - bottomLeftCornerEnd);
+    x = left;
+    y = bottom - cornerRadius - progress * leftRightLength;
+  } else {
+    // Top-left corner
+    const cornerProgress = (normalizedIndex - leftSideEnd) / (topLeftCornerEnd - leftSideEnd);
+    const angle = Math.PI + cornerProgress * Math.PI / 2;
+    x = left + cornerRadius + cornerRadius * Math.cos(angle);
+    y = top + cornerRadius + cornerRadius * Math.sin(angle);
+  }
+
+  return { x, y };
+}
+
 export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
   const count = players.length;
@@ -15,7 +145,21 @@ export function repositionPlayers({ grimoireState }) {
   const sampleToken = listItemsForSize[0].querySelector('.player-token') || listItemsForSize[0];
   const tokenDiameter = sampleToken.offsetWidth || 100;
   const tokenRadius = tokenDiameter / 2;
-  const chordNeeded = tokenDiameter * 1.25;
+
+  const currentLayout = getCurrentLayout();
+
+  if (currentLayout === 'toilet') {
+    repositionPlayersToiletBowl({ players, circle, listItemsForSize, tokenRadius, grimoireState });
+  } else {
+    repositionPlayersCircle({ players, circle, listItemsForSize, tokenRadius, count, grimoireState });
+  }
+
+  positionInfoIcons();
+  positionNightOrderNumbers();
+}
+
+function repositionPlayersCircle({ players, circle, _listItemsForSize, tokenRadius, count, grimoireState }) {
+  const chordNeeded = (tokenRadius * 2) * 1.25;
   const minScreenRadius = Math.min(window.innerWidth, window.innerHeight) / 4;
   const radius = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
@@ -35,25 +179,69 @@ export function repositionPlayers({ grimoireState }) {
     const angle = i * angleStep - Math.PI / 2;
     const x = circleWidth / 2 + positionRadius * Math.cos(angle);
     const y = circleHeight / 2 + positionRadius * Math.sin(angle);
-    listItem.style.position = 'absolute';
-    listItem.style.left = `${x}px`;
-    listItem.style.top = `${y}px`;
-    listItem.style.transform = 'translate(-50%, -50%)';
-    listItem.dataset.angle = String(angle);
-    const playerNameEl = listItem.querySelector('.player-name');
-    if (playerNameEl) {
-      const yv = Math.sin(angle);
-      const isNorthQuadrant = yv < 0;
-      if (isNorthQuadrant) {
-        playerNameEl.classList.add('top-half');
-        listItem.classList.add('is-north');
-        listItem.classList.remove('is-south');
-      } else {
-        playerNameEl.classList.remove('top-half');
-        listItem.classList.add('is-south');
-        listItem.classList.remove('is-north');
-      }
+    positionPlayerToken(listItem, x, y, angle, players[i], grimoireState, 'circle');
+  });
+}
 
+function repositionPlayersToiletBowl({ players, circle, _listItemsForSize, tokenRadius, grimoireState }) {
+  const count = players.length;
+  const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
+  const margin = 24;
+
+  // Calculate container size for toilet bowl - optimize for mobile aspect ratios
+  const maxWidth = Math.max(200, parentRect.width - margin);
+  const maxHeight = Math.max(300, parentRect.height - margin);
+
+  // Use wider aspect ratio for toilet bowl to better utilize screen space
+  const aspectRatio = maxWidth / maxHeight;
+  let containerWidth, containerHeight;
+
+  if (aspectRatio > 0.8) {
+    // Wider screens - use more width
+    containerWidth = Math.min(maxWidth, maxHeight * 1.3);
+    containerHeight = maxHeight;
+  } else {
+    // Narrow screens - maintain proportions
+    containerWidth = maxWidth;
+    containerHeight = Math.min(maxHeight, maxWidth * 1.4);
+  }
+
+  circle.style.width = `${containerWidth}px`;
+  circle.style.height = `${containerHeight}px`;
+
+  const listItems = circle.querySelectorAll('li');
+  listItems.forEach((listItem, i) => {
+    const position = calculateToiletBowlPosition(i, count, containerWidth, containerHeight, tokenRadius);
+    // Calculate angle from center for name positioning
+    const centerX = containerWidth / 2;
+    const centerY = containerHeight / 2;
+    const angle = Math.atan2(position.y - centerY, position.x - centerX);
+    positionPlayerToken(listItem, position.x, position.y, angle, players[i], grimoireState, 'toilet');
+  });
+}
+
+function positionPlayerToken(listItem, x, y, angle, player, grimoireState, layoutType = 'circle') {
+  listItem.style.position = 'absolute';
+  listItem.style.left = `${x}px`;
+  listItem.style.top = `${y}px`;
+  listItem.style.transform = 'translate(-50%, -50%)';
+  listItem.dataset.angle = String(angle);
+  const playerNameEl = listItem.querySelector('.player-name');
+  if (playerNameEl) {
+    const yv = Math.sin(angle);
+    const isNorthQuadrant = yv < 0;
+    if (isNorthQuadrant) {
+      playerNameEl.classList.add('top-half');
+      listItem.classList.add('is-north');
+      listItem.classList.remove('is-south');
+    } else {
+      playerNameEl.classList.remove('top-half');
+      listItem.classList.add('is-south');
+      listItem.classList.remove('is-north');
+    }
+
+    // Only apply name tilting logic for circular layout
+    if (layoutType === 'circle') {
       const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
       const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
       if (isTargetArc) {
@@ -76,20 +264,39 @@ export function repositionPlayers({ grimoireState }) {
         playerNameEl.style.left = '';
         playerNameEl.style.top = '';
       }
+    } else {
+      // For non-circle layouts (like toilet bowl), reset any rotation/positioning
+      playerNameEl.style.setProperty('--name-rotate', '0deg');
+      playerNameEl.classList.remove('curved-quadrant');
+      playerNameEl.style.left = '';
+      playerNameEl.style.top = '';
     }
-    let visibleCount = 0;
-    if (players[i] && players[i].reminders) {
-      players[i].reminders.forEach(reminder => {
-        if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
+  }
+  let visibleCount = 0;
+  if (player && player.reminders) {
+    player.reminders.forEach(reminder => {
+      if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
           isReminderVisible(grimoireState, reminder.reminderId)) {
-          visibleCount++;
-        }
-      });
-    }
-    positionRadialStack(listItem, visibleCount);
-  });
-  positionInfoIcons();
-  positionNightOrderNumbers();
+        visibleCount++;
+      }
+    });
+  }
+  positionRadialStack(listItem, visibleCount);
+}
+
+export function toggleLayout() {
+  const currentLayout = getCurrentLayout();
+  const newLayout = currentLayout === 'circle' ? 'toilet' : 'circle';
+  try {
+    localStorage.setItem('botcLayoutV1', newLayout);
+  } catch {
+    // Ignore storage errors
+  }
+  return newLayout;
+}
+
+export function getLayoutDisplayName(layout) {
+  return layout === 'toilet' ? 'Toilet Bowl' : 'Circle';
 }
 
 export function positionRadialStack(li, count) {

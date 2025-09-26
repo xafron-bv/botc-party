@@ -11,3 +11,4 @@ export const INCLUDE_TRAVELLERS_KEY = 'botcIncludeTravellersV1';
 export const BG_STORAGE_KEY = 'grimoireBackgroundV1';
 export const minReminderSize = 28;
 export const MODE_STORAGE_KEY = 'botcModeV1';
+export const LAYOUT_STORAGE_KEY = 'botcLayoutV1';
