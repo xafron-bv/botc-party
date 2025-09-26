@@ -143,7 +143,7 @@ function repositionPlayersCircle({ players, circle, _listItemsForSize, tokenRadi
     const angle = i * angleStep - Math.PI / 2;
     const x = circleWidth / 2 + positionRadius * Math.cos(angle);
     const y = circleHeight / 2 + positionRadius * Math.sin(angle);
-    positionPlayerToken(listItem, x, y, angle, players[i], grimoireState);
+    positionPlayerToken(listItem, x, y, angle, players[i], grimoireState, 'circle');
   });
 }
 
@@ -180,11 +180,11 @@ function repositionPlayersToiletBowl({ players, circle, _listItemsForSize, token
     const centerX = containerWidth / 2;
     const centerY = containerHeight / 2;
     const angle = Math.atan2(position.y - centerY, position.x - centerX);
-    positionPlayerToken(listItem, position.x, position.y, angle, players[i], grimoireState);
+    positionPlayerToken(listItem, position.x, position.y, angle, players[i], grimoireState, 'toilet');
   });
 }
 
-function positionPlayerToken(listItem, x, y, angle, player, grimoireState) {
+function positionPlayerToken(listItem, x, y, angle, player, grimoireState, layoutType = 'circle') {
   listItem.style.position = 'absolute';
   listItem.style.left = `${x}px`;
   listItem.style.top = `${y}px`;
@@ -204,23 +204,32 @@ function positionPlayerToken(listItem, x, y, angle, player, grimoireState) {
       listItem.classList.remove('is-north');
     }
 
-    const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
-    const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
-    if (isTargetArc) {
-      const tangentAngleDeg = mathDeg + 90; // tangent
-      playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
-      playerNameEl.classList.add('curved-quadrant');
-      try {
-        const tokenEl = listItem.querySelector('.player-token');
-        const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
-        const baseOffset = tokenSize * 0.7; // tuned outward distance
-        const outward = baseOffset;
-        const dx = Math.cos(angle) * outward;
-        const dy = Math.sin(angle) * outward;
-        playerNameEl.style.left = `calc(50% + ${dx}px)`;
-        playerNameEl.style.top = `calc(50% + ${dy}px)`;
-      } catch (_e) { /* ignore positioning errors */ }
+    // Only apply name tilting logic for circular layout
+    if (layoutType === 'circle') {
+      const mathDeg = angle * 180 / Math.PI; // may be negative early in sequence
+      const isTargetArc = mathDeg >= 225 - 90 && mathDeg <= 270 - 90;
+      if (isTargetArc) {
+        const tangentAngleDeg = mathDeg + 90; // tangent
+        playerNameEl.style.setProperty('--name-rotate', `${tangentAngleDeg}deg`);
+        playerNameEl.classList.add('curved-quadrant');
+        try {
+          const tokenEl = listItem.querySelector('.player-token');
+          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+          const baseOffset = tokenSize * 0.7; // tuned outward distance
+          const outward = baseOffset;
+          const dx = Math.cos(angle) * outward;
+          const dy = Math.sin(angle) * outward;
+          playerNameEl.style.left = `calc(50% + ${dx}px)`;
+          playerNameEl.style.top = `calc(50% + ${dy}px)`;
+        } catch (_e) { /* ignore positioning errors */ }
+      } else {
+        playerNameEl.style.setProperty('--name-rotate', '0deg');
+        playerNameEl.classList.remove('curved-quadrant');
+        playerNameEl.style.left = '';
+        playerNameEl.style.top = '';
+      }
     } else {
+      // For non-circle layouts (like toilet bowl), reset any rotation/positioning
       playerNameEl.style.setProperty('--name-rotate', '0deg');
       playerNameEl.classList.remove('curved-quadrant');
       playerNameEl.style.left = '';
