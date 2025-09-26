@@ -2,6 +2,7 @@ import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
 import { openCharacterModal } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
+import { setupTouchHandling } from './utils/touchHandlers.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
@@ -108,6 +109,63 @@ function handlePlayerElementTouch({ e, listItem, actionCallback }) {
   // It will only be un-raised when clicking outside (handled by global listener)
 }
 
+// Helper function to set up touch event handlers for player tokens
+function setupPlayerTokenTouchHandlers({ tokenEl, grimoireState, playerIndex, listItem, actionCallback, setTouchOccurred }) {
+  return setupTouchHandling({
+    element: tokenEl,
+    onTap: (e) => {
+      handlePlayerElementTouch({
+        e,
+        listItem,
+        actionCallback,
+        grimoireState,
+        playerIndex
+      });
+    },
+    onLongPress: (e, x, y) => {
+      // Clear any existing long press timer before showing menu
+      clearTimeout(grimoireState.longPressTimer);
+      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+    },
+    setTouchOccurred,
+    shouldSkip: (e) => {
+      const target = e.target;
+      return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+        (target && target.classList.contains('ability-info-icon'));
+    }
+  });
+}
+
+// Helper function to set up player name click and touch handlers
+function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
+  const handlePlayerNameClick = (e) => {
+    e.stopPropagation();
+    const currentName = grimoireState.players[playerIndex].name;
+    const newName = prompt('Enter player name:', currentName);
+    if (newName) {
+      grimoireState.players[playerIndex].name = newName;
+      updateGrimoire({ grimoireState });
+      saveAppState({ grimoireState });
+    }
+  };
+
+  // Add click handler
+  listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
+
+  // Add touchstart handler for player name with two-tap behavior
+  if ('ontouchstart' in window) {
+    listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+      handlePlayerElementTouch({
+        e,
+        listItem,
+        actionCallback: handlePlayerNameClick,
+        grimoireState,
+        playerIndex
+      });
+    });
+  }
+}
+
 function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
@@ -211,93 +269,21 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       }
     };
 
-    // Add touchstart handler for player token with two-tap behavior
-    if ('ontouchstart' in window) {
-      let touchActionTimer = null;
-      let isLongPress = false;
-      let touchStartTime = 0;
-
-      tokenEl.addEventListener('touchstart', (e) => {
-        const target = e.target;
-        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-          return; // handled by ribbon
+    // Set up touch handling for player token
+    setupPlayerTokenTouchHandlers({
+      tokenEl,
+      grimoireState,
+      playerIndex: i,
+      listItem,
+      actionCallback: () => {
+        if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+        } else if (grimoireState && !grimoireState.grimoireHidden) {
+          openCharacterModal({ grimoireState, playerIndex: i });
         }
-        if (target && target.classList.contains('ability-info-icon')) {
-          return; // handled by info icon
-        }
-
-        // Mark that a touch occurred
-        touchOccurred = true;
-        touchStartTime = Date.now();
-
-        // Reset long press flag
-        isLongPress = false;
-
-        // Store touch start position for long press detection
-        const x = e.touches[0].clientX;
-        const y = e.touches[0].clientY;
-
-        // Clear any existing timers
-        clearTimeout(grimoireState.longPressTimer);
-        clearTimeout(touchActionTimer);
-
-        // Start long press timer
-        grimoireState.longPressTimer = setTimeout(() => {
-          isLongPress = true;
-          clearTimeout(touchActionTimer);
-          showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
-        }, 600);
-      });
-
-      tokenEl.addEventListener('touchend', (e) => {
-        e.preventDefault();
-
-        // Calculate touch duration
-        const touchDuration = Date.now() - touchStartTime;
-
-        // Clear long press timer only if menu is not already visible
-        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-          clearTimeout(grimoireState.longPressTimer);
-        }
-
-        // If it wasn't a long press and touch was quick enough, trigger the action
-        if (!isLongPress && touchDuration < 600) {
-          // Use a small delay to ensure long press timer is cancelled
-          touchActionTimer = setTimeout(() => {
-            if (!isLongPress) {
-              handlePlayerElementTouch({
-                e,
-                listItem,
-                actionCallback: () => {
-                  if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-                    if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
-                  } else if (grimoireState && !grimoireState.grimoireHidden) {
-                    openCharacterModal({ grimoireState, playerIndex: i });
-                  }
-                },
-                grimoireState,
-                playerIndex: i
-              });
-            }
-          }, 50);
-        }
-
-        // Reset touch flag after a delay to handle any delayed click events
-        setTimeout(() => {
-          touchOccurred = false;
-        }, 300);
-      });
-
-      tokenEl.addEventListener('touchcancel', (_e) => {
-        // Clear all timers on cancel (only clear long press timer if menu is not visible)
-        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-          clearTimeout(grimoireState.longPressTimer);
-        }
-        clearTimeout(touchActionTimer);
-        isLongPress = false;
-        touchOccurred = false;
-      });
-    }
+      },
+      setTouchOccurred: (value) => { touchOccurred = value; }
+    });
 
     // Player context menu: right-click
     listItem.addEventListener('contextmenu', (e) => {
@@ -305,33 +291,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
     });
 
-    // Player name click handler as a named function
-    const handlePlayerNameClick = (e) => {
-      e.stopPropagation();
-      const currentName = grimoireState.players[i].name;
-      const newName = prompt('Enter player name:', currentName);
-      if (newName) {
-        grimoireState.players[i].name = newName;
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-      }
-    };
-
-    // Add click handler
-    listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
-
-    // Add touchstart handler for player name with two-tap behavior
-    if ('ontouchstart' in window) {
-      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
-        handlePlayerElementTouch({
-          e,
-          listItem,
-          actionCallback: handlePlayerNameClick,
-          grimoireState,
-          playerIndex: i
-        });
-      });
-    }
+    // Set up click and touch handling for player name
+    setupPlayerNameHandlers({ listItem, grimoireState, playerIndex: i });
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
@@ -1516,25 +1477,25 @@ export function applyGrimoireBackground(value) {
   if (!value || value === 'none') value = 'dark';
 
   switch (value) {
-  case 'dark':
-    centerEl.classList.add('bg-dark');
-    break;
-  case 'red-gradient':
-    centerEl.classList.add('bg-red-gradient');
-    break;
-  case 'dark-purple':
-    centerEl.classList.add('bg-dark-purple');
-    break;
-  case 'wood':
-    centerEl.classList.add('bg-wood');
-    break;
-  case 'cosmic':
-    centerEl.classList.add('bg-cosmic');
-    break;
-  default:
-    // Fallback: treat as color hex code or CSS color
-    centerEl.style.backgroundImage = 'none';
-    centerEl.style.backgroundColor = value;
+    case 'dark':
+      centerEl.classList.add('bg-dark');
+      break;
+    case 'red-gradient':
+      centerEl.classList.add('bg-red-gradient');
+      break;
+    case 'dark-purple':
+      centerEl.classList.add('bg-dark-purple');
+      break;
+    case 'wood':
+      centerEl.classList.add('bg-wood');
+      break;
+    case 'cosmic':
+      centerEl.classList.add('bg-cosmic');
+      break;
+    default:
+      // Fallback: treat as color hex code or CSS color
+      centerEl.style.backgroundImage = 'none';
+      centerEl.style.backgroundColor = value;
   }
 }
 
@@ -1607,121 +1568,24 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
     };
 
-    // Add touchstart handler for player token with two-tap behavior
-    if ('ontouchstart' in window) {
-      let touchActionTimer2 = null;
-      let isLongPress2 = false;
-      let touchStartTime2 = 0;
-
-      tokenEl2.addEventListener('touchstart', (e) => {
-        const target = e.target;
-        if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-          return; // handled by ribbon
+    // Set up touch handling for player token
+    setupPlayerTokenTouchHandlers({
+      tokenEl: tokenEl2,
+      grimoireState,
+      playerIndex: i,
+      listItem,
+      actionCallback: () => {
+        if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+        } else if (grimoireState && !grimoireState.grimoireHidden) {
+          openCharacterModal({ grimoireState, playerIndex: i });
         }
-        if (target && target.classList.contains('ability-info-icon')) {
-          return; // handled by info icon
-        }
+      },
+      setTouchOccurred: (value) => { touchOccurred2 = value; }
+    });
 
-        // Mark that a touch occurred
-        touchOccurred2 = true;
-        touchStartTime2 = Date.now();
-
-        // Reset long press flag
-        isLongPress2 = false;
-
-        // Store touch start position for long press detection
-        const x = e.touches[0].clientX;
-        const y = e.touches[0].clientY;
-
-        // Clear any existing timers
-        clearTimeout(grimoireState.longPressTimer);
-        clearTimeout(touchActionTimer2);
-
-        // Start long press timer
-        grimoireState.longPressTimer = setTimeout(() => {
-          isLongPress2 = true;
-          clearTimeout(touchActionTimer2);
-          showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
-        }, 600);
-      });
-
-      tokenEl2.addEventListener('touchend', (e) => {
-        e.preventDefault();
-
-        // Calculate touch duration
-        const touchDuration = Date.now() - touchStartTime2;
-
-        // Clear long press timer only if menu is not already visible
-        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-          clearTimeout(grimoireState.longPressTimer);
-        }
-
-        // If it wasn't a long press and touch was quick enough, trigger the action
-        if (!isLongPress2 && touchDuration < 600) {
-          // Use a small delay to ensure long press timer is cancelled
-          touchActionTimer2 = setTimeout(() => {
-            if (!isLongPress2) {
-              handlePlayerElementTouch({
-                e,
-                listItem,
-                actionCallback: () => {
-                  if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-                    if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
-                  } else if (grimoireState && !grimoireState.grimoireHidden) {
-                    openCharacterModal({ grimoireState, playerIndex: i });
-                  }
-                },
-                grimoireState,
-                playerIndex: i
-              });
-            }
-          }, 50);
-        }
-
-        // Reset touch flag after a delay to handle any delayed click events
-        setTimeout(() => {
-          touchOccurred2 = false;
-        }, 300);
-      });
-
-      tokenEl2.addEventListener('touchcancel', (_e) => {
-        // Clear all timers on cancel (only clear long press timer if menu is not visible)
-        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-          clearTimeout(grimoireState.longPressTimer);
-        }
-        clearTimeout(touchActionTimer2);
-        isLongPress2 = false;
-        touchOccurred2 = false;
-      });
-    }
-
-    // Player name click handler as a named function
-    const handlePlayerNameClick2 = (e) => {
-      e.stopPropagation();
-      const currentName = grimoireState.players[i].name;
-      const newName = prompt('Enter player name:', currentName);
-      if (newName) {
-        grimoireState.players[i].name = newName;
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-      }
-    };
-
-    // Add click handler
-    listItem.querySelector('.player-name').onclick = handlePlayerNameClick2;
-
-    // Add touchstart handler for player name with two-tap behavior
-    if ('ontouchstart' in window) {
-      listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
-        handlePlayerElementTouch({
-          e,
-          listItem,
-          actionCallback: handlePlayerNameClick2,
-          grimoireState,
-          playerIndex: i
-        });
-      });
-    }
+    // Set up click and touch handling for player name
+    setupPlayerNameHandlers({ listItem, grimoireState, playerIndex: i });
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
