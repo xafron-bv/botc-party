@@ -51,6 +51,13 @@ export function setupTouchHandling({
   let isLongPress = false;
   let touchStartTime = 0;
   let touchMoved = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  // Detect if running in PWA standalone mode
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  // Use larger movement threshold for PWA standalone mode due to increased touch sensitivity
+  const movementThreshold = isStandalone ? 15 : 10;
 
   // Create handler functions that will be stored for cleanup
   const touchStartHandler = (e) => {
@@ -67,9 +74,11 @@ export function setupTouchHandling({
     isLongPress = false;
     touchMoved = false;
 
-    // Store touch start position for long press detection
+    // Store touch start position for long press detection and movement calculation
     const x = e.touches[0].clientX;
     const y = e.touches[0].clientY;
+    touchStartX = x;
+    touchStartY = y;
 
     // Clear any existing timers
     clearTimeout(longPressTimer);
@@ -90,9 +99,20 @@ export function setupTouchHandling({
   element.addEventListener('touchstart', touchStartHandler);
 
   const touchMoveHandler = (e) => {
-    touchMoved = true;
-    // Cancel long press timer if user moves their finger
-    clearTimeout(longPressTimer);
+    // Calculate movement distance from start position
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = Math.abs(currentX - touchStartX);
+    const deltaY = Math.abs(currentY - touchStartY);
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Only consider it "moved" if distance exceeds threshold
+    if (distance > movementThreshold) {
+      touchMoved = true;
+      // Cancel long press timer if user moves their finger beyond threshold
+      clearTimeout(longPressTimer);
+    }
+
     e.stopPropagation();
   };
 
