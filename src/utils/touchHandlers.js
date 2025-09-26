@@ -2,6 +2,10 @@
  * Touch handling utilities for iOS compatibility and consistent touch behavior
  */
 
+// WeakMap to store existing touch handlers for each element
+// This allows automatic cleanup when setupTouchHandling is called multiple times on the same element
+const elementHandlers = new WeakMap();
+
 /**
  * Sets up touch handling with movement detection for iOS compatibility.
  * Can handle simple tap-only interactions or complex tap + long press patterns.
@@ -28,13 +32,28 @@ export function setupTouchHandling({
 }) {
   if (!('ontouchstart' in window)) return;
 
+  // Clean up any existing handlers for this element
+  const existingHandlers = elementHandlers.get(element);
+  if (existingHandlers) {
+    // Remove existing event listeners
+    element.removeEventListener('touchstart', existingHandlers.touchstart);
+    element.removeEventListener('touchmove', existingHandlers.touchmove);
+    element.removeEventListener('touchend', existingHandlers.touchend);
+    element.removeEventListener('touchcancel', existingHandlers.touchcancel);
+
+    // Clear any existing timers
+    clearTimeout(existingHandlers.longPressTimer);
+    clearTimeout(existingHandlers.touchActionTimer);
+  }
+
   let touchActionTimer = null;
   let longPressTimer = null;
   let isLongPress = false;
   let touchStartTime = 0;
   let touchMoved = false;
 
-  element.addEventListener('touchstart', (e) => {
+  // Create handler functions that will be stored for cleanup
+  const touchStartHandler = (e) => {
     // Allow custom skip logic (e.g., for specific child elements)
     if (shouldSkip && shouldSkip(e)) {
       return;
@@ -66,16 +85,20 @@ export function setupTouchHandling({
         }
       }, longPressDelay);
     }
-  });
+  };
 
-  element.addEventListener('touchmove', (e) => {
+  element.addEventListener('touchstart', touchStartHandler);
+
+  const touchMoveHandler = (e) => {
     touchMoved = true;
     // Cancel long press timer if user moves their finger
     clearTimeout(longPressTimer);
     e.stopPropagation();
-  });
+  };
 
-  element.addEventListener('touchend', (e) => {
+  element.addEventListener('touchmove', touchMoveHandler);
+
+  const touchEndHandler = (e) => {
     e.preventDefault();
 
     // Calculate touch duration
@@ -100,21 +123,45 @@ export function setupTouchHandling({
         setTouchOccurred(false);
       }, touchResetDelay);
     }
-  });
+  };
 
-  element.addEventListener('touchcancel', (_e) => {
+  element.addEventListener('touchend', touchEndHandler);
+
+  const touchCancelHandler = (_e) => {
     // Clear all timers on cancel
     clearTimeout(longPressTimer);
     clearTimeout(touchActionTimer);
     isLongPress = false;
     touchMoved = false;
     if (setTouchOccurred) setTouchOccurred(false);
-  });
+  };
+
+  element.addEventListener('touchcancel', touchCancelHandler);
+
+  // Store handlers and timers for cleanup
+  const handlers = {
+    touchstart: touchStartHandler,
+    touchmove: touchMoveHandler,
+    touchend: touchEndHandler,
+    touchcancel: touchCancelHandler,
+    longPressTimer,
+    touchActionTimer
+  };
+  elementHandlers.set(element, handlers);
 
   // Return cleanup function
   return () => {
     clearTimeout(longPressTimer);
     clearTimeout(touchActionTimer);
+
+    // Remove event listeners
+    element.removeEventListener('touchstart', touchStartHandler);
+    element.removeEventListener('touchmove', touchMoveHandler);
+    element.removeEventListener('touchend', touchEndHandler);
+    element.removeEventListener('touchcancel', touchCancelHandler);
+
+    // Remove from WeakMap
+    elementHandlers.delete(element);
   };
 }
 
