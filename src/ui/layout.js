@@ -13,8 +13,8 @@ function getCurrentLayout() {
 }
 
 function calculateToiletBowlPosition(index, count, containerWidth, containerHeight, _tokenRadius) {
-  // Create a toilet bowl shape optimized for mobile aspect ratios
-  // The shape consists of a curved bottom (bowl) and narrower top (rim)
+  // Create a toilet bowl shape like a square but with very round edges
+  // This creates a rounded rectangle that better utilizes mobile screen space
 
   const centerX = containerWidth / 2;
   const centerY = containerHeight / 2;
@@ -23,34 +23,76 @@ function calculateToiletBowlPosition(index, count, containerWidth, containerHeig
   const aspectRatio = containerWidth / containerHeight;
   const isMobileAspect = aspectRatio < 1.2; // Detect mobile-like aspect ratios
 
-  // Bowl dimensions - adjust for mobile
-  const bowlWidth = isMobileAspect ? containerWidth * 0.35 : containerWidth * 0.3;
-  const bowlHeight = containerHeight * 0.4;
-  const rimWidth = bowlWidth * 0.6;
-  const rimHeight = containerHeight * 0.15;
+  // Create a rounded square/rectangle shape
+  const width = isMobileAspect ? containerWidth * 0.7 : containerWidth * 0.6;
+  const height = containerHeight * 0.75;
 
-  // Divide players between rim (top) and bowl (bottom)
-  const rimCount = Math.ceil(count * 0.3); // ~30% on rim
-  const bowlCount = count - rimCount;
+  // Corner radius for the rounded edges - make them very round
+  const cornerRadius = Math.min(width, height) * 0.3;
+
+  // Calculate the rectangle bounds
+  const left = centerX - width / 2;
+  const right = centerX + width / 2;
+  const top = centerY - height / 2;
+  const bottom = centerY + height / 2;
+
+  // Simplified approach: divide perimeter into 4 sides and rounded corners
+  // Distribute players proportionally across each section
+
+  // Calculate side lengths (excluding corner radius)
+  const topBottomLength = width - 2 * cornerRadius;
+  const leftRightLength = height - 2 * cornerRadius;
+  const cornerArc = Math.PI * cornerRadius / 2; // Quarter circle arc length
+
+  const totalPerimeter = 2 * topBottomLength + 2 * leftRightLength + 4 * cornerArc;
+  const stepLength = totalPerimeter / count;
+  const position = index * stepLength;
 
   let x, y;
 
-  if (index < rimCount) {
-    // Position on the rim (top narrow part)
-    const rimAngle = index / rimCount * Math.PI; // Half circle
-    const rimRadius = rimWidth / 2;
-    x = centerX + rimRadius * Math.cos(Math.PI - rimAngle);
-    y = centerY - bowlHeight / 2 - rimHeight / 2 + rimRadius * Math.sin(Math.PI - rimAngle);
+  // Top edge (left to right)
+  if (position < topBottomLength) {
+    x = left + cornerRadius + position;
+    y = top;
+  } else if (position < topBottomLength + cornerArc) {
+    // Top-right corner
+    const cornerProgress = (position - topBottomLength) / cornerArc;
+    const angle = -Math.PI / 2 + cornerProgress * Math.PI / 2;
+    x = right - cornerRadius + cornerRadius * Math.cos(angle);
+    y = top + cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (position < topBottomLength + cornerArc + leftRightLength) {
+    // Right edge (top to bottom)
+    const edgeProgress = position - topBottomLength - cornerArc;
+    x = right;
+    y = top + cornerRadius + edgeProgress;
+  } else if (position < topBottomLength + 2 * cornerArc + leftRightLength) {
+    // Bottom-right corner
+    const cornerProgress = (position - topBottomLength - cornerArc - leftRightLength) / cornerArc;
+    const angle = cornerProgress * Math.PI / 2;
+    x = right - cornerRadius + cornerRadius * Math.cos(angle);
+    y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (position < 2 * topBottomLength + 2 * cornerArc + leftRightLength) {
+    // Bottom edge (right to left)
+    const edgeProgress = position - topBottomLength - 2 * cornerArc - leftRightLength;
+    x = right - cornerRadius - edgeProgress;
+    y = bottom;
+  } else if (position < 2 * topBottomLength + 3 * cornerArc + leftRightLength) {
+    // Bottom-left corner
+    const cornerProgress = (position - 2 * topBottomLength - 2 * cornerArc - leftRightLength) / cornerArc;
+    const angle = Math.PI / 2 + cornerProgress * Math.PI / 2;
+    x = left + cornerRadius + cornerRadius * Math.cos(angle);
+    y = bottom - cornerRadius + cornerRadius * Math.sin(angle);
+  } else if (position < 2 * topBottomLength + 3 * cornerArc + 2 * leftRightLength) {
+    // Left edge (bottom to top)
+    const edgeProgress = position - 2 * topBottomLength - 3 * cornerArc - leftRightLength;
+    x = left;
+    y = bottom - cornerRadius - edgeProgress;
   } else {
-    // Position in the bowl (curved bottom part)
-    const bowlIndex = index - rimCount;
-    // Use more than half circle for bowl to create the toilet shape
-    const bowlAngle = (bowlIndex / bowlCount) * Math.PI * 1.4 + Math.PI * 0.3;
-    const bowlRadiusX = bowlWidth / 2;
-    const bowlRadiusY = bowlHeight / 2;
-
-    x = centerX + bowlRadiusX * Math.cos(bowlAngle);
-    y = centerY + bowlRadiusY * Math.sin(bowlAngle);
+    // Top-left corner
+    const cornerProgress = (position - 2 * topBottomLength - 3 * cornerArc - 2 * leftRightLength) / cornerArc;
+    const angle = Math.PI + cornerProgress * Math.PI / 2;
+    x = left + cornerRadius + cornerRadius * Math.cos(angle);
+    y = top + cornerRadius + cornerRadius * Math.sin(angle);
   }
 
   return { x, y };
