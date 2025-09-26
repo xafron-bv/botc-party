@@ -3,6 +3,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid } from './character.js';
 import { saveAppState } from './app.js';
+import { setupSimpleTouchHandling } from './utils/touchHandlers.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
   // Create container for bluff tokens
@@ -86,37 +87,21 @@ export function createBluffToken({ grimoireState, index }) {
     }
   });
 
-  // Simple touch handling - just prevent double click
-  if ('ontouchstart' in window) {
-    token.addEventListener('touchstart', (e) => {
-      // Don't handle if clicking on info icon
-      if (e.target.closest('.ability-info-icon')) {
-        return;
-      }
-      // Mark that a touch occurred to prevent click event
-      touchOccurred = true;
-    });
-
-    token.addEventListener('touchend', (e) => {
-      // Don't handle if clicking on info icon
-      if (e.target.closest('.ability-info-icon')) {
-        return;
-      }
+  // Enhanced touch handling with movement detection for iOS compatibility
+  setupSimpleTouchHandling({
+    element: token,
+    onTap: () => {
       if (!grimoireState.gameStarted) {
         return;
       }
-
-      e.preventDefault();
-
-      // Trigger the modal opening
       openBluffCharacterModal({ grimoireState, bluffIndex: index });
-
-      // Reset touch flag after a delay to handle any delayed click events
-      setTimeout(() => {
-        touchOccurred = false;
-      }, 300);
-    });
-  }
+    },
+    setTouchOccurred: (value) => { touchOccurred = value; },
+    shouldSkip: (e) => {
+      // Don't handle if clicking on info icon
+      return !!e.target.closest('.ability-info-icon');
+    }
+  });
 
   // Note: info icon will be added in updateBluffToken when a character with ability is assigned
 

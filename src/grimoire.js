@@ -2,6 +2,7 @@ import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
 import { openCharacterModal } from './character.js';
 import { BG_STORAGE_KEY, CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
+import { setupEnhancedTouchHandling } from './utils/touchHandlers.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
@@ -110,99 +111,28 @@ function handlePlayerElementTouch({ e, listItem, actionCallback }) {
 
 // Helper function to set up touch event handlers for player tokens
 function setupPlayerTokenTouchHandlers({ tokenEl, grimoireState, playerIndex, listItem, actionCallback, setTouchOccurred }) {
-  if (!('ontouchstart' in window)) return;
-
-  let touchActionTimer = null;
-  let isLongPress = false;
-  let touchStartTime = 0;
-  let touchMoved = false;
-
-  tokenEl.addEventListener('touchstart', (e) => {
-    const target = e.target;
-    if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
-      return; // handled by ribbon
-    }
-    if (target && target.classList.contains('ability-info-icon')) {
-      return; // handled by info icon
-    }
-
-    // Mark that a touch occurred
-    setTouchOccurred(true);
-    touchStartTime = Date.now();
-
-    // Reset flags
-    isLongPress = false;
-    touchMoved = false;
-
-    // Store touch start position for long press detection
-    const x = e.touches[0].clientX;
-    const y = e.touches[0].clientY;
-
-    // Clear any existing timers
-    clearTimeout(grimoireState.longPressTimer);
-    clearTimeout(touchActionTimer);
-
-    // Start long press timer
-    grimoireState.longPressTimer = setTimeout(() => {
-      if (!touchMoved) {  // Only trigger long press if no movement
-        isLongPress = true;
-        clearTimeout(touchActionTimer);
-        showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-      }
-    }, 600);
-  });
-
-  tokenEl.addEventListener('touchmove', (e) => {
-    touchMoved = true;
-    // Cancel long press timer if user moves their finger
-    if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+  return setupEnhancedTouchHandling({
+    element: tokenEl,
+    onQuickTap: (e) => {
+      handlePlayerElementTouch({
+        e,
+        listItem,
+        actionCallback,
+        grimoireState,
+        playerIndex
+      });
+    },
+    onLongPress: (e, x, y) => {
+      // Clear any existing long press timer before showing menu
       clearTimeout(grimoireState.longPressTimer);
+      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+    },
+    setTouchOccurred,
+    shouldSkip: (e) => {
+      const target = e.target;
+      return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+        (target && target.classList.contains('ability-info-icon'));
     }
-    e.stopPropagation();
-  });
-
-  tokenEl.addEventListener('touchend', (e) => {
-    e.preventDefault();
-
-    // Calculate touch duration
-    const touchDuration = Date.now() - touchStartTime;
-
-    // Clear long press timer only if menu is not already visible
-    if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-      clearTimeout(grimoireState.longPressTimer);
-    }
-
-    // Only trigger action if it wasn't a long press, was quick enough, and didn't involve movement
-    if (!isLongPress && !touchMoved && touchDuration < 600) {
-      // Use a small delay to ensure long press timer is cancelled
-      touchActionTimer = setTimeout(() => {
-        if (!isLongPress) {
-          handlePlayerElementTouch({
-            e,
-            listItem,
-            actionCallback,
-            grimoireState,
-            playerIndex
-          });
-        }
-      }, 50);
-    }
-
-    // Reset touch flag after a delay to handle any delayed click events
-    setTimeout(() => {
-      setTouchOccurred(false);
-    }, 300);
-  });
-
-  tokenEl.addEventListener('touchcancel', (_e) => {
-    // Clear all timers on cancel (only clear long press timer if menu is not visible)
-    if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-      clearTimeout(grimoireState.longPressTimer);
-    }
-    clearTimeout(touchActionTimer);
-    isLongPress = false;
-    setTouchOccurred(false);
-    touchMoved = false;
   });
 }
 
