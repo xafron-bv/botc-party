@@ -216,6 +216,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       let touchActionTimer = null;
       let isLongPress = false;
       let touchStartTime = 0;
+      let touchMoved = false;
 
       tokenEl.addEventListener('touchstart', (e) => {
         const target = e.target;
@@ -230,8 +231,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         touchOccurred = true;
         touchStartTime = Date.now();
 
-        // Reset long press flag
+        // Reset flags
         isLongPress = false;
+        touchMoved = false;
 
         // Store touch start position for long press detection
         const x = e.touches[0].clientX;
@@ -243,10 +245,21 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
 
         // Start long press timer
         grimoireState.longPressTimer = setTimeout(() => {
-          isLongPress = true;
-          clearTimeout(touchActionTimer);
-          showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+          if (!touchMoved) {  // Only trigger long press if no movement
+            isLongPress = true;
+            clearTimeout(touchActionTimer);
+            showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+          }
         }, 600);
+      });
+
+      tokenEl.addEventListener('touchmove', (e) => {
+        touchMoved = true;
+        // Cancel long press timer if user moves their finger
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
+        e.stopPropagation();
       });
 
       tokenEl.addEventListener('touchend', (e) => {
@@ -260,8 +273,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           clearTimeout(grimoireState.longPressTimer);
         }
 
-        // If it wasn't a long press and touch was quick enough, trigger the action
-        if (!isLongPress && touchDuration < 600) {
+        // Only trigger action if it wasn't a long press, was quick enough, and didn't involve movement
+        if (!isLongPress && !touchMoved && touchDuration < 600) {
           // Use a small delay to ensure long press timer is cancelled
           touchActionTimer = setTimeout(() => {
             if (!isLongPress) {
@@ -296,6 +309,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         clearTimeout(touchActionTimer);
         isLongPress = false;
         touchOccurred = false;
+        touchMoved = false;
       });
     }
 
@@ -1612,6 +1626,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       let touchActionTimer2 = null;
       let isLongPress2 = false;
       let touchStartTime2 = 0;
+      let touchMoved2 = false;
 
       tokenEl2.addEventListener('touchstart', (e) => {
         const target = e.target;
@@ -1626,8 +1641,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         touchOccurred2 = true;
         touchStartTime2 = Date.now();
 
-        // Reset long press flag
+        // Reset flags
         isLongPress2 = false;
+        touchMoved2 = false;
 
         // Store touch start position for long press detection
         const x = e.touches[0].clientX;
@@ -1639,10 +1655,21 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
 
         // Start long press timer
         grimoireState.longPressTimer = setTimeout(() => {
-          isLongPress2 = true;
-          clearTimeout(touchActionTimer2);
-          showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+          if (!touchMoved2) {  // Only trigger long press if no movement
+            isLongPress2 = true;
+            clearTimeout(touchActionTimer2);
+            showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+          }
         }, 600);
+      });
+
+      tokenEl2.addEventListener('touchmove', (e) => {
+        touchMoved2 = true;
+        // Cancel long press timer if user moves their finger
+        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
+          clearTimeout(grimoireState.longPressTimer);
+        }
+        e.stopPropagation();
       });
 
       tokenEl2.addEventListener('touchend', (e) => {
@@ -1656,8 +1683,8 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           clearTimeout(grimoireState.longPressTimer);
         }
 
-        // If it wasn't a long press and touch was quick enough, trigger the action
-        if (!isLongPress2 && touchDuration < 600) {
+        // Only trigger action if it wasn't a long press, was quick enough, and didn't involve movement
+        if (!isLongPress2 && !touchMoved2 && touchDuration < 600) {
           // Use a small delay to ensure long press timer is cancelled
           touchActionTimer2 = setTimeout(() => {
             if (!isLongPress2) {
@@ -1692,6 +1719,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         clearTimeout(touchActionTimer2);
         isLongPress2 = false;
         touchOccurred2 = false;
+        touchMoved2 = false;
       });
     }
 
