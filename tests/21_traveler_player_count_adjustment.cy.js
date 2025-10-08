@@ -133,4 +133,51 @@ describe('Traveler Player Count Adjustment', () => {
     assignCharacterToPlayer(0, 'Chef');
     cy.get('#setup-info').should('contain', '7/0/2/1'); // Back to 10 player
   });
+
+  it('updates player setup bag expectations when travelers are present', () => {
+    startGameWithPlayers(12);
+
+    // Open player setup and auto-fill bag for 12 players
+    cy.get('#open-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#bag-random-fill').click({ force: true });
+
+    // Verify initial fill selects 12 roles with no warning
+    cy.get('#player-setup-character-list input[type="checkbox"]:checked')
+      .should('have.length', 12);
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    // Close setup so we can assign travelers on the circle
+    cy.get('#close-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('not.be.visible');
+
+    // Assign two travelers to the grimoire
+    assignCharacterToPlayer(0, 'Beggar');
+    assignCharacterToPlayer(1, 'Bureaucrat');
+
+    // Reopen player setup; warning should reflect traveler-adjusted count (10)
+    cy.get('#open-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#bag-count-warning')
+      .should('be.visible')
+      .should('contain', '10 characters in the bag');
+
+    // Remove both outsiders from the bag (12-player setup contains exactly two)
+    cy.contains('#player-setup-character-list .team-header', 'Outsiders')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .should('have.length', 2)
+      .each(($checkbox) => {
+        cy.wrap($checkbox).uncheck({ force: true });
+      });
+
+    // Bag should now hold 10 roles and warning should clear
+    cy.get('#player-setup-character-list input[type="checkbox"]:checked')
+      .should('have.length', 10);
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    // Close panel to clean up
+    cy.get('#close-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('not.be.visible');
+  });
 });
