@@ -65,7 +65,7 @@ describe('Player Setup - Guards and Resets', () => {
       });
     });
     cy.get('#bag-count-warning').should('be.visible').invoke('text')
-      .should('match', /Warning: Expected Townsfolk \d+, Outsiders \d+, Minions \d+, Demons \d+ for 5 players\./);
+      .should('match', /Warning: Expected Townsfolk \d+, Outsiders \d+, Minions \d+, Demons \d+ for \d+ non-traveller players?\./);
   });
 
   it('resets previously selected numbers when Start Number Selection is clicked again', () => {

@@ -232,7 +232,7 @@ export function initPlayerSetup({ grimoireState }) {
   function openNumberPicker(forPlayerIndex) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
     numberPickerGrid.innerHTML = '';
-    const n = grimoireState.players.length;
+    const n = getEffectivePlayerCount();
     // With simplified approach, bag itself is shuffled at selection start; numbers map 1..n to indices 0..n-1 directly.
     for (let i = 1; i <= n; i++) {
       const btn = document.createElement('button');
@@ -449,20 +449,31 @@ export function initPlayerSetup({ grimoireState }) {
     const playerCircle = document.getElementById('player-circle');
     if (playerCircle) {
       Array.from(playerCircle.children).forEach((li, idx) => {
+        const player = grimoireState.players[idx];
+        const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+
         let overlay = li.querySelector('.number-overlay');
         if (!overlay) {
           overlay = document.createElement('div');
           overlay.className = 'number-overlay';
           li.appendChild(overlay);
         }
-        const assigned = Array.isArray(grimoireState.playerSetup.assignments) && grimoireState.playerSetup.assignments[idx] !== null && grimoireState.playerSetup.assignments[idx] !== undefined;
-        if (!assigned) {
-          overlay.textContent = '?';
-          overlay.classList.remove('disabled');
-          overlay.onclick = () => openNumberPicker(idx);
-        } else {
+
+        if (isTraveller) {
+          // Travellers don't participate in number selection
+          overlay.textContent = '';
           overlay.classList.add('disabled');
           overlay.onclick = null;
+        } else {
+          const assigned = Array.isArray(grimoireState.playerSetup.assignments) && grimoireState.playerSetup.assignments[idx] !== null && grimoireState.playerSetup.assignments[idx] !== undefined;
+          if (!assigned) {
+            overlay.textContent = '?';
+            overlay.classList.remove('disabled');
+            overlay.onclick = () => openNumberPicker(idx);
+          } else {
+            overlay.classList.add('disabled');
+            overlay.onclick = null;
+          }
         }
       });
     }
@@ -573,23 +584,34 @@ export function restoreSelectionSession({ grimoireState }) {
     const playerCircle = document.getElementById('player-circle');
     if (!playerCircle) return;
     Array.from(playerCircle.children).forEach((li, idx) => {
+      const player = grimoireState.players[idx];
+      const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+
       let overlay = li.querySelector('.number-overlay');
       if (!overlay) {
         overlay = document.createElement('div');
         overlay.className = 'number-overlay';
         li.appendChild(overlay);
       }
-      const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
-      if (assigned) {
-        overlay.textContent = String(assignments[idx] + 1); // visible numbering
+
+      if (isTraveller) {
+        // Travellers don't participate in number selection
+        overlay.textContent = '';
         overlay.classList.add('disabled');
         overlay.onclick = null;
       } else {
-        overlay.textContent = '?';
-        overlay.classList.remove('disabled');
-        overlay.onclick = () => {
-          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
-        };
+        const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
+        if (assigned) {
+          overlay.textContent = String(assignments[idx] + 1); // visible numbering
+          overlay.classList.add('disabled');
+          overlay.onclick = null;
+        } else {
+          overlay.textContent = '?';
+          overlay.classList.remove('disabled');
+          overlay.onclick = () => {
+            if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+          };
+        }
       }
     });
   } catch (_) { /* swallow restoration errors */ }
