@@ -58,8 +58,12 @@ describe('Traveller Bag Selection', () => {
       .first()
       .click({ force: true });
 
-    // Regular bag count warning should still not be visible
-    cy.get('#bag-count-warning').should('not.be.visible');
+    // Now we have 8 players but 1 will be a traveller, so we need 7 non-traveller characters
+    // But we have 8 in the bag, so it should show an error
+    cy.get('#bag-count-warning').should('be.visible')
+      .and('contain', 'Error')
+      .and('contain', '7 characters')
+      .and('contain', 'excluding 1 traveller');
 
     // Traveller should be checked
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
@@ -84,6 +88,16 @@ describe('Traveller Bag Selection', () => {
       .find('.token[title="Gunslinger"]')
       .first()
       .click({ force: true });
+
+    // Remove 1 outsider to account for the traveller (8 players - 1 traveller = 7 characters: 5/0/1/1)
+    cy.contains('#player-setup-character-list .team-header', 'Outsider')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .first()
+      .click({ force: true });
+
+    // Now bag should be valid
+    cy.get('#bag-count-warning').should('not.be.visible');
 
     // Start selection
     cy.get('#player-setup-panel .start-selection').click({ force: true });
@@ -111,6 +125,13 @@ describe('Traveller Bag Selection', () => {
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
       .next('.team-grid')
       .find('.token[title="Gunslinger"]')
+      .first()
+      .click({ force: true });
+
+    // Remove 1 regular character to account for the traveller
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
       .first()
       .click({ force: true });
 
@@ -153,6 +174,13 @@ describe('Traveller Bag Selection', () => {
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
       .next('.team-grid')
       .find('.token')
+      .first()
+      .click({ force: true });
+
+    // Remove 1 regular character to account for the traveller
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
       .first()
       .click({ force: true });
 

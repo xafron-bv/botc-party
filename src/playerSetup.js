@@ -81,16 +81,21 @@ export function initPlayerSetup({ grimoireState }) {
     return travellerCount;
   }
 
+  function countTravellersInBag() {
+    const travellerBag = grimoireState.playerSetup.travellerBag || [];
+    return travellerBag.length;
+  }
+
   function getEffectivePlayerCount() {
     const totalPlayers = Array.isArray(grimoireState.players) ? grimoireState.players.length : 0;
-    const travellers = countTravellersInPlay();
-    const effective = totalPlayers - travellers;
+    const travellersInBag = countTravellersInBag();
+    const effective = totalPlayers - travellersInBag;
     return effective > 0 ? effective : 0;
   }
 
   function updateBagWarning() {
     if (!bagCountWarning) return;
-    const travellerCount = countTravellersInPlay();
+    const travellersInBag = countTravellersInBag();
     const effectivePlayers = getEffectivePlayerCount();
     const expectedBagCount = effectivePlayers;
     const selectedCount = (grimoireState.playerSetup.bag || []).length;
@@ -106,7 +111,7 @@ export function initPlayerSetup({ grimoireState }) {
     });
     const mismatch = row ? (teams.townsfolk !== row.townsfolk) || (teams.outsiders !== row.outsiders) || (teams.minions !== row.minions) || (teams.demons !== row.demons) : false;
     const countMismatch = selectedCount !== expectedBagCount;
-    const travellerSuffix = travellerCount > 0 ? ` (excluding ${travellerCount} traveller${travellerCount === 1 ? '' : 's'})` : '';
+    const travellerSuffix = travellersInBag > 0 ? ` (excluding ${travellersInBag} traveller${travellersInBag === 1 ? '' : 's'})` : '';
     if (countMismatch) {
       bagCountWarning.style.display = 'block';
       bagCountWarning.textContent = `Error: You need exactly ${expectedBagCount} characters in the bag${travellerSuffix} (current count: ${selectedCount})`;
@@ -122,7 +127,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (mismatch) {
       bagCountWarning.style.display = 'block';
       const nonTravellerLabel = effectivePlayers === 1 ? 'non-traveller player' : 'non-traveller players';
-      const travellerNote = travellerCount > 0 ? ` (travellers assigned: ${travellerCount})` : '';
+      const travellerNote = travellersInBag > 0 ? ` (travellers in bag: ${travellersInBag})` : '';
       bagCountWarning.textContent = `Warning: Expected Townsfolk ${row.townsfolk}, Outsiders ${row.outsiders}, Minions ${row.minions}, Demons ${row.demons} for ${effectivePlayers} ${nonTravellerLabel}${travellerNote}.`;
       bagCountWarning.classList.remove('error');
     } else {
@@ -706,6 +711,10 @@ export function initPlayerSetup({ grimoireState }) {
   // Add listener for include travellers checkbox
   if (includeTravellersCheckbox) {
     includeTravellersCheckbox.addEventListener('change', () => {
+      // Clear traveller bag when checkbox is unchecked
+      if (!includeTravellersCheckbox.checked) {
+        grimoireState.playerSetup.travellerBag = [];
+      }
       renderPlayerSetupList();
       updateBagWarning();
     });
