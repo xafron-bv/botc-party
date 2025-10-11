@@ -202,6 +202,12 @@
       <button class="modal-close" id="close-player-setup" aria-label="Close player setup"><i class="fas fa-times"></i></button>
       <h3>Player Setup (Storyteller)</h3>
       <div id="bag-count-warning" class="error" style="display:none;">Warning: Selected bag does not match player count configuration.</div>
+      <div style="margin: 8px 0;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="include-travellers-in-bag" style="cursor: pointer;">
+          <span>Include Travellers in Selection</span>
+        </label>
+      </div>
       <div style="margin: 8px 0; display:flex; gap:10px; align-items:stretch;">
         <button class="button" id="bag-random-fill">Randomly Fill</button>
         <button class="button start-selection">Start Number Selection</button>

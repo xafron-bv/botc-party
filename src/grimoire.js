@@ -817,8 +817,14 @@ export function renderSetupInfo({ grimoireState }) {
       `<span class="outsider-count">${row.outsiders}</span>`,
       `<span class="minion-count">${row.minions}</span>`,
       `<span class="demon-count">${row.demons}</span>`
-    ].join('/');
-    countsLine.push(roleCountsHtml);
+    ];
+
+    // Add traveller count if there are any travellers
+    if (travelerCount > 0) {
+      roleCountsHtml.push(`<span class="traveller-count">${travelerCount}</span>`);
+    }
+
+    countsLine.push(roleCountsHtml.join('/'));
   }
 
   if (countsLine.length > 0) {
