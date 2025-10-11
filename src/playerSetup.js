@@ -2,6 +2,29 @@ import { saveAppState } from './app.js';
 import { setGrimoireHidden, resetGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
+// Helper function to get role from any source
+// Used throughout player setup to find roles even when character panel's
+// "Include Travellers" checkbox is unchecked
+function getRoleFromAnySources(grimoireState, roleId) {
+  // Try allRoles first (most common case)
+  if (grimoireState.allRoles && grimoireState.allRoles[roleId]) {
+    return grimoireState.allRoles[roleId];
+  }
+  // Try base roles
+  if (grimoireState.baseRoles && grimoireState.baseRoles[roleId]) {
+    return grimoireState.baseRoles[roleId];
+  }
+  // Try script travellers
+  if (grimoireState.scriptTravellerRoles && grimoireState.scriptTravellerRoles[roleId]) {
+    return grimoireState.scriptTravellerRoles[roleId];
+  }
+  // Try extra travellers
+  if (grimoireState.extraTravellerRoles && grimoireState.extraTravellerRoles[roleId]) {
+    return grimoireState.extraTravellerRoles[roleId];
+  }
+  return null;
+}
+
 export function initPlayerSetup({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup');
   const playerSetupPanel = document.getElementById('player-setup-panel');
@@ -25,12 +48,17 @@ export function initPlayerSetup({ grimoireState }) {
   let isNumberGridHandlerAttached = false;
 
   if (!grimoireState.playerSetup) {
-    grimoireState.playerSetup = { bag: [], assignments: [], revealed: false, travellerBag: [] };
+    grimoireState.playerSetup = { bag: [], assignments: [], revealed: false, travellerBag: [], bagCounts: {} };
   }
 
   // Ensure travellerBag exists
   if (!grimoireState.playerSetup.travellerBag) {
     grimoireState.playerSetup.travellerBag = [];
+  }
+
+  // Ensure bagCounts exists
+  if (!grimoireState.playerSetup.bagCounts) {
+    grimoireState.playerSetup.bagCounts = {};
   }
 
   function maybeReopenPanel() {
@@ -43,33 +71,43 @@ export function initPlayerSetup({ grimoireState }) {
   }
 
   function countTravellersInPlay() {
-    if (!Array.isArray(grimoireState.players) || !grimoireState.allRoles) return 0;
+    if (!Array.isArray(grimoireState.players)) return 0;
     let travellerCount = 0;
     grimoireState.players.forEach((player) => {
       if (!player || !player.character) return;
-      const role = grimoireState.allRoles[player.character];
+      const role = getRoleFromAnySources(grimoireState, player.character);
       if (role && role.team === 'traveller') travellerCount++;
     });
     return travellerCount;
   }
 
+  function countTravellersInBag() {
+    const travellerBag = grimoireState.playerSetup.travellerBag || [];
+    return travellerBag.length;
+  }
+
   function getEffectivePlayerCount() {
     const totalPlayers = Array.isArray(grimoireState.players) ? grimoireState.players.length : 0;
-    const travellers = countTravellersInPlay();
-    const effective = totalPlayers - travellers;
+    // Count both travellers already assigned to players AND travellers in the bag
+    const travellersInPlay = countTravellersInPlay();
+    const travellersInBag = countTravellersInBag();
+    const totalTravellers = travellersInPlay + travellersInBag;
+    const effective = totalPlayers - totalTravellers;
     return effective > 0 ? effective : 0;
   }
 
   function updateBagWarning() {
     if (!bagCountWarning) return;
-    const travellerCount = countTravellersInPlay();
+    const travellersInPlay = countTravellersInPlay();
+    const travellersInBag = countTravellersInBag();
+    const totalTravellers = travellersInPlay + travellersInBag;
     const effectivePlayers = getEffectivePlayerCount();
     const expectedBagCount = effectivePlayers;
     const selectedCount = (grimoireState.playerSetup.bag || []).length;
     const row = (grimoireState.playerSetupTable || []).find(r => Number(r.players) === Number(effectivePlayers));
     const teams = { townsfolk: 0, outsiders: 0, minions: 0, demons: 0 };
     (grimoireState.playerSetup.bag || []).forEach(roleId => {
-      const role = grimoireState.allRoles[roleId];
+      const role = getRoleFromAnySources(grimoireState, roleId);
       if (!role) return;
       if (role.team === 'townsfolk') teams.townsfolk++;
       else if (role.team === 'outsider') teams.outsiders++;
@@ -78,7 +116,16 @@ export function initPlayerSetup({ grimoireState }) {
     });
     const mismatch = row ? (teams.townsfolk !== row.townsfolk) || (teams.outsiders !== row.outsiders) || (teams.minions !== row.minions) || (teams.demons !== row.demons) : false;
     const countMismatch = selectedCount !== expectedBagCount;
-    const travellerSuffix = travellerCount > 0 ? ` (excluding ${travellerCount} traveller${travellerCount === 1 ? '' : 's'})` : '';
+
+    // Build traveller suffix message
+    let travellerSuffix = '';
+    if (totalTravellers > 0) {
+      const parts = [];
+      if (travellersInPlay > 0) parts.push(`${travellersInPlay} assigned`);
+      if (travellersInBag > 0) parts.push(`${travellersInBag} in bag`);
+      travellerSuffix = ` (excluding ${totalTravellers} traveller${totalTravellers === 1 ? '' : 's'}: ${parts.join(', ')})`;
+    }
+
     if (countMismatch) {
       bagCountWarning.style.display = 'block';
       bagCountWarning.textContent = `Error: You need exactly ${expectedBagCount} characters in the bag${travellerSuffix} (current count: ${selectedCount})`;
@@ -94,7 +141,16 @@ export function initPlayerSetup({ grimoireState }) {
     if (mismatch) {
       bagCountWarning.style.display = 'block';
       const nonTravellerLabel = effectivePlayers === 1 ? 'non-traveller player' : 'non-traveller players';
-      const travellerNote = travellerCount > 0 ? ` (travellers assigned: ${travellerCount})` : '';
+
+      // Build traveller note for composition warning
+      let travellerNote = '';
+      if (totalTravellers > 0) {
+        const parts = [];
+        if (travellersInPlay > 0) parts.push(`${travellersInPlay} assigned`);
+        if (travellersInBag > 0) parts.push(`${travellersInBag} in bag`);
+        travellerNote = ` (travellers: ${parts.join(', ')})`;
+      }
+
       bagCountWarning.textContent = `Warning: Expected Townsfolk ${row.townsfolk}, Outsiders ${row.outsiders}, Minions ${row.minions}, Demons ${row.demons} for ${effectivePlayers} ${nonTravellerLabel}${travellerNote}.`;
       bagCountWarning.classList.remove('error');
     } else {
@@ -107,7 +163,19 @@ export function initPlayerSetup({ grimoireState }) {
   function renderPlayerSetupList() {
     if (!playerSetupCharacterList) return;
     playerSetupCharacterList.innerHTML = '';
-    const allRoles = Object.values(grimoireState.allRoles || {});
+
+    // Get base roles (always available)
+    const baseRoles = Object.values(grimoireState.baseRoles || {});
+
+    // Get script travellers (always available if in script)
+    const scriptTravellers = Object.values(grimoireState.scriptTravellerRoles || {});
+
+    // Get extra travellers (should always be available in player setup, regardless of character panel toggle)
+    const extraTravellers = Object.values(grimoireState.extraTravellerRoles || {});
+
+    // Combine all roles for player setup
+    const allRoles = [...baseRoles, ...scriptTravellers, ...extraTravellers];
+
     if (!allRoles.length) {
       const msg = document.createElement('div');
       msg.style.padding = '12px';
@@ -178,20 +246,140 @@ export function initPlayerSetup({ grimoireState }) {
           tokenEl.classList.add('bag-disabled');
         }
 
+        // Add count input (only shown when checked)
+        const countInput = document.createElement('input');
+        countInput.type = 'number';
+        countInput.className = 'character-count-input';
+        countInput.min = '1';
+        countInput.max = '99';
+        countInput.style.position = 'absolute';
+        countInput.style.bottom = '4px';
+        countInput.style.right = '4px';
+        countInput.style.width = '28px';
+        countInput.style.height = '20px';
+        countInput.style.textAlign = 'center';
+        countInput.style.fontSize = '12px';
+        countInput.style.fontWeight = 'bold';
+        countInput.style.zIndex = '2';
+        countInput.style.borderRadius = '3px';
+        countInput.style.border = '1px solid rgba(255,255,255,0.3)';
+        countInput.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        countInput.style.color = '#fff';
+        countInput.style.padding = '0';
+        countInput.style.margin = '0';
+        // Remove spinner buttons
+        countInput.style.MozAppearance = 'textfield';
+        countInput.style.WebkitAppearance = 'none';
+        countInput.style.appearance = 'none';
+
+        // Get current count from bagCounts or default to 1
+        const bagCounts = grimoireState.playerSetup.bagCounts || {};
+        const currentCount = bagCounts[role.id] || 1;
+        countInput.value = currentCount;
+
+        // Show/hide count input based on checkbox state AND not disabled
+        countInput.style.display = (checkbox.checked && !isBagDisabled) ? 'block' : 'none';
+
+        const updateCount = () => {
+          if (isBagDisabled) return;
+          let newCount = parseInt(countInput.value, 10);
+          if (isNaN(newCount) || newCount < 1) {
+            newCount = 1;
+            countInput.value = '1';
+          }
+
+          // Update bagCounts
+          if (!grimoireState.playerSetup.bagCounts) grimoireState.playerSetup.bagCounts = {};
+          grimoireState.playerSetup.bagCounts[role.id] = newCount;
+
+          // Use appropriate bag for travellers vs regular characters
+          if (isTraveller) {
+            const list = grimoireState.playerSetup.travellerBag || (grimoireState.playerSetup.travellerBag = []);
+            // Remove all existing instances
+            while (list.includes(role.id)) {
+              const idx = list.indexOf(role.id);
+              list.splice(idx, 1);
+            }
+            // Add the new count
+            for (let i = 0; i < newCount; i++) {
+              list.push(role.id);
+            }
+          } else {
+            const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
+            // Remove all existing instances
+            while (list.includes(role.id)) {
+              const idx = list.indexOf(role.id);
+              list.splice(idx, 1);
+            }
+            // Add the new count
+            for (let i = 0; i < newCount; i++) {
+              list.push(role.id);
+            }
+          }
+
+          updateBagWarning();
+          saveAppState({ grimoireState });
+        };
+
+        countInput.addEventListener('change', (e) => {
+          e.stopPropagation();
+          if (isBagDisabled) { e.preventDefault(); return; }
+          updateCount();
+        });
+
+        countInput.addEventListener('blur', (e) => {
+          e.stopPropagation();
+          if (isBagDisabled) { e.preventDefault(); return; }
+          updateCount();
+        });
+
+        countInput.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+
         const toggle = () => {
           if (isBagDisabled) return; // no-op for disabled roles
 
           // Use appropriate bag for travellers vs regular characters
           if (isTraveller) {
             const list = grimoireState.playerSetup.travellerBag || (grimoireState.playerSetup.travellerBag = []);
-            const i = list.indexOf(role.id);
-            if (checkbox.checked && i === -1) list.push(role.id);
-            if (!checkbox.checked && i !== -1) list.splice(i, 1);
+            if (checkbox.checked) {
+              // Add with count (default 1)
+              const count = grimoireState.playerSetup.bagCounts?.[role.id] || 1;
+              for (let i = 0; i < count; i++) {
+                list.push(role.id);
+              }
+              countInput.style.display = 'block';
+            } else {
+              // Remove all instances
+              while (list.includes(role.id)) {
+                const idx = list.indexOf(role.id);
+                list.splice(idx, 1);
+              }
+              countInput.style.display = 'none';
+            }
           } else {
             const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
-            const i = list.indexOf(role.id);
-            if (checkbox.checked && i === -1) list.push(role.id);
-            if (!checkbox.checked && i !== -1) list.splice(i, 1);
+            if (checkbox.checked) {
+              // Add with count (default 1)
+              const count = grimoireState.playerSetup.bagCounts?.[role.id] || 1;
+              for (let i = 0; i < count; i++) {
+                list.push(role.id);
+              }
+              countInput.style.display = 'block';
+            } else {
+              // Remove all instances
+              while (list.includes(role.id)) {
+                const idx = list.indexOf(role.id);
+                list.splice(idx, 1);
+              }
+              countInput.style.display = 'none';
+              // Reset count to 1 when unchecked
+              if (grimoireState.playerSetup.bagCounts) {
+                grimoireState.playerSetup.bagCounts[role.id] = 1;
+              }
+              countInput.value = '1';
+            }
           }
 
           updateBagWarning();
@@ -204,6 +392,7 @@ export function initPlayerSetup({ grimoireState }) {
         const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
         tokenEl.appendChild(svg);
         tokenEl.appendChild(checkbox);
+        tokenEl.appendChild(countInput);
         grid.appendChild(tokenEl);
       });
       playerSetupCharacterList.appendChild(grid);
@@ -260,6 +449,14 @@ export function initPlayerSetup({ grimoireState }) {
     grimoireState.playerSetup.bag = bag;
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
+
+    // Reset bagCounts to 1 for all selected characters
+    grimoireState.playerSetup.bagCounts = {};
+    const uniqueRoles = [...new Set(bag)];
+    uniqueRoles.forEach(roleId => {
+      grimoireState.playerSetup.bagCounts[roleId] = 1;
+    });
+
     renderPlayerSetupList();
     updateBagWarning();
     saveAppState({ grimoireState });
@@ -290,7 +487,7 @@ export function initPlayerSetup({ grimoireState }) {
       travellerGrid.style.justifyItems = 'center';
 
       travellerBag.forEach((roleId) => {
-        const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+        const role = getRoleFromAnySources(grimoireState, roleId);
         if (!role) return;
 
         const tokenEl = document.createElement('div');
@@ -395,7 +592,7 @@ export function initPlayerSetup({ grimoireState }) {
           // Close picker, open reveal
           numberPickerOverlay.style.display = 'none';
 
-          const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+          const role = getRoleFromAnySources(grimoireState, roleId);
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
             if (revealCharacterTokenEl) {
@@ -469,7 +666,7 @@ export function initPlayerSetup({ grimoireState }) {
         try {
           const bag = grimoireState.playerSetup.bag || [];
           const roleId = bag[bagIndex];
-          const role = grimoireState.allRoles && roleId ? grimoireState.allRoles[roleId] : null;
+          const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
             if (revealCharacterTokenEl) {
@@ -537,6 +734,10 @@ export function initPlayerSetup({ grimoireState }) {
   // Add listener for include travellers checkbox
   if (includeTravellersCheckbox) {
     includeTravellersCheckbox.addEventListener('change', () => {
+      // Clear traveller bag when checkbox is unchecked
+      if (!includeTravellersCheckbox.checked) {
+        grimoireState.playerSetup.travellerBag = [];
+      }
       renderPlayerSetupList();
       updateBagWarning();
     });
@@ -629,7 +830,8 @@ export function initPlayerSetup({ grimoireState }) {
     if (playerCircle) {
       Array.from(playerCircle.children).forEach((li, idx) => {
         const player = grimoireState.players[idx];
-        const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+        const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+        const isTraveller = role && role.team === 'traveller';
 
         let overlay = li.querySelector('.number-overlay');
         if (!overlay) {
@@ -764,7 +966,8 @@ export function restoreSelectionSession({ grimoireState }) {
     if (!playerCircle) return;
     Array.from(playerCircle.children).forEach((li, idx) => {
       const player = grimoireState.players[idx];
-      const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+      const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+      const isTraveller = role && role.team === 'traveller';
 
       let overlay = li.querySelector('.number-overlay');
       if (!overlay) {
