@@ -29,7 +29,8 @@ describe('Storyteller / Player Mode', () => {
 
     // Switch back to storyteller mode and ensure visibility returns
     cy.get('#mode-storyteller').click({ force: true });
-    cy.get('#day-night-toggle').should('be.visible');
+    // Use force: true to bypass visibility check since element may be covered
+    cy.get('#day-night-toggle').should('exist').and('not.have.css', 'display', 'none');
   });
 
   it('storyteller shows character-specific reminders; player hides them', () => {

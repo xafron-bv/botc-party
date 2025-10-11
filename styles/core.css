@@ -136,15 +136,15 @@ body:not(.pre-game) #pre-game-overlay { display: none; }
 
 /* Block pointer events on grimoire content while pre-game via wrapper (sidebar still usable) */
 /* Block pointer events on grimoire content while pre-game via overlay; allow sidebar toggle click-through */
-/* Allow sidebar toggle and day/night toggle to remain interactive during pre-game */
-body.pre-game:not(.selection-active) #grimoire > *:not(#pre-game-overlay):not(#sidebar-toggle):not(#day-night-toggle) { pointer-events: none; }
+/* Allow sidebar toggle, script panel toggle, and day/night toggle to remain interactive during pre-game */
+body.pre-game:not(.selection-active) #grimoire > *:not(#pre-game-overlay):not(#sidebar-toggle):not(#character-panel-toggle):not(#character-panel):not(#day-night-toggle) { pointer-events: none; }
 body.pre-game #sidebar-toggle { pointer-events: auto; position: relative; z-index: 1600; }
+body.pre-game #character-panel-toggle { pointer-events: auto; z-index: 1600; }
 /* In pure pre-game (overlay visible), remove normal-flow vertical offset by absolutely positioning #center */
 /* Keep circle centered when overlay visible OR during number selection (prevent top buttons from pushing layout) */
 body.pre-game:not(.selection-active):not(.player-setup-open) #center,
 body.pre-game.selection-active #center { position: absolute; inset: 0; }
-/* Ensure script & night toggle buttons sit below overlay */
-body.pre-game #character-panel-toggle,
+/* Ensure night toggle button sits below overlay, but script button stays above for accessibility */
 body.pre-game #day-night-toggle { z-index: 100; }
 /* While still in pre-game, explicitly disable interaction with the day/night toggle.
   Test 15 expects pointer-events: none before the game starts, then auto afterwards. */

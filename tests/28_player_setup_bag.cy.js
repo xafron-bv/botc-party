@@ -27,7 +27,20 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Toggling a non-matching character should show the warning again
-    cy.get('#player-setup-character-list .role').first().click();
+    // Click the checkbox directly to uncheck it
+    cy.get('#player-setup-character-list .role input[type="checkbox"]:checked')
+      .first()
+      .uncheck({ force: true });
+
+    // Wait a bit for state to update
+    cy.wait(100);
+
+    // Verify bag now has 9 items (one less)
+    cy.window().then((win) => {
+      const bag = (win.grimoireState && win.grimoireState.playerSetup && win.grimoireState.playerSetup.bag) || [];
+      expect(bag.length).to.equal(9);
+    });
+
     cy.get('#bag-count-warning').should('be.visible');
 
     // Characters checked in list are considered in the bag
