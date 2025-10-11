@@ -174,6 +174,12 @@
     <div class="modal-content">
       <h3>Select Character for <span id="character-modal-player-name"></span></h3>
       <input type="text" id="character-search" placeholder="Search characters...">
+      <div style="margin: 8px 0;">
+        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="include-travellers-in-modal" data-testid="include-travellers-in-modal-checkbox" style="cursor: pointer;">
+          <span>Include Travellers</span>
+        </label>
+      </div>
       <div id="character-grid"></div>
       <button class="button" id="close-character-modal">Cancel</button>
     </div>
