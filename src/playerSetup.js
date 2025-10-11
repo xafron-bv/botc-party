@@ -20,11 +20,17 @@ export function initPlayerSetup({ grimoireState }) {
   const revealAbilityEl = document.getElementById('reveal-ability');
   const revealNameInput = document.getElementById('reveal-name-input');
   const revealConfirmBtn = document.getElementById('reveal-confirm-btn');
+  const includeTravellersCheckbox = document.getElementById('include-travellers-in-bag');
   let revealCurrentPlayerIndex = null;
   let isNumberGridHandlerAttached = false;
 
   if (!grimoireState.playerSetup) {
-    grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
+    grimoireState.playerSetup = { bag: [], assignments: [], revealed: false, travellerBag: [] };
+  }
+
+  // Ensure travellerBag exists
+  if (!grimoireState.playerSetup.travellerBag) {
+    grimoireState.playerSetup.travellerBag = [];
   }
 
   function maybeReopenPanel() {
@@ -111,12 +117,22 @@ export function initPlayerSetup({ grimoireState }) {
       playerSetupCharacterList.appendChild(msg);
       return;
     }
+
+    const includeTravellersCheckbox = document.getElementById('include-travellers-in-bag');
+    const includeTravellers = includeTravellersCheckbox && includeTravellersCheckbox.checked;
+
     const teamsOrder = [
       { key: 'townsfolk', label: 'Townsfolk' },
       { key: 'outsider', label: 'Outsiders' },
       { key: 'minion', label: 'Minions' },
       { key: 'demon', label: 'Demons' }
     ];
+
+    // Add travellers to teams if checkbox is checked
+    if (includeTravellers) {
+      teamsOrder.push({ key: 'traveller', label: 'Travellers' });
+    }
+
     teamsOrder.forEach((team, idx) => {
       const groupRoles = allRoles
         .filter(r => (r.team || '').toLowerCase() === team.key);
@@ -129,11 +145,14 @@ export function initPlayerSetup({ grimoireState }) {
       grid.className = 'team-grid';
       groupRoles.forEach(role => {
         const isBagDisabled = Array.isArray(role.special) && role.special.some(s => s && s.name === 'bag-disabled');
+        const isTraveller = role.team === 'traveller';
+
         // If somehow persisted in bag (e.g., older save), purge it.
         if (isBagDisabled && Array.isArray(grimoireState.playerSetup.bag)) {
           const idxInBag = grimoireState.playerSetup.bag.indexOf(role.id);
           if (idxInBag !== -1) grimoireState.playerSetup.bag.splice(idxInBag, 1);
         }
+
         const tokenEl = document.createElement('div');
         tokenEl.className = 'token role';
         tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
@@ -141,9 +160,14 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.style.position = 'relative';
         tokenEl.style.overflow = 'visible';
         tokenEl.title = role.name;
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = (grimoireState.playerSetup.bag || []).includes(role.id) && !isBagDisabled;
+
+        // Check if role is in the appropriate bag
+        const bagToCheck = isTraveller ? (grimoireState.playerSetup.travellerBag || []) : (grimoireState.playerSetup.bag || []);
+        checkbox.checked = bagToCheck.includes(role.id) && !isBagDisabled;
+
         checkbox.style.position = 'absolute';
         checkbox.style.top = '6px';
         checkbox.style.left = '6px';
@@ -153,15 +177,27 @@ export function initPlayerSetup({ grimoireState }) {
           checkbox.classList.add('bag-disabled');
           tokenEl.classList.add('bag-disabled');
         }
+
         const toggle = () => {
           if (isBagDisabled) return; // no-op for disabled roles
-          const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
-          const i = list.indexOf(role.id);
-          if (checkbox.checked && i === -1) list.push(role.id);
-          if (!checkbox.checked && i !== -1) list.splice(i, 1);
+
+          // Use appropriate bag for travellers vs regular characters
+          if (isTraveller) {
+            const list = grimoireState.playerSetup.travellerBag || (grimoireState.playerSetup.travellerBag = []);
+            const i = list.indexOf(role.id);
+            if (checkbox.checked && i === -1) list.push(role.id);
+            if (!checkbox.checked && i !== -1) list.splice(i, 1);
+          } else {
+            const list = grimoireState.playerSetup.bag || (grimoireState.playerSetup.bag = []);
+            const i = list.indexOf(role.id);
+            if (checkbox.checked && i === -1) list.push(role.id);
+            if (!checkbox.checked && i !== -1) list.splice(i, 1);
+          }
+
           updateBagWarning();
           saveAppState({ grimoireState });
         };
+
         checkbox.addEventListener('click', (e) => { e.stopPropagation(); if (isBagDisabled) e.preventDefault(); });
         checkbox.addEventListener('change', (e) => { e.stopPropagation(); if (isBagDisabled) { e.preventDefault(); return; } toggle(); });
         tokenEl.addEventListener('click', () => { if (isBagDisabled) return; checkbox.checked = !checkbox.checked; toggle(); });
@@ -232,6 +268,69 @@ export function initPlayerSetup({ grimoireState }) {
   function openNumberPicker(forPlayerIndex) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
     numberPickerGrid.innerHTML = '';
+
+    // Add traveller tokens first if any are in the traveller bag
+    const travellerBag = grimoireState.playerSetup.travellerBag || [];
+    if (travellerBag.length > 0) {
+      const travellerSection = document.createElement('div');
+      travellerSection.style.gridColumn = '1 / -1';
+      travellerSection.style.marginBottom = '12px';
+
+      const travellerLabel = document.createElement('div');
+      travellerLabel.textContent = 'Select a Traveller:';
+      travellerLabel.style.fontWeight = 'bold';
+      travellerLabel.style.marginBottom = '8px';
+      travellerLabel.style.textAlign = 'center';
+      travellerSection.appendChild(travellerLabel);
+
+      const travellerGrid = document.createElement('div');
+      travellerGrid.style.display = 'grid';
+      travellerGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(80px, 1fr))';
+      travellerGrid.style.gap = '8px';
+      travellerGrid.style.justifyItems = 'center';
+
+      travellerBag.forEach((roleId) => {
+        const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+        if (!role) return;
+
+        const tokenEl = document.createElement('div');
+        tokenEl.className = 'token traveller-token';
+        tokenEl.style.width = '80px';
+        tokenEl.style.height = '80px';
+        tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+        tokenEl.style.backgroundSize = '68% 68%, cover';
+        tokenEl.style.backgroundPosition = 'center';
+        tokenEl.style.cursor = 'pointer';
+        tokenEl.style.position = 'relative';
+        tokenEl.title = role.name;
+        tokenEl.dataset.roleId = roleId;
+        tokenEl.dataset.playerIndex = String(forPlayerIndex);
+
+        const svg = createCurvedLabelSvg(`picker-traveller-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
+        tokenEl.appendChild(svg);
+
+        travellerGrid.appendChild(tokenEl);
+      });
+
+      travellerSection.appendChild(travellerGrid);
+      numberPickerGrid.appendChild(travellerSection);
+
+      // Add separator
+      const separator = document.createElement('div');
+      separator.style.gridColumn = '1 / -1';
+      separator.style.borderTop = '1px solid rgba(255,255,255,0.2)';
+      separator.style.margin = '12px 0';
+      numberPickerGrid.appendChild(separator);
+
+      const numberLabel = document.createElement('div');
+      numberLabel.textContent = 'Or select a number:';
+      numberLabel.style.gridColumn = '1 / -1';
+      numberLabel.style.fontWeight = 'bold';
+      numberLabel.style.marginBottom = '8px';
+      numberLabel.style.textAlign = 'center';
+      numberPickerGrid.appendChild(numberLabel);
+    }
+
     const n = getEffectivePlayerCount();
     // With simplified approach, bag itself is shuffled at selection start; numbers map 1..n to indices 0..n-1 directly.
     for (let i = 1; i <= n; i++) {
@@ -254,6 +353,76 @@ export function initPlayerSetup({ grimoireState }) {
     if (!isNumberGridHandlerAttached) {
       isNumberGridHandlerAttached = true;
       numberPickerGrid.addEventListener('click', (e) => {
+        // Check if clicked on a traveller token
+        const travellerToken = e.target && e.target.closest && e.target.closest('.traveller-token');
+        if (travellerToken) {
+          const roleId = travellerToken.dataset.roleId;
+          const forIdxStr = travellerToken.dataset.playerIndex;
+          const forIdx = forIdxStr ? parseInt(forIdxStr, 10) : NaN;
+
+          if (!roleId || !Number.isInteger(forIdx)) return;
+
+          // Assign traveller to player
+          if (grimoireState.players && grimoireState.players[forIdx]) {
+            grimoireState.players[forIdx].character = roleId;
+          }
+
+          // Remove traveller from bag so it can't be assigned again
+          const travellerBag = grimoireState.playerSetup.travellerBag || [];
+          const idx = travellerBag.indexOf(roleId);
+          if (idx !== -1) {
+            travellerBag.splice(idx, 1);
+          }
+
+          saveAppState({ grimoireState });
+
+          // Update player's overlay to show it's a traveller
+          const playerCircle = document.getElementById('player-circle');
+          const li = playerCircle && playerCircle.children && playerCircle.children[forIdx];
+          if (li) {
+            let overlay = li.querySelector('.number-overlay');
+            if (!overlay) {
+              overlay = document.createElement('div');
+              overlay.className = 'number-overlay';
+              li.appendChild(overlay);
+            }
+            overlay.textContent = 'T'; // Mark as traveller
+            overlay.classList.add('disabled');
+            overlay.classList.add('traveller-assigned');
+            overlay.onclick = null;
+          }
+
+          // Close picker, open reveal
+          numberPickerOverlay.style.display = 'none';
+
+          const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+          if (playerRevealModal && role) {
+            revealCurrentPlayerIndex = forIdx;
+            if (revealCharacterTokenEl) {
+              revealCharacterTokenEl.innerHTML = '';
+              const token = document.createElement('div');
+              token.className = 'token has-character';
+              token.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
+              token.style.backgroundSize = '68% 68%, cover';
+              token.style.backgroundPosition = 'center, center';
+              token.style.backgroundRepeat = 'no-repeat, no-repeat';
+              token.title = role.name || '';
+              const svg = createCurvedLabelSvg(`reveal-token-${role.id}-${Math.random().toString(36).slice(2)}`, role.name || '');
+              token.appendChild(svg);
+              revealCharacterTokenEl.appendChild(token);
+            }
+            if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
+            const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
+            if (revealNameInput) {
+              revealNameInput.value = currentName;
+              try { revealNameInput.focus(); } catch (_) { }
+            }
+            playerRevealModal.style.display = 'flex';
+          }
+          return;
+        }
+
+        // Original number button handling
         const target = e.target && (e.target.closest && e.target.closest('button.number'));
         if (!target) return;
         if (target.disabled || target.classList.contains('disabled')) return;
@@ -364,6 +533,15 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
   if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
+
+  // Add listener for include travellers checkbox
+  if (includeTravellersCheckbox) {
+    includeTravellersCheckbox.addEventListener('change', () => {
+      renderPlayerSetupList();
+      updateBagWarning();
+    });
+  }
+
   if (startSelectionBtn) startSelectionBtn.addEventListener('click', () => {
     // Prevent starting selection if no players exist
     const totalPlayers = grimoireState.players.length;
@@ -382,7 +560,8 @@ export function initPlayerSetup({ grimoireState }) {
     const selectedCount = (grimoireState.playerSetup && grimoireState.playerSetup.bag) ? grimoireState.playerSetup.bag.length : 0;
     if (selectedCount !== effectivePlayers) {
       if (bagCountWarning) {
-        const travellerSuffix = travellerCount > 0 ? ` (excluding ${travellerCount} traveller${travellerCount === 1 ? '' : 's'})` : '';
+        const travellerLabel = travellerCount === 1 ? 'traveller' : 'travellers';
+        const travellerSuffix = travellerCount > 0 ? ` (excluding ${travellerCount} ${travellerLabel})` : '';
         bagCountWarning.textContent = `Error: You need exactly ${effectivePlayers} characters in the bag${travellerSuffix} (current count: ${selectedCount})`;
         bagCountWarning.style.display = 'block';
         bagCountWarning.classList.add('error');
