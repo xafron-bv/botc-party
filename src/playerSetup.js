@@ -2,6 +2,29 @@ import { saveAppState } from './app.js';
 import { setGrimoireHidden, resetGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
+// Helper function to get role from any source
+// Used throughout player setup to find roles even when character panel's
+// "Include Travellers" checkbox is unchecked
+function getRoleFromAnySources(grimoireState, roleId) {
+  // Try allRoles first (most common case)
+  if (grimoireState.allRoles && grimoireState.allRoles[roleId]) {
+    return grimoireState.allRoles[roleId];
+  }
+  // Try base roles
+  if (grimoireState.baseRoles && grimoireState.baseRoles[roleId]) {
+    return grimoireState.baseRoles[roleId];
+  }
+  // Try script travellers
+  if (grimoireState.scriptTravellerRoles && grimoireState.scriptTravellerRoles[roleId]) {
+    return grimoireState.scriptTravellerRoles[roleId];
+  }
+  // Try extra travellers
+  if (grimoireState.extraTravellerRoles && grimoireState.extraTravellerRoles[roleId]) {
+    return grimoireState.extraTravellerRoles[roleId];
+  }
+  return null;
+}
+
 export function initPlayerSetup({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup');
   const playerSetupPanel = document.getElementById('player-setup-panel');
@@ -48,11 +71,11 @@ export function initPlayerSetup({ grimoireState }) {
   }
 
   function countTravellersInPlay() {
-    if (!Array.isArray(grimoireState.players) || !grimoireState.allRoles) return 0;
+    if (!Array.isArray(grimoireState.players)) return 0;
     let travellerCount = 0;
     grimoireState.players.forEach((player) => {
       if (!player || !player.character) return;
-      const role = grimoireState.allRoles[player.character];
+      const role = getRoleFromAnySources(grimoireState, player.character);
       if (role && role.team === 'traveller') travellerCount++;
     });
     return travellerCount;
@@ -74,7 +97,7 @@ export function initPlayerSetup({ grimoireState }) {
     const row = (grimoireState.playerSetupTable || []).find(r => Number(r.players) === Number(effectivePlayers));
     const teams = { townsfolk: 0, outsiders: 0, minions: 0, demons: 0 };
     (grimoireState.playerSetup.bag || []).forEach(roleId => {
-      const role = grimoireState.allRoles[roleId];
+      const role = getRoleFromAnySources(grimoireState, roleId);
       if (!role) return;
       if (role.team === 'townsfolk') teams.townsfolk++;
       else if (role.team === 'outsider') teams.outsiders++;
@@ -112,7 +135,19 @@ export function initPlayerSetup({ grimoireState }) {
   function renderPlayerSetupList() {
     if (!playerSetupCharacterList) return;
     playerSetupCharacterList.innerHTML = '';
-    const allRoles = Object.values(grimoireState.allRoles || {});
+
+    // Get base roles (always available)
+    const baseRoles = Object.values(grimoireState.baseRoles || {});
+
+    // Get script travellers (always available if in script)
+    const scriptTravellers = Object.values(grimoireState.scriptTravellerRoles || {});
+
+    // Get extra travellers (should always be available in player setup, regardless of character panel toggle)
+    const extraTravellers = Object.values(grimoireState.extraTravellerRoles || {});
+
+    // Combine all roles for player setup
+    const allRoles = [...baseRoles, ...scriptTravellers, ...extraTravellers];
+
     if (!allRoles.length) {
       const msg = document.createElement('div');
       msg.style.padding = '12px';
@@ -424,7 +459,7 @@ export function initPlayerSetup({ grimoireState }) {
       travellerGrid.style.justifyItems = 'center';
 
       travellerBag.forEach((roleId) => {
-        const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+        const role = getRoleFromAnySources(grimoireState, roleId);
         if (!role) return;
 
         const tokenEl = document.createElement('div');
@@ -529,7 +564,7 @@ export function initPlayerSetup({ grimoireState }) {
           // Close picker, open reveal
           numberPickerOverlay.style.display = 'none';
 
-          const role = grimoireState.allRoles && grimoireState.allRoles[roleId];
+          const role = getRoleFromAnySources(grimoireState, roleId);
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
             if (revealCharacterTokenEl) {
@@ -603,7 +638,7 @@ export function initPlayerSetup({ grimoireState }) {
         try {
           const bag = grimoireState.playerSetup.bag || [];
           const roleId = bag[bagIndex];
-          const role = grimoireState.allRoles && roleId ? grimoireState.allRoles[roleId] : null;
+          const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
             if (revealCharacterTokenEl) {
@@ -763,7 +798,8 @@ export function initPlayerSetup({ grimoireState }) {
     if (playerCircle) {
       Array.from(playerCircle.children).forEach((li, idx) => {
         const player = grimoireState.players[idx];
-        const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+        const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+        const isTraveller = role && role.team === 'traveller';
 
         let overlay = li.querySelector('.number-overlay');
         if (!overlay) {
@@ -898,7 +934,8 @@ export function restoreSelectionSession({ grimoireState }) {
     if (!playerCircle) return;
     Array.from(playerCircle.children).forEach((li, idx) => {
       const player = grimoireState.players[idx];
-      const isTraveller = player && player.character && grimoireState.allRoles && grimoireState.allRoles[player.character] && grimoireState.allRoles[player.character].team === 'traveller';
+      const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+      const isTraveller = role && role.team === 'traveller';
 
       let overlay = li.querySelector('.number-overlay');
       if (!overlay) {
