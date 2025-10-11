@@ -29,6 +29,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# Cypress bundled Electron fails to launch if ELECTRON_RUN_AS_NODE is set.
+if [[ -n ${ELECTRON_RUN_AS_NODE-} ]]; then
+	unset ELECTRON_RUN_AS_NODE
+fi
+
 echo "Running Cypress with base url ${BASE_URL} ${SPECS_ARG}" >&2
 
 # Run Cypress; do NOT swallow its exit code so CI can reflect failures properly.
