@@ -27,17 +27,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Toggling a non-matching character should show the warning again
-    // Click the token directly (not checkbox or count input) to toggle it off
-    cy.get('#player-setup-character-list .team-grid .role').first().then($token => {
-      // Find and click the svg or the token background (not checkbox or count input)
-      const $svg = $token.find('svg');
-      if ($svg.length) {
-        cy.wrap($svg).click({ force: true });
-      } else {
-        // Click token but avoid checkbox and count input
-        cy.wrap($token).click('center', { force: true });
-      }
-    });
+    // Click the checkbox directly to uncheck it
+    cy.get('#player-setup-character-list .role input[type="checkbox"]:checked')
+      .first()
+      .uncheck({ force: true });
 
     // Wait a bit for state to update
     cy.wait(100);

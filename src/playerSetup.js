@@ -88,14 +88,19 @@ export function initPlayerSetup({ grimoireState }) {
 
   function getEffectivePlayerCount() {
     const totalPlayers = Array.isArray(grimoireState.players) ? grimoireState.players.length : 0;
+    // Count both travellers already assigned to players AND travellers in the bag
+    const travellersInPlay = countTravellersInPlay();
     const travellersInBag = countTravellersInBag();
-    const effective = totalPlayers - travellersInBag;
+    const totalTravellers = travellersInPlay + travellersInBag;
+    const effective = totalPlayers - totalTravellers;
     return effective > 0 ? effective : 0;
   }
 
   function updateBagWarning() {
     if (!bagCountWarning) return;
+    const travellersInPlay = countTravellersInPlay();
     const travellersInBag = countTravellersInBag();
+    const totalTravellers = travellersInPlay + travellersInBag;
     const effectivePlayers = getEffectivePlayerCount();
     const expectedBagCount = effectivePlayers;
     const selectedCount = (grimoireState.playerSetup.bag || []).length;
@@ -111,7 +116,16 @@ export function initPlayerSetup({ grimoireState }) {
     });
     const mismatch = row ? (teams.townsfolk !== row.townsfolk) || (teams.outsiders !== row.outsiders) || (teams.minions !== row.minions) || (teams.demons !== row.demons) : false;
     const countMismatch = selectedCount !== expectedBagCount;
-    const travellerSuffix = travellersInBag > 0 ? ` (excluding ${travellersInBag} traveller${travellersInBag === 1 ? '' : 's'})` : '';
+
+    // Build traveller suffix message
+    let travellerSuffix = '';
+    if (totalTravellers > 0) {
+      const parts = [];
+      if (travellersInPlay > 0) parts.push(`${travellersInPlay} assigned`);
+      if (travellersInBag > 0) parts.push(`${travellersInBag} in bag`);
+      travellerSuffix = ` (excluding ${totalTravellers} traveller${totalTravellers === 1 ? '' : 's'}: ${parts.join(', ')})`;
+    }
+
     if (countMismatch) {
       bagCountWarning.style.display = 'block';
       bagCountWarning.textContent = `Error: You need exactly ${expectedBagCount} characters in the bag${travellerSuffix} (current count: ${selectedCount})`;
@@ -127,7 +141,16 @@ export function initPlayerSetup({ grimoireState }) {
     if (mismatch) {
       bagCountWarning.style.display = 'block';
       const nonTravellerLabel = effectivePlayers === 1 ? 'non-traveller player' : 'non-traveller players';
-      const travellerNote = travellersInBag > 0 ? ` (travellers in bag: ${travellersInBag})` : '';
+
+      // Build traveller note for composition warning
+      let travellerNote = '';
+      if (totalTravellers > 0) {
+        const parts = [];
+        if (travellersInPlay > 0) parts.push(`${travellersInPlay} assigned`);
+        if (travellersInBag > 0) parts.push(`${travellersInBag} in bag`);
+        travellerNote = ` (travellers: ${parts.join(', ')})`;
+      }
+
       bagCountWarning.textContent = `Warning: Expected Townsfolk ${row.townsfolk}, Outsiders ${row.outsiders}, Minions ${row.minions}, Demons ${row.demons} for ${effectivePlayers} ${nonTravellerLabel}${travellerNote}.`;
       bagCountWarning.classList.remove('error');
     } else {
