@@ -6,6 +6,18 @@ import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 
+function releaseContextShield(grimoireState) {
+  if (grimoireState && typeof grimoireState._contextShieldCleanup === 'function') {
+    try { grimoireState._contextShieldCleanup(); } catch (_) { /* ignore */ }
+    grimoireState._contextShieldCleanup = null;
+    return;
+  }
+  const shield = document.getElementById('context-shield');
+  if (shield) {
+    try { shield.remove(); } catch (_) { /* ignore */ }
+  }
+}
+
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
   const characterSearch = document.getElementById('character-search');
@@ -70,6 +82,7 @@ export function hideCharacterModal({ grimoireState, clearBluffSelection = false 
   try {
     characterModal.dispatchEvent(new CustomEvent('botc:character-modal-hidden'));
   } catch (_) { /* ignore */ }
+  releaseContextShield(grimoireState);
   if (clearBluffSelection && grimoireState) {
     delete grimoireState.selectedBluffIndex;
   }
@@ -326,6 +339,9 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
     return;
   }
   grimoireState.selectedPlayerIndex = playerIndex;
+
+  // Ensure any lingering context shield from touch menus is removed before interacting with the modal
+  releaseContextShield(grimoireState);
 
   // Update modal title back to player selection
   const modalTitle = characterModal.querySelector('h3');
