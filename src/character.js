@@ -28,7 +28,21 @@ export function populateCharacterGrid({ grimoireState }) {
     characterGrid.appendChild(emptyToken);
   }
 
-  const filteredRoles = Object.values(grimoireState.allRoles)
+  // Get roles for character modal - controlled by modal checkbox instead of sidebar checkbox
+  const includeModalTravellers = document.getElementById('include-travellers-in-modal')?.checked || false;
+  let rolesToShow = { ...(grimoireState.baseRoles || {}) };
+
+  // Always include travellers explicitly present in the script
+  if (grimoireState.scriptTravellerRoles) {
+    rolesToShow = { ...rolesToShow, ...grimoireState.scriptTravellerRoles };
+  }
+
+  // Include all travellers from the dataset only if the modal checkbox is on
+  if (includeModalTravellers) {
+    rolesToShow = { ...rolesToShow, ...(grimoireState.extraTravellerRoles || {}) };
+  }
+
+  const filteredRoles = Object.values(rolesToShow)
     .filter(role => role.name.toLowerCase().includes(filter));
 
   console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
@@ -127,7 +141,7 @@ export function assignCharacter({ grimoireState, roleId }) {
 }
 
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
-  const characterModal = document.getElementById('character-modal');
+  // This now only affects the character sheet in the sidebar, not the character modal
   grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
   // Always include travellers explicitly present in the script
   if (grimoireState.scriptTravellerRoles) {
@@ -137,11 +151,8 @@ export function applyTravellerToggleAndRefresh({ grimoireState }) {
   if (grimoireState.includeTravellers) {
     grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
   }
-  // Re-render character sheet and, if modal is open, the character grid
+  // Re-render character sheet (sidebar only)
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
-  if (characterModal && characterModal.style.display === 'flex') {
-    populateCharacterGrid({ grimoireState });
-  }
 }
 
 export async function processScriptCharacters({ characterIds, grimoireState }) {
@@ -293,6 +304,8 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
   const characterSearch = document.getElementById('character-search');
   const characterModal = document.getElementById('character-modal');
+  const includeModalTravellersCheckbox = document.getElementById('include-travellers-in-modal');
+
   // Do not allow opening the modal when the grimoire is hidden
   if (grimoireState && grimoireState.grimoireHidden) {
     return;
@@ -308,6 +321,23 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   if (modalTitle && characterModalPlayerName) {
     modalTitle.textContent = 'Select Character for ';
     characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
+  }
+
+  // Restore modal checkbox state from grimoireState
+  if (includeModalTravellersCheckbox) {
+    includeModalTravellersCheckbox.checked = grimoireState.includeModalTravellers || false;
+
+    // Remove any existing listener before adding a new one
+    includeModalTravellersCheckbox.removeEventListener('change', includeModalTravellersCheckbox._modalChangeHandler);
+
+    // Create and store the handler so we can remove it later
+    includeModalTravellersCheckbox._modalChangeHandler = () => {
+      grimoireState.includeModalTravellers = includeModalTravellersCheckbox.checked;
+      populateCharacterGrid({ grimoireState });
+      saveAppState({ grimoireState });
+    };
+
+    includeModalTravellersCheckbox.addEventListener('change', includeModalTravellersCheckbox._modalChangeHandler);
   }
 
   populateCharacterGrid({ grimoireState });
