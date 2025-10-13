@@ -13,33 +13,61 @@ describe('Travellers Toggle', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
   });
 
-  it('is unchecked by default and hides Travellers from sheet and modal', () => {
+  it('sidebar checkbox is unchecked by default and hides Travellers from sheet only', () => {
     cy.get('#include-travellers').should('exist').and('not.be.checked');
     cy.get('#character-sheet h3.team-travellers').should('not.exist');
+  });
 
+  it('modal checkbox is independent and defaults to unchecked, hiding Travellers from character grid', () => {
     startGameWithPlayers(5);
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').should('exist').and('not.be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').should('not.exist');
     cy.get('#close-character-modal').click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
   });
 
-  it('shows Travellers in sheet and modal when enabled; persists across reload', () => {
+  it('sidebar checkbox shows Travellers in sheet only, not in modal', () => {
     cy.get('#include-travellers').check({ force: true }).should('be.checked');
-    // Travellers header should appear and include at least one known traveller
+    // Travellers header should appear in character sheet
     cy.get('#character-sheet h3.team-travellers').should('exist');
     cy.contains('#character-sheet .role .name', 'Beggar').should('exist');
 
-    // Modal search should find Beggar
+    // Modal should still NOT show Beggar unless modal checkbox is checked
     startGameWithPlayers(5);
     cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').should('not.be.checked');
+    cy.get('#character-search').clear().type('Beggar');
+    cy.get('#character-grid .token[title="Beggar"]').should('not.exist');
+    cy.get('#close-character-modal').click({ force: true });
+  });
+
+  it('modal checkbox shows Travellers in character grid when enabled; persists across modal opens', () => {
+    startGameWithPlayers(5);
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+
+    // Enable modal travellers checkbox
+    cy.get('#include-travellers-in-modal').check({ force: true }).should('be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').first().should('exist');
     cy.get('#close-character-modal').click({ force: true });
-    cy.get('#character-modal').should('not.be.visible');
+
+    // Reopen modal and verify checkbox state persists
+    cy.get('#player-circle li .player-token').eq(1).click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').should('be.checked');
+    cy.get('#character-search').clear().type('Beggar');
+    cy.get('#character-grid .token[title="Beggar"]').first().should('exist');
+    cy.get('#close-character-modal').click({ force: true });
+  });
+
+  it('sidebar checkbox state persists across reload', () => {
+    cy.get('#include-travellers').check({ force: true }).should('be.checked');
+    cy.get('#character-sheet h3.team-travellers').should('exist');
 
     // Persist across reload
     cy.reload();
@@ -47,23 +75,20 @@ describe('Travellers Toggle', () => {
     cy.get('#character-sheet h3.team-travellers').should('exist');
   });
 
-  it('assigned Traveller remains visible on player token even when disabled later', () => {
-    // Enable travellers and assign one
-    cy.get('#include-travellers').check({ force: true }).should('be.checked');
+  it('assigned Traveller remains visible on player token regardless of checkboxes', () => {
+    // Enable modal checkbox and assign traveller
     startGameWithPlayers(5);
     cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').check({ force: true }).should('be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').first().click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#player-circle li .character-name').eq(0).should('contain', 'Beggar');
 
-    // Now disable travellers
-    cy.get('#include-travellers').uncheck({ force: true }).should('not.be.checked');
-    // Character sheet travellers header should disappear
+    // Disable sidebar travellers - assigned role still visible
+    cy.get('#include-travellers').should('not.be.checked');
     cy.get('#character-sheet h3.team-travellers').should('not.exist');
-    // Assigned role remains visible on token
     cy.get('#player-circle li .character-name').eq(0).should('contain', 'Beggar');
   });
 });
-

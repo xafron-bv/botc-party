@@ -3,9 +3,15 @@
 // Use shared cy.setupGame helper for initializing player counts (handles Start Game gating)
 const startGameWithPlayers = (n) => cy.setupGame({ players: n, loadScript: false });
 
-const assignCharacterToPlayer = (playerIndex, characterName) => {
+const assignCharacterToPlayer = (playerIndex, characterName, isTraveller = false) => {
   cy.get('#player-circle li .player-token').eq(playerIndex).click({ force: true });
   cy.get('#character-modal').should('be.visible');
+
+  // If assigning a traveller, enable the modal travellers checkbox first
+  if (isTraveller) {
+    cy.get('#include-travellers-in-modal').check({ force: true });
+  }
+
   cy.get('#character-search').clear().type(characterName);
   cy.get(`#character-grid .token[title="${characterName}"]`).first().click();
   cy.get('#character-modal').should('not.be.visible');
@@ -20,7 +26,7 @@ describe('Traveler Player Count Adjustment', () => {
     });
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    // Enable travelers
+    // Enable travelers in sidebar (for character sheet visibility)
     cy.get('#include-travellers').check({ force: true }).should('be.checked');
     // Default start with a baseline set (some tests will override)
     cy.setupGame({ players: 12, loadScript: false });
@@ -42,7 +48,7 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').should('not.contain', '7/2/2/1/');
 
     // Assign a traveler to first player
-    assignCharacterToPlayer(0, 'Beggar');
+    assignCharacterToPlayer(0, 'Beggar', true);
 
     // Setup should now show 11 player setup with 1 traveller: 7/1/2/1/1
     cy.get('#setup-info').should('contain', '7/1/2/1/1');
@@ -55,8 +61,8 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').should('contain', '7/2/2/1');
 
     // Assign travelers to first two players
-    assignCharacterToPlayer(0, 'Beggar');
-    assignCharacterToPlayer(1, 'Bureaucrat');
+    assignCharacterToPlayer(0, 'Beggar', true);
+    assignCharacterToPlayer(1, 'Bureaucrat', true);
 
     // Setup should now show 10 player setup with 2 travellers: 7/0/2/1/2
     cy.get('#setup-info').should('contain', '7/0/2/1/2');
@@ -70,7 +76,7 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').should('contain', '7/2/2/1');
 
     // Assign traveler
-    assignCharacterToPlayer(1, 'Beggar');
+    assignCharacterToPlayer(1, 'Beggar', true);
     cy.get('#setup-info').should('contain', '7/1/2/1/1');
 
     // Assign another regular character
@@ -78,7 +84,7 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').should('contain', '7/1/2/1/1');
 
     // Assign another traveler
-    assignCharacterToPlayer(3, 'Bureaucrat');
+    assignCharacterToPlayer(3, 'Bureaucrat', true);
     cy.get('#setup-info').should('contain', '7/0/2/1/2');
   });
 
@@ -86,7 +92,7 @@ describe('Traveler Player Count Adjustment', () => {
     startGameWithPlayers(12);
 
     // Assign a traveler
-    assignCharacterToPlayer(0, 'Beggar');
+    assignCharacterToPlayer(0, 'Beggar', true);
     cy.get('#setup-info').should('contain', '7/1/2/1/1');
 
     // Remove the traveler by assigning nothing
@@ -114,7 +120,7 @@ describe('Traveler Player Count Adjustment', () => {
 
     // Assign one traveler - should show 4 player setup which doesn't exist
     // So it should show no setup numbers
-    assignCharacterToPlayer(0, 'Beggar');
+    assignCharacterToPlayer(0, 'Beggar', true);
     cy.get('#setup-info').should('not.contain', '/');
     cy.get('#setup-info').should('contain', 'Trouble Brewing');
   });
@@ -131,7 +137,7 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').should('contain', '7/0/2/1');
 
     // Change same player to traveler
-    assignCharacterToPlayer(0, 'Beggar');
+    assignCharacterToPlayer(0, 'Beggar', true);
     cy.get('#setup-info').should('contain', '5/2/1/1/1'); // 9 player setup + 1 traveller
 
     // Change back to regular
@@ -148,7 +154,7 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#setup-info').invoke('text').should('match', /9\/2\/3\/1(?!\/)/);
 
     // Assign Gunslinger (traveller) to first player
-    assignCharacterToPlayer(0, 'Gunslinger');
+    assignCharacterToPlayer(0, 'Gunslinger', true);
 
     // Setup should now show 14 player setup (9/1/3/1) + 1 traveller = 9/1/3/1/1
     cy.get('#setup-info').should('contain', '9/1/3/1/1');
@@ -172,8 +178,8 @@ describe('Traveler Player Count Adjustment', () => {
     cy.get('#player-setup-panel').should('not.be.visible');
 
     // Assign two travelers to the grimoire
-    assignCharacterToPlayer(0, 'Beggar');
-    assignCharacterToPlayer(1, 'Bureaucrat');
+    assignCharacterToPlayer(0, 'Beggar', true);
+    assignCharacterToPlayer(1, 'Bureaucrat', true);
 
     // Reopen player setup; warning should reflect traveler-adjusted count (10)
     cy.get('#open-player-setup').click({ force: true });
