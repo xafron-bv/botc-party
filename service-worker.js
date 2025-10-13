@@ -68,8 +68,17 @@ self.addEventListener('fetch', event => {
         return networkResponse;
       } catch (_) {
         const cached = await caches.match('./index.html');
-        if (cached) return cached;
-        return Response.redirect('./index.html');
+        if (cached) {
+          return cached;
+        }
+        // If nothing in cache, return a basic error page
+        return new Response('App is offline and not yet cached. Please connect to the internet and reload.', {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: new Headers({
+            'Content-Type': 'text/plain'
+          })
+        });
       }
     })());
     return;
