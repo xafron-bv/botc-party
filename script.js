@@ -1,7 +1,7 @@
 import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
-import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
+import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid, hideCharacterModal } from './src/character.js';
 import { createCurvedLabelSvg } from './src/ui/svg.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire, hideGrimoire } from './src/grimoire.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
@@ -724,9 +724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   closeCharacterModalBtn.onclick = () => {
-    characterModal.style.display = 'none';
-    // Clear any selection states when closing the modal
-    delete grimoireState.selectedBluffIndex;
+    hideCharacterModal({ grimoireState, clearBluffSelection: true });
     // Don't change selectedPlayerIndex as it might be legitimately set
   };
   cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
@@ -739,13 +737,59 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Close modals by tapping outside content
-  characterModal.addEventListener('click', (e) => {
-    if (e.target === characterModal) {
-      characterModal.style.display = 'none';
-      // Clear any bluff selection when closing
-      delete grimoireState.selectedBluffIndex;
-    }
-  });
+  const supportsPointerDismiss = 'PointerEvent' in window;
+  let pendingBackdropPointerId = null;
+
+  const clearBackdropPointer = () => { pendingBackdropPointerId = null; };
+  const dismissCharacterModalFromBackdrop = () => {
+    hideCharacterModal({ grimoireState, clearBluffSelection: true });
+  };
+
+  characterModal.addEventListener('botc:character-modal-hidden', clearBackdropPointer);
+
+  if (supportsPointerDismiss) {
+    characterModal.addEventListener('pointerdown', (e) => {
+      if (e.target === characterModal) {
+        pendingBackdropPointerId = e.pointerId;
+      } else {
+        clearBackdropPointer();
+      }
+    });
+
+    characterModal.addEventListener('pointerup', (e) => {
+      if (pendingBackdropPointerId === e.pointerId && e.target === characterModal) {
+        dismissCharacterModalFromBackdrop();
+      }
+      if (pendingBackdropPointerId === e.pointerId) {
+        clearBackdropPointer();
+      }
+    });
+
+    characterModal.addEventListener('pointercancel', (e) => {
+      if (e.target === characterModal) {
+        clearBackdropPointer();
+      }
+    });
+
+    characterModal.addEventListener('pointerleave', (e) => {
+      if (e.target === characterModal && pendingBackdropPointerId === e.pointerId) {
+        clearBackdropPointer();
+      }
+    });
+
+    characterModal.addEventListener('click', (e) => {
+      if (e.target === characterModal) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    });
+  } else {
+    characterModal.addEventListener('click', (e) => {
+      if (e.target === characterModal) {
+        dismissCharacterModalFromBackdrop();
+      }
+    });
+  }
   textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
   // For reminder token modal, also close if clicking outside the content container
   if (reminderTokenModal) {
@@ -1044,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentSlotTargets[slotIndex] = roleId;
       const slot = messageSlotsEl.children[slotIndex];
       applyStoryMsgRoleLook(slot, roleId);
-      characterModal.style.display = 'none';
+      hideCharacterModal({ grimoireState });
       grid.removeEventListener('click', handler, true);
       delete grimoireState._tempStorytellerSlotIndex;
     };
