@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 5]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,12 +32,12 @@ jobs:
             ~/.cache/Cypress
           key: ${{ runner.os }}-node-20-cypress-npx-v1
 
-      - name: Run shard ${{ matrix.shard }}/5
+      - name: Run shard ${{ matrix.shard }}/6
         shell: bash
         run: |
           set -euxo pipefail
           SHARD_INDEX=${{ matrix.shard }}
-          SHARD_TOTAL=5
+          SHARD_TOTAL=6
 
           # Collect specs deterministically
           mapfile -t ALL_SPECS < <(find tests -maxdepth 1 -type f -name '*.cy.js' | sort)
