@@ -1,7 +1,7 @@
 
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { populateCharacterGrid } from './character.js';
+import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 
@@ -252,8 +252,6 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
 }
 
 export function assignBluffCharacter({ grimoireState, roleId }) {
-  const characterModal = document.getElementById('character-modal');
-
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
     // Initialize bluffs array if it doesn't exist
     if (!grimoireState.bluffs) {
@@ -266,11 +264,8 @@ export function assignBluffCharacter({ grimoireState, roleId }) {
     // Update the bluff token display
     updateBluffToken({ grimoireState, index: grimoireState.selectedBluffIndex });
 
-    // Hide the modal
-    characterModal.style.display = 'none';
-
-    // Clear bluff selection
-    delete grimoireState.selectedBluffIndex;
+    // Hide the modal and clear bluff selection
+    hideCharacterModal({ grimoireState, clearBluffSelection: true });
 
     // Save state
     saveAppState({ grimoireState });

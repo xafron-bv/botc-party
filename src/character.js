@@ -63,8 +63,19 @@ export function populateCharacterGrid({ grimoireState }) {
   });
 }
 
-export function assignCharacter({ grimoireState, roleId }) {
+export function hideCharacterModal({ grimoireState, clearBluffSelection = false }) {
   const characterModal = document.getElementById('character-modal');
+  if (!characterModal) return;
+  characterModal.style.display = 'none';
+  try {
+    characterModal.dispatchEvent(new CustomEvent('botc:character-modal-hidden'));
+  } catch (_) { /* ignore */ }
+  if (clearBluffSelection && grimoireState) {
+    delete grimoireState.selectedBluffIndex;
+  }
+}
+
+export function assignCharacter({ grimoireState, roleId }) {
 
   // Intercept temporary storyteller slot selection (from storyteller messages)
   if (grimoireState._tempStorytellerSlotIndex !== undefined) {
@@ -103,7 +114,7 @@ export function assignCharacter({ grimoireState, roleId }) {
         }
       }
     } catch (_) { }
-    characterModal.style.display = 'none';
+    hideCharacterModal({ grimoireState });
     delete grimoireState._tempStorytellerSlotIndex;
     saveAppState({ grimoireState });
     return;
@@ -135,7 +146,7 @@ export function assignCharacter({ grimoireState, roleId }) {
       }
     } catch (_) { }
     renderSetupInfo({ grimoireState });
-    characterModal.style.display = 'none';
+    hideCharacterModal({ grimoireState });
     saveAppState({ grimoireState });
   }
 }
@@ -181,7 +192,7 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         if (normName) normalizedToCanonicalId[normName] = role.id;
       });
     }
-
+    hideCharacterModal({ grimoireState });
     console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
 
     // Pre-populate extraTravellerRoles with all traveller roles from the dataset
