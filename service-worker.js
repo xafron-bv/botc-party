@@ -1,8 +1,8 @@
 const CACHE_NAME = 'botc-party-grimoire-v80';
+const ASSET_MANIFEST_URL = './asset-manifest.json';
 
-// Minimal core files needed to bootstrap the app
+// Minimal core files needed to bootstrap the app (avoid './' to prevent caching redirects)
 const CORE_FILES = [
-  './',
   './index.html',
   './manifest.json'
 ];
@@ -36,6 +36,18 @@ self.addEventListener('install', event => {
         console.error('Service worker installation failed:', error);
       })
   );
+});
+
+self.addEventListener('message', (event) => {
+  try {
+    const { data } = event;
+    if (!data) return;
+    if (data && data.type === 'PREFETCH_ALL') {
+      event.waitUntil(prefetchAllAssetsFromManifest());
+    } else if (data && data.type === 'PREFETCH_ASSETS' && Array.isArray(data.files)) {
+      event.waitUntil(prefetchSpecificAssets(data.files));
+    }
+  } catch (_) { }
 });
 
 self.addEventListener('fetch', event => {
@@ -175,7 +187,9 @@ self.addEventListener('activate', event => {
       // Take control of all clients immediately
       self.clients.claim(),
       // Enable navigation preload when supported
-      (self.registration && self.registration.navigationPreload && self.registration.navigationPreload.enable()) || Promise.resolve()
+      (self.registration && self.registration.navigationPreload && self.registration.navigationPreload.enable()) || Promise.resolve(),
+      // Kick off asset prefetching based on the generated manifest
+      prefetchAllAssetsFromManifest()
     ])
   );
 });
@@ -196,6 +210,49 @@ function shouldCacheRequest(request) {
   }
 
   return false;
+}
+
+async function prefetchAllAssetsFromManifest() {
+  try {
+    const res = await fetch(ASSET_MANIFEST_URL, { cache: 'no-store' }).catch(() => null);
+    if (!res || !res.ok) return;
+    const json = await res.json().catch(() => null);
+    if (!json || !Array.isArray(json.files)) return;
+    await prefetchSpecificAssets(json.files);
+  } catch (_) { }
+}
+
+async function prefetchSpecificAssets(files) {
+  if (!Array.isArray(files) || files.length === 0) return;
+  const cache = await caches.open(CACHE_NAME);
+
+  const toFetch = [];
+  for (const file of files) {
+    try {
+      const url = new URL(file, self.location);
+      // Skip non-cacheable requests by heuristic
+      if (!shouldCacheRequest({ url })) continue;
+      const match = await cache.match(url.toString(), { ignoreSearch: true });
+      if (!match) toFetch.push(url.toString());
+    } catch (_) { /* ignore malformed */ }
+  }
+
+  // Limit concurrency to avoid overwhelming the network
+  const CONCURRENCY = 8;
+  let index = 0;
+  async function worker() {
+    while (index < toFetch.length) {
+      const cur = toFetch[index++];
+      try {
+        const resp = await fetch(cur, { cache: 'no-store' });
+        if (resp && resp.ok) {
+          await cache.put(cur, resp.clone());
+        }
+      } catch (_) { /* best effort */ }
+    }
+  }
+  const workers = Array.from({ length: Math.min(CONCURRENCY, Math.max(1, toFetch.length)) }, worker);
+  await Promise.all(workers);
 }
 
 // Helper function to check if a URL should use network-first strategy
