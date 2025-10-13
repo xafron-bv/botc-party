@@ -1,33 +1,22 @@
 const CACHE_NAME = 'botc-party-grimoire-v74';
 
-// Dynamic caching patterns instead of hardcoded file lists
-const CACHE_PATTERNS = {
-  // Core app files - always cache
-  core: [
-    './',
-    './index.html',
-    './terms.html',
-    './LICENSE.md',
-    './manifest.json'
-  ],
-  // File extensions to cache
-  extensions: ['.css', '.js', '.json', '.woff2', '.png', '.webp'],
-  // Directories to cache
-  directories: [
-    './assets/',
-    './ui/',
-    './build/'
-  ]
-};
-
-// Files that should always be fetched from network first
-const networkFirstFiles = [
-  'index.html',
-  'styles.css',
-  'script.js', 'utils.js', 'pwa.js', 'ui/tooltip.js', 'ui/svg.js', 'ui/guides.js', 'ui/sidebar.js', 'ui/tour.js', 'ui/layout.js',
-  'service-worker.js',
-  'manifest.json'
+// Minimal core files needed to bootstrap the app
+const CORE_FILES = [
+  './',
+  './index.html',
+  './manifest.json'
 ];
+
+// Files and patterns that should use network-first strategy
+const NETWORK_FIRST_PATTERNS = [
+  /\/index\.html$/,
+  /\/service-worker\.js$/,
+  /\/pwa\.js$/
+];
+
+// Cache strategy: aggressive caching for offline-first PWA
+const CACHEABLE_EXTENSIONS = ['.css', '.js', '.json', '.woff2', '.png', '.webp', '.svg', '.ico'];
+const CACHEABLE_PATHS = ['/assets/', '/src/', '/build/', '/styles/'];
 
 self.addEventListener('install', event => {
   // Skip waiting to activate immediately
@@ -36,13 +25,12 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
-        // Cache only core files during install
-        return cache.addAll(CACHE_PATTERNS.core);
+        console.log('Service worker installing - caching core files');
+        // Cache minimal core files during install
+        return cache.addAll(CORE_FILES);
       })
       .then(() => {
-        console.log('Core files cached successfully');
-        // Cache other assets dynamically on first fetch
+        console.log('Core files cached - app will cache resources dynamically as they are used');
       })
       .catch(error => {
         console.error('Service worker installation failed:', error);
@@ -51,15 +39,13 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  const isNetworkFirst = networkFirstFiles.some(file =>
-    url.pathname.endsWith(file) || url.pathname === '/' || url.pathname === '/workspace/'
-  );
-
   // Only handle GET requests; pass others through to network
   if (event.request.method !== 'GET') {
     return;
   }
+
+  const url = new URL(event.request.url);
+  const pathname = url.pathname;
 
   // Optimize navigations with navigation preload and robust fallbacks
   if (event.request.mode === 'navigate') {
@@ -89,106 +75,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle character image requests - cache first
-  if (event.request.url.includes('/build/img/icons/')) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          return fetch(event.request)
-            .then(response => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, responseClone);
-                  console.log(`Cached character image: ${event.request.url}`);
-                });
-              }
-              return response;
-            })
-            .catch(() => {
-              // Return a placeholder image if fetch fails
-              return caches.match('./assets/img/token-BqDQdWeO.webp');
-            });
-        })
-    );
-    return;
-  }
-
-  // Handle characters.json requests - cache first
-  if (event.request.url.includes('/characters.json') || event.request.url.endsWith('characters.json')) {
-    // Start caching token images immediately (synchronously within the event handler)
-    const tokenCachePromise = cacheAllTokenImages().catch(err => {
-      console.error('Failed to cache token images:', err);
-    });
-
-    event.respondWith(
-      caches.match(event.request, { ignoreSearch: true })
-        .then(response => {
-          if (response) {
-            // Try to fetch fresh version in background
-            fetch(event.request)
-              .then(freshResponse => {
-                if (freshResponse.ok) {
-                  const responseClone = freshResponse.clone();
-                  caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, responseClone);
-                    // Token images are already being cached via tokenCachePromise
-                  });
-                }
-              })
-              .catch(() => { });
-            return response;
-          }
-          return fetch(event.request)
-            .then(response => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, responseClone);
-                  // Token images are already being cached via tokenCachePromise
-                });
-              }
-              return response;
-            })
-            .catch(error => {
-              console.error('Failed to fetch characters.json:', error);
-              // Return a basic fallback if characters.json fails
-              return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } });
-            });
-        })
-    );
-
-    // Use waitUntil synchronously with the promise we created earlier
-    event.waitUntil(tokenCachePromise);
-    return;
-  }
-
-  // Cache base script JSON files on fetch as well - cache first
-  {
-    const decodedPath = decodeURIComponent(url.pathname);
-    const baseScriptNames = ['Trouble Brewing.json', 'Bad Moon Rising.json', 'Sects and Violets.json'];
-    if (baseScriptNames.some(name => decodedPath.endsWith(name))) {
-      event.respondWith(
-        caches.match(event.request, { ignoreSearch: true }).then(response => {
-          if (response) return response;
-          return fetch(event.request).then(res => {
-            if (res.ok) {
-              const clone = res.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-            }
-            return res;
-          });
-        })
-      );
-      return;
-    }
-  }
-
-  // Handle network-first files (HTML, CSS, JS)
-  if (isNetworkFirst) {
+  // Network-first for critical app files that might update
+  if (isNetworkFirst(event.request.url)) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
@@ -218,29 +106,39 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle other requests - dynamic cache first based on patterns
+  // Cache-first for all other requests (assets, data, etc.)
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true })
       .then(response => {
         if (response) {
+          // Update cache in background if it's a JSON file
+          if (pathname.endsWith('.json')) {
+            fetch(event.request)
+              .then(freshResponse => {
+                if (freshResponse.ok) {
+                  caches.open(CACHE_NAME).then(cache => {
+                    cache.put(event.request, freshResponse.clone());
+                  });
+                }
+              })
+              .catch(() => { });
+          }
           return response;
         }
+
+        // Not in cache, fetch from network
         return fetch(event.request)
           .then(response => {
-            if (response.ok) {
-              // Check if this request should be cached based on patterns
-              if (shouldCacheRequest(event.request)) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, responseClone);
-                  console.log(`Dynamically cached: ${event.request.url}`);
-                });
-              }
+            if (response.ok && shouldCacheRequest(event.request)) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseClone);
+              });
             }
             return response;
           })
           .catch(() => {
-            // Return cached response for navigation requests
+            // Return cached index.html for navigation requests
             if (event.request.mode === 'navigate') {
               return caches.match('./index.html');
             }
@@ -249,52 +147,6 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-
-async function cacheAllTokenImages() {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-
-    // Get characters.json from cache instead of fetching again
-    const cachedResponse = await cache.match('./characters.json', { ignoreSearch: true });
-    if (!cachedResponse) {
-      console.log('characters.json not found in cache, skipping image caching');
-      return;
-    }
-
-    const characters = await cachedResponse.json();
-    const imageUrls = [];
-
-    // Extract all image URLs from the characters list
-    if (Array.isArray(characters)) {
-      characters.forEach(role => {
-        if (role && role.image) {
-          imageUrls.push(role.image);
-        }
-      });
-    }
-
-    console.log(`Found ${imageUrls.length} token images to cache`);
-
-    // Cache all token images
-    const cachePromises = imageUrls.map(async (imageUrl) => {
-      try {
-        const imageResponse = await fetch(imageUrl);
-        if (imageResponse.ok) {
-          await cache.put(imageUrl, imageResponse.clone());
-          console.log(`Cached: ${imageUrl}`);
-        }
-      } catch (error) {
-        console.log(`Failed to cache image: ${imageUrl}`, error);
-      }
-    });
-
-    await Promise.allSettled(cachePromises);
-    console.log('Token image caching completed');
-
-  } catch (error) {
-    console.error('Error caching token images:', error);
-  }
-}
 
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
@@ -319,32 +171,28 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Helper function to determine if a request should be cached based on patterns
+// Helper function to determine if a request should be cached
 function shouldCacheRequest(request) {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
-  // Always cache core files
-  if (CACHE_PATTERNS.core.some(corePath => pathname.endsWith(corePath.replace('./', '')))) {
-    return true;
-  }
-
   // Cache files with specified extensions
-  if (CACHE_PATTERNS.extensions.some(ext => pathname.endsWith(ext))) {
+  if (CACHEABLE_EXTENSIONS.some(ext => pathname.endsWith(ext))) {
     return true;
   }
 
   // Cache files in specified directories
-  if (CACHE_PATTERNS.directories.some(dir => pathname.startsWith(dir.replace('./', '/')))) {
-    return true;
-  }
-
-  // Cache JSON files (scripts and character data)
-  if (pathname.endsWith('.json')) {
+  if (CACHEABLE_PATHS.some(path => pathname.includes(path))) {
     return true;
   }
 
   return false;
+}
+
+// Helper function to check if a URL should use network-first strategy
+function isNetworkFirst(url) {
+  const pathname = new URL(url).pathname;
+  return NETWORK_FIRST_PATTERNS.some(pattern => pattern.test(pathname));
 }
 
 // Handle background sync for offline functionality
