@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     editingReminder: { playerIndex: -1, reminderIndex: -1 },
     isRestoringState: false,
     outsideCollapseHandlerInstalled: false,
-    mode: 'storyteller',
+    mode: 'player',
     grimoireHidden: false,
     gameStarted: false
   };

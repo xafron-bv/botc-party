@@ -12,7 +12,7 @@ export function saveAppState({ grimoireState }) {
       scriptName: grimoireState.scriptMetaName,
       dayNightTracking: grimoireState.dayNightTracking,
       bluffs: grimoireState.bluffs || [null, null, null],
-      mode: grimoireState.mode || 'storyteller',
+      mode: grimoireState.mode || 'player',
       grimoireHidden: !!grimoireState.grimoireHidden,
       playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
       // Persist whether a game has started (pre-game gating relies on this)
@@ -54,6 +54,8 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.mode) {
       grimoireState.mode = saved.mode === 'player' ? 'player' : 'storyteller';
+    } else {
+      grimoireState.mode = 'player';
     }
     if (saved && typeof saved.grimoireHidden === 'boolean') {
       grimoireState.grimoireHidden = !!saved.grimoireHidden;
