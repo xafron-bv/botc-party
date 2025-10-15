@@ -10,6 +10,42 @@ export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   if (!reminderTokenGrid) return;
   reminderTokenGrid.innerHTML = '';
+  // Install a single delegated click handler in capture phase to handle selection
+  // robustly without attaching per-token listeners. Re-bind cleanly each time.
+  if (reminderTokenGrid._delegatedSelectionHandler) {
+    try { reminderTokenGrid.removeEventListener('click', reminderTokenGrid._delegatedSelectionHandler, true); } catch (_) { }
+    reminderTokenGrid._delegatedSelectionHandler = null;
+  }
+  const delegatedSelectionHandler = (e) => {
+    const tokenEl = e.target && (e.target.closest && e.target.closest('#reminder-token-grid .token'));
+    if (!tokenEl) return;
+    try { e.preventDefault(); } catch (_) { }
+    try { e.stopPropagation(); } catch (_) { }
+
+    let label = tokenEl.dataset.tokenLabel || '';
+    const id = tokenEl.dataset.tokenId || '';
+    const image = tokenEl.dataset.tokenImage || '';
+    if ((label || '').toLowerCase().includes('custom')) {
+      const input = prompt('Enter reminder text:', '');
+      if (input === null) return;
+      label = input;
+    }
+    const reminderId = generateReminderId();
+    try {
+      grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({
+        type: 'icon', id, image, label, rotation: 0, reminderId
+      });
+      addReminderTimestamp(grimoireState, reminderId);
+      if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        saveCurrentPhaseState(grimoireState);
+      }
+      updateGrimoire({ grimoireState });
+      saveAppState({ grimoireState });
+    } catch (_) { /* ensure modal still closes even if add fails */ }
+    try { reminderTokenModal.style.display = 'none'; } catch (_) { }
+  };
+  reminderTokenGrid.addEventListener('click', delegatedSelectionHandler, true);
+  reminderTokenGrid._delegatedSelectionHandler = delegatedSelectionHandler;
   try {
     const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to load characters.json');
@@ -88,36 +124,11 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       tokenEl.style.overflow = 'visible';
       tokenEl.style.zIndex = '1';
       tokenEl.title = token.label || '';
-      const handleSelect = (ev) => {
-        try { ev.preventDefault(); } catch (_) { }
-        ev.stopPropagation();
-        let label = token.label;
-        if ((label || '').toLowerCase().includes('custom')) {
-          const input = prompt('Enter reminder text:', '');
-          if (input === null) return;
-          label = input;
-        }
-        const reminderId = generateReminderId();
-        grimoireState.players[grimoireState.selectedPlayerIndex].reminders.push({
-          type: 'icon',
-          id: token.id,
-          image: token.image,
-          label,
-          rotation: 0,
-          reminderId
-        });
-        addReminderTimestamp(grimoireState, reminderId);
-
-        // Save phase state if day/night tracking is enabled
-        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-          saveCurrentPhaseState(grimoireState);
-        }
-
-        updateGrimoire({ grimoireState });
-        saveAppState({ grimoireState });
-        reminderTokenModal.style.display = 'none';
-      };
-      tokenEl.addEventListener('click', handleSelect);
+      // Stash minimal data attributes for delegated handler fallback
+      tokenEl.dataset.tokenId = token.id || '';
+      tokenEl.dataset.tokenLabel = token.label || '';
+      tokenEl.dataset.tokenImage = resolveAssetPath(token.image);
+      // Do not attach per-token handlers; rely on the capture-phase delegated handler above
 
       // Add curved bottom text to preview
       if (token.label) {
@@ -138,6 +149,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
 
 
 export function openReminderTokenModal({ grimoireState, playerIndex }) {
+
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const reminderTokenSearch = document.getElementById('reminder-token-search');
   const reminderTokenModalPlayerName = reminderTokenModal.querySelector('.modal-player-name');
@@ -150,6 +162,7 @@ export function openReminderTokenModal({ grimoireState, playerIndex }) {
 }
 
 export function openTextReminderModal({ grimoireState, playerIndex, reminderIndex = -1, existingText = '' }) {
+
   const reminderTextInput = document.getElementById('reminder-text-input');
   const textReminderModal = document.getElementById('text-reminder-modal');
   grimoireState.editingReminder = { playerIndex, reminderIndex };
