@@ -1701,69 +1701,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Global handlers for context menus - registered once at app start
-document.addEventListener('click', (e) => {
+// Light-dismiss context menus on pointerdown outside the menu (capture phase)
+function closeMenusOnOutsideEvent(e) {
   const grimoireState = window.grimoireState;
   if (!grimoireState) return;
 
-  // Handle player context menu
+  // Enforce a small grace period right after opening to ignore the tail of long-press sequences
+  const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+
+  // Player context menu
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
     if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      // Only ignore the close if this click is happening within 100ms of opening
-      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
-      if (timeSinceOpen > 100) {
-        hidePlayerContextMenu({ grimoireState });
-      }
+      if (timeSinceOpen > 100) hidePlayerContextMenu({ grimoireState });
     }
   }
 
-  // Handle reminder context menu
+  // Reminder context menu
   if (grimoireState.reminderContextMenu) {
     const menu = grimoireState.reminderContextMenu;
     if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      hideReminderContextMenu({ grimoireState });
+      if (timeSinceOpen > 100) hideReminderContextMenu({ grimoireState });
     }
   }
-}, true);
+}
 
-document.addEventListener('touchstart', (e) => {
-  const grimoireState = window.grimoireState;
-  if (!grimoireState) return;
-
-  // Handle player context menu
-  if (grimoireState.playerContextMenu) {
-    const menu = grimoireState.playerContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      // Only ignore the close if this touch is happening within 100ms of opening
-      const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
-      if (timeSinceOpen > 100) {
-        hidePlayerContextMenu({ grimoireState });
-      }
-    }
-  }
-
-  // Handle reminder context menu
-  if (grimoireState.reminderContextMenu) {
-    const menu = grimoireState.reminderContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      hideReminderContextMenu({ grimoireState });
-    }
-  }
-}, true);
-
-// Prevent menus from disappearing on touch release
-document.addEventListener('touchend', (e) => {
-  const grimoireState = window.grimoireState;
-  if (!grimoireState) return;
-
-  if (grimoireState.playerContextMenu && grimoireState.playerContextMenu.contains(e.target)) {
-    e.stopPropagation();
-  }
-
-  if (grimoireState.reminderContextMenu && grimoireState.reminderContextMenu.contains(e.target)) {
-    e.stopPropagation();
-  }
-}, true);
+document.addEventListener('pointerdown', closeMenusOnOutsideEvent, true);
+document.addEventListener('touchstart', closeMenusOnOutsideEvent, true);
 
 document.addEventListener('keydown', (e) => {
   const grimoireState = window.grimoireState;
