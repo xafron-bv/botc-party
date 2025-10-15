@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v79';
+const CACHE_NAME = 'botc-party-grimoire-v80';
 
 // Minimal core files needed to bootstrap the app
 const CORE_FILES = [
