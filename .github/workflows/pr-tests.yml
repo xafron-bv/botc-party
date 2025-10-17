@@ -4,9 +4,17 @@ on:
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: pr-tests-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   cypress:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,17 +24,46 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run Cypress tests (via npx)
+      - name: Cache npm and Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node-20-cypress-npx-v1
+
+      - name: Run shard ${{ matrix.shard }}/6
         shell: bash
         run: |
           set -euxo pipefail
-          ./test.sh
+          SHARD_INDEX=${{ matrix.shard }}
+          SHARD_TOTAL=6
+
+          # Collect specs deterministically
+          mapfile -t ALL_SPECS < <(find tests -maxdepth 1 -type f -name '*.cy.js' | sort)
+
+          # Assign specs by modulo to balance roughly evenly
+          SPECS=()
+          for i in "${!ALL_SPECS[@]}"; do
+            idx=$(( i % SHARD_TOTAL + 1 ))
+            if [ "$idx" -eq "$SHARD_INDEX" ]; then
+              SPECS+=("${ALL_SPECS[$i]}")
+            fi
+          done
+
+          echo "Shard ${SHARD_INDEX}/${SHARD_TOTAL}: ${#SPECS[@]} specs"
+          if [ ${#SPECS[@]} -eq 0 ]; then
+            echo "No specs assigned to this shard; exiting."
+            exit 0
+          fi
+
+          ./test.sh "${SPECS[@]}"
 
       - name: Upload Cypress artifacts (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-artifacts
+          name: cypress-artifacts-shard-${{ matrix.shard }}
           path: |
             cypress/screenshots
             cypress/videos
