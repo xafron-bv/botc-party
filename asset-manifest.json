@@ -1,9 +1,10 @@
 {
-  "generatedAt": "2025-10-17T06:18:34.410Z",
+  "generatedAt": "2025-10-17T06:31:17.020Z",
   "files": [
     "./Bad Moon Rising.json",
     "./Sects and Violets.json",
     "./Trouble Brewing.json",
+    "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
     "./assets/fontawesome/webfonts/fa-brands-400.woff2",
     "./assets/fontawesome/webfonts/fa-regular-400.woff2",
