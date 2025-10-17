@@ -43,6 +43,15 @@ jobs:
           grep "const CACHE_NAME" service-worker.js
           echo "NEW_VERSION=${NEW_VERSION}" >> "$GITHUB_ENV"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate asset manifest
+        run: |
+          node scripts/generate-asset-manifest.js
+
       - name: Commit and push change
         shell: bash
         run: |
@@ -51,7 +60,7 @@ jobs:
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add service-worker.js
+            git add service-worker.js asset-manifest.json
             git commit -m "chore: bump service worker cache to v${NEW_VERSION}"
             git push origin HEAD:main
           fi
