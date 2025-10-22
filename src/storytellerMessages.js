@@ -1,6 +1,6 @@
 import { populateCharacterGrid } from './character.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
-import { hideGrimoire, showGrimoire } from './grimoire.js';
+// Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
 export function initStorytellerMessages({ grimoireState }) {
   const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
@@ -10,6 +10,7 @@ export function initStorytellerMessages({ grimoireState }) {
   const slotsDisplayEl = document.getElementById('storyteller-slots-display');
   const messageDisplayModal = document.getElementById('storyteller-message-display');
   const closeMessageDisplayBtn = document.getElementById('close-storyteller-message-display');
+  const closeMessageDisplayBtnBottom = document.getElementById('close-storyteller-message-display-bottom');
   const messageTextEl = messageDisplayModal ? messageDisplayModal.querySelector('.message-text') : null;
 
   let currentMessageSlotCount = 0;
@@ -146,14 +147,12 @@ export function initStorytellerMessages({ grimoireState }) {
     if (messageTextEl) messageTextEl.textContent = initialText || '';
 
     messageDisplayModal.style.display = 'flex';
-    hideGrimoire({ grimoireState });
     if (messageTextEl) requestAnimationFrame(() => focusMessageText());
   }
 
   function hideStorytellerOverlay() {
     if (!messageDisplayModal) return;
     messageDisplayModal.style.display = 'none';
-    showGrimoire({ grimoireState });
   }
 
   if (openStorytellerMessageBtn && storytellerMessageModal) {
@@ -184,6 +183,7 @@ export function initStorytellerMessages({ grimoireState }) {
   }
 
   if (closeMessageDisplayBtn) closeMessageDisplayBtn.addEventListener('click', hideStorytellerOverlay);
+  if (closeMessageDisplayBtnBottom) closeMessageDisplayBtnBottom.addEventListener('click', hideStorytellerOverlay);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {

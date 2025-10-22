@@ -1,5 +1,5 @@
 import { saveAppState } from './app.js';
-import { setGrimoireHidden, resetGrimoire } from './grimoire.js';
+import { resetGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 // Helper function to get role from any source
@@ -823,8 +823,7 @@ export function initPlayerSetup({ grimoireState }) {
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
     saveAppState({ grimoireState });
-    // Hide the grimoire during selection via central state
-    setGrimoireHidden({ grimoireState, hidden: true });
+    // Do not auto-hide the grimoire; sidebar button controls visibility
     // Render half-opaque overlays on each token for selection
     const playerCircle = document.getElementById('player-circle');
     if (playerCircle) {
@@ -959,8 +958,7 @@ export function restoreSelectionSession({ grimoireState }) {
     if (grimoireState.gameStarted) return; // Ignore if game already started
     // Body class so overlay hides and gating styles apply
     try { document.body.classList.add('selection-active'); } catch (_) { }
-    // Hide grimoire for privacy during selection
-    try { setGrimoireHidden({ grimoireState, hidden: true }); } catch (_) { }
+    // Do not auto-hide the grimoire during restore; sidebar button controls visibility
     const assignments = Array.isArray(ps.assignments) ? ps.assignments : [];
     const playerCircle = document.getElementById('player-circle');
     if (!playerCircle) return;

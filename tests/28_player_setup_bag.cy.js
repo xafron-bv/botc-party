@@ -129,17 +129,17 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li .number-overlay').should('have.length', 0);
   });
 
-  it('auto-hides grimoire and updates button label on start selection', () => {
+  it('does not auto-hide grimoire on start selection (button controls it)', () => {
     // Open and random fill the bag
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     cy.get('#bag-random-fill').click();
     cy.get('#bag-count-warning').should('not.be.visible');
 
-    // Start selection should hide grimoire and set button to Show
+    // Start selection should NOT hide grimoire; button remains "Hide Grimoire"
     cy.get('#player-setup-panel .start-selection').click();
-    cy.get('body').should('have.class', 'grimoire-hidden');
-    cy.get('#reveal-assignments').should('contain', 'Show Grimoire');
+    cy.get('body').should('not.have.class', 'grimoire-hidden');
+    cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
     // Number picker should open after clicking the overlay on a player
     cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');

@@ -16,6 +16,12 @@
   backdrop-filter: blur(5px);
 }
 
+/* Make Storyteller message overlay fully opaque and non-blurred */
+#storyteller-message-display {
+  background-color: #000;
+  backdrop-filter: none;
+}
+
 /* Ensure character modal appears above other modals (e.g., edit message) */
 #character-modal {
   z-index: 5000;

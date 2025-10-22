@@ -32,11 +32,11 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
     cy.get('#storyteller-slots-display .token svg textPath').invoke('text').should('not.eq', 'None');
   });
 
-  it('viewer hides grimoire; dismiss returns', () => {
+  it('viewer does not auto-hide the grimoire; dismiss closes viewer', () => {
     cy.get('#open-storyteller-message').click();
     cy.contains('#storyteller-message-picker .button', 'THIS IS THE DEMON').click();
     cy.get('#storyteller-message-display').should('be.visible');
-    cy.get('body').should('have.class', 'grimoire-hidden');
+    cy.get('body').should('not.have.class', 'grimoire-hidden');
     cy.get('#close-storyteller-message-display').click();
     cy.get('#storyteller-message-display').should('not.be.visible');
   });
