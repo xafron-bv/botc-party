@@ -16,7 +16,7 @@ const elementHandlers = new WeakMap();
  * @param {Function} [config.onLongPress] - Optional callback for long press actions (>= longPressDelay, no movement)
  * @param {Function} config.setTouchOccurred - Callback to track touch state for click prevention
  * @param {Function} [config.shouldSkip] - Optional callback to determine if touch should be skipped
- * @param {number} [config.longPressDelay=600] - Delay in ms before long press triggers
+ * @param {number} [config.longPressDelay=1000] - Delay in ms before long press triggers
  * @param {number} [config.actionDelay=50] - Delay in ms before quick tap action triggers
  * @param {number} [config.touchResetDelay=300] - Delay in ms before touch flag is reset
  */
@@ -26,7 +26,7 @@ export function setupTouchHandling({
   onLongPress,
   setTouchOccurred,
   shouldSkip,
-  longPressDelay = 600,
+  longPressDelay = 1000,
   actionDelay = 50,
   touchResetDelay = 300
 }) {
