@@ -14,13 +14,10 @@ import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouc
 import { renderSetupInfo } from './utils/setup.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 
-// Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
-// Expose certain reminder helpers globally for testing fallbacks
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function getAccurateRect(element) {
   const rect = element.getBoundingClientRect();
 
-  // Check if visualViewport is available (for iOS Safari zoom/scroll compensation)
   if (window.visualViewport) {
     const scale = window.visualViewport.scale || 1;
     const offsetLeft = window.visualViewport.offsetLeft || 0;
@@ -36,11 +33,9 @@ function getAccurateRect(element) {
     };
   }
 
-  // Fallback to standard getBoundingClientRect for browsers without visualViewport
   return rect;
 }
 
-// Helper function to check if a player element is overlapping with another player
 function isPlayerOverlapping({ listItem }) {
   const rect1 = getAccurateRect(listItem);
   const allPlayers = document.querySelectorAll('#player-circle li');
@@ -51,18 +46,15 @@ function isPlayerOverlapping({ listItem }) {
 
     const rect2 = getAccurateRect(otherPlayer);
 
-    // Check if rectangles overlap
     const overlap = !(rect1.right < rect2.left ||
       rect1.left > rect2.right ||
       rect1.bottom < rect2.top ||
       rect1.top > rect2.bottom);
 
     if (overlap) {
-      // Check if the other player has a higher z-index (is on top)
       const zIndex1 = parseInt(listItem.style.zIndex || window.getComputedStyle(listItem).zIndex, 10) || 0;
       const zIndex2 = parseInt(otherPlayer.style.zIndex || window.getComputedStyle(otherPlayer).zIndex, 10) || 0;
 
-      // If the other player has a higher or equal z-index, this player is covered
       if (zIndex2 >= zIndex1) {
         return true;
       }
@@ -72,48 +64,34 @@ function isPlayerOverlapping({ listItem }) {
   return false;
 }
 
-// Helper function to handle two-tap behavior for any element within a player
 function handlePlayerElementTouch({ e, listItem, actionCallback }) {
   if (!('ontouchstart' in window)) return;
 
   e.stopPropagation();
   e.preventDefault();
 
-  // Clear any other raised players first
   document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
     if (el !== listItem) {
       delete el.dataset.raised;
-      // Restore original z-index
       el.style.zIndex = el.dataset.originalLiZIndex || '';
       delete el.dataset.originalLiZIndex;
     }
   });
 
-  // Check if this player is already raised
   const wasRaised = listItem.dataset.raised === 'true';
 
-  // Check if player is overlapping with another player
   const isOverlapping = isPlayerOverlapping({ listItem });
 
   if (isOverlapping && !wasRaised) {
-    // First tap on overlapping player: just raise it
     listItem.dataset.raised = 'true';
     listItem.dataset.originalLiZIndex = listItem.style.zIndex || '';
-    listItem.style.zIndex = '200'; // Raise above other players
-    return; // Don't trigger action
+    listItem.style.zIndex = '200';
+    return;
   }
-
-  // Either not partially covered, or already raised - trigger action
   if (actionCallback) {
     actionCallback(e);
   }
-
-  // Keep the player raised after performing the action
-  // It will only be un-raised when clicking outside (handled by global listener)
 }
-
-// Helper function to set up touch event handlers for player tokens
-// Helper function to set up player name click and touch handlers
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = (e) => {
     e.stopPropagation();
@@ -125,11 +103,7 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
       saveAppState({ grimoireState });
     }
   };
-
-  // Add click handler
   listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
-
-  // Add touchstart handler for player name with two-tap behavior
   if ('ontouchstart' in window) {
     listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
       handlePlayerElementTouch({
@@ -159,13 +133,10 @@ function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   });
   return count;
 }
-
-// Centralized grimoire visibility helpers
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
   const btn = document.getElementById('reveal-assignments');
   if (btn) btn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
-  // Re-render so token visuals/labels match hidden state immediately
   updateGrimoire({ grimoireState });
 }
 
@@ -181,8 +152,6 @@ export function toggleGrimoireHidden({ grimoireState }) {
 
 export function hideGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: true }); }
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
-
-// A lot of similar code in rebuildPlayerCircleUiPreserveState
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
@@ -214,20 +183,13 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
               <div class="reminder-placeholder" title="Add text reminder">+</div>
           `;
     playerCircle.appendChild(listItem);
-
-    // Track if a touch event has occurred to prevent click after touch
     const tokenEl = listItem.querySelector('.player-token');
     let touchOccurred = false;
-
-    // Only the main token area opens the character modal; ribbon handles dead toggle
     tokenEl.onclick = (e) => {
-      // Ignore click if it was triggered by a touch event
       if (touchOccurred) {
         touchOccurred = false;
         return;
       }
-
-      // Block any token interaction before game starts
       if (!grimoireState.gameStarted) return;
 
       const target = e.target;
@@ -245,8 +207,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         openCharacterModal({ grimoireState, playerIndex: i });
       }
     };
-
-    // Set up touch/click/right-click handling for player token
     setupTouchHandling({
       element: tokenEl,
       onTap: (e) => {
@@ -273,14 +233,10 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           (target && target.classList.contains('ability-info-icon'));
       }
     });
-
-    // Right-click anywhere on player item to show context menu (desktop)
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
     });
-
-    // Set up click and touch handling for player name
     setupPlayerNameHandlers({ listItem, grimoireState, playerIndex: i });
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
@@ -313,8 +269,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       }
     };
-
-    // Hover expand/collapse for reminder stack positioning
     listItem.dataset.expanded = '0';
     const expand = () => {
       const wasExpanded = listItem.dataset.expanded === '1';
@@ -327,7 +281,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         }
       });
       listItem.dataset.expanded = '1';
-      // Only set suppression on touch, and only when changing from collapsed -> expanded
       if (isTouchDevice() && !wasExpanded) {
         listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
       }
@@ -335,7 +288,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players); };
     if (!isTouchDevice()) {
-      // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
 
@@ -353,26 +305,17 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         placeholderEl.addEventListener('pointerleave', collapse);
       }
     }
-    // Touch: expand on any tap; only suppress synthetic click if tap started on reminders
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-
-      // Check if tapped on death ribbon
       if (target && target.closest('.death-ribbon')) {
         return; // Don't expand for death ribbon taps
       }
-
-      // Check if tapped on player token (character circle)
       if (target && target.closest('.player-token')) {
         return; // Don't expand for character circle taps
       }
-
-      // Check if tapped on player name
       if (target && target.closest('.player-name')) {
         return; // Don't expand for player name taps
       }
-
-      // Only expand if tapped on reminders or reminder placeholder
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
 
@@ -385,18 +328,12 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
         positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }), grimoireState.players);
       }
     }, { passive: false });
-
-    // (desktop) no extra mousedown handler; rely on hover/pointerenter and explicit clicks on reminders
-
-    // Install one-time outside click/tap collapse for touch devices
     if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
-        // Ignore clicks/taps inside the player circle to allow in-circle interactions (like + gating)
         const playerCircleEl = document.getElementById('player-circle');
         if (playerCircleEl && playerCircleEl.contains(target)) return;
-        // Do nothing if target is inside any expanded list item
         const allLis = document.querySelectorAll('#player-circle li');
         let clickedInsideExpanded = false;
         allLis.forEach(el => {
@@ -405,7 +342,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
           }
         });
         if (clickedInsideExpanded) return;
-        // Collapse all expanded items
         allLis.forEach(el => {
           if (el.dataset.expanded === '1') {
             el.dataset.expanded = '0';
@@ -416,11 +352,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       document.addEventListener('click', maybeCollapseOnOutside, true);
       document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
     }
-
-    // No capture intercepts; rely on pointer-events gating and the touchstart handler above
   });
-
-  // Add bluff tokens container
   const center = document.getElementById('center');
   const existingContainer = document.getElementById('bluff-tokens-container');
   if (existingContainer) {
@@ -428,8 +360,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   }
   const bluffContainer = createBluffTokensContainer({ grimoireState });
   center.appendChild(bluffContainer);
-
-  // Use requestAnimationFrame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
@@ -442,11 +372,7 @@ export function updateGrimoire({ grimoireState }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
   const playerCircle = document.getElementById('player-circle');
   const listItems = playerCircle.querySelectorAll('li');
-
-  // Update setup info (which now includes alive count)
   renderSetupInfo({ grimoireState });
-
-  // Ensure any lingering tooltip is hidden if we are masking the grimoire
   if (grimoireState.grimoireHidden && abilityTooltip) {
     abilityTooltip.classList.remove('show');
   }
@@ -455,11 +381,7 @@ export function updateGrimoire({ grimoireState }) {
     const player = grimoireState.players[i];
     const playerNameEl = li.querySelector('.player-name');
     playerNameEl.textContent = player.name;
-
-    // Check if player is in NW or NE quadrant
     const angle = parseFloat(li.dataset.angle || '0');
-
-    // Calculate the actual y position to determine quadrant
     const y = Math.sin(angle);
     const isNorthQuadrant = y < 0;
 
@@ -475,16 +397,12 @@ export function updateGrimoire({ grimoireState }) {
 
     const tokenDiv = li.querySelector('.player-token');
     const charNameDiv = li.querySelector('.character-name');
-    // Remove any previous arc label overlay
     const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
     if (existingArc) existingArc.remove();
-    // Remove any previous death UI
     const oldCircle = tokenDiv.querySelector('.death-overlay');
     if (oldCircle) oldCircle.remove();
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
-
-    // In hidden mode, remove any touch-mode ability icons; keep token node (preserves click handler)
     if (grimoireState.grimoireHidden && tokenDiv) {
       li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
     }
@@ -497,11 +415,8 @@ export function updateGrimoire({ grimoireState }) {
         tokenDiv.style.backgroundColor = 'transparent';
         tokenDiv.classList.add('has-character');
         if (charNameDiv) charNameDiv.textContent = role.name;
-        // Add curved label on the token
         const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
         tokenDiv.appendChild(svg);
-
-        // Add tooltip functionality for non-touch devices
         if (!('ontouchstart' in window)) {
           tokenDiv.addEventListener('mouseenter', (e) => {
             if (grimoireState.grimoireHidden) return;
@@ -516,12 +431,10 @@ export function updateGrimoire({ grimoireState }) {
             abilityTooltip.classList.remove('show');
           });
         } else if (role.ability && !grimoireState.grimoireHidden) {
-          // Add info icon for touch mode - will be positioned after circle layout
           const infoIcon = document.createElement('div');
           infoIcon.className = 'ability-info-icon';
           infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
           infoIcon.dataset.playerIndex = i;
-          // Handle both click and touch events
           const handleInfoClick = (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -541,7 +454,6 @@ export function updateGrimoire({ grimoireState }) {
         tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
         tokenDiv.classList.remove('has-character');
         if (charNameDiv) charNameDiv.textContent = '';
-        // Ensure no leftover arc label remains
         const arc = tokenDiv.querySelector('.icon-reminder-svg');
         if (arc) arc.remove();
       }
@@ -551,16 +463,12 @@ export function updateGrimoire({ grimoireState }) {
       tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
       tokenDiv.classList.remove('has-character');
       if (charNameDiv) charNameDiv.textContent = '';
-      // Ensure no leftover arc label remains
       const arc = tokenDiv.querySelector('.icon-reminder-svg');
       if (arc) arc.remove();
     }
-
-    // Add death overlay circle and ribbon indicator
     const overlay = document.createElement('div');
     overlay.className = 'death-overlay';
     overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
-    // overlay is visual only; click is on ribbon
     tokenDiv.appendChild(overlay);
 
     const ribbon = createDeathRibbonSvg();
@@ -568,7 +476,6 @@ export function updateGrimoire({ grimoireState }) {
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
       const player = grimoireState.players[i];
-      // Phase 1: Alive -> Dead
       if (!player.dead) { // Phase 1: Alive -> Dead
         grimoireState.players[i].dead = true;
         grimoireState.players[i].deathVote = false; // initialize unused vote
@@ -589,8 +496,6 @@ export function updateGrimoire({ grimoireState }) {
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     };
-
-    // Add touch handler for death ribbon with two-tap behavior
     if ('ontouchstart' in window) {
       setupTouchHandling({
         element: ribbon,
@@ -604,7 +509,6 @@ export function updateGrimoire({ grimoireState }) {
           });
         },
         onLongPress: (e, x, y) => {
-          // Long press on death ribbon should also open context menu
           clearTimeout(grimoireState.longPressTimer);
           showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
         },
@@ -613,14 +517,11 @@ export function updateGrimoire({ grimoireState }) {
         }
       });
     }
-
-    // Attach to painted shapes only to avoid transparent hit areas
     try {
       ribbon.querySelectorAll('rect, path').forEach((shape) => {
         shape.addEventListener('click', handleRibbonToggle);
       });
     } catch (_) {
-      // Fallback: still attach on svg
       ribbon.addEventListener('click', handleRibbonToggle);
     }
     tokenDiv.appendChild(ribbon);
@@ -630,8 +531,6 @@ export function updateGrimoire({ grimoireState }) {
     } else {
       tokenDiv.classList.remove('is-dead');
     }
-
-    // Add death vote indicator for dead players
     const existingDeathVote = tokenDiv.querySelector('.death-vote-indicator');
     if (existingDeathVote) existingDeathVote.remove();
 
@@ -640,7 +539,6 @@ export function updateGrimoire({ grimoireState }) {
       const handleDeathVoteClick = (e) => {
         e.stopPropagation();
         const player = grimoireState.players[i];
-        // Ghost vote click mirrors ribbon second phase: mark vote used if still available
         if (player.dead && !player.deathVote) {
           grimoireState.players[i].deathVote = true;
           if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
@@ -652,8 +550,6 @@ export function updateGrimoire({ grimoireState }) {
       };
 
       deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
-
-      // Add touch handler for death vote with two-tap behavior
       if ('ontouchstart' in window) {
         setupTouchHandling({
           element: deathVoteIndicator,
@@ -667,7 +563,6 @@ export function updateGrimoire({ grimoireState }) {
             });
           },
           onLongPress: (e, x, y) => {
-            // Long press on death vote indicator should also open context menu
             clearTimeout(grimoireState.longPressTimer);
             showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
           },
@@ -679,8 +574,6 @@ export function updateGrimoire({ grimoireState }) {
 
       tokenDiv.appendChild(deathVoteIndicator);
     }
-
-    // Add night order number if applicable
     const existingNightOrder = tokenDiv.querySelector('[data-testid="night-order-number"]');
     if (existingNightOrder) existingNightOrder.remove();
 
@@ -698,12 +591,8 @@ export function updateGrimoire({ grimoireState }) {
 
     const remindersDiv = li.querySelector('.reminders');
     remindersDiv.innerHTML = '';
-
-    // Create reminder elements; positions are handled by positionRadialStack()
-    // Filter reminders based on visibility and add visible count
     let visibleRemindersCount = 0;
     player.reminders.forEach((reminder, idx) => {
-      // Check if reminder should be visible based on day/night tracking
       if (!isReminderVisible(grimoireState, reminder.reminderId)) {
         return; // Skip this reminder
       }
@@ -717,16 +606,12 @@ export function updateGrimoire({ grimoireState }) {
         iconEl.title = (reminder.label || '');
 
         if (reminder.label) {
-          // Check if this is a custom reminder by ID
           const isCustom = reminder.id === 'custom-note';
 
           if (isCustom) {
-            // For custom reminders, show straight text with dark background
             const textSpan = document.createElement('span');
             textSpan.className = 'icon-reminder-content';
             textSpan.textContent = reminder.label;
-
-            // Adjust font size based on text length
             const textLength = reminder.label.length;
             if (textLength > 40) {
               textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
@@ -736,13 +621,10 @@ export function updateGrimoire({ grimoireState }) {
 
             iconEl.appendChild(textSpan);
           } else {
-            // For other reminders, show curved text at bottom
             const svg = createCurvedLabelSvg(`arc-${i}-${idx}`, reminder.label);
             iconEl.appendChild(svg);
           }
         }
-
-        // Desktop hover actions on icon reminders
         if (!isTouchDevice()) {
           const editBtn = document.createElement('div');
           editBtn.className = 'reminder-action edit';
@@ -798,8 +680,6 @@ export function updateGrimoire({ grimoireState }) {
           });
           iconEl.appendChild(delBtn);
         }
-
-        // Touch handling for icon reminders (tap to expand, long press for menu)
         setupTouchHandling({
           element: iconEl,
           onTap: (e) => {
@@ -819,8 +699,6 @@ export function updateGrimoire({ grimoireState }) {
           setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
           showPressFeedback: true
         });
-
-        // Add timestamp if day/night tracking is enabled
         const timestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
         if (timestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
           const timestampEl = document.createElement('span');
@@ -833,17 +711,10 @@ export function updateGrimoire({ grimoireState }) {
       } else {
         const reminderEl = document.createElement('div');
         reminderEl.className = 'text-reminder';
-
-        // Check if this is actually a text reminder with a label (legacy data)
-        // If so, use the label as the display text
         const displayText = reminder.label || reminder.value || '';
-
-        // Create a span for the text with dark background
         const textSpan = document.createElement('span');
         textSpan.className = 'text-reminder-content';
         textSpan.textContent = displayText;
-
-        // Adjust font size based on text length
         const textLength = displayText.length;
         if (textLength > 40) {
           textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
@@ -854,7 +725,6 @@ export function updateGrimoire({ grimoireState }) {
         reminderEl.appendChild(textSpan);
 
         reminderEl.style.transform = 'translate(-50%, -50%)';
-        // Desktop hover actions on text reminders
         if (!isTouchDevice()) {
           const editBtn2 = document.createElement('div');
           editBtn2.className = 'reminder-action edit';
@@ -913,8 +783,6 @@ export function updateGrimoire({ grimoireState }) {
           });
           reminderEl.appendChild(delBtn2);
         }
-
-        // Touch handling for text reminders (tap to expand, long press for menu)
         setupTouchHandling({
           element: reminderEl,
           onTap: (e) => {
@@ -923,7 +791,6 @@ export function updateGrimoire({ grimoireState }) {
             if (parentLi) {
               const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
               if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-                // If collapsed, expand instead of acting
                 if (parentLi.dataset.expanded !== '1') {
                   parentLi.dataset.expanded = '1';
                   parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
@@ -931,7 +798,6 @@ export function updateGrimoire({ grimoireState }) {
                 }
               }
             }
-            // No-op on desktop; use hover edit icon instead
           },
           onLongPress: (e, x, y) => {
             showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
@@ -939,8 +805,6 @@ export function updateGrimoire({ grimoireState }) {
           setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
           showPressFeedback: true
         });
-
-        // Add timestamp if day/night tracking is enabled
         const textTimestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
         if (textTimestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
           const timestampEl = document.createElement('span');
@@ -952,23 +816,15 @@ export function updateGrimoire({ grimoireState }) {
         remindersDiv.appendChild(reminderEl);
       }
     });
-
-    // After rendering, position all reminders and the plus button in a radial stack
-    // Use visible reminders count instead of total reminders
     positionRadialStack(li, visibleRemindersCount);
   });
-
-  // Position info icons and night order numbers after updating grimoire
   if ('ontouchstart' in window) {
     positionInfoIcons();
   }
   positionNightOrderNumbers();
-
-  // Update bluff tokens
   updateAllBluffTokens({ grimoireState });
 }
 export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }) {
-  // If number selection is active, cancel it and remove any overlays before resetting
   const sel = grimoireState.playerSetup;
   if (sel && sel.selectionActive) {
     try {
@@ -976,10 +832,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     } catch (_) { }
     sel.selectionActive = false;
     sel.assignments = new Array((grimoireState.players || []).length).fill(null);
-    // Clean up body classes reflecting selection state
     try { document.body.classList.remove('selection-active'); } catch (_) { }
     try { document.body.classList.remove('player-setup-open'); } catch (_) { }
-    // Also close any open number picker overlay/modal
     try {
       const numberPickerOverlay = document.getElementById('number-picker-overlay');
       if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';
@@ -997,8 +851,6 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
     }
   } catch (_) { }
-
-  // Reset meta states per requirement: unhide grimoire, clear winner, clear player setup bag.
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
   try {
@@ -1008,7 +860,6 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
       grimoireState.playerSetup.bag = [];
       grimoireState.playerSetup.assignments = [];
       grimoireState.playerSetup.revealed = false;
-      // Clear selection completion flag so setup can be started again
       delete grimoireState.playerSetup.selectionComplete;
     }
   } catch (_) { }
@@ -1022,13 +873,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
   grimoireState.players = newPlayers;
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
-
-  // Assignments will be repopulated via player setup when needed.
-
-  // Reset bluffs when resetting grimoire
   grimoireState.bluffs = [null, null, null];
-
-  // Reset day/night tracking when starting a new game
   try {
     if (!grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking = { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} };
@@ -1040,12 +885,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     }
     updateDayNightUI(grimoireState);
   } catch (_) { }
-
-  // Feedback for starting a new game is shown when Start Game is clicked, not on reset
-
-  // Persist reset state
   try { saveAppState({ grimoireState }); } catch (_) { }
-  // Apply hidden state UI after forcing visible
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
 }
 
@@ -1054,7 +894,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
   const playerCountInput = document.getElementById('player-count');
   if (!playerCircle) return;
   playerCircle.innerHTML = '';
-  // Keep sidebar input in sync with current number of players
   if (playerCountInput) {
     try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
   }
@@ -1068,14 +907,9 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           <div class="reminder-placeholder" title="Add text reminder">+</div>
       `;
     playerCircle.appendChild(listItem);
-
-    // Track if a touch event has occurred to prevent click after touch
     const tokenEl2 = listItem.querySelector('.player-token');
     let touchOccurred2 = false;
-
-    // Open character modal on token click (unless clicking ribbon/info icon)
     tokenEl2.onclick = (e) => {
-      // Ignore click if it was triggered by a touch event
       if (touchOccurred2) {
         touchOccurred2 = false;
         return;
@@ -1094,8 +928,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         openCharacterModal({ grimoireState, playerIndex: i });
       }
     };
-
-    // Set up touch/click/right-click handling for player token
     setupTouchHandling({
       element: tokenEl2,
       onTap: (e) => {
@@ -1122,21 +954,16 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
           (target && target.classList.contains('ability-info-icon'));
       }
     });
-
-    // Right-click anywhere on player item to show context menu (desktop)
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
     });
-
-    // Set up click and touch handling for player name
     setupPlayerNameHandlers({ listItem, grimoireState, playerIndex: i });
 
     listItem.querySelector('.reminder-placeholder').onclick = (e) => {
       e.stopPropagation();
       if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
       const thisLi = listItem;
-      // If another player's stack is expanded and this one is collapsed, first expand this one
       if (thisLi.dataset.expanded !== '1') {
         const allLis = document.querySelectorAll('#player-circle li');
         let someoneExpanded = false;
@@ -1163,8 +990,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         openReminderTokenModal({ grimoireState, playerIndex: i });
       }
     };
-
-    // Hover expand/collapse for reminder stack positioning
     listItem.dataset.expanded = '0';
     const expand = () => {
       const wasExpanded = listItem.dataset.expanded === '1';
@@ -1184,7 +1009,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     };
     const collapse = () => { listItem.dataset.expanded = '0'; positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i })); };
     if (!isTouchDevice()) {
-      // Only expand on hover over reminders and placeholder elements
       const remindersEl = listItem.querySelector('.reminders');
       const placeholderEl = listItem.querySelector('.reminder-placeholder');
 
@@ -1204,23 +1028,15 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     }
     listItem.addEventListener('touchstart', (e) => {
       const target = e.target;
-
-      // Check if tapped on death ribbon
       if (target && target.closest('.death-ribbon')) {
         return; // Don't expand for death ribbon taps
       }
-
-      // Check if tapped on player token (character circle)
       if (target && target.closest('.player-token')) {
         return; // Don't expand for character circle taps
       }
-
-      // Check if tapped on player name
       if (target && target.closest('.player-name')) {
         return; // Don't expand for player name taps
       }
-
-      // Only expand if tapped on reminders or reminder placeholder
       const tappedReminders = !!(target && target.closest('.reminders'));
       const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
 
@@ -1233,14 +1049,10 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
       }
     }, { passive: false });
-
-    // Install one-time outside collapse handler for touch devices
     if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
       grimoireState.outsideCollapseHandlerInstalled = true;
       const maybeCollapseOnOutside = (ev) => {
         const target = ev.target;
-        // If the tap/click is anywhere inside the player circle, do not auto-collapse here.
-        // This allows reminder + gating to expand the tapped stack first.
         const playerCircleEl = document.getElementById('player-circle');
         if (playerCircleEl && playerCircleEl.contains(target)) return;
         const allLis = document.querySelectorAll('#player-circle li');
@@ -1262,8 +1074,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       document.addEventListener('touchstart', maybeCollapseOnOutside, { passive: true, capture: true });
     }
   });
-
-  // Add bluff tokens container
   const center = document.getElementById('center');
   const existingContainer = document.getElementById('bluff-tokens-container');
   if (existingContainer) {
@@ -1271,30 +1081,22 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
   }
   const bluffContainer = createBluffTokensContainer({ grimoireState });
   center.appendChild(bluffContainer);
-
-  // Apply layout and state immediately for deterministic testing and UX
   repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });
   saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
-  // Also after paint to ensure positions stabilize
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
   });
 }
-
-// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Register global touch handler for clearing raised states (only once)
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {
       const target = e.target;
-      // If not tapping on a player element, clear all raised states
       if (!target.closest('#player-circle li')) {
         document.querySelectorAll('#player-circle li[data-raised="true"]').forEach(el => {
           delete el.dataset.raised;
-          // Restore original z-index
           el.style.zIndex = el.dataset.originalLiZIndex || '';
           delete el.dataset.originalLiZIndex;
         });
