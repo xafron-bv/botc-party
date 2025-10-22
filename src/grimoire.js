@@ -5,7 +5,7 @@ import { openCharacterModal } from './character.js';
 import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
 import { calculateNightOrder, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState, shouldShowNightOrder, updateDayNightUI } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
-import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
+import { getVisibleRemindersCount, openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { showPlayerContextMenu, closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu, showReminderContextMenu } from './ui/contextMenu.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
@@ -44,18 +44,6 @@ export function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
 
-function getVisibleRemindersCount({ grimoireState, playerIndex }) {
-  const player = grimoireState.players[playerIndex];
-  if (!player || !player.reminders) return 0;
-
-  let count = 0;
-  player.reminders.forEach(reminder => {
-    if (isReminderVisible(grimoireState, reminder.reminderId)) {
-      count++;
-    }
-  });
-  return count;
-}
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
   const btn = document.getElementById('reveal-assignments');

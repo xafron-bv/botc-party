@@ -1,8 +1,8 @@
 import { resolveAssetPath } from '../utils.js';
-import { updateGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
+import { addReminderTimestamp, generateReminderId, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
+import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
-import { generateReminderId, addReminderTimestamp, saveCurrentPhaseState } from './dayNightTracking.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -23,6 +23,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     try { e.stopPropagation(); } catch (_) { }
 
     let label = tokenEl.dataset.tokenLabel || '';
+
     const id = tokenEl.dataset.tokenId || '';
     const image = tokenEl.dataset.tokenImage || '';
     if ((label || '').toLowerCase().includes('custom')) {
@@ -160,4 +161,16 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
   reminderTextInput.value = existingText;
   textReminderModal.style.display = 'flex';
   reminderTextInput.focus();
+} export function getVisibleRemindersCount({ grimoireState, playerIndex }) {
+  const player = grimoireState.players[playerIndex];
+  if (!player || !player.reminders) return 0;
+
+  let count = 0;
+  player.reminders.forEach(reminder => {
+    if (isReminderVisible(grimoireState, reminder.reminderId)) {
+      count++;
+    }
+  });
+  return count;
 }
+
