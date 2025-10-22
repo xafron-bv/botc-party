@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
   const sidebarResizer = document.getElementById('sidebar-resizer');
 
-  // Ability tooltip elements
   const sidebarEl = document.getElementById('sidebar');
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
@@ -76,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const firstNightBtn = document.getElementById('first-night-btn');
   const otherNightsBtn = document.getElementById('other-nights-btn');
   const nightPhaseToggleBtn = document.getElementById('night-phase-toggle');
-  // Travellers toggle state key and default
   const modeStorytellerRadio = document.getElementById('mode-storyteller');
   const modePlayerRadio = document.getElementById('mode-player');
   const dayNightToggleBtn = document.getElementById('day-night-toggle');
@@ -87,18 +85,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     includeTravellers: false,
     nightOrderSort: false,
     nightPhase: 'first-night',
-    // Player context menu elements
     playerContextMenu: null,
     contextMenuTargetIndex: -1,
     longPressTimer: null,
-    // Reminder context menu elements (for touch long-press on reminders)
     reminderContextMenu: null,
     reminderContextTarget: { playerIndex: -1, reminderIndex: -1 },
     scriptData: null,
     scriptMetaName: '',
     playerSetupTable: [],
     allRoles: {},
-    // Roles separation for traveller toggle
     baseRoles: {},
     extraTravellerRoles: {},
     players: [],
@@ -111,13 +106,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     gameStarted: false
   };
 
-  // Dynamic pre-game overlay messaging depending on required next action
   function updatePreGameOverlayMessage() {
     const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
     if (!overlayInner) return;
-    // Only update when in pre-game (players exist, game not started) and overlay would be visible
     if (!document.body.classList.contains('pre-game')) return;
-    // If a winner has been declared, suppress overlay entirely (pre-game flow ends)
     if (grimoireState.winner) {
       try {
         const overlay = document.getElementById('pre-game-overlay');
@@ -125,8 +117,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (_) { }
       return;
     }
-    if (document.body.classList.contains('selection-active')) return; // hidden during selection
-    if (document.body.classList.contains('player-setup-open')) return; // user configuring
+    if (document.body.classList.contains('selection-active')) return;
+    if (document.body.classList.contains('player-setup-open')) return;
     const ps = grimoireState.playerSetup || {};
     const players = grimoireState.players || [];
     const totalPlayers = players.length;
@@ -142,11 +134,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   try { window.updatePreGameOverlayMessage = updatePreGameOverlayMessage; } catch (_) { }
 
-  // Helper to apply/remove pre-game class (players exist but game not started)
   function updatePreGameClass() {
     try {
       const hasPlayers = Array.isArray(grimoireState.players) && grimoireState.players.length > 0;
-      // Suppress pre-game class entirely if a winner has been declared
       if (hasPlayers && !grimoireState.gameStarted && !grimoireState.winner) {
         document.body.classList.add('pre-game');
       } else {
@@ -155,12 +145,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) { }
   }
 
-  // Player setup state
   grimoireState.playerSetup = grimoireState.playerSetup || { bag: [], assignments: [], revealed: false };
 
-  // Make grimoireState available globally for event handlers
   window.grimoireState = grimoireState;
-  // Make updateButtonStates available globally
   window.updateButtonStates = updateButtonStates;
 
   initGrimoireBackground();
@@ -169,7 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
   }
 
-  // Initialize mode from localStorage
   try {
     const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
     grimoireState.mode = storedMode === 'player' ? 'player' : 'storyteller';
@@ -197,10 +183,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     try { updateStartGameEnabled(); } catch (_) { }
   };
-  // Hide/Show grimoire toggle (re-uses reveal button location)
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
-  // Apply bag assignments to players (used when revealing)
   function _applyAssignmentsFromBag() {
     const assignments = (grimoireState.playerSetup && grimoireState.playerSetup.assignments) || [];
     const bag = (grimoireState.playerSetup && grimoireState.playerSetup.bag) || [];
@@ -215,7 +199,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
     if (grimoireState.playerSetup) grimoireState.playerSetup.revealed = true;
-    // Clear any temporary number overlays/badges after revealing
     try {
       document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove());
     } catch (_) { }
@@ -255,7 +238,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize player setup module
   initPlayerSetup({ grimoireState });
 
-  // Initialize travellers toggle from localStorage
   try {
     grimoireState.includeTravellers = (localStorage.getItem(INCLUDE_TRAVELLERS_KEY) === '1');
   } catch (_) { grimoireState.includeTravellers = false; }
@@ -264,7 +246,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     includeTravellersCheckbox.addEventListener('change', () => onIncludeTravellersChange({ grimoireState, includeTravellersCheckbox }));
   }
 
-  // Initialize night order sort from localStorage
   try {
     grimoireState.nightOrderSort = (localStorage.getItem('nightOrderSort') === '1');
     grimoireState.nightPhase = localStorage.getItem('nightPhase') || 'first-night';
@@ -278,7 +259,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (nightOrderControls) {
       nightOrderControls.classList.toggle('active', grimoireState.nightOrderSort);
     }
-    // Show/hide phase toggle button based on sort state
     if (nightPhaseToggleBtn) {
       nightPhaseToggleBtn.style.display = grimoireState.nightOrderSort ? '' : 'none';
     }
@@ -305,14 +285,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         nightPhaseContainer2.style.display = grimoireState.nightOrderSort ? '' : 'none';
       }
 
-      // Re-display the script with new sorting
       if (grimoireState.scriptData) {
         await displayScript({ data: grimoireState.scriptData, grimoireState });
       }
     });
   }
 
-  // Character panel toggle logic might exist below; hook into open/close events
   if (characterPanelToggleBtn) {
     characterPanelToggleBtn.addEventListener('click', () => {
       setTimeout(() => { try { applySidebarToggleVisibilityForPanel(); } catch (_) { } }, 10);
@@ -327,7 +305,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') setTimeout(() => { try { applySidebarToggleVisibilityForPanel(); } catch (_) { } }, 10);
   });
 
-  // Helper: hide sidebar toggle on small screens if script panel open
   function applySidebarToggleVisibilityForPanel() {
     if (!sidebarToggleBtn) return;
     const small = window.innerWidth <= 900;
@@ -342,9 +319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener('resize', () => applySidebarToggleVisibilityForPanel());
 
-  // Set up radio buttons
   if (firstNightBtn && otherNightsBtn) {
-    // Set initial state
     firstNightBtn.checked = grimoireState.nightPhase === 'first-night';
     otherNightsBtn.checked = grimoireState.nightPhase === 'other-nights';
 
@@ -354,7 +329,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('nightPhase', grimoireState.nightPhase);
       } catch (_) { }
 
-      // Re-display the script with new phase
       if (grimoireState.scriptData && grimoireState.nightOrderSort) {
         await displayScript({ data: grimoireState.scriptData, grimoireState });
       }
@@ -364,27 +338,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     otherNightsBtn.addEventListener('change', handlePhaseChange);
     if (nightPhaseToggleBtn) {
       nightPhaseToggleBtn.addEventListener('click', async () => {
-        // Toggle phase value
         const newPhase = grimoireState.nightPhase === 'first-night' ? 'other-nights' : 'first-night';
         grimoireState.nightPhase = newPhase;
         if (firstNightBtn) firstNightBtn.checked = newPhase === 'first-night';
         if (otherNightsBtn) otherNightsBtn.checked = newPhase === 'other-nights';
-        // Update button label
         nightPhaseToggleBtn.textContent = newPhase === 'first-night' ? 'First Night' : 'Other Nights';
         try { localStorage.setItem('nightPhase', grimoireState.nightPhase); } catch (_) { }
         if (grimoireState.scriptData && grimoireState.nightOrderSort) {
           await displayScript({ data: grimoireState.scriptData, grimoireState });
         }
       });
-      // Initial label
       nightPhaseToggleBtn.textContent = grimoireState.nightPhase === 'first-night' ? 'First Night' : 'Other Nights';
     }
   }
 
-  // Initial visibility adjustment
   try { applySidebarToggleVisibilityForPanel(); } catch (_) { }
 
-  // Event delegation for history lists
   if (scriptHistoryList) {
     addScriptHistoryListListeners({ scriptHistoryList, grimoireState });
   }
@@ -427,26 +396,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadPlayerSetupTable({ grimoireState });
 
   if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => {
-    // Only prompt if an active game is in progress (started and no winner declared yet)
     if (grimoireState.gameStarted && !grimoireState.winner) {
       const ok = window.confirm('A game is in progress. Resetting will end the current game and save it to history. Continue?');
       if (!ok) return;
     }
     resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
-    // Always show grimoire after reset
     try { showGrimoire({ grimoireState }); } catch (_) { }
-    // Reset game state UI: show Start, hide End, clear winner
     try { grimoireState.winner = null; } catch (_) { }
     grimoireState.gameStarted = false;
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
-    // Explicitly re-enable gated buttons after reset
     try {
       if (startGameBtn) { startGameBtn.disabled = false; startGameBtn.title = ''; }
       const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
       if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
     } catch (_) { }
-    // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
@@ -455,9 +419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (addPlayersBtn) addPlayersBtn.addEventListener('click', () => {
     resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
-    // Always show grimoire after adding players
     try { showGrimoire({ grimoireState }); } catch (_) { }
-    // Reset game state UI: show Start, hide End, clear winner
     try { grimoireState.winner = null; } catch (_) { }
     grimoireState.gameStarted = false;
     if (startGameBtn) startGameBtn.style.display = '';
@@ -467,7 +429,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
       if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
     } catch (_) { }
-    // Re-apply mode-specific UI so that in player mode the Start Player Setup button stays hidden
     applyModeUI();
     updateStartGameEnabled();
     updateButtonStates();
@@ -504,7 +465,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
       grimoireState.playerSetup.revealed = true;
     }
-    // Show feedback for starting a new game
     const gameStatusEl = document.getElementById('game-status');
     if (gameStatusEl) {
       const playerCount = (grimoireState.players || []).length;
@@ -513,10 +473,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       try { clearTimeout(grimoireState._gameStatusTimer); } catch (_) { }
       grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
     }
-    // Show End Game button and hide Start Game until end/reset/start-selection
     if (endGameBtn) endGameBtn.style.display = '';
     if (startGameBtn) startGameBtn.style.display = 'none';
-    // Hide Start Player Setup during an active game
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
     grimoireState.gameStarted = true;
@@ -537,7 +495,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) { }
   });
 
-  // Handle End Game flow
   if (endGameBtn) endGameBtn.addEventListener('click', () => { if (endGameModal) endGameModal.style.display = 'flex'; });
 
   if (closeEndGameModalBtn && endGameModal) closeEndGameModalBtn.addEventListener('click', () => { endGameModal.style.display = 'none'; });
@@ -551,7 +508,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!team) return;
     grimoireState.winner = team; // 'good' or 'evil'
     try { saveAppState({ grimoireState }); } catch (_) { }
-    // Refresh grimoire UI and ensure center winner message is appended immediately
     try { updateGrimoire({ grimoireState }); } catch (_) { }
     updateButtonStates();
     try {
@@ -569,7 +525,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         msgEl.textContent = `${team === 'good' ? 'Good' : 'Evil'} has won`;
       }
     } catch (_) { }
-    // Snapshot to history with winner info
     try {
       snapshotCurrentGrimoire({
         players: grimoireState.players,
@@ -582,10 +537,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     } catch (_) { }
     if (endGameModal) endGameModal.style.display = 'none';
-    // After ending game, hide End Game and show Start Game again
     if (endGameBtn) endGameBtn.style.display = 'none';
-    if (startGameBtn) startGameBtn.style.display = '';
-    // Re-apply mode-specific UI for Start Player Setup visibility
     applyModeUI();
     updateStartGameEnabled();
     // Gate further starts or player setup until grimoire reset (winner flag presence is the gate)
@@ -605,16 +557,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good'));
   if (evilWinsBtn) evilWinsBtn.addEventListener('click', () => declareWinner('evil'));
 
-  // Enable/disable Start Game based on character assignment completeness
   function updateStartGameEnabled() {
     if (!startGameBtn) return;
     const players = grimoireState.players || [];
-    // New rule: Start Game available whenever players exist (unless a winner gate requires reset)
     const hasPlayers = players.length > 0;
     startGameBtn.disabled = !!grimoireState.winner || !hasPlayers;
   }
 
-  // Update button states based on grimoire state
   function updateButtonStates() {
     const players = grimoireState.players || [];
     const hasPlayers = players.length > 0;
@@ -622,12 +571,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPlayerSetupBtn = document.getElementById('open-player-setup');
     const startGameBtn = document.getElementById('start-game');
 
-    // Show/hide ADD PLAYERS button - only show when no players exist
     if (addPlayersBtn) {
       addPlayersBtn.style.display = hasPlayers ? 'none' : 'block';
     }
 
-    // Disable game setup buttons when no players exist
     if (openPlayerSetupBtn) {
       const sel = grimoireState.playerSetup || {};
       const selectionComplete = !!sel.selectionComplete;
@@ -642,15 +589,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         openPlayerSetupBtn.title = '';
       }
     }
-    // Don't disable reset-grimoire as it's used to start the game
-    // Don't disable storyteller message as it's a tool that works without players
 
-    // Start game button should be disabled if no players, but also respect existing character assignment logic
     if (startGameBtn) {
       if (!hasPlayers) {
         startGameBtn.disabled = true;
       } else {
-        // Re-apply the character assignment logic
         updateStartGameEnabled();
       }
       if (grimoireState.winner) {
@@ -662,23 +605,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    // Disable mode toggle when no players
     const modeStorytellerRadio = document.getElementById('mode-storyteller');
     const modePlayerRadio = document.getElementById('mode-player');
     if (modeStorytellerRadio) modeStorytellerRadio.disabled = !hasPlayers;
     if (modePlayerRadio) modePlayerRadio.disabled = !hasPlayers;
 
-    // Update pre-game class whenever buttons update (covers many state changes)
     updatePreGameClass();
     try { updatePreGameOverlayMessage(); } catch (_) { }
   }
 
-  // Initial state
   updateStartGameEnabled();
   updateButtonStates();
   updatePreGameClass();
 
-  // Observe grimoire changes to toggle Start Game and button states
   const observer = new MutationObserver(() => {
     updateStartGameEnabled();
     updateButtonStates();
@@ -686,7 +625,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const playerCircle = document.getElementById('player-circle');
   if (playerCircle) observer.observe(playerCircle, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 
-  // Also update when players change programmatically
   const originalUpdateGrimoire = updateGrimoire;
   if (typeof originalUpdateGrimoire === 'function') {
     (window)._updateGrimoireWrapped = true;
@@ -784,7 +722,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   textReminderModal.addEventListener('click', (e) => { if (e.target === textReminderModal) textReminderModal.style.display = 'none'; });
-  // For reminder token modal, also close if clicking outside the content container
   if (reminderTokenModal) {
     reminderTokenModal.addEventListener('click', (e) => {
       if (e.target === reminderTokenModal) { reminderTokenModal.style.display = 'none'; return; }
@@ -793,7 +730,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Handle container resize to reposition players
   let resizeObserver;
   if ('ResizeObserver' in window) {
     resizeObserver = new ResizeObserver(() => {
@@ -803,13 +739,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Observe the player circle container for size changes
     const playerCircle = document.getElementById('player-circle');
     if (playerCircle) {
       resizeObserver.observe(playerCircle);
     }
   } else {
-    // Fallback to window resize for older browsers
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
@@ -822,50 +756,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Also reposition players when the page becomes visible (in case of tab switching)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && grimoireState.players.length > 0) {
       requestAnimationFrame(() => repositionPlayers({ grimoireState }));
     }
   });
 
-  // Auto-load default tokens when the page is ready
   function autoLoadTokens() {
-    // Check if service worker is ready
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       console.log('Service worker ready');
     } else {
-      // Wait for service worker to be ready
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log('Service worker controller changed');
       });
 
-      // Fallback: if no service worker after a reasonable time, load anyway
       const fallbackTimer = setTimeout(() => {
         if (!navigator.serviceWorker.controller) {
           console.log('Service worker not ready');
         }
       }, 2000);
 
-      // Clear fallback if service worker becomes ready
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         clearTimeout(fallbackTimer);
       });
     }
   }
 
-  // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', autoLoadTokens);
   } else {
     autoLoadTokens();
   }
 
-  // Compute visible roles from baseRoles and extraTravellerRoles based on toggle
-  // Sidebar resizer
   initSidebarResize(sidebarResizer, sidebarEl);
 
-  // Sidebar toggle
   initSidebarToggle({
     sidebarToggleBtn,
     sidebarCloseBtn,
@@ -879,7 +803,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     characterPanelToggleBtn
   });
 
-  // Character panel toggle logic
   (function initCharacterPanelToggle() {
     if (!characterPanel || !characterPanelToggleBtn) return;
     const PANEL_KEY = 'characterPanelOpen';
@@ -887,15 +810,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       characterPanel.setAttribute('aria-hidden', String(!open));
       document.body.classList.toggle('character-panel-open', open);
       characterPanelToggleBtn.setAttribute('aria-pressed', String(open));
-      // Keep static label
       characterPanelToggleBtn.textContent = 'Script';
       try { localStorage.setItem(PANEL_KEY, open ? '1' : '0'); } catch (_) { }
-      // Restore sidebar toggle visibility when closing panel (mobile CSS hides it only while open)
-      // No inline sidebar toggle manipulation needed; CSS governs visibility.
-      // No sidebar state mutation here; sidebar visibility managed independently.
-      // Ensure any inline-hidden sidebar toggle (mobile case) is restored immediately after closing
       try { applySidebarToggleVisibilityForPanel(); } catch (_) { }
-      // Reposition players after CSS transition (allow layout to settle)
       setTimeout(() => { try { repositionPlayers({ grimoireState }); } catch (_) { } }, 320);
     };
     let startOpen = false;
@@ -906,7 +823,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       applyState(open);
     });
     if (characterPanelCloseBtn) characterPanelCloseBtn.addEventListener('click', () => applyState(false));
-    // Close on outside click for wider screens (not touch overlay) when open
     document.addEventListener('click', (e) => {
       if (!document.body.classList.contains('character-panel-open')) return;
       const target = e.target;
@@ -917,15 +833,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (sidebar && sidebar.contains(target)) return;
       applyState(false);
     });
-    // Escape key closes panel
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && document.body.classList.contains('character-panel-open')) applyState(false);
     });
-    // Responsive: collapse automatically on very small viewports
     const mq = window.matchMedia('(max-width: 900px)');
     const handleMq = () => {
       if (mq.matches) {
-        // On small screens default closed unless previously opened in this session
         if (!document.body.classList.contains('character-panel-open')) applyState(false);
       }
     };
@@ -933,22 +846,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     handleMq();
   })();
 
-  // Load histories and render lists
   loadHistories();
   renderScriptHistory({ scriptHistoryList });
   renderGrimoireHistory({ grimoireHistoryList });
 
-  // Initialize export/import functionality
   initExportImport();
 
-  // Initialize day/night tracking first
   initDayNightTracking(grimoireState);
 
-  // Restore previous session (script and grimoire), then apply mode UI
   await loadAppState({ grimoireState, grimoireHistoryList });
   applyModeUI();
   applyGrimoireHiddenUI();
-  // Re-apply pre-game body class and overlay messaging based on restored state
   try {
     updatePreGameClass();
     if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage();
@@ -965,14 +873,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { restoreSelectionSession({ grimoireState }); } catch (_) { }
   } catch (_) { }
 
-  // In-app tour
   initInAppTour();
-  // Storyteller Messages (simplified): use src/storytellerMessages.js
   initStorytellerMessages({ grimoireState });
 
-  // Remove legacy inline storyteller implementation from this file.
-
-  // Click center to open sidebar when collapsed and no game started
   const centerEl = document.getElementById('center');
   if (centerEl) {
     centerEl.addEventListener('click', (e) => {
@@ -991,4 +894,3 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Tooltip and info icon helpers are imported from ui/tooltip.js

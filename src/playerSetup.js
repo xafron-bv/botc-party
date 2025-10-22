@@ -698,10 +698,6 @@ export function initPlayerSetup({ grimoireState }) {
   // Expose a safe opener for other modules (e.g., token clicks)
   try { window.openNumberPickerForSelection = (idx) => openNumberPicker(idx); } catch (_) { }
 
-  // No name-click handler needed; overlays handle clicks
-
-  // no-op placeholder removed; assignments applied during reveal elsewhere
-
   if (openPlayerSetupBtn && playerSetupPanel) {
     openPlayerSetupBtn.addEventListener('click', () => {
       if (grimoireState.mode === 'player') return;
@@ -860,7 +856,6 @@ export function initPlayerSetup({ grimoireState }) {
     try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
   });
   if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { } });
-  // Player Setup no longer directly reveals; sidebar toggle now handles hide/show.
 
   // Close by clicking outside modal content to match other modals
   if (playerSetupPanel) {
