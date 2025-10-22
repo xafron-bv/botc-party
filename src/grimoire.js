@@ -7,7 +7,7 @@ import { calculateNightOrder, getReminderTimestamp, isReminderVisible, saveCurre
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { showPlayerContextMenu } from './showPlayerContextMenu.js';
-import { hidePlayerContextMenu, hideReminderContextMenu, showReminderContextMenu } from './ui/contextMenu.js';
+import { closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu, showReminderContextMenu } from './ui/contextMenu.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
@@ -1302,32 +1302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 });
-
-// Global handlers for context menus - registered once at app start
-// Light-dismiss context menus on pointerdown outside the menu (capture phase)
-function closeMenusOnOutsideEvent(e) {
-  const grimoireState = window.grimoireState;
-  if (!grimoireState) return;
-
-  // Enforce a small grace period right after opening to ignore the tail of long-press sequences
-  const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
-
-  // Player context menu
-  if (grimoireState.playerContextMenu) {
-    const menu = grimoireState.playerContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      if (timeSinceOpen > 100) hidePlayerContextMenu({ grimoireState });
-    }
-  }
-
-  // Reminder context menu
-  if (grimoireState.reminderContextMenu) {
-    const menu = grimoireState.reminderContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      if (timeSinceOpen > 100) hideReminderContextMenu({ grimoireState });
-    }
-  }
-}
 
 document.addEventListener('pointerdown', closeMenusOnOutsideEvent, true);
 document.addEventListener('touchstart', closeMenusOnOutsideEvent, true);

@@ -197,3 +197,24 @@ export function showReminderContextMenu({ grimoireState, x, y, playerIndex, remi
   });
 }
 
+export function closeMenusOnOutsideEvent(e) {
+  const grimoireState = window.grimoireState;
+  if (!grimoireState) return;
+
+  const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
+
+  if (grimoireState.playerContextMenu) {
+    const menu = grimoireState.playerContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      if (timeSinceOpen > 100) hidePlayerContextMenu({ grimoireState });
+    }
+  }
+
+  if (grimoireState.reminderContextMenu) {
+    const menu = grimoireState.reminderContextMenu;
+    if (menu.style.display === 'block' && !menu.contains(e.target)) {
+      if (timeSinceOpen > 100) hideReminderContextMenu({ grimoireState });
+    }
+  }
+}
+
