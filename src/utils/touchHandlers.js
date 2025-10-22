@@ -18,7 +18,6 @@ const elementHandlers = new WeakMap();
  * @param {Function} config.setTouchOccurred - Callback to track touch state for click prevention
  * @param {Function} [config.shouldSkip] - Optional callback to determine if interaction should be skipped
  * @param {number} [config.longPressDelay=500] - Delay in ms before long press triggers
- * @param {number} [config.actionDelay=50] - Delay in ms before quick tap action triggers
  * @param {boolean} [config.showPressFeedback=false] - Whether to add 'press-feedback' class during long press
  */
 export function setupTouchHandling({
@@ -42,8 +41,16 @@ export function setupTouchHandling({
       element.removeEventListener('touchmove', existingHandlers.touchmove);
       element.removeEventListener('touchend', existingHandlers.touchend);
       element.removeEventListener('touchcancel', existingHandlers.touchcancel);
+      if (existingHandlers.suppressClick) {
+        element.removeEventListener('click', existingHandlers.suppressClick, true);
+      }
     } else {
-      element.removeEventListener('click', existingHandlers.click);
+      if (existingHandlers.click) {
+        element.removeEventListener('click', existingHandlers.click);
+      }
+      if (existingHandlers.contextmenu) {
+        element.removeEventListener('contextmenu', existingHandlers.contextmenu);
+      }
     }
 
     // Clear any existing timers
@@ -71,6 +78,11 @@ export function setupTouchHandling({
       // Reset flags
       isLongPress = false;
 
+      // Reset synthetic click suppression at the start of each interaction
+      if (element && element.dataset) {
+        element.dataset.ignoreNextSyntheticClick = 'false';
+      }
+
       // Store touch start position for long press detection
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
@@ -92,6 +104,9 @@ export function setupTouchHandling({
           // Remove press feedback before calling callback
           if (showPressFeedback) {
             try { element.classList.remove('press-feedback'); } catch (_) { }
+          }
+          if (element && element.dataset) {
+            element.dataset.ignoreNextSyntheticClick = 'true';
           }
           onLongPress(e, x, y);
         }, longPressDelay);
@@ -129,6 +144,9 @@ export function setupTouchHandling({
             onTap(e);
           }
         }, actionDelay);
+      } else if (!isLongPress && element && element.dataset) {
+        // Ensure flag stays cleared when no long press occurred
+        element.dataset.ignoreNextSyntheticClick = 'false';
       }
     };
 
@@ -146,9 +164,23 @@ export function setupTouchHandling({
       }
 
       if (setTouchOccurred) setTouchOccurred(false);
+      if (element && element.dataset) {
+        element.dataset.ignoreNextSyntheticClick = 'false';
+      }
     };
 
     element.addEventListener('touchcancel', touchCancelHandler);
+
+    const suppressClickHandler = (event) => {
+      if (element && element.dataset && element.dataset.ignoreNextSyntheticClick === 'true') {
+        event.preventDefault();
+        try { event.stopImmediatePropagation(); } catch (_) { }
+        event.stopPropagation();
+        element.dataset.ignoreNextSyntheticClick = 'false';
+      }
+    };
+
+    element.addEventListener('click', suppressClickHandler, true);
 
     // Store handlers and timers for cleanup
     const handlers = {
@@ -156,6 +188,7 @@ export function setupTouchHandling({
       touchmove: touchMoveHandler,
       touchend: touchEndHandler,
       touchcancel: touchCancelHandler,
+      suppressClick: suppressClickHandler,
       longPressTimer,
       touchActionTimer
     };
@@ -171,6 +204,7 @@ export function setupTouchHandling({
       element.removeEventListener('touchmove', touchMoveHandler);
       element.removeEventListener('touchend', touchEndHandler);
       element.removeEventListener('touchcancel', touchCancelHandler);
+      element.removeEventListener('click', suppressClickHandler, true);
 
       // Remove from WeakMap
       elementHandlers.delete(element);

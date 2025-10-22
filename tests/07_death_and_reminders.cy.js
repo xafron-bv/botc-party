@@ -189,6 +189,37 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
   });
 
+  it('touch: long press on death ribbon opens menu without toggling state', () => {
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
+        Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
+      }
+    });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.get('#load-tb').click({ force: true });
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.setupGame({ players: 5, loadScript: false });
+
+    cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
+
+    cy.get('#player-circle li').first().find('.death-ribbon')
+      .trigger('touchstart', { touches: [{ clientX: 10, clientY: 10 }], force: true });
+    cy.wait(550);
+    cy.get('#player-circle li').first().find('.death-ribbon')
+      .trigger('touchend', { force: true });
+
+    cy.get('#player-context-menu').should('be.visible');
+
+    // Simulate the synthetic click Mobile Safari emits after touchend
+    cy.get('#player-circle li .death-ribbon').first().find('rect, path').first()
+      .trigger('click', { force: true });
+
+    cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
+
+    cy.get('body').click('topLeft', { force: true });
+  });
+
   it('desktop: hovering over character circle does not expand collapsed reminders', () => {
     // Desktop default visit already done in beforeEach
     // Add one reminder to first player
