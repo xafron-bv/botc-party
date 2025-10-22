@@ -2,3 +2,4 @@ core
 server.pid
 cypress/
 .vite/
+.test-output/
