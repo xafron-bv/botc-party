@@ -37,6 +37,16 @@ export function initPlayerSetup({ grimoireState }) {
   const revealNameInput = document.getElementById('reveal-name-input');
   const revealConfirmBtn = document.getElementById('reveal-confirm-btn');
   const includeTravellersCheckbox = document.getElementById('include-travellers-in-bag');
+  const playerSetupCountsContainer = document.getElementById('player-setup-counts');
+  const teamCountElements = {};
+  ['townsfolk', 'outsiders', 'minions', 'demons', 'travellers'].forEach((teamKey) => {
+    const root = playerSetupCountsContainer ? playerSetupCountsContainer.querySelector(`[data-team="${teamKey}"]`) : null;
+    teamCountElements[teamKey] = {
+      root,
+      selected: root ? root.querySelector('.selected-count') : null,
+      required: root ? root.querySelector('.required-count') : null
+    };
+  });
   let revealCurrentPlayerIndex = null;
   let isNumberGridHandlerAttached = false;
 
@@ -86,8 +96,35 @@ export function initPlayerSetup({ grimoireState }) {
     return effective > 0 ? effective : 0;
   }
 
+  function updateSetupCountsDisplay({ teams, row }) {
+    if (!playerSetupCountsContainer) return;
+    const teamKeys = ['townsfolk', 'outsiders', 'minions', 'demons'];
+    teamKeys.forEach((teamKey) => {
+      const elements = teamCountElements[teamKey];
+      if (!elements || !elements.root) return;
+      const selectedValue = teams && typeof teams[teamKey] === 'number' ? teams[teamKey] : 0;
+      const requiredValue = row && typeof row[teamKey] === 'number' ? row[teamKey] : 0;
+      if (elements.selected) elements.selected.textContent = String(selectedValue);
+      if (elements.required) elements.required.textContent = String(requiredValue);
+      if (selectedValue !== requiredValue) {
+        elements.root.classList.add('count-mismatch');
+        elements.root.setAttribute('data-mismatch', 'true');
+      } else {
+        elements.root.classList.remove('count-mismatch');
+        elements.root.removeAttribute('data-mismatch');
+      }
+    });
+
+    const travellersElements = teamCountElements.travellers;
+    if (travellersElements && travellersElements.root) {
+      const travellerSelected = countTravellersInBag();
+      const shouldShow = travellerSelected > 0 || (includeTravellersCheckbox && includeTravellersCheckbox.checked);
+      travellersElements.root.style.display = shouldShow ? 'flex' : 'none';
+      if (travellersElements.selected) travellersElements.selected.textContent = String(travellerSelected);
+    }
+  }
+
   function updateBagWarning() {
-    if (!bagCountWarning) return;
     const travellersInPlay = countTravellersInPlay();
     const travellersInBag = countTravellersInBag();
     const totalTravellers = travellersInPlay + travellersInBag;
@@ -106,6 +143,10 @@ export function initPlayerSetup({ grimoireState }) {
     });
     const mismatch = row ? (teams.townsfolk !== row.townsfolk) || (teams.outsiders !== row.outsiders) || (teams.minions !== row.minions) || (teams.demons !== row.demons) : false;
     const countMismatch = selectedCount !== expectedBagCount;
+
+    updateSetupCountsDisplay({ teams, row });
+
+    if (!bagCountWarning) return;
 
     let travellerSuffix = '';
     if (totalTravellers > 0) {

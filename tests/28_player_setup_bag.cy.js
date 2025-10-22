@@ -49,6 +49,40 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     });
   });
 
+  it('displays live setup counts for each team', () => {
+    // Reconfigure to 7 players to take advantage of a 5 townsfolk requirement
+    cy.get('#player-count').clear().type('7');
+    cy.get('#reset-grimoire').click();
+    cy.get('#player-circle li').should('have.length', 7);
+
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+
+    // When bag is empty, counts should reflect 0 selected out of the required totals
+    cy.get('#player-setup-counts [data-team="townsfolk"] .team-count-value').should('contain', '0/5');
+    cy.get('#player-setup-counts [data-team="outsiders"] .team-count-value').should('contain', '0/0');
+    cy.get('#player-setup-counts [data-team="minions"] .team-count-value').should('contain', '0/1');
+    cy.get('#player-setup-counts [data-team="demons"] .team-count-value').should('contain', '0/1');
+
+    // After random fill the counts should match the required distribution
+    cy.get('#bag-random-fill').click();
+    cy.get('#player-setup-counts [data-team="townsfolk"] .team-count-value').should('contain', '5/5');
+    cy.get('#player-setup-counts [data-team="outsiders"] .team-count-value').should('contain', '0/0');
+    cy.get('#player-setup-counts [data-team="minions"] .team-count-value').should('contain', '1/1');
+    cy.get('#player-setup-counts [data-team="demons"] .team-count-value').should('contain', '1/1');
+
+    // Uncheck one townsfolk to verify the live count updates
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .first()
+      .uncheck({ force: true });
+
+    cy.wait(50);
+
+    cy.get('#player-setup-counts [data-team="townsfolk"] .team-count-value').should('contain', '4/5');
+  });
+
   it('supports number picking without revealing assignments prematurely', () => {
     // Open and random fill the bag
     cy.get('#open-player-setup').click();
