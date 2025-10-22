@@ -1,6 +1,6 @@
-import { saveAppState } from '../app';
-import { saveCurrentPhaseState } from '../dayNightTracking';
-import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire';
+import { saveAppState } from '../app.js';
+import { saveCurrentPhaseState } from '../dayNightTracking.js';
+import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   const menu = ensurePlayerContextMenu({ grimoireState });

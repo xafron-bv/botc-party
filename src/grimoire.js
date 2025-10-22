@@ -6,8 +6,7 @@ import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } fro
 import { calculateNightOrder, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState, shouldShowNightOrder, updateDayNightUI } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
-import { showPlayerContextMenu } from './showPlayerContextMenu.js';
-import { closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu, showReminderContextMenu } from './ui/contextMenu.js';
+import { showPlayerContextMenu, closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu, showReminderContextMenu } from './ui/contextMenu.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
