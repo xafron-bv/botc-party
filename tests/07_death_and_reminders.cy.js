@@ -144,13 +144,15 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
 
-    // Search by character name only (Monk is in Trouble Brewing)
-    cy.get('#reminder-token-search').clear().type('monk');
-    cy.get('#reminder-token-grid .token[title="Protected"]').should('have.length.greaterThan', 0);
+    // Search by character name only - use a character we know is in TB and has reminders
+    // Fortune Teller has "Red Herring" reminder
+    cy.get('#reminder-token-search').clear().type('fortune');
+    cy.get('#reminder-token-grid .token').should('have.length.greaterThan', 0);
+    cy.get('#reminder-token-grid .token[title="Red Herring"]').should('exist');
 
     // Multi-term search: character name + partial wording
-    cy.get('#reminder-token-search').clear().type('monk prot');
-    cy.get('#reminder-token-grid .token[title="Protected"]').should('have.length.greaterThan', 0);
+    cy.get('#reminder-token-search').clear().type('fortune red');
+    cy.get('#reminder-token-grid .token[title="Red Herring"]').should('exist');
 
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
