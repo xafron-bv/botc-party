@@ -168,14 +168,15 @@ export function applyTravellerToggleAndRefresh({ grimoireState }) {
 
 export async function processScriptCharacters({ characterIds, grimoireState }) {
   try {
-    console.log('Loading characters.json to resolve character IDs...');
-    const response = await fetch('./characters.json');
+    console.log('Loading data.json to resolve character IDs...');
+    const response = await fetch('./data.json');
     if (!response.ok) {
-      throw new Error(`Failed to load characters.json: ${response.status}`);
+      throw new Error(`Failed to load data.json: ${response.status}`);
     }
 
-    const characters = await response.json();
-    console.log('characters.json loaded successfully');
+    const data = await response.json();
+    const characters = data.roles;
+    console.log('data.json loaded successfully');
 
     // Create canonical lookups and a normalization index
     const roleLookup = {};
@@ -369,14 +370,15 @@ export async function loadAllCharacters({ grimoireState }) {
     loadStatus.textContent = 'Loading all characters...';
     loadStatus.className = 'status';
 
-    // Load characters.json directly
-    const response = await fetch('./characters.json');
+    // Load data.json directly
+    const response = await fetch('./data.json');
     if (!response.ok) {
-      throw new Error(`Failed to load characters.json: ${response.status}`);
+      throw new Error(`Failed to load data.json: ${response.status}`);
     }
 
-    const characters = await response.json();
-    console.log('Loading all characters from characters.json');
+    const data = await response.json();
+    const characters = data.roles;
+    console.log('Loading all characters from data.json');
 
     // Reset role maps
     grimoireState.allRoles = {};

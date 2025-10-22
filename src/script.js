@@ -9,12 +9,16 @@ export async function displayScript({ data, grimoireState }) {
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
 
-  // Load jinx data
+  // Load jinx data from data.json
   let jinxData = [];
   try {
-    const jinxResponse = await fetch('./jinx.json');
-    if (jinxResponse.ok) {
-      jinxData = await jinxResponse.json();
+    const dataResponse = await fetch('./data.json');
+    if (dataResponse.ok) {
+      const data = await dataResponse.json();
+      // Extract jinxes from roles
+      jinxData = data.roles
+        .filter(role => role.jinxes && role.jinxes.length > 0)
+        .map(role => ({ id: role.id, jinx: role.jinxes }));
     }
   } catch (e) {
     console.warn('Failed to load jinx data:', e);

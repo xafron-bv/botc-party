@@ -47,9 +47,10 @@ export async function populateReminderTokenGrid({ grimoireState }) {
   reminderTokenGrid.addEventListener('click', delegatedSelectionHandler, true);
   reminderTokenGrid._delegatedSelectionHandler = delegatedSelectionHandler;
   try {
-    const res = await fetch('./characters.json?v=reminders', { cache: 'no-store' });
-    if (!res.ok) throw new Error('Failed to load characters.json');
-    const json = await res.json();
+    const res = await fetch('./data.json?v=reminders', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Failed to load data.json');
+    const data = await res.json();
+    const json = { roles: data.roles, reminderTokens: data.reminderTokens || [] };
     // Base: any tokens supplied by data file
     let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
     // Build per-character reminders from the current script: use the character's icon and reminder text as label
