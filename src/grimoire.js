@@ -110,32 +110,6 @@ function handlePlayerElementTouch({ e, listItem, actionCallback }) {
 }
 
 // Helper function to set up touch event handlers for player tokens
-function setupPlayerTokenTouchHandlers({ tokenEl, grimoireState, playerIndex, listItem, actionCallback, setTouchOccurred }) {
-  return setupTouchHandling({
-    element: tokenEl,
-    onTap: (e) => {
-      handlePlayerElementTouch({
-        e,
-        listItem,
-        actionCallback,
-        grimoireState,
-        playerIndex
-      });
-    },
-    onLongPress: (e, x, y) => {
-      // Clear any existing long press timer before showing menu
-      clearTimeout(grimoireState.longPressTimer);
-      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-    },
-    setTouchOccurred,
-    shouldSkip: (e) => {
-      const target = e.target;
-      return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
-        (target && target.classList.contains('ability-info-icon'));
-    }
-  });
-}
-
 // Helper function to set up player name click and touch handlers
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = (e) => {
@@ -269,23 +243,35 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
       }
     };
 
-    // Set up touch handling for player token
-    setupPlayerTokenTouchHandlers({
-      tokenEl,
-      grimoireState,
-      playerIndex: i,
-      listItem,
-      actionCallback: () => {
-        if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
-        } else if (grimoireState && !grimoireState.grimoireHidden) {
-          openCharacterModal({ grimoireState, playerIndex: i });
-        }
+    // Set up touch/click/right-click handling for player token
+    setupTouchHandling({
+      element: tokenEl,
+      onTap: (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+              if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+            } else if (grimoireState && !grimoireState.grimoireHidden) {
+              openCharacterModal({ grimoireState, playerIndex: i });
+            }
+          }
+        });
       },
-      setTouchOccurred: (value) => { touchOccurred = value; }
+      onLongPress: (e, x, y) => {
+        clearTimeout(grimoireState.longPressTimer);
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+      },
+      setTouchOccurred: (value) => { touchOccurred = value; },
+      shouldSkip: (e) => {
+        const target = e.target;
+        return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+          (target && target.classList.contains('ability-info-icon'));
+      }
     });
 
-    // Player context menu: right-click
+    // Right-click anywhere on player item to show context menu (desktop)
     listItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
@@ -896,14 +882,25 @@ export function updateGrimoire({ grimoireState }) {
 
     // Add touch handler for death ribbon with two-tap behavior
     if ('ontouchstart' in window) {
-      ribbon.addEventListener('touchstart', (e) => {
-        handlePlayerElementTouch({
-          e,
-          listItem: li,
-          actionCallback: handleRibbonToggle,
-          grimoireState,
-          playerIndex: i
-        });
+      setupTouchHandling({
+        element: ribbon,
+        onTap: (e) => {
+          handlePlayerElementTouch({
+            e,
+            listItem: li,
+            actionCallback: handleRibbonToggle,
+            grimoireState,
+            playerIndex: i
+          });
+        },
+        onLongPress: (e, x, y) => {
+          // Long press on death ribbon should also open context menu
+          clearTimeout(grimoireState.longPressTimer);
+          showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+        },
+        setTouchOccurred: (val) => {
+          grimoireState.touchOccurred = val;
+        }
       });
     }
 
@@ -948,14 +945,25 @@ export function updateGrimoire({ grimoireState }) {
 
       // Add touch handler for death vote with two-tap behavior
       if ('ontouchstart' in window) {
-        deathVoteIndicator.addEventListener('touchstart', (e) => {
-          handlePlayerElementTouch({
-            e,
-            listItem: li,
-            actionCallback: handleDeathVoteClick,
-            grimoireState,
-            playerIndex: i
-          });
+        setupTouchHandling({
+          element: deathVoteIndicator,
+          onTap: (e) => {
+            handlePlayerElementTouch({
+              e,
+              listItem: li,
+              actionCallback: handleDeathVoteClick,
+              grimoireState,
+              playerIndex: i
+            });
+          },
+          onLongPress: (e, x, y) => {
+            // Long press on death vote indicator should also open context menu
+            clearTimeout(grimoireState.longPressTimer);
+            showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+          },
+          setTouchOccurred: (val) => {
+            grimoireState.touchOccurred = val;
+          }
         });
       }
 
@@ -997,17 +1005,6 @@ export function updateGrimoire({ grimoireState }) {
         iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
         iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
         iconEl.title = (reminder.label || '');
-        iconEl.addEventListener('click', (e) => {
-          const parentLi = iconEl.closest('li');
-          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
-          if (isCollapsed) {
-            e.stopPropagation();
-            try { e.preventDefault(); } catch (_) { }
-            parentLi.dataset.expanded = '1';
-            parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
-          }
-        }, true);
 
         if (reminder.label) {
           // Check if this is a custom reminder by ID
@@ -1092,35 +1089,26 @@ export function updateGrimoire({ grimoireState }) {
           iconEl.appendChild(delBtn);
         }
 
-        // Touch long-press for reminder context menu (iOS Safari, Android)
-        if (isTouchDevice()) {
-          const onPressStart = (e) => {
-            try { e.preventDefault(); } catch (_) { }
-            clearTimeout(grimoireState.longPressTimer);
-            try { iconEl.classList.add('press-feedback'); } catch (_) { }
-            const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-            const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-            grimoireState.longPressTimer = setTimeout(() => {
-              try { iconEl.classList.remove('press-feedback'); } catch (_) { }
-              showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
-            }, 600);
-          };
-          const onPressEnd = () => {
-            // Only clear the timer if the reminder menu is not already visible
-            if (!grimoireState.reminderContextMenu || grimoireState.reminderContextMenu.style.display !== 'block') {
-              clearTimeout(grimoireState.longPressTimer);
+        // Touch handling for icon reminders (tap to expand, long press for menu)
+        setupTouchHandling({
+          element: iconEl,
+          onTap: (e) => {
+            const parentLi = iconEl.closest('li');
+            const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+            if (isCollapsed) {
+              e.stopPropagation();
+              try { e.preventDefault(); } catch (_) { }
+              parentLi.dataset.expanded = '1';
+              parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+              positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
             }
-            try { iconEl.classList.remove('press-feedback'); } catch (_) { }
-          };
-          iconEl.addEventListener('pointerdown', onPressStart);
-          iconEl.addEventListener('pointerup', onPressEnd);
-          iconEl.addEventListener('pointercancel', onPressEnd);
-          iconEl.addEventListener('pointerleave', onPressEnd);
-          iconEl.addEventListener('touchstart', onPressStart, { passive: false });
-          iconEl.addEventListener('touchend', onPressEnd);
-          iconEl.addEventListener('touchcancel', onPressEnd);
-          iconEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
-        }
+          },
+          onLongPress: (e, x, y) => {
+            showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
+          },
+          setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
+          showPressFeedback: true
+        });
 
         // Add timestamp if day/night tracking is enabled
         const timestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
@@ -1156,23 +1144,6 @@ export function updateGrimoire({ grimoireState }) {
         reminderEl.appendChild(textSpan);
 
         reminderEl.style.transform = 'translate(-50%, -50%)';
-        reminderEl.onclick = (e) => {
-          e.stopPropagation();
-          const parentLi = reminderEl.closest('li');
-          if (parentLi) {
-            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-              // If collapsed, expand instead of acting
-              if (parentLi.dataset.expanded !== '1') {
-                parentLi.dataset.expanded = '1';
-                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
-              }
-
-            }
-          }
-          // No-op on desktop; use hover edit icon instead
-        };
         // Desktop hover actions on text reminders
         if (!isTouchDevice()) {
           const editBtn2 = document.createElement('div');
@@ -1232,35 +1203,32 @@ export function updateGrimoire({ grimoireState }) {
           });
           reminderEl.appendChild(delBtn2);
         }
-        // Touch long-press for reminder context menu
-        if (isTouchDevice()) {
-          const onPressStart2 = (e) => {
-            try { e.preventDefault(); } catch (_) { }
-            clearTimeout(grimoireState.longPressTimer);
-            try { reminderEl.classList.add('press-feedback'); } catch (_) { }
-            const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-            const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-            grimoireState.longPressTimer = setTimeout(() => {
-              try { reminderEl.classList.remove('press-feedback'); } catch (_) { }
-              showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
-            }, 600);
-          };
-          const onPressEnd2 = () => {
-            // Only clear the timer if the reminder menu is not already visible
-            if (!grimoireState.reminderContextMenu || grimoireState.reminderContextMenu.style.display !== 'block') {
-              clearTimeout(grimoireState.longPressTimer);
+
+        // Touch handling for text reminders (tap to expand, long press for menu)
+        setupTouchHandling({
+          element: reminderEl,
+          onTap: (e) => {
+            e.stopPropagation();
+            const parentLi = reminderEl.closest('li');
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+                // If collapsed, expand instead of acting
+                if (parentLi.dataset.expanded !== '1') {
+                  parentLi.dataset.expanded = '1';
+                  parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                  positionRadialStack(parentLi, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
+                }
+              }
             }
-            try { reminderEl.classList.remove('press-feedback'); } catch (_) { }
-          };
-          reminderEl.addEventListener('pointerdown', onPressStart2);
-          reminderEl.addEventListener('pointerup', onPressEnd2);
-          reminderEl.addEventListener('pointercancel', onPressEnd2);
-          reminderEl.addEventListener('pointerleave', onPressEnd2);
-          reminderEl.addEventListener('touchstart', onPressStart2, { passive: false });
-          reminderEl.addEventListener('touchend', onPressEnd2);
-          reminderEl.addEventListener('touchcancel', onPressEnd2);
-          reminderEl.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch (_) { } });
-        }
+            // No-op on desktop; use hover edit icon instead
+          },
+          onLongPress: (e, x, y) => {
+            showReminderContextMenu({ grimoireState, x, y, playerIndex: i, reminderIndex: idx });
+          },
+          setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
+          showPressFeedback: true
+        });
 
         // Add timestamp if day/night tracking is enabled
         const textTimestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
@@ -1472,20 +1440,38 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
       }
     };
 
-    // Set up touch handling for player token
-    setupPlayerTokenTouchHandlers({
-      tokenEl: tokenEl2,
-      grimoireState,
-      playerIndex: i,
-      listItem,
-      actionCallback: () => {
-        if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
-        } else if (grimoireState && !grimoireState.grimoireHidden) {
-          openCharacterModal({ grimoireState, playerIndex: i });
-        }
+    // Set up touch/click/right-click handling for player token
+    setupTouchHandling({
+      element: tokenEl2,
+      onTap: (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+              if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(i);
+            } else if (grimoireState && !grimoireState.grimoireHidden) {
+              openCharacterModal({ grimoireState, playerIndex: i });
+            }
+          }
+        });
       },
-      setTouchOccurred: (value) => { touchOccurred2 = value; }
+      onLongPress: (e, x, y) => {
+        clearTimeout(grimoireState.longPressTimer);
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
+      },
+      setTouchOccurred: (value) => { touchOccurred2 = value; },
+      shouldSkip: (e) => {
+        const target = e.target;
+        return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+          (target && target.classList.contains('ability-info-icon'));
+      }
+    });
+
+    // Right-click anywhere on player item to show context menu (desktop)
+    listItem.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
     });
 
     // Set up click and touch handling for player name
@@ -1592,32 +1578,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
         positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex: i }));
       }
     }, { passive: false });
-
-    // Player context menu: right-click
-    listItem.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex: i });
-    });
-    // Long-press on token to open context menu on touch devices
-    const tokenEl = listItem.querySelector('.player-token');
-    tokenEl.addEventListener('pointerdown', (e) => {
-      if (!isTouchDevice()) return;
-      try { e.preventDefault(); } catch (_) { }
-      clearTimeout(grimoireState.longPressTimer);
-      const x = (e && (e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX))) || 0;
-      const y = (e && (e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY))) || 0;
-      grimoireState.longPressTimer = setTimeout(() => {
-        showPlayerContextMenu({ grimoireState, x, y, playerIndex: i });
-      }, 600);
-    });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
-      tokenEl.addEventListener(evt, () => {
-        // Only clear the timer if the menu is not already visible
-        if (!grimoireState.playerContextMenu || grimoireState.playerContextMenu.style.display !== 'block') {
-          clearTimeout(grimoireState.longPressTimer);
-        }
-      });
-    });
 
     // Install one-time outside collapse handler for touch devices
     if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
