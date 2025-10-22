@@ -123,8 +123,11 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
       const tokenEl = document.createElement('div');
       tokenEl.className = 'token';
+      // Mirror character modal token styling: inset icon over base token
       tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-      tokenEl.style.backgroundSize = 'cover, cover';
+      tokenEl.style.backgroundSize = '68% 68%, cover';
+      tokenEl.style.backgroundPosition = 'center, center';
+      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
       tokenEl.style.position = 'relative';
       tokenEl.style.overflow = 'visible';
       tokenEl.style.zIndex = '1';

@@ -62,6 +62,7 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   /* Max 4 lines */
 }
 
@@ -320,18 +321,19 @@
   background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid transparent;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  /* Match character modal token ring and glow */
+  border: 3px solid #D4AF37;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4);
   overflow: visible;
   position: relative;
   z-index: 1;
 }
 
 #reminder-token-grid .token:hover {
-  border-color: #D4AF37;
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+  /* Match hover emphasis from character modal */
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6), 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
 .text-reminder:hover {
