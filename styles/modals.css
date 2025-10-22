@@ -233,12 +233,27 @@
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Center message slots in edit modal */
-#storyteller-message-slots {
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
+/* Inline editing of storyteller message */
+#storyteller-message-display .message-text[contenteditable="true"] {
+  outline: none;
+  cursor: text;
+  min-height: 2.5em;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  margin-bottom: 20px;
+  user-select: text;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+#storyteller-message-display .message-text[contenteditable="true"]:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+#storyteller-slots-display .token {
+  cursor: pointer;
 }
 
 /* Character count input in player setup */

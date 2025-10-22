@@ -2,8 +2,7 @@ import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/c
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid, hideCharacterModal } from './src/character.js';
-import { createCurvedLabelSvg } from './src/ui/svg.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire, hideGrimoire } from './src/grimoire.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire } from './src/grimoire.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
@@ -15,6 +14,7 @@ import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
 import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
+import { initStorytellerMessages } from './src/storytellerMessages.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
@@ -82,14 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const dayNightToggleBtn = document.getElementById('day-night-toggle');
   const dayNightSlider = document.getElementById('day-night-slider');
   const revealToggleBtn = document.getElementById('reveal-assignments');
-  const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
-  const storytellerMessageModal = document.getElementById('storyteller-message-modal');
-  const closeStorytellerMessageBtn = document.getElementById('close-storyteller-message');
-  const storytellerMessageEdit = document.getElementById('storyteller-message-edit');
-  const closeStorytellerMessageEditBtn = document.getElementById('close-storyteller-message-edit');
-  const storytellerMessagePicker = document.getElementById('storyteller-message-picker');
-  const storytellerMessageInput = document.getElementById('storyteller-message-input');
-  const showStorytellerMessageBtn = document.getElementById('show-storyteller-message');
 
   const grimoireState = {
     includeTravellers: false,
@@ -198,7 +190,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
     // Always show Start/End Game button in both modes
     if (startGameBtn) startGameBtn.style.display = '';
-    if (openStorytellerMessageBtn) openStorytellerMessageBtn.style.display = isPlayer ? 'none' : '';
+    const _openStBtn = document.getElementById('open-storyteller-message');
+    if (_openStBtn) _openStBtn.style.display = isPlayer ? 'none' : '';
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }
@@ -974,218 +967,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // In-app tour
   initInAppTour();
-  // Storyteller Message feature
-  function buildMessagePicker() {
-    if (!storytellerMessagePicker) return;
-    storytellerMessagePicker.innerHTML = '';
-    const table = grimoireState.playerSetupTableRaw || {};
-    const msgs = Array.isArray(table.storyteller_messages) ? table.storyteller_messages : [];
-    msgs.forEach((entry) => {
-      const label = typeof entry === 'string' ? entry : entry.text;
-      const btn = document.createElement('button');
-      btn.className = 'button';
-      btn.textContent = label;
-      btn.addEventListener('click', () => {
-        const editModal = document.getElementById('storyteller-message-edit');
-        const listModal = document.getElementById('storyteller-message-modal');
-        if (listModal) listModal.style.display = 'none';
-        if (editModal) editModal.style.display = 'flex';
-        storytellerMessageInput.value = label;
-        const slotCount = typeof entry === 'object' ? (entry.slots || 0) : 0;
-        grimoireState.storytellerTempSlots = new Array(Math.max(0, slotCount)).fill(null);
-        renderMessageSlots(slotCount);
-        if (typeof entry === 'object' && entry.freeText) {
-          storytellerMessageInput.value = '';
-          storytellerMessageInput.placeholder = 'Type your message...';
-        } else {
-          storytellerMessageInput.placeholder = '';
-        }
-      });
-      storytellerMessagePicker.appendChild(btn);
-    });
-  }
+  // Storyteller Messages (simplified): use src/storytellerMessages.js
+  initStorytellerMessages({ grimoireState });
 
-  const messageSlotsEl = document.getElementById('storyteller-message-slots');
-  const roleGridEl = document.getElementById('storyteller-role-grid');
-  let currentSlotTargets = [];
-
-  function applyStoryMsgRoleLook(tokenEl, roleId) {
-    const existingSvg = tokenEl.querySelector('svg');
-    if (existingSvg) existingSvg.remove();
-    // Match view/edit message token size (1.5x standard)
-    tokenEl.style.width = 'calc(var(--token-size) * 1.5)';
-    tokenEl.style.height = 'calc(var(--token-size) * 1.5)';
-    tokenEl.style.border = '4px solid #D4AF37';
-    tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
-    tokenEl.style.borderRadius = '50%';
-    if (roleId && grimoireState.allRoles[roleId]) {
-      const role = grimoireState.allRoles[roleId];
-      tokenEl.classList.remove('empty');
-      tokenEl.classList.add('has-character');
-      const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
-      tokenEl.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
-      tokenEl.style.backgroundSize = '68% 68%, cover';
-      tokenEl.style.backgroundPosition = 'center, center';
-      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
-      tokenEl.style.backgroundColor = 'transparent';
-      const svg = createCurvedLabelSvg(`story-msg-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
-      tokenEl.appendChild(svg);
-    } else {
-      tokenEl.classList.add('empty');
-      tokenEl.classList.remove('has-character');
-      tokenEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-      tokenEl.style.backgroundSize = 'cover';
-      tokenEl.style.backgroundPosition = 'center';
-      tokenEl.style.backgroundRepeat = 'no-repeat';
-      const svg = createCurvedLabelSvg('story-msg-empty', 'None');
-      tokenEl.appendChild(svg);
-    }
-  }
-
-  function renderMessageSlots(count) {
-    if (!messageSlotsEl) return;
-    messageSlotsEl.innerHTML = '';
-    currentSlotTargets = new Array(Math.max(0, count)).fill(null);
-    if (count > 0) {
-      messageSlotsEl.style.display = 'flex';
-      for (let i = 0; i < count; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'token empty';
-        applyStoryMsgRoleLook(slot, null);
-        slot.addEventListener('click', () => openRoleGridForSlot(i));
-        messageSlotsEl.appendChild(slot);
-      }
-    } else {
-      messageSlotsEl.style.display = 'none';
-    }
-  }
-
-  function openRoleGridForSlot(slotIndex) {
-    if (!roleGridEl) return;
-    // Use existing character modal grid for consistency like bluffs
-    const characterModal = document.getElementById('character-modal');
-    const characterSearch = document.getElementById('character-search');
-    if (!grimoireState.scriptData) { alert('Please load a script first.'); return; }
-    // Temporarily reuse grimoireState.selectedBluffIndex to store slot index for this ephemeral selection
-    grimoireState._tempStorytellerSlotIndex = slotIndex;
-    const modalTitle = characterModal.querySelector('h3');
-    if (modalTitle) modalTitle.textContent = 'Select a Character';
-    populateCharacterGrid({ grimoireState });
-    // Ensure edit modal stays under character modal
-    const editModal = document.getElementById('storyteller-message-edit');
-    if (editModal) editModal.style.display = 'flex';
-    characterModal.style.display = 'flex';
-    characterSearch.value = '';
-    characterSearch.focus();
-    // Hook into global selection by intercepting assign via window handler
-    const grid = document.getElementById('character-grid');
-    const handler = (e) => {
-      const item = e.target.closest('.token');
-      if (!item) return;
-      const roleId = item.dataset.roleId || item.getAttribute('data-role-id');
-      if (!roleId) return;
-      e.preventDefault();
-      currentSlotTargets[slotIndex] = roleId;
-      const slot = messageSlotsEl.children[slotIndex];
-      applyStoryMsgRoleLook(slot, roleId);
-      hideCharacterModal({ grimoireState });
-      grid.removeEventListener('click', handler, true);
-      delete grimoireState._tempStorytellerSlotIndex;
-    };
-    grid.addEventListener('click', handler, true);
-  }
-
-  // Load storyteller messages from player-setup.json too
-  async function loadStorytellerMessages() {
-    try {
-      const res = await fetch('./player-setup.json');
-      const data = await res.json();
-      grimoireState.playerSetupTableRaw = data || {};
-      buildMessagePicker();
-    } catch (_) { /* ignore */ }
-  }
-  loadStorytellerMessages();
-
-  if (openStorytellerMessageBtn && storytellerMessageModal) {
-    openStorytellerMessageBtn.addEventListener('click', () => {
-      if (grimoireState.mode === 'player') return;
-      storytellerMessageModal.style.display = 'flex';
-      buildMessagePicker();
-      try { storytellerMessageModal.scrollIntoView({ block: 'center' }); } catch (_) { }
-    });
-  }
-  if (closeStorytellerMessageBtn && storytellerMessageModal) {
-    closeStorytellerMessageBtn.addEventListener('click', () => { storytellerMessageModal.style.display = 'none'; });
-  }
-
-  // Edit modal close behavior to match character modal
-  if (closeStorytellerMessageEditBtn && storytellerMessageEdit) {
-    closeStorytellerMessageEditBtn.addEventListener('click', () => { storytellerMessageEdit.style.display = 'none'; });
-  }
-  if (storytellerMessageEdit) {
-    storytellerMessageEdit.addEventListener('click', (e) => {
-      const content = storytellerMessageEdit.querySelector('.modal-content');
-      if (e.target === storytellerMessageEdit) { storytellerMessageEdit.style.display = 'none'; return; }
-      if (content && !content.contains(e.target)) { storytellerMessageEdit.style.display = 'none'; }
-    });
-  }
-
-  // Fullscreen overlay element (created once)
-  const messageDisplayModal = document.getElementById('storyteller-message-display');
-  const closeMessageDisplayBtn = document.getElementById('close-storyteller-message-display');
-
-  function showStorytellerOverlay(text) {
-    if (!messageDisplayModal) return;
-    const textDiv = messageDisplayModal.querySelector('.message-text');
-    const bluffsDiv = messageDisplayModal.querySelector('.bluffs-container');
-    if (textDiv) textDiv.textContent = text || '';
-    if (bluffsDiv) bluffsDiv.style.display = 'none';
-    // render chosen slots
-    const slotsDisplay = document.getElementById('storyteller-slots-display');
-    if (slotsDisplay) {
-      slotsDisplay.innerHTML = '';
-      const selectedSlots = Array.isArray(grimoireState.storytellerTempSlots)
-        ? grimoireState.storytellerTempSlots
-        : (currentSlotTargets || []);
-      if (selectedSlots.length > 0) {
-        selectedSlots.forEach((roleId) => {
-          const slot = document.createElement('div');
-          slot.className = 'token';
-          applyStoryMsgRoleLook(slot, roleId || null);
-          slotsDisplay.appendChild(slot);
-        });
-      }
-    }
-    messageDisplayModal.style.display = 'flex';
-    // Hide grimoire while showing message using centralized helper
-    hideGrimoire({ grimoireState });
-  }
-  function hideStorytellerOverlay() {
-    if (!messageDisplayModal) return;
-    messageDisplayModal.style.display = 'none';
-    const bluffsDiv = messageDisplayModal.querySelector('.bluffs-container');
-    if (bluffsDiv) bluffsDiv.style.display = 'none';
-  }
-
-  if (messageDisplayModal) {
-    messageDisplayModal.addEventListener('click', (e) => {
-      if (e.target === messageDisplayModal) hideStorytellerOverlay();
-      const content = messageDisplayModal.querySelector('.modal-content');
-      if (content && !content.contains(e.target)) hideStorytellerOverlay();
-    });
-  }
-  if (closeMessageDisplayBtn) closeMessageDisplayBtn.addEventListener('click', hideStorytellerOverlay);
-
-  if (showStorytellerMessageBtn) {
-    showStorytellerMessageBtn.addEventListener('click', () => {
-      if (!Array.isArray(grimoireState.storytellerTempSlots) || !grimoireState.storytellerTempSlots.length) {
-        try { grimoireState.storytellerTempSlots = (currentSlotTargets || []).slice(); } catch (_) { }
-      }
-      showStorytellerOverlay(storytellerMessageInput.value.trim());
-      storytellerMessageModal.style.display = 'none';
-      // If message is the special bluffs one, show toggle button in modal earlier (handled in picker)
-    });
-  }
+  // Remove legacy inline storyteller implementation from this file.
 
   // Click center to open sidebar when collapsed and no game started
   const centerEl = document.getElementById('center');
