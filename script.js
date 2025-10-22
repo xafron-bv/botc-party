@@ -15,7 +15,7 @@ import { initStorytellerMessages } from './src/storytellerMessages.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/utils/background.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui/background.js';
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 
 document.addEventListener('DOMContentLoaded', async () => {

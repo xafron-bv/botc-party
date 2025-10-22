@@ -1,4 +1,4 @@
-import { BG_STORAGE_KEY } from '../constants';
+import { BG_STORAGE_KEY } from '../constants.js';
 
 export function applyGrimoireBackground(value) {
   const centerEl = document.getElementById('center');
