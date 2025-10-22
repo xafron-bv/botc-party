@@ -87,9 +87,8 @@
     { "text": "THIS IS THE DEMON", "slots": 0 },
     { "text": "THESE ARE YOUR MINIONS", "slots": 0 },
     { "text": "THESE CHARACTERS ARE NOT IN PLAY", "slots": 3 },
-    { "text": "THIS CHARACTER SELECTED YOU", "slots": 1 },
+    { "text": "THIS CHARACTER SELECTED YOU", "slots": 2 },
     { "text": "THIS PLAYER IS", "slots": 1 },
-    { "text": "YOU ARE", "slots": 1 },
-    { "text": "WRITE A CUSTOM MESSAGE", "slots": 2, "freeText": true }
+    { "text": "YOU ARE", "slots": 1 }
   ]
 }
