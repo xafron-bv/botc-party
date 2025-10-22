@@ -1,7 +1,7 @@
 import { resolveAssetPath } from '../utils.js';
 import { updateGrimoire } from './grimoire.js';
 import { saveAppState } from './app.js';
-import { createCurvedLabelSvg } from './ui/svg.js';
+import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { generateReminderId, addReminderTimestamp, saveCurrentPhaseState } from './dayNightTracking.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
@@ -121,28 +121,19 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       return terms.every(term => combined.includes(term));
     });
     (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
-      const tokenEl = document.createElement('div');
-      tokenEl.className = 'token';
-      // Mirror character modal token styling: inset icon over base token
-      tokenEl.style.backgroundImage = `url('${resolveAssetPath(token.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-      tokenEl.style.backgroundSize = '68% 68%, cover';
-      tokenEl.style.backgroundPosition = 'center, center';
-      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
-      tokenEl.style.position = 'relative';
-      tokenEl.style.overflow = 'visible';
-      tokenEl.style.zIndex = '1';
-      tokenEl.title = token.label || '';
-      // Stash minimal data attributes for delegated handler fallback
-      tokenEl.dataset.tokenId = token.id || '';
-      tokenEl.dataset.tokenLabel = token.label || '';
-      tokenEl.dataset.tokenImage = resolveAssetPath(token.image);
-      // Do not attach per-token handlers; rely on the capture-phase delegated handler above
-
-      // Add curved bottom text to preview
-      if (token.label) {
-        const svg = createCurvedLabelSvg(`picker-arc-${idx}`, token.label);
-        tokenEl.appendChild(svg);
-      }
+      const tokenEl = createTokenGridItem({
+        id: token.id || '',
+        image: resolveAssetPath(token.image),
+        baseImage: 'assets/img/token-BqDQdWeO.webp',
+        label: token.label || '',
+        title: token.label || '',
+        curvedId: `picker-arc-${idx}`,
+        // Rely on delegated handler; no onClick passed
+        data: {
+          tokenLabel: token.label || '',
+          tokenImage: resolveAssetPath(token.image)
+        }
+      });
       reminderTokenGrid.appendChild(tokenEl);
     });
   } catch (e) {
