@@ -168,14 +168,15 @@ export function applyTravellerToggleAndRefresh({ grimoireState }) {
 
 export async function processScriptCharacters({ characterIds, grimoireState }) {
   try {
-    console.log('Loading characters.json to resolve character IDs...');
-    const response = await fetch('./characters.json');
+    console.log('Loading data.json to resolve character IDs...');
+    const response = await fetch('./data.json');
     if (!response.ok) {
-      throw new Error(`Failed to load characters.json: ${response.status}`);
+      throw new Error(`Failed to load data.json: ${response.status}`);
     }
 
-    const characters = await response.json();
-    console.log('characters.json loaded successfully');
+    const data = await response.json();
+    const characters = data.roles;
+    console.log('data.json loaded successfully');
 
     // Create canonical lookups and a normalization index
     const roleLookup = {};
@@ -183,7 +184,9 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
     if (Array.isArray(characters)) {
       characters.forEach(role => {
         if (!role || !role.id) return;
-        const image = resolveAssetPath(role.image);
+        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+        const image = resolveAssetPath(imagePath);
         const canonical = { ...role, image, team: (role.team || '').toLowerCase() };
         roleLookup[role.id] = canonical;
         const normId = normalizeKey(role.id);
@@ -369,14 +372,15 @@ export async function loadAllCharacters({ grimoireState }) {
     loadStatus.textContent = 'Loading all characters...';
     loadStatus.className = 'status';
 
-    // Load characters.json directly
-    const response = await fetch('./characters.json');
+    // Load data.json directly
+    const response = await fetch('./data.json');
     if (!response.ok) {
-      throw new Error(`Failed to load characters.json: ${response.status}`);
+      throw new Error(`Failed to load data.json: ${response.status}`);
     }
 
-    const characters = await response.json();
-    console.log('Loading all characters from characters.json');
+    const data = await response.json();
+    const characters = data.roles;
+    console.log('Loading all characters from data.json');
 
     // Reset role maps
     grimoireState.allRoles = {};
@@ -389,7 +393,9 @@ export async function loadAllCharacters({ grimoireState }) {
     if (Array.isArray(characters)) {
       characters.forEach(role => {
         if (!role || !role.id) return;
-        const image = resolveAssetPath(role.image);
+        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+        const image = resolveAssetPath(imagePath);
         const teamName = (role.team || '').toLowerCase();
         const canonical = { ...role, image, team: teamName };
         roleLookup[role.id] = canonical;

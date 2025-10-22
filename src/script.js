@@ -9,12 +9,16 @@ export async function displayScript({ data, grimoireState }) {
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
 
-  // Load jinx data
+  // Load jinx data from data.json
   let jinxData = [];
   try {
-    const jinxResponse = await fetch('./jinx.json');
-    if (jinxResponse.ok) {
-      jinxData = await jinxResponse.json();
+    const dataResponse = await fetch('./data.json');
+    if (dataResponse.ok) {
+      const data = await dataResponse.json();
+      // Extract jinxes from roles
+      jinxData = data.roles
+        .filter(role => role.jinxes && role.jinxes.length > 0)
+        .map(role => ({ id: role.id, jinx: role.jinxes }));
     }
   } catch (e) {
     console.warn('Failed to load jinx data:', e);
@@ -158,6 +162,50 @@ export async function displayScript({ data, grimoireState }) {
       }
     }
   } catch (_) { }
+}
+
+export async function loadScriptFromDataJson({ editionId, grimoireState }) {
+  const loadStatus = document.getElementById('load-status');
+
+  // Map edition IDs to their full names
+  const editionNames = {
+    'tb': 'Trouble Brewing',
+    'bmr': 'Bad Moon Rising',
+    'snv': 'Sects and Violets'
+  };
+
+  try {
+    const editionName = editionNames[editionId] || editionId;
+    loadStatus.textContent = `Loading ${editionName}...`;
+    loadStatus.className = 'status';
+
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const edition = data.editions.find(e => e.id === editionId);
+    if (!edition) throw new Error(`Edition ${editionId} not found`);
+
+    // Get all non-traveller characters from this edition
+    // Travellers are controlled by the separate toggle and not part of base editions
+    const editionCharacters = data.roles
+      .filter(role => role.edition === editionId && role.team !== 'traveller')
+      .map(role => role.id);
+    
+    // Convert edition to script format with all characters from the edition
+    const scriptData = [
+      { id: '_meta', author: '', name: editionName },
+      ...editionCharacters
+    ];
+
+    await processScriptData({ data: scriptData, addToHistory: true, grimoireState });
+    loadStatus.textContent = 'Script loaded successfully!';
+    loadStatus.className = 'status';
+  } catch (e) {
+    console.error('Failed to load edition:', e);
+    loadStatus.textContent = `Failed to load ${editionId}: ${e.message}`;
+    loadStatus.className = 'error';
+  }
 }
 
 export async function loadScriptFromFile({ path, grimoireState }) {

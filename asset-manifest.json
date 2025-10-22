@@ -1,9 +1,6 @@
 {
   "generatedAt": "2025-10-17T06:50:00.156Z",
   "files": [
-    "./Bad Moon Rising.json",
-    "./Sects and Violets.json",
-    "./Trouble Brewing.json",
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
     "./assets/fontawesome/webfonts/fa-brands-400.woff2",
@@ -204,10 +201,9 @@
     "./build/img/icons/traveller/scapegoat.webp",
     "./build/img/icons/traveller/thief.webp",
     "./build/img/icons/traveller/voudon.webp",
-    "./characters.json",
+    "./data.json",
     "./high-seas-of-mutiny.json",
     "./index.html",
-    "./jinx.json",
     "./manifest.json",
     "./player-setup.json",
     "./pwa.js",

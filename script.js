@@ -9,7 +9,7 @@ import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initExportImport } from './src/history/exportImport.js';
 import { repositionPlayers } from './src/ui/layout.js';
-import { displayScript, loadScriptFile, loadScriptFromFile } from './src/script.js';
+import { displayScript, loadScriptFile, loadScriptFromDataJson } from './src/script.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
@@ -401,24 +401,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (loadTbBtn) {
-    loadTbBtn.addEventListener('click', () => {
+    loadTbBtn.addEventListener('click', async () => {
       grimoireState.scriptMetaName = 'Trouble Brewing';
       renderSetupInfo({ grimoireState });
-      loadScriptFromFile({ path: './Trouble Brewing.json', grimoireState });
+      await loadScriptFromDataJson({ editionId: 'tb', grimoireState });
     });
   }
   if (loadBmrBtn) {
-    loadBmrBtn.addEventListener('click', () => {
+    loadBmrBtn.addEventListener('click', async () => {
       grimoireState.scriptMetaName = 'Bad Moon Rising';
       renderSetupInfo({ grimoireState });
-      loadScriptFromFile({ path: './Bad Moon Rising.json', grimoireState });
+      await loadScriptFromDataJson({ editionId: 'bmr', grimoireState });
     });
   }
   if (loadSavBtn) {
-    loadSavBtn.addEventListener('click', () => {
+    loadSavBtn.addEventListener('click', async () => {
       grimoireState.scriptMetaName = 'Sects & Violets';
       renderSetupInfo({ grimoireState });
-      loadScriptFromFile({ path: './Sects and Violets.json', grimoireState });
+      await loadScriptFromDataJson({ editionId: 'snv', grimoireState });
     });
   }
   if (loadAllCharsBtn) {
