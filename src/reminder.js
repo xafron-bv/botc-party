@@ -1,8 +1,13 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
-import { addReminderTimestamp, generateReminderId, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
+import { addReminderTimestamp, generateReminderId, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
 import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
+import { CLICK_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
+import { positionRadialStack } from './ui/layout.js';
+import { createCurvedLabelSvg } from './ui/svg.js';
+import { showReminderContextMenu } from './ui/contextMenu.js';
+import { setupTouchHandling } from './utils/touchHandlers.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -172,5 +177,246 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
     }
   });
   return count;
+}
+
+// Render all reminders for a player list item, returns count of visible reminders
+export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
+  const remindersDiv = li.querySelector('.reminders');
+  if (!remindersDiv) return 0;
+  remindersDiv.innerHTML = '';
+  let visibleRemindersCount = 0;
+
+  const player = grimoireState.players[playerIndex];
+  if (!player || !Array.isArray(player.reminders)) return 0;
+
+  player.reminders.forEach((reminder, idx) => {
+    if (!isReminderVisible(grimoireState, reminder.reminderId)) {
+      return; // Skip this reminder
+    }
+    visibleRemindersCount++;
+
+    if (reminder.type === 'icon') {
+      const iconEl = document.createElement('div');
+      iconEl.className = 'icon-reminder';
+      iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
+      iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+      iconEl.title = (reminder.label || '');
+
+      if (reminder.label) {
+        const isCustom = reminder.id === 'custom-note';
+
+        if (isCustom) {
+          const textSpan = document.createElement('span');
+          textSpan.className = 'icon-reminder-content';
+          textSpan.textContent = reminder.label;
+          const textLength = reminder.label.length;
+          if (textLength > 40) {
+            textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+          } else if (textLength > 20) {
+            textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+          }
+
+          iconEl.appendChild(textSpan);
+        } else {
+          const svg = createCurvedLabelSvg(`arc-${playerIndex}-${idx}`, reminder.label);
+          iconEl.appendChild(svg);
+        }
+      }
+      if (!isTouchDevice()) {
+        const editBtn = document.createElement('div');
+        editBtn.className = 'reminder-action edit';
+        editBtn.title = 'Edit';
+        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          try { e.preventDefault(); } catch (_) { }
+          const parentLi = editBtn.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, visibleRemindersCount);
+              }
+              return;
+            }
+          }
+          const current = grimoireState.players[playerIndex].reminders[idx]?.label || grimoireState.players[playerIndex].reminders[idx]?.value || '';
+          const next = prompt('Edit reminder', current);
+          if (next !== null) {
+            grimoireState.players[playerIndex].reminders[idx].label = next;
+            if (grimoireState.players[playerIndex].reminders[idx].value !== undefined) {
+              grimoireState.players[playerIndex].reminders[idx].value = next;
+            }
+            updateGrimoire({ grimoireState });
+            saveAppState({ grimoireState });
+          }
+        });
+        iconEl.appendChild(editBtn);
+
+        const delBtn = document.createElement('div');
+        delBtn.className = 'reminder-action delete';
+        delBtn.title = 'Delete';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          try { e.preventDefault(); } catch (_) { }
+          const parentLi = delBtn.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, visibleRemindersCount);
+              }
+              return;
+            }
+          }
+          grimoireState.players[playerIndex].reminders.splice(idx, 1);
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        });
+        iconEl.appendChild(delBtn);
+      }
+      setupTouchHandling({
+        element: iconEl,
+        onTap: (e) => {
+          const parentLi = iconEl.closest('li');
+          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+          if (isCollapsed) {
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) { }
+            parentLi.dataset.expanded = '1';
+            parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+            positionRadialStack(parentLi, visibleRemindersCount);
+          }
+        },
+        onLongPress: (e, x, y) => {
+          showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex: idx });
+        },
+        setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
+        showPressFeedback: true
+      });
+      const timestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
+      if (timestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        const timestampEl = document.createElement('span');
+        timestampEl.className = 'reminder-timestamp';
+        timestampEl.textContent = timestamp;
+        iconEl.appendChild(timestampEl);
+      }
+
+      remindersDiv.appendChild(iconEl);
+    } else {
+      const reminderEl = document.createElement('div');
+      reminderEl.className = 'text-reminder';
+      const displayText = reminder.label || reminder.value || '';
+      const textSpan = document.createElement('span');
+      textSpan.className = 'text-reminder-content';
+      textSpan.textContent = displayText;
+      const textLength = displayText.length;
+      if (textLength > 40) {
+        textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+      } else if (textLength > 20) {
+        textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+      }
+
+      reminderEl.appendChild(textSpan);
+
+      reminderEl.style.transform = 'translate(-50%, -50%)';
+      if (!isTouchDevice()) {
+        const editBtn2 = document.createElement('div');
+        editBtn2.className = 'reminder-action edit';
+        editBtn2.title = 'Edit';
+        editBtn2.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        editBtn2.addEventListener('click', (e) => {
+          e.stopPropagation();
+          try { e.preventDefault(); } catch (_) { }
+          const parentLi = editBtn2.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, visibleRemindersCount);
+              }
+              return;
+            }
+          }
+          const current = grimoireState.players[playerIndex].reminders[idx]?.label || grimoireState.players[playerIndex].reminders[idx]?.value || '';
+          const next = prompt('Edit reminder', current);
+          if (next !== null) {
+            grimoireState.players[playerIndex].reminders[idx].value = next;
+            if (grimoireState.players[playerIndex].reminders[idx].label !== undefined) {
+              grimoireState.players[playerIndex].reminders[idx].label = next;
+            }
+            updateGrimoire({ grimoireState });
+            saveAppState({ grimoireState });
+          }
+        });
+        reminderEl.appendChild(editBtn2);
+
+        const delBtn2 = document.createElement('div');
+        delBtn2.className = 'reminder-action delete';
+        delBtn2.title = 'Delete';
+        delBtn2.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        delBtn2.addEventListener('click', (e) => {
+          e.stopPropagation();
+          try { e.preventDefault(); } catch (_) { }
+          const parentLi = delBtn2.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, visibleRemindersCount);
+              }
+              return;
+            }
+          }
+          grimoireState.players[playerIndex].reminders.splice(idx, 1);
+          updateGrimoire({ grimoireState });
+          saveAppState({ grimoireState });
+        });
+        reminderEl.appendChild(delBtn2);
+      }
+      setupTouchHandling({
+        element: reminderEl,
+        onTap: (e) => {
+          e.stopPropagation();
+          const parentLi = reminderEl.closest('li');
+          if (parentLi) {
+            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
+              if (parentLi.dataset.expanded !== '1') {
+                parentLi.dataset.expanded = '1';
+                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+                positionRadialStack(parentLi, visibleRemindersCount);
+              }
+            }
+          }
+        },
+        onLongPress: (e, x, y) => {
+          showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex: idx });
+        },
+        setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
+        showPressFeedback: true
+      });
+      const textTimestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
+      if (textTimestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+        const timestampEl = document.createElement('span');
+        timestampEl.className = 'reminder-timestamp';
+        timestampEl.textContent = textTimestamp;
+        reminderEl.appendChild(timestampEl);
+      }
+
+      remindersDiv.appendChild(reminderEl);
+    }
+  });
+
+  return visibleRemindersCount;
 }
 
