@@ -166,14 +166,14 @@ export async function displayScript({ data, grimoireState }) {
 
 export async function loadScriptFromDataJson({ editionId, grimoireState }) {
   const loadStatus = document.getElementById('load-status');
-  
+
   // Map edition IDs to their full names
   const editionNames = {
     'tb': 'Trouble Brewing',
     'bmr': 'Bad Moon Rising',
     'snv': 'Sects and Violets'
   };
-  
+
   try {
     const editionName = editionNames[editionId] || editionId;
     loadStatus.textContent = `Loading ${editionName}...`;
@@ -186,10 +186,13 @@ export async function loadScriptFromDataJson({ editionId, grimoireState }) {
     const edition = data.editions.find(e => e.id === editionId);
     if (!edition) throw new Error(`Edition ${editionId} not found`);
 
-    // Convert edition to script format
+    // Get all characters from this edition
+    const editionCharacters = data.roles.filter(role => role.edition === editionId).map(role => role.id);
+    
+    // Convert edition to script format with all characters from the edition
     const scriptData = [
       { id: '_meta', author: '', name: editionName },
-      ...edition.firstNight.filter(id => !['dusk', 'dawn', 'minion', 'demon', 'minioninfo', 'demoninfo'].includes(id))
+      ...editionCharacters
     ];
 
     await processScriptData({ data: scriptData, addToHistory: true, grimoireState });
