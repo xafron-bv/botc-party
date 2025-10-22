@@ -1,6 +1,7 @@
 import { displayScript } from './script.js';
 import { resolveAssetPath, normalizeKey } from '../utils.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
+import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire, renderSetupInfo } from './grimoire.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
@@ -14,17 +15,16 @@ export function populateCharacterGrid({ grimoireState }) {
 
   // Add empty token option first if filter is empty or matches "none", "clear", "empty"
   if (!filter || ['none', 'clear', 'empty'].some(term => term.includes(filter))) {
-    const emptyToken = document.createElement('div');
-    emptyToken.className = 'token empty';
-    emptyToken.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
-    emptyToken.style.backgroundSize = 'cover';
-    emptyToken.style.position = 'relative';
-    emptyToken.style.overflow = 'visible';
-    emptyToken.title = 'No character';
-    emptyToken.onclick = () => assignCharacter({ grimoireState, roleId: null });
-    // Add curved bottom text for empty token
-    const svg = createCurvedLabelSvg('picker-role-arc-empty', 'None');
-    emptyToken.appendChild(svg);
+    const emptyToken = createTokenGridItem({
+      id: 'empty',
+      image: '',
+      baseImage: 'assets/img/token-BqDQdWeO.webp',
+      label: 'None',
+      title: 'No character',
+      curvedId: 'picker-role-arc-empty',
+      extraClasses: ['empty'],
+      onClick: () => assignCharacter({ grimoireState, roleId: null })
+    });
     characterGrid.appendChild(emptyToken);
   }
 
@@ -48,17 +48,15 @@ export function populateCharacterGrid({ grimoireState }) {
   console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
 
   filteredRoles.forEach(role => {
-    const tokenEl = document.createElement('div');
-    tokenEl.className = 'token';
-    tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-    tokenEl.style.backgroundSize = '68% 68%, cover';
-    tokenEl.style.position = 'relative';
-    tokenEl.style.overflow = 'visible';
-    tokenEl.title = role.name;
-    tokenEl.onclick = () => assignCharacter({ grimoireState, roleId: role.id });
-    // Add curved bottom text on the token preview
-    const svg = createCurvedLabelSvg(`picker-role-arc-${role.id}`, role.name);
-    tokenEl.appendChild(svg);
+    const tokenEl = createTokenGridItem({
+      id: role.id,
+      image: role.image,
+      baseImage: 'assets/img/token-BqDQdWeO.webp',
+      label: role.name,
+      title: role.name,
+      curvedId: `picker-role-arc-${role.id}`,
+      onClick: () => assignCharacter({ grimoireState, roleId: role.id })
+    });
     characterGrid.appendChild(tokenEl);
   });
 }

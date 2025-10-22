@@ -51,23 +51,23 @@
 #character-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 25px 15px;
+  gap: 15px;
   margin: 20px 0;
   max-height: min(350px, 60vh);
   overflow-y: auto;
-  padding: 15px 15px 25px 15px;
+  padding: 15px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
 }
 
 #character-grid .token {
-  margin-bottom: 20px;
-  /* Space for the curved text */
+  margin-bottom: 0;
 }
 
 /* Readability improvements for curved token names inside modals */
 #character-grid .token svg.icon-reminder-svg .icon-reminder-text,
-#player-setup-character-list .token svg.icon-reminder-svg .icon-reminder-text {
+#player-setup-character-list .token svg.icon-reminder-svg .icon-reminder-text,
+#reminder-token-grid .token svg.icon-reminder-svg .icon-reminder-text {
   /* Bright text with strong multi-layer shadow + stroke */
   fill: #fff;
   paint-order: stroke fill;
@@ -79,6 +79,7 @@
 
 /* Provide a subtle darkened arc region behind the text for very bright token faces */
 #character-grid .token svg.icon-reminder-svg path[id^="picker-role-arc"],
+#reminder-token-grid .token svg.icon-reminder-svg path[id^="picker-arc"],
 #player-setup-character-list .token svg.icon-reminder-svg path[id^="setup-role-arc"],
 #player-setup-character-list .token svg.icon-reminder-svg path[id^="reveal-token"],
 #character-grid .token svg.icon-reminder-svg path[id^="picker-role-arc-empty"],
