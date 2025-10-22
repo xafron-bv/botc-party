@@ -186,8 +186,11 @@ export async function loadScriptFromDataJson({ editionId, grimoireState }) {
     const edition = data.editions.find(e => e.id === editionId);
     if (!edition) throw new Error(`Edition ${editionId} not found`);
 
-    // Get all characters from this edition
-    const editionCharacters = data.roles.filter(role => role.edition === editionId).map(role => role.id);
+    // Get all non-traveller characters from this edition
+    // Travellers are controlled by the separate toggle and not part of base editions
+    const editionCharacters = data.roles
+      .filter(role => role.edition === editionId && role.team !== 'traveller')
+      .map(role => role.id);
     
     // Convert edition to script format with all characters from the edition
     const scriptData = [
