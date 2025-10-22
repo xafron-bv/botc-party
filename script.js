@@ -3,7 +3,7 @@ import { loadAppState, saveAppState } from './src/app.js';
 import { hideCharacterModal, loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
 import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
-import { applyGrimoireHiddenState, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, showGrimoire, toggleGrimoireHidden, updateGrimoire } from './src/grimoire.js';
+import { applyGrimoireHiddenState, resetGrimoire, showGrimoire, toggleGrimoireHidden, updateGrimoire } from './src/grimoire.js';
 import { initExportImport } from './src/history/exportImport.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
@@ -16,6 +16,7 @@ import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/utils/background.js';
+import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Populate version from service-worker.js CACHE_NAME pattern (v<number>)

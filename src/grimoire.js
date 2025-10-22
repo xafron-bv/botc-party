@@ -1,15 +1,16 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
+import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 import { openCharacterModal } from './character.js';
 import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } from './constants.js';
-import { setupTouchHandling } from './utils/touchHandlers.js';
+import { calculateNightOrder, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState, shouldShowNightOrder, updateDayNightUI } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, openTextReminderModal } from './reminder.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
 import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
-import { getReminderTimestamp, isReminderVisible, updateDayNightUI, calculateNightOrder, shouldShowNightOrder, saveCurrentPhaseState } from './dayNightTracking.js';
-import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
+import { renderSetupInfo } from './utils/setup.js';
+import { setupTouchHandling } from './utils/touchHandlers.js';
 
 // Helper function to get accurate bounding rect accounting for iOS Safari viewport issues
 // Expose certain reminder helpers globally for testing fallbacks
@@ -140,7 +141,7 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   }
 }
 
-function getRoleById({ grimoireState, roleId }) {
+export function getRoleById({ grimoireState, roleId }) {
   return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
 }
 
@@ -435,25 +436,6 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   });
 }
 
-function countTravelers({ grimoireState }) {
-  let travelerCount = 0;
-  grimoireState.players.forEach(player => {
-    if (player.character) {
-      const role = getRoleById({ grimoireState, roleId: player.character });
-      if (role && role.team === 'traveller') {
-        travelerCount++;
-      }
-    }
-  });
-  return travelerCount;
-}
-
-function lookupCountsForPlayers({ grimoireState, count }) {
-  if (!Array.isArray(grimoireState.playerSetupTable)) return null;
-  const row = grimoireState.playerSetupTable.find(r => Number(r.players) === Number(count));
-  return row || null;
-}
-
 export function ensureReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;
   const menu = document.createElement('div');
@@ -660,73 +642,6 @@ export function showReminderContextMenu({ grimoireState, x, y, playerIndex, remi
     menu.style.top = `${top}px`;
   });
 }
-
-export function renderSetupInfo({ grimoireState }) {
-  const setupInfoEl = document.getElementById('setup-info');
-  if (!setupInfoEl) return;
-  const totalPlayers = grimoireState.players.length;
-  const travelerCount = countTravelers({ grimoireState });
-  const adjustedCount = totalPlayers - travelerCount;
-  const row = lookupCountsForPlayers({ grimoireState, count: adjustedCount });
-  // Prefer parsed meta name; otherwise keep any existing hint
-  let scriptName = grimoireState.scriptMetaName || '';
-  if (!scriptName && Array.isArray(grimoireState.scriptData)) {
-    const meta = grimoireState.scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
-    if (meta && meta.name) scriptName = String(meta.name);
-  }
-  if (!row && !scriptName) {
-    setupInfoEl.textContent = 'Select a script and add players from the sidebar.';
-    return;
-  }
-
-  // Build display with script name on first line, counts on second line
-  let displayHtml = '';
-  if (scriptName) {
-    displayHtml = `<div>${scriptName}</div>`;
-  }
-
-  // Build second line with player counts
-  const countsLine = [];
-
-  // Only show alive count if we have a valid role distribution
-  if (totalPlayers > 0 && row) {
-    const alivePlayers = grimoireState.players.filter(player => !player.dead).length;
-    countsLine.push(`${alivePlayers}/${totalPlayers}`);
-  }
-
-  if (row) {
-    // Add colored role counts
-    const roleCountsHtml = [
-      `<span class="townsfolk-count">${row.townsfolk}</span>`,
-      `<span class="outsider-count">${row.outsiders}</span>`,
-      `<span class="minion-count">${row.minions}</span>`,
-      `<span class="demon-count">${row.demons}</span>`
-    ];
-
-    // Add traveller count if there are any travellers
-    if (travelerCount > 0) {
-      roleCountsHtml.push(`<span class="traveller-count">${travelerCount}</span>`);
-    }
-
-    countsLine.push(roleCountsHtml.join('/'));
-  }
-
-  if (countsLine.length > 0) {
-    displayHtml += `<div>${countsLine.join('  ')}</div>`;
-  }
-
-  setupInfoEl.innerHTML = displayHtml;
-  if (grimoireState.winner) {
-    const msg = document.createElement('div');
-    msg.id = 'winner-message';
-    msg.style.marginTop = '8px';
-    msg.style.fontWeight = 'bold';
-    msg.style.color = grimoireState.winner === 'good' ? '#6bff8a' : '#ff6b6b';
-    msg.textContent = `${grimoireState.winner === 'good' ? 'Good' : 'Evil'} has won`;
-    setupInfoEl.appendChild(msg);
-  }
-}
-
 
 export function updateGrimoire({ grimoireState }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
@@ -1572,18 +1487,6 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
   });
-}
-
-export async function loadPlayerSetupTable({ grimoireState }) {
-  try {
-    const res = await fetch('./player-setup.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    grimoireState.playerSetupTable = Array.isArray(data.player_setup) ? data.player_setup : [];
-    renderSetupInfo({ grimoireState });
-  } catch (e) {
-    console.error('Failed to load player-setup.json', e);
-  }
 }
 
 // Initialize when DOM is ready
