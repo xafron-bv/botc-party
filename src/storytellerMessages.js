@@ -158,7 +158,6 @@ export function initStorytellerMessages({ grimoireState }) {
   if (openStorytellerMessageBtn && storytellerMessageModal) {
     openStorytellerMessageBtn.addEventListener('click', async () => {
       if (grimoireState.mode === 'player') return;
-      // Ensure messages are loaded before showing picker to avoid race conditions in tests
       if (!Array.isArray(grimoireState.storytellerMessages) || grimoireState.storytellerMessages.length === 0) {
         try { await loadStorytellerMessages(); } catch (_) { /* ignore */ }
       }
@@ -207,7 +206,6 @@ export function initStorytellerMessages({ grimoireState }) {
       btn.className = 'button';
       btn.textContent = msg.text;
       btn.addEventListener('click', () => {
-        // Close picker and open viewer directly
         if (storytellerMessageModal) storytellerMessageModal.style.display = 'none';
         showStorytellerOverlay(msg.text, msg.slots || 0);
       });
@@ -216,7 +214,6 @@ export function initStorytellerMessages({ grimoireState }) {
   }
 
   async function loadStorytellerMessages() {
-    // If already loaded, just (re)build
     if (Array.isArray(grimoireState.storytellerMessages) && grimoireState.storytellerMessages.length) {
       buildMessagePicker();
       return;
@@ -226,7 +223,6 @@ export function initStorytellerMessages({ grimoireState }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const msgs = Array.isArray(data.storyteller_messages) ? data.storyteller_messages : [];
-      // Normalize to { text, slots }
       grimoireState.storytellerMessages = msgs.map(m => ({ text: String(m.text || ''), slots: Number(m.slots || 0) }));
       buildMessagePicker();
     } catch (e) {
