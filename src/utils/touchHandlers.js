@@ -209,6 +209,8 @@ export function setupTouchHandling({
 
       if (onLongPress) {
         e.preventDefault(); // Prevent default context menu
+        // Stop propagation so parent handlers (e.g., listItem contextmenu) don't also fire
+        try { e.stopPropagation(); } catch (_) { }
         const x = e.clientX;
         const y = e.clientY;
         onLongPress(e, x, y);
