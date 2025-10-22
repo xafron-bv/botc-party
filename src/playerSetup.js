@@ -1,5 +1,5 @@
 import { saveAppState } from './app.js';
-import { resetGrimoire } from './grimoire.js';
+import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 
 function getRoleFromAnySources(grimoireState, roleId) {
@@ -122,6 +122,8 @@ export function initPlayerSetup({ grimoireState }) {
       travellersElements.root.style.display = shouldShow ? 'flex' : 'none';
       if (travellersElements.selected) travellersElements.selected.textContent = String(travellerSelected);
     }
+
+    updateGrimoire({ grimoireState });
   }
 
   function updateBagWarning() {
@@ -826,6 +828,7 @@ export function initPlayerSetup({ grimoireState }) {
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
     saveAppState({ grimoireState });
+    updateBagWarning();
     // Do not auto-hide the grimoire; sidebar button controls visibility
     // Render half-opaque overlays on each token for selection
     const playerCircle = document.getElementById('player-circle');

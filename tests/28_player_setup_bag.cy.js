@@ -178,6 +178,53 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
   });
+
+  it('shows traveller count in setup info during selection', () => {
+    // Switch to 7 players for a smaller setup table row
+    cy.get('#player-count').clear().type('7');
+    cy.get('#reset-grimoire').click();
+    cy.get('#player-circle li').should('have.length', 7);
+
+    // Open Player Setup and include travellers
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#include-travellers-in-bag').check({ force: true }).should('be.checked');
+
+    // Auto-fill base setup for 7 players then add a traveller to the bag
+    cy.get('#bag-random-fill').click();
+    cy.contains('#player-setup-character-list .team-header', 'Travellers')
+      .next('.team-grid')
+      .find('input[type="checkbox"]')
+      .first()
+      .check({ force: true });
+
+    // Adjust the non-traveller bag to match the 6-player distribution (3/1/1/1)
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .eq(0)
+      .uncheck({ force: true });
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .eq(0)
+      .uncheck({ force: true });
+
+    cy.contains('#player-setup-character-list .team-header', 'Outsiders')
+      .next('.team-grid')
+      .find('input[type="checkbox"]')
+      .first()
+      .check({ force: true });
+
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    // Start number selection
+    cy.get('#player-setup-panel .start-selection').click();
+    cy.get('#player-setup-panel').should('not.be.visible');
+
+    // Center setup info should now include the traveller count suffix
+    cy.get('#setup-info').should('contain', '3/1/1/1/1');
+  });
 });
 
 
