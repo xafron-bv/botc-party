@@ -166,8 +166,17 @@ export async function displayScript({ data, grimoireState }) {
 
 export async function loadScriptFromDataJson({ editionId, grimoireState }) {
   const loadStatus = document.getElementById('load-status');
+  
+  // Map edition IDs to their full names
+  const editionNames = {
+    'tb': 'Trouble Brewing',
+    'bmr': 'Bad Moon Rising',
+    'snv': 'Sects and Violets'
+  };
+  
   try {
-    loadStatus.textContent = `Loading ${editionId} edition...`;
+    const editionName = editionNames[editionId] || editionId;
+    loadStatus.textContent = `Loading ${editionName}...`;
     loadStatus.className = 'status';
 
     const res = await fetch('./data.json', { cache: 'no-store' });
@@ -179,7 +188,7 @@ export async function loadScriptFromDataJson({ editionId, grimoireState }) {
 
     // Convert edition to script format
     const scriptData = [
-      { id: '_meta', author: '', name: edition.name || editionId },
+      { id: '_meta', author: '', name: editionName },
       ...edition.firstNight.filter(id => !['dusk', 'dawn', 'minion', 'demon', 'minioninfo', 'demoninfo'].includes(id))
     ];
 
