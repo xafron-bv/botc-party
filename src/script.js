@@ -9,13 +9,11 @@ export async function displayScript({ data, grimoireState }) {
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
 
-  // Load jinx data from data.json
   let jinxData = [];
   try {
     const dataResponse = await fetch('./data.json');
     if (dataResponse.ok) {
       const data = await dataResponse.json();
-      // Extract jinxes from roles
       jinxData = data.roles
         .filter(role => role.jinxes && role.jinxes.length > 0)
         .map(role => ({ id: role.id, jinx: role.jinxes }));
@@ -24,12 +22,9 @@ export async function displayScript({ data, grimoireState }) {
     console.warn('Failed to load jinx data:', e);
   }
 
-  // Check if we should sort by night order
   if (grimoireState.nightOrderSort) {
-    // Sort by night order
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
 
-    // Separate characters into different categories
     const nightOrderCharacters = [];
     const noNightOrderCharacters = [];
 
@@ -41,11 +36,8 @@ export async function displayScript({ data, grimoireState }) {
       }
     });
 
-    // Sort night order characters by their order
     nightOrderCharacters.sort((a, b) => a[nightOrderKey] - b[nightOrderKey]);
 
-    // Display all characters in order
-    // Travelers & fabled now already included appropriately by night order or fallback grouping
     const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters];
 
     allCharactersInOrder.forEach(role => {
@@ -56,19 +48,15 @@ export async function displayScript({ data, grimoireState }) {
                      <span class="name">${role.name}</span>
                      <div class="ability">${role.ability || 'No ability description available'}</div>
                  `;
-      // Add click handler to toggle ability display
       roleEl.addEventListener('click', () => {
         roleEl.classList.toggle('show-ability');
       });
       characterSheet.appendChild(roleEl);
     });
 
-    // Display jinxes at the end
     displayJinxes({ jinxData, grimoireState, characterSheet });
 
   } else {
-    // Original team-based display logic
-    // Group characters by team if we have resolved role data
     const teamGroups = {};
     Object.values(grimoireState.allRoles).forEach(role => {
       if (!teamGroups[role.team]) {
@@ -77,7 +65,6 @@ export async function displayScript({ data, grimoireState }) {
       teamGroups[role.team].push(role);
     });
 
-    // Display grouped by team if we have team information
     if (Object.keys(teamGroups).length > 0) {
       const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
       teamOrder.forEach(team => {
@@ -97,7 +84,6 @@ export async function displayScript({ data, grimoireState }) {
                            <span class="name">${role.name}</span>
                            <div class="ability">${role.ability || 'No ability description available'}</div>
                        `;
-            // Add click handler to toggle ability display
             roleEl.addEventListener('click', () => {
               roleEl.classList.toggle('show-ability');
             });
@@ -105,13 +91,11 @@ export async function displayScript({ data, grimoireState }) {
           });
         }
 
-        // Display jinxes section specifically after demon team
         if (team === 'demon') {
           displayJinxes({ jinxData, grimoireState, characterSheet });
         }
       });
     } else {
-      // Fallback: show all characters in a single list
       const header = document.createElement('h3');
       header.textContent = 'Characters';
       header.className = 'team-townsfolk';
@@ -127,7 +111,6 @@ export async function displayScript({ data, grimoireState }) {
                    `;
           characterSheet.appendChild(roleEl);
         } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-          // Display custom character objects
           const roleEl = document.createElement('div');
           roleEl.className = 'role';
           const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
@@ -136,7 +119,6 @@ export async function displayScript({ data, grimoireState }) {
                       <span class="name">${characterItem.name || characterItem.id}</span>
                       <div class="ability">${characterItem.ability || 'No ability description available'}</div>
                   `;
-          // Add click handler to toggle ability display
           roleEl.addEventListener('click', () => {
             roleEl.classList.toggle('show-ability');
           });
@@ -145,7 +127,6 @@ export async function displayScript({ data, grimoireState }) {
       });
     }
   }
-  // After rendering roles, optionally auto-open character panel only the first time (no stored preference)
   try {
     const panel = document.getElementById('character-panel');
     const toggleBtn = document.getElementById('character-panel-toggle');
@@ -155,7 +136,6 @@ export async function displayScript({ data, grimoireState }) {
     const roles = characterSheet.querySelectorAll('.role');
     const urlParams = new URLSearchParams(window.location.search);
     const isTest = urlParams.has('test');
-    // Auto-open only if no stored preference yet OR in test mode where visibility might be required by selectors
     if (panel && toggleBtn && roles.length > 0 && panel.getAttribute('aria-hidden') === 'true') {
       if (storedPref === null || (isTest && storedPref !== '0')) {
         toggleBtn.dispatchEvent(new Event('click'));
@@ -186,13 +166,10 @@ export async function loadScriptFromDataJson({ editionId, grimoireState }) {
     const edition = data.editions.find(e => e.id === editionId);
     if (!edition) throw new Error(`Edition ${editionId} not found`);
 
-    // Get all non-traveller characters from this edition
-    // Travellers are controlled by the separate toggle and not part of base editions
     const editionCharacters = data.roles
       .filter(role => role.edition === editionId && role.team !== 'traveller')
       .map(role => role.id);
 
-    // Convert edition to script format with all characters from the edition
     const scriptData = [
       { id: '_meta', author: '', name: editionName },
       ...editionCharacters
@@ -213,7 +190,6 @@ export async function loadScriptFromFile({ path, grimoireState }) {
   try {
     loadStatus.textContent = `Loading script from ${path}...`;
     loadStatus.className = 'status';
-    // Pre-set a best-effort name from the filename so UI updates immediately
     try {
       const match = String(path).match(/([^/]+)\.json$/i);
       if (match) {
@@ -242,9 +218,7 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
   grimoireState.allRoles = {};
   grimoireState.baseRoles = {};
   grimoireState.extraTravellerRoles = {};
-  // Travellers explicitly included in the script (should always be shown even if the traveller toggle is off)
   grimoireState.scriptTravellerRoles = {};
-  // Extract metadata name if present
   try {
     const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
     grimoireState.scriptMetaName = meta && meta.name ? String(meta.name) : '';
@@ -258,7 +232,6 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
   await processScriptCharacters({ characterIds: data, grimoireState });
 
   console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
-  // After processing into baseRoles/extraTravellerRoles, apply toggle
   applyTravellerToggleAndRefresh({ grimoireState });
   saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
@@ -310,7 +283,6 @@ export async function loadScriptFile({ event, grimoireState }) {
       await processScriptData({ data: json, addToHistory: true, grimoireState });
       loadStatus.textContent = 'Custom script loaded successfully!';
       loadStatus.className = 'status';
-      // Allow uploading the same file again by resetting the input value
       try { event.target.value = ''; } catch (_) { }
     } catch (error) {
       console.error('Error processing uploaded script:', error);
@@ -329,20 +301,17 @@ export async function loadScriptFile({ event, grimoireState }) {
 }
 
 function displayJinxes({ jinxData, grimoireState, characterSheet }) {
-  // Get all character IDs in the current script
   const scriptCharacterIds = new Set();
   Object.values(grimoireState.allRoles).forEach(role => {
     scriptCharacterIds.add(role.id);
   });
 
-  // Find all applicable jinxes
   const applicableJinxes = [];
 
   jinxData.forEach(character => {
     if (scriptCharacterIds.has(character.id) && character.jinx) {
       character.jinx.forEach(jinx => {
         if (scriptCharacterIds.has(jinx.id)) {
-          // Both characters in the jinx are in the script
           applicableJinxes.push({
             char1: character.id,
             char2: jinx.id,
@@ -353,15 +322,12 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
     }
   });
 
-  // Only display jinxes section if there are applicable jinxes
   if (applicableJinxes.length > 0) {
-    // Add jinxes header
     const jinxHeader = document.createElement('h3');
     jinxHeader.textContent = 'Jinxes';
     jinxHeader.className = 'team-jinxes';
     characterSheet.appendChild(jinxHeader);
 
-    // Display each jinx
     applicableJinxes.forEach(jinx => {
       const jinxEl = document.createElement('div');
       jinxEl.className = 'jinx-entry';
@@ -380,7 +346,6 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
         <div class="jinx-reason">${jinx.reason}</div>
       `;
 
-      // Add click handler to toggle jinx reason display
       jinxEl.addEventListener('click', () => {
         jinxEl.classList.toggle('show-jinx-reason');
       });
