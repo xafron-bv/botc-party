@@ -164,6 +164,35 @@ export async function displayScript({ data, grimoireState }) {
   } catch (_) { }
 }
 
+export async function loadScriptFromDataJson({ editionId, grimoireState }) {
+  const loadStatus = document.getElementById('load-status');
+  try {
+    loadStatus.textContent = `Loading ${editionId} edition...`;
+    loadStatus.className = 'status';
+
+    const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const edition = data.editions.find(e => e.id === editionId);
+    if (!edition) throw new Error(`Edition ${editionId} not found`);
+
+    // Convert edition to script format
+    const scriptData = [
+      { id: '_meta', author: '', name: edition.name || editionId },
+      ...edition.firstNight.filter(id => !['dusk', 'dawn', 'minion', 'demon', 'minioninfo', 'demoninfo'].includes(id))
+    ];
+
+    await processScriptData({ data: scriptData, addToHistory: true, grimoireState });
+    loadStatus.textContent = 'Script loaded successfully!';
+    loadStatus.className = 'status';
+  } catch (e) {
+    console.error('Failed to load edition:', e);
+    loadStatus.textContent = `Failed to load ${editionId}: ${e.message}`;
+    loadStatus.className = 'error';
+  }
+}
+
 export async function loadScriptFromFile({ path, grimoireState }) {
   const loadStatus = document.getElementById('load-status');
   try {
