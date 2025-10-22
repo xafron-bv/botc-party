@@ -10,11 +10,13 @@
 2. Before committing changes, always run the tests and ESLint fix:
 
 ```bash
-# Run tests (headless)
-# Full suite (starts a server on 5173, runs Cypress, then stops server)
-./test.sh
+# Run tests in parallel (FAST - recommended for full suite)
+./test-parallel.sh
 
-# Single spec example
+# Run specific specs in parallel
+./test-parallel.sh tests/09_player_context_menu.cy.js tests/01_scripts.cy.js
+
+# Run single spec (for debugging with console output)
 ./test.sh tests/09_player_context_menu.cy.js
 
 # Fix lint issues
@@ -33,7 +35,9 @@ npx eslint --fix
 
 5. Require Green Tests Before Commit/Push
 
-- Always run the full Cypress suite before committing or pushing.
+- Always run the full Cypress suite (`./test-parallel.sh`) before committing or pushing.
+- Use `./test-parallel.sh` for fast parallel execution of the full suite.
+- Use `./test.sh <spec>` when debugging individual tests.
 - If any tests fail, fix the code or tests, then re-run until all pass.
 - Do not commit/push with failing tests.
 
