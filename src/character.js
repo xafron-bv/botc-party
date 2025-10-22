@@ -184,7 +184,9 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
     if (Array.isArray(characters)) {
       characters.forEach(role => {
         if (!role || !role.id) return;
-        const image = resolveAssetPath(role.image);
+        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+        const image = resolveAssetPath(imagePath);
         const canonical = { ...role, image, team: (role.team || '').toLowerCase() };
         roleLookup[role.id] = canonical;
         const normId = normalizeKey(role.id);
@@ -391,7 +393,9 @@ export async function loadAllCharacters({ grimoireState }) {
     if (Array.isArray(characters)) {
       characters.forEach(role => {
         if (!role || !role.id) return;
-        const image = resolveAssetPath(role.image);
+        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+        const image = resolveAssetPath(imagePath);
         const teamName = (role.team || '').toLowerCase();
         const canonical = { ...role, image, team: teamName };
         roleLookup[role.id] = canonical;

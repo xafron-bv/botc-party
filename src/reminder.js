@@ -58,7 +58,9 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     const isPlayerMode = grimoireState && grimoireState.mode === 'player';
     try {
       Object.values(grimoireState.allRoles || {}).forEach(role => {
-        const roleImage = resolveAssetPath(role.image);
+        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+        const roleImage = resolveAssetPath(imagePath);
         if (!isPlayerMode) {
           if (role && Array.isArray(role.reminders) && role.reminders.length) {
             role.reminders.forEach(rem => {
@@ -96,7 +98,9 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     if (isPlayerMode) {
       try {
         Object.values(grimoireState.allRoles || {}).forEach(role => {
-          const roleImage = resolveAssetPath(role.image);
+          // Generate image path if not present: /build/img/icons/{team}/{id}.webp
+          const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
+          const roleImage = resolveAssetPath(imagePath);
           playerModeCharacterTokens.push({ id: `character-${role.id}`, image: roleImage, label: role.name, characterName: role.name, characterId: role.id });
         });
       } catch (_) { }
