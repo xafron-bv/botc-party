@@ -58,7 +58,7 @@ if ('serviceWorker' in navigator) {
             } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
               navigator.serviceWorker.controller.postMessage({ type: 'PREFETCH_ALL' });
             }
-            try { window.__prefetchRequested = true; } catch(_) {}
+            try { window.__prefetchRequested = true; } catch (_) {}
           } catch (_) { /* best effort */ }
         };
 
@@ -75,7 +75,7 @@ if ('serviceWorker' in navigator) {
             if (!res.ok) return;
             const { files } = await res.json();
             if (!Array.isArray(files)) return;
-            try { window.__pagePrefetchPlanned = Array.isArray(files) ? files.length : 0; } catch(_) {}
+            try { window.__pagePrefetchPlanned = Array.isArray(files) ? files.length : 0; } catch (_) {}
             const urls = files.map((u) => new URL(u, window.location.href).toString());
             const CONCURRENCY = 8;
             let index = 0;
@@ -86,7 +86,7 @@ if ('serviceWorker' in navigator) {
               }
             }
             await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-            try { window.__pagePrefetchDone = true; } catch(_) {}
+            try { window.__pagePrefetchDone = true; } catch (_) {}
           } catch (_) { /* ignore */ }
         })();
       })

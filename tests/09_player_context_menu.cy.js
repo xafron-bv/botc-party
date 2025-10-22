@@ -144,9 +144,9 @@ describe('Player context menu - touch long-press', () => {
     cy.viewport('iphone-6');
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
-      .wait(650)
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
     // Assert no selection occurred (window.getSelection empty)
     cy.window().then((win) => {
       const sel = win.getSelection && win.getSelection();
@@ -158,9 +158,9 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-circle li').should('have.length', 6);
     // Remove it back to 5 via long-press on the newly added last player
     cy.get('#player-circle li').last().find('.player-token')
-      .trigger('pointerdown', { force: true })
-      .wait(650)
-      .trigger('pointerup', { force: true });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 50, clientY: 50 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 50, clientY: 50 }] });
     cy.get('#player-menu-remove').click();
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('#grimoire-history-list .history-item').should('have.length', 0);
@@ -170,9 +170,9 @@ describe('Player context menu - touch long-press', () => {
     cy.viewport('iphone-6');
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
-      .wait(650)
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
@@ -190,9 +190,9 @@ describe('Player context menu - touch long-press', () => {
     cy.viewport('iphone-6');
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true, clientX: 100, clientY: 100 })
-      .wait(650)
-      .trigger('pointerup', { force: true, clientX: 100, clientY: 100 });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
@@ -219,9 +219,9 @@ describe('Player context menu - touch long-press', () => {
 
     // Long-press to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true })
-      .wait(650)
-      .trigger('pointerup', { force: true });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 50, clientY: 50 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 50, clientY: 50 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
@@ -242,9 +242,9 @@ describe('Player context menu - touch long-press', () => {
 
     // Long-press to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('pointerdown', { force: true })
-      .wait(650)
-      .trigger('pointerup', { force: true });
+      .trigger('touchstart', { force: true, touches: [{ clientX: 50, clientY: 50 }] })
+      .wait(550)
+      .trigger('touchend', { force: true, changedTouches: [{ clientX: 50, clientY: 50 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 

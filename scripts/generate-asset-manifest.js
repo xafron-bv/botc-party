@@ -55,7 +55,7 @@ function walk(dir, acc) {
     } else if (entry.isFile()) {
       if (shouldIncludeFile(rel)) {
         // Use POSIX separators and prefix with './' for consistency
-        const posixRel = './' + rel.split(path.sep).join('/');
+        const posixRel = `./${  rel.split(path.sep).join('/')}`;
         acc.add(posixRel);
       }
     }
@@ -80,7 +80,7 @@ function generate() {
     files: list
   };
   const outPath = path.join(repoRoot, 'asset-manifest.json');
-  fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n');
+  fs.writeFileSync(outPath, `${JSON.stringify(out, null, 2)  }\n`);
   console.log(`Wrote ${list.length} assets to ${outPath}`);
 }
 

@@ -191,7 +191,7 @@ export async function loadScriptFromDataJson({ editionId, grimoireState }) {
     const editionCharacters = data.roles
       .filter(role => role.edition === editionId && role.team !== 'traveller')
       .map(role => role.id);
-    
+
     // Convert edition to script format with all characters from the edition
     const scriptData = [
       { id: '_meta', author: '', name: editionName },
