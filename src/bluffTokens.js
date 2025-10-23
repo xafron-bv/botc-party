@@ -6,12 +6,10 @@ import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
-  // Create container for bluff tokens
   const container = document.createElement('div');
   container.id = 'bluff-tokens-container';
   container.className = 'bluff-tokens-container';
 
-  // Create 3 bluff token slots
   for (let i = 0; i < 3; i++) {
     const bluffToken = createBluffToken({ grimoireState, index: i });
     container.appendChild(bluffToken);
@@ -25,7 +23,6 @@ export function createBluffToken({ grimoireState, index }) {
   token.className = 'bluff-token empty';
   token.dataset.bluffIndex = index;
 
-  // Set background image (empty token by default)
   token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
   token.style.backgroundSize = 'cover';
   token.style.backgroundPosition = 'center';
@@ -33,26 +30,20 @@ export function createBluffToken({ grimoireState, index }) {
   token.style.position = 'relative';
   token.style.overflow = 'visible';
 
-  // Add label
   const label = document.createElement('div');
   label.className = 'bluff-label';
   label.textContent = `Bluff ${index + 1}`;
   token.appendChild(label);
 
-  // Track if a touch event has occurred to prevent click after touch
   let touchOccurred = false;
 
-  // Click handler
   token.addEventListener('click', (e) => {
-    // Don't handle if clicking on info icon
     if (e.target.closest('.ability-info-icon')) {
       return;
     }
-    // Ignore if game not started (pre-game state)
     if (!grimoireState.gameStarted) {
       return;
     }
-    // Ignore click if it was triggered by a touch event
     if (touchOccurred) {
       touchOccurred = false;
       return;
@@ -61,7 +52,6 @@ export function createBluffToken({ grimoireState, index }) {
     openBluffCharacterModal({ grimoireState, bluffIndex: index });
   });
 
-  // Hover handler for tooltips
   token.addEventListener('mouseenter', (_e) => {
     const character = grimoireState.bluffs?.[index];
     if (character) {
@@ -87,7 +77,6 @@ export function createBluffToken({ grimoireState, index }) {
     }
   });
 
-  // Enhanced touch handling with movement detection for iOS compatibility
   setupTouchHandling({
     element: token,
     onTap: () => {
@@ -98,12 +87,9 @@ export function createBluffToken({ grimoireState, index }) {
     },
     setTouchOccurred: (value) => { touchOccurred = value; },
     shouldSkip: (e) => {
-      // Don't handle if clicking on info icon
       return !!e.target.closest('.ability-info-icon');
     }
   });
-
-  // Note: info icon will be added in updateBluffToken when a character with ability is assigned
 
   return token;
 }
@@ -114,7 +100,6 @@ export function updateBluffToken({ grimoireState, index }) {
 
   const character = grimoireState.bluffs?.[index];
 
-  // Remove any existing info icon
   const existingInfoIcon = token.querySelector('.ability-info-icon');
   if (existingInfoIcon) {
     existingInfoIcon.remove();
@@ -123,12 +108,10 @@ export function updateBluffToken({ grimoireState, index }) {
   if (character && grimoireState.allRoles[character]) {
     const role = grimoireState.allRoles[character];
 
-    // Update appearance
     token.classList.remove('empty');
     token.classList.add('has-character');
     token.dataset.character = character;
 
-    // Set character image with fallback
     const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
     token.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
     token.style.backgroundSize = '68% 68%, cover';
@@ -136,7 +119,6 @@ export function updateBluffToken({ grimoireState, index }) {
     token.style.backgroundRepeat = 'no-repeat, no-repeat';
     token.style.backgroundColor = 'transparent';
 
-    // Update or create curved label
     let svg = token.querySelector('svg');
     if (svg) {
       svg.remove();
@@ -144,15 +126,12 @@ export function updateBluffToken({ grimoireState, index }) {
     svg = createCurvedLabelSvg(`bluff-role-arc-${character}`, role.name);
     token.appendChild(svg);
 
-    // Remove the default label when character is assigned
     const label = token.querySelector('.bluff-label');
     if (label) {
       label.style.display = 'none';
     }
 
-    // Add tooltip functionality for non-touch devices (matching character token behavior)
     if (!('ontouchstart' in window)) {
-      // Get or create ability tooltip
       let abilityTooltip = document.getElementById('ability-tooltip');
       if (!abilityTooltip) {
         abilityTooltip = document.createElement('div');
@@ -173,13 +152,11 @@ export function updateBluffToken({ grimoireState, index }) {
         abilityTooltip.classList.remove('show');
       });
     } else if (role.ability) {
-      // Add info icon for touch mode if role has ability
       const infoIcon = document.createElement('div');
       infoIcon.className = 'ability-info-icon bluff-info-icon';
       infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
       infoIcon.dataset.bluffIndex = index;
 
-      // Handle both click and touch events
       const handleInfoClick = (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -196,29 +173,22 @@ export function updateBluffToken({ grimoireState, index }) {
       token.appendChild(infoIcon);
     }
   } else {
-    // Clear the token
     token.classList.add('empty');
     token.classList.remove('has-character');
     delete token.dataset.character;
 
-    // Reset to empty token appearance
     token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
     token.style.backgroundSize = 'cover';
 
-    // Remove any curved label
     const svg = token.querySelector('svg');
     if (svg) {
       svg.remove();
     }
 
-    // Show the default label
     const label = token.querySelector('.bluff-label');
     if (label) {
       label.style.display = 'block';
     }
-
-    // Remove tooltip event listeners if any were added
-    // Note: The new mouseenter/mouseleave events will be replaced next time updateBluffToken is called
   }
 }
 
@@ -232,11 +202,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
     return;
   }
 
-  // Store the bluff index in grimoire state temporarily
   grimoireState.selectedBluffIndex = bluffIndex;
-  // Don't modify selectedPlayerIndex - it should remain as is
-
-  // Update modal title
   const modalTitle = characterModal.querySelector('h3');
   if (modalTitle) {
     modalTitle.textContent = `Select Bluff ${bluffIndex + 1}`;
@@ -253,21 +219,16 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
 
 export function assignBluffCharacter({ grimoireState, roleId }) {
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
-    // Initialize bluffs array if it doesn't exist
     if (!grimoireState.bluffs) {
       grimoireState.bluffs = [null, null, null];
     }
 
-    // Assign the character to the bluff slot
     grimoireState.bluffs[grimoireState.selectedBluffIndex] = roleId;
 
-    // Update the bluff token display
     updateBluffToken({ grimoireState, index: grimoireState.selectedBluffIndex });
 
-    // Hide the modal and clear bluff selection
     hideCharacterModal({ grimoireState, clearBluffSelection: true });
 
-    // Save state
     saveAppState({ grimoireState });
   }
 }

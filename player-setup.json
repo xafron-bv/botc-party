@@ -87,21 +87,8 @@
     { "text": "THIS IS THE DEMON", "slots": 0 },
     { "text": "THESE ARE YOUR MINIONS", "slots": 0 },
     { "text": "THESE CHARACTERS ARE NOT IN PLAY", "slots": 3 },
-    { "text": "YOU ARE", "slots": 1 },
-    { "text": "YOU ARE GOOD", "slots": 0 },
-    { "text": "YOU ARE EVIL", "slots": 0 },
+    { "text": "THIS CHARACTER SELECTED YOU", "slots": 2 },
     { "text": "THIS PLAYER IS", "slots": 1 },
-    { "text": "THIS CHARACTER SELECTED YOU", "slots": 1 },
-    { "text": "SELECT A CHARACTER", "slots": 0 },
-    { "text": "SELECT A PLAYER", "slots": 0 },
-    { "text": "SELECT 2 PLAYERS", "slots": 0 },
-    { "text": "SELECT 3 PLAYERS", "slots": 0 },
-    { "text": "SPEAK TO ME TOMORROW", "slots": 0 },
-    { "text": "DID YOU VOTE TODAY?", "slots": 0 },
-    { "text": "CLOSE YOUR EYES", "slots": 0 },
-    { "text": "IS IN PLAY", "slots": 1 },
-    { "text": "HAS SELECTED YOU TO BE", "slots": 2 },
-    { "text": "I MADE A MISTAKE", "slots": 0 },
-    { "text": "FREE TEXT", "slots": 0, "freeText": true }
+    { "text": "YOU ARE", "slots": 1 }
   ]
 }

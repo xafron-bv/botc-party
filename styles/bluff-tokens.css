@@ -46,7 +46,6 @@
 
 /* Readability improvements for curved labels on bluff & storyteller tokens */
 .bluff-token svg.icon-reminder-svg .icon-reminder-text,
-#storyteller-message-edit .token svg.icon-reminder-svg .icon-reminder-text,
 #storyteller-message-display .token svg.icon-reminder-svg .icon-reminder-text {
   fill: #fff;
   paint-order: stroke fill;
@@ -57,9 +56,7 @@
 }
 
 .bluff-token svg.icon-reminder-svg path[id^="bluff-role-arc"],
-#storyteller-message-edit .token svg.icon-reminder-svg path[id^="story-msg"],
 #storyteller-message-display .token svg.icon-reminder-svg path[id^="story-msg"],
-#storyteller-message-edit .token svg.icon-reminder-svg path[id^="story-slot"],
 #storyteller-message-display .token svg.icon-reminder-svg path[id^="story-slot"] {
   stroke: none;
   filter: drop-shadow(0 0 3px rgba(0,0,0,0.525)); /* 25% lighter */
@@ -181,7 +178,6 @@
 }
 
 /* Ensure storyteller message tokens match grimoire token style and are 2x size */
-#storyteller-message-edit .token,
 #storyteller-message-display .token {
   width: calc(var(--token-size) * 1.5);
   height: calc(var(--token-size) * 1.5);
@@ -190,10 +186,9 @@
   box-shadow:
     0 0 20px rgba(212, 175, 55, 0.6),
     inset 0 0 20px rgba(0, 0, 0, 0.3);
-  cursor: default;
+  cursor: pointer;
 }
 
-#storyteller-message-edit .token:hover,
 #storyteller-message-display .token:hover {
   transform: none;
   box-shadow:
