@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v86';
+const CACHE_NAME = 'botc-party-grimoire-v87';
 const ASSET_MANIFEST_URL = './asset-manifest.json';
 
 // Minimal core files needed to bootstrap the app (avoid './' to prevent caching redirects)
