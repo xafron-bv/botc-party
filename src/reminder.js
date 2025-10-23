@@ -51,14 +51,11 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     if (!res.ok) throw new Error('Failed to load data.json');
     const data = await res.json();
     const json = { roles: data.roles, reminderTokens: data.reminderTokens || [] };
-    // Base: any tokens supplied by data file
     let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
-    // Build per-character reminders from the current script: use the character's icon and reminder text as label
     const scriptReminderTokens = [];
     const isPlayerMode = grimoireState && grimoireState.mode === 'player';
     try {
       Object.values(grimoireState.allRoles || {}).forEach(role => {
-        // Generate image path if not present: /build/img/icons/{team}/{id}.webp
         const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
         const roleImage = resolveAssetPath(imagePath);
         if (!isPlayerMode) {
@@ -83,7 +80,6 @@ export async function populateReminderTokenGrid({ grimoireState }) {
         }
       });
     } catch (_) { }
-    // Always-available generic tokens
     const genericTokens = [
       { id: 'townsfolk-townsfolk', image: './assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
       { id: 'wrong-wrong', image: './assets/reminders/evil-CDY3e2Qm.webp', label: 'Wrong' },
@@ -98,20 +94,17 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     if (isPlayerMode) {
       try {
         Object.values(grimoireState.allRoles || {}).forEach(role => {
-          // Generate image path if not present: /build/img/icons/{team}/{id}.webp
           const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
           const roleImage = resolveAssetPath(imagePath);
           playerModeCharacterTokens.push({ id: `character-${role.id}`, image: roleImage, label: role.name, characterName: role.name, characterId: role.id });
         });
       } catch (_) { }
     }
-    // Merge: generic + (per-character reminders or character tokens) + file-provided
     reminderTokens = isPlayerMode
       ? [...genericTokens, ...playerModeCharacterTokens, ...reminderTokens]
       : [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
     const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
     reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
-    // Put custom option at the top
     const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
     reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
     const filtered = reminderTokens.filter(t => {
@@ -138,7 +131,6 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     });
   } catch (e) {
     console.error(e);
-    // As a last resort, show a simple message
     const msg = document.createElement('div');
     msg.style.color = '#ccc';
     msg.textContent = 'No reminder tokens available.';

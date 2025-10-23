@@ -15,9 +15,7 @@ export function saveAppState({ grimoireState }) {
       mode: grimoireState.mode || 'player',
       grimoireHidden: !!grimoireState.grimoireHidden,
       playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
-      // Persist whether a game has started (pre-game gating relies on this)
       gameStarted: !!grimoireState.gameStarted,
-      // Persist winner so overlay messaging can gate UI until reset
       winner: grimoireState.winner || null
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
@@ -46,7 +44,6 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.dayNightTracking) {
       grimoireState.dayNightTracking = saved.dayNightTracking;
-      // Update the UI after loading state
       updateDayNightUI(grimoireState);
     }
     if (saved && saved.bluffs) {
