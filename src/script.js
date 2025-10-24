@@ -1,7 +1,7 @@
 import { processScriptCharacters, applyTravellerToggleAndRefresh } from './character.js';
 import { resolveAssetPath, isExcludedScriptName } from '../utils.js';
 import { saveAppState } from './app.js';
-import { renderSetupInfo } from './grimoire.js';
+import { renderSetupInfo } from './utils/setup.js';
 import { addScriptToHistory } from './history/script.js';
 
 export async function displayScript({ data, grimoireState }) {

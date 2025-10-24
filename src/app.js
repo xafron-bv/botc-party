@@ -1,5 +1,6 @@
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from './constants.js';
-import { renderSetupInfo, setupGrimoire, updateGrimoire } from './grimoire.js';
+import { setupGrimoire, updateGrimoire } from './grimoire.js';
+import { renderSetupInfo } from './utils/setup.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 import { updateDayNightUI } from './dayNightTracking.js';

@@ -1,6 +1,6 @@
 import { saveHistories, history } from './index.js';
 import { generateId } from '../../utils.js';
-import { renderSetupInfo } from '../grimoire.js';
+import { renderSetupInfo } from '../utils/setup.js';
 import { saveAppState } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
 
