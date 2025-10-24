@@ -226,6 +226,130 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#setup-info').should('contain', '3/1/1/1/1');
   });
 
+  it('hides death ribbon and death vote indicator during number selection', () => {
+    // First, start the game and mark a player as dead to ensure death ribbon exists
+    cy.get('#start-game').click();
+    cy.get('#player-circle li .player-token .death-ribbon').first().should('be.visible');
+
+    // Mark first player as dead
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
+      cy.get('rect, path').first().click({ force: true });
+    });
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
+
+    // Death vote indicator should be visible
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('be.visible');
+
+    // Reset and start number selection
+    cy.get('#reset-grimoire').click();
+    cy.get('#player-circle li').should('have.length', 10);
+
+    // Open Player Setup panel and configure bag
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#bag-random-fill').click();
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    // Start number selection
+    cy.get('#player-setup-panel .start-selection').click();
+
+    // Body should have selection-active class
+    cy.get('body').should('have.class', 'selection-active');
+
+    // Death ribbon should NOT be visible during selection
+    cy.get('#player-circle li .player-token .death-ribbon').first().should('not.be.visible');
+
+    // Assign a number to first player
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('contain', '?').click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-overlay .number').contains('1').click();
+
+    // Close reveal modal if it appears
+    cy.get('body').then($body => {
+      const modal = $body.find('#player-reveal-modal');
+      if (modal.length && modal.is(':visible')) {
+        const confirmBtn = modal.find('#reveal-confirm-btn');
+        if (confirmBtn.length) {
+          cy.wrap(confirmBtn).click();
+        }
+      }
+    });
+
+    // Number overlay should now show "1"
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1').and('have.class', 'disabled');
+
+    // Death ribbon should STILL not be visible during selection (even with number assigned)
+    cy.get('#player-circle li .player-token .death-ribbon').first().should('not.be.visible');
+
+    // Try to click the death ribbon (force: true to bypass visibility) - should not mark as dead
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
+      cy.get('rect, path').first().click({ force: true });
+    });
+    cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
+  });
+
+  it('allows reassigning traveller to number and vice versa during number selection', () => {
+    // Use existing 10 player setup
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+
+    // Enable travellers and fill bag
+    cy.get('#include-travellers-in-bag').check({ force: true });
+    cy.get('#bag-random-fill').click();
+
+    // Add one traveller, remove one townsfolk to keep total at 10
+    cy.contains('#player-setup-character-list .team-header', 'Travellers')
+      .next('.team-grid')
+      .find('input[type="checkbox"]')
+      .first()
+      .check({ force: true });
+
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .first()
+      .uncheck({ force: true });
+
+    // Start selection
+    cy.get('#player-setup-panel .start-selection').click();
+
+    // Assign traveller to first player
+    cy.get('#player-circle li').eq(0).click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-overlay .traveller-token').first().click();
+    cy.get('body').then($body => {
+      if ($body.find('#player-reveal-modal:visible').length) {
+        cy.get('#reveal-confirm-btn').click();
+      }
+    });
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
+
+    // Reassign that player to a number - click directly on the overlay with force
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+    cy.get('#number-picker-overlay').should('be.visible');
+    // Traveller should be back in the list
+    cy.get('#number-picker-overlay .traveller-token').should('have.length', 1);
+    cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('body').then($body => {
+      if ($body.find('#player-reveal-modal:visible').length) {
+        cy.get('#reveal-confirm-btn').click();
+      }
+    });
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+
+    // Assign the traveller to another player to verify it's available
+    cy.get('#player-circle li').eq(1).click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-overlay .traveller-token').should('have.length', 1);
+    cy.get('#number-picker-overlay .traveller-token').first().click();
+    cy.get('body').then($body => {
+      if ($body.find('#player-reveal-modal:visible').length) {
+        cy.get('#reveal-confirm-btn').click();
+      }
+    });
+    cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', 'T');
+  });
+
 
 });
 

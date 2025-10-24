@@ -65,7 +65,16 @@ SERVER_PID=$!
 cleanup() {
 	echo ""
 	echo "Stopping server..."
-	kill "$SERVER_PID" 2>/dev/null || true
+	# Kill the server process group to ensure all child processes are terminated
+	if [ -n "${SERVER_PID:-}" ]; then
+		kill -TERM -"$SERVER_PID" 2>/dev/null || kill "$SERVER_PID" 2>/dev/null || true
+		# Wait briefly for graceful shutdown
+		sleep 1
+		# Force kill if still running
+		kill -9 -"$SERVER_PID" 2>/dev/null || kill -9 "$SERVER_PID" 2>/dev/null || true
+	fi
+	# Also kill any lingering http-server or node processes on port 5173
+	lsof -ti:5173 | xargs kill -9 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -75,6 +84,7 @@ sleep 2
 # Run shards in parallel (fail-fast: false, like CI)
 echo "Running ${SHARD_TOTAL} shards in parallel..."
 FAILED=0
+PIDS=()
 
 for shard in $(seq 1 "$SHARD_TOTAL"); do
 	(
@@ -105,6 +115,12 @@ for shard in $(seq 1 "$SHARD_TOTAL"); do
 			unset ELECTRON_RUN_AS_NODE
 		fi
 		
+		# Give each shard its own npx cache to avoid ENOTEMPTY/rename races when unpacking Cypress concurrently
+		NPX_CACHE_DIR="$(mktemp -d "${RUN_DIR}/npx-cache-shard-${shard}.XXXXXX")"
+		trap 'rm -rf "$NPX_CACHE_DIR"' EXIT
+		export NPX_CACHE_DIR
+		export npm_config_cache="$NPX_CACHE_DIR"
+
 		if CYPRESS_BASE_URL="http://127.0.0.1:5173" \
 			npx --yes cypress run \
 			--browser electron \
@@ -118,11 +134,12 @@ for shard in $(seq 1 "$SHARD_TOTAL"); do
 			exit 1
 		fi
 	) &
+	PIDS+=($!)
 done
 
 # Wait for all background jobs
-for job in $(jobs -p); do
-	if ! wait "$job"; then
+for pid in "${PIDS[@]}"; do
+	if ! wait "$pid" 2>/dev/null; then
 		FAILED=1
 	fi
 done
@@ -146,5 +163,8 @@ else
 	done
 fi
 echo "================================================================"
+
+# Explicitly call cleanup before exit to ensure server is stopped
+cleanup
 
 exit $EXIT_CODE

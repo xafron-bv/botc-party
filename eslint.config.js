@@ -138,6 +138,17 @@ export default [
     }
   },
   {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        require: 'readonly',
+        module: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly'
+      }
+    }
+  },
+  {
     files: ['tests/**/*.cy.js', 'tests/support/**/*.js', 'tests/cypress.config.js'],
     languageOptions: {
       globals: {

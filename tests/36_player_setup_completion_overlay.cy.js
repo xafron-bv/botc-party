@@ -1,5 +1,16 @@
 // Cypress E2E test - Player setup completion overlay & button disabling
 
+const completeNumberSelection = (playerCount) => {
+  for (let i = 0; i < playerCount; i += 1) {
+    cy.get('#player-circle li .number-overlay').eq(i).click();
+    cy.get('#number-picker-grid button.button.number:not(.disabled)').first().click();
+    cy.get('#player-reveal-modal').should('be.visible');
+    cy.get('#reveal-name-input').clear().type(`P${i + 1}`);
+    cy.get('#reveal-confirm-btn').click();
+    cy.get('#player-reveal-modal').should('not.be.visible');
+  }
+};
+
 describe('Player setup completion overlay', () => {
   beforeEach(() => {
     cy.visit('/');
@@ -24,20 +35,7 @@ describe('Player setup completion overlay', () => {
   });
 
   it('restores overlay with handoff message and disables setup button after final reveal, then reset re-enables it', () => {
-    // Assign numbers to all players (5). Iterate over overlays or use number picker via token overlay clicks.
-    // Click each '?" overlay which triggers number picker, pick first available number each time.
-    for (let i = 0; i < 5; i++) {
-      cy.get('#player-circle li .number-overlay').eq(i).click();
-      // Pick the first enabled number button
-      cy.get('#number-picker-grid button.button.number:not(.disabled)').first().click();
-      // Reveal modal should appear
-      cy.get('#player-reveal-modal').should('be.visible');
-      // Confirm (optionally set a name to test input working)
-      cy.get('#reveal-name-input').clear().type(`P${i + 1}`);
-      cy.get('#reveal-confirm-btn').click();
-      // Modal closes
-      cy.get('#player-reveal-modal').should('not.be.visible');
-    }
+    completeNumberSelection(5);
 
     // After last reveal: selection-active removed, overlay visible again with updated message
     cy.get('body').should('not.have.class', 'selection-active');
@@ -53,5 +51,28 @@ describe('Player setup completion overlay', () => {
     cy.get('#reset-grimoire').click({ force: true });
     // Confirm overlay still (pre-game) and button enabled again
     cy.get('#open-player-setup').should('not.be.disabled');
+  });
+
+  it('prevents death ribbon toggles until the game starts after number selection completes', () => {
+    completeNumberSelection(5);
+
+    cy.get('body').should('not.have.class', 'selection-active');
+
+    cy.get('#player-circle li .player-token').first().as('firstToken');
+    cy.get('@firstToken').should('not.have.class', 'is-dead');
+    cy.get('@firstToken').find('.death-vote-indicator').should('not.exist');
+
+    cy.get('#player-circle li .player-token .death-ribbon').first().should('be.visible').within(() => {
+      cy.get('rect, path').first().click({ force: true });
+    });
+
+    cy.get('@firstToken').should('not.have.class', 'is-dead');
+    cy.get('@firstToken').find('.death-vote-indicator').should('not.exist');
+
+    // Reset state so subsequent specs are not affected by selectionComplete handoff
+    cy.window().then((win) => {
+      cy.stub(win, 'confirm').returns(true);
+    });
+    cy.get('#reset-grimoire').click({ force: true });
   });
 });

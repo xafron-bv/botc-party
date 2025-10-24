@@ -133,7 +133,7 @@ describe('Traveller Bag Selection', () => {
       .next('.team-grid')
       .find('input[type="checkbox"]:checked')
       .first()
-      .click({ force: true });
+      .uncheck({ force: true });
 
     // Start selection
     cy.get('#player-setup-panel .start-selection').click({ force: true });
@@ -211,5 +211,70 @@ describe('Traveller Bag Selection', () => {
     // - Other unassigned players should show question marks and no character names
     cy.get('#player-circle li').eq(2).find('.number-overlay').should('contain', '?');
     cy.get('#player-circle li').eq(2).find('.character-name').should('have.text', '');
+  });
+
+  it('restores traveller availability and removes traveller display when replaced by a number', () => {
+    cy.get('#open-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('be.visible');
+
+    cy.get('#bag-random-fill').click({ force: true });
+    cy.get('#include-travellers-in-bag').check({ force: true });
+
+    cy.contains('#player-setup-character-list .team-header', 'Travellers')
+      .next('.team-grid')
+      .find('.token')
+      .first()
+      .as('travellerOption')
+      .invoke('attr', 'data-role-id')
+      .as('travellerRoleId');
+
+    cy.get('@travellerOption')
+      .invoke('attr', 'title')
+      .then((title) => {
+        cy.wrap(title || '').as('travellerTitle');
+      });
+
+    cy.get('@travellerOption').click({ force: true });
+
+    // Adjust bag counts if needed by deselecting one townsfolk (keeps tests deterministic)
+    cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('input[type="checkbox"]:checked')
+      .first()
+      .click({ force: true });
+
+    cy.get('#player-setup-panel .start-selection').click({ force: true });
+
+    // Assign traveller to player 1
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('@travellerTitle').then((title) => {
+      cy.get('#number-picker-grid .traveller-token').filter((_, el) => el.getAttribute('title') === title).first().click();
+    });
+    cy.get('#player-reveal-modal').should('be.visible');
+    cy.get('#reveal-confirm-btn').click();
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
+    cy.get('#player-circle li').eq(0).find('.player-token').should('have.class', 'has-character');
+    cy.get('@travellerRoleId').then((roleId) => {
+      if (roleId) {
+        cy.window().its('grimoireState.players[0].character').should('equal', roleId);
+      }
+    });
+
+    // Reassign same player to a numbered token
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().click();
+    cy.get('#player-reveal-modal').should('be.visible');
+    cy.get('#reveal-confirm-btn').click();
+    cy.window().its('grimoireState.players[0].character').should('be.null');
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('not.contain', 'T').and('have.class', 'number-picked');
+    cy.get('#player-circle li').eq(0).find('.player-token').should('not.have.class', 'has-character');
+    cy.get('#player-circle li').eq(0).find('.character-name').should('have.text', '');
+
+    // Traveller should be available again for other players
+    cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+    cy.get('@travellerTitle').then((title) => {
+      cy.get('#number-picker-grid .traveller-token').filter((_, el) => el.getAttribute('title') === title).should('exist');
+    });
+    cy.get('#close-number-picker').click({ force: true });
   });
 });

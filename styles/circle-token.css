@@ -76,8 +76,7 @@
 .number-overlay.disabled {
   background: rgba(212, 175, 55, 0.85);
   color: #000;
-  cursor: default;
-  pointer-events: none;
+  cursor: pointer; /* Keep clickable for reassignment */
 }
 
 /* Debug: line from token center to circle center */
