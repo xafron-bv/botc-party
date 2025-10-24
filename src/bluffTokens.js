@@ -94,7 +94,7 @@ export function createBluffToken({ grimoireState, index }) {
   return token;
 }
 
-export function updateBluffToken({ grimoireState, index }) {
+export function updateBluffToken({ grimoireState, index, updateAttention = true }) {
   const token = document.querySelector(`[data-bluff-index="${index}"]`);
   if (!token) return;
 
@@ -190,6 +190,10 @@ export function updateBluffToken({ grimoireState, index }) {
       label.style.display = 'block';
     }
   }
+
+  if (updateAttention) {
+    updateBluffAttentionState({ grimoireState });
+  }
 }
 
 export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
@@ -235,11 +239,32 @@ export function assignBluffCharacter({ grimoireState, roleId }) {
 
 export function updateAllBluffTokens({ grimoireState }) {
   for (let i = 0; i < 3; i++) {
-    updateBluffToken({ grimoireState, index: i });
+    updateBluffToken({ grimoireState, index: i, updateAttention: false });
   }
+  updateBluffAttentionState({ grimoireState });
 }
 
 export function resetBluffTokens({ grimoireState }) {
   grimoireState.bluffs = [null, null, null];
   updateAllBluffTokens({ grimoireState });
+}
+
+export function updateBluffAttentionState({ grimoireState }) {
+  if (!grimoireState) return;
+  const container = document.getElementById('bluff-tokens-container');
+  if (!container) return;
+
+  const tokens = container.querySelectorAll('.bluff-token');
+  const highlightActive = grimoireState.mode === 'storyteller' && grimoireState.gameStarted && !grimoireState.winner;
+  const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [];
+
+  tokens.forEach((token) => {
+    const index = Number(token.dataset.bluffIndex);
+    const hasBluff = index >= 0 && index < bluffs.length && !!bluffs[index];
+    if (highlightActive && !hasBluff) {
+      token.classList.add('bluff-token-attention');
+    } else {
+      token.classList.remove('bluff-token-attention');
+    }
+  });
 }

@@ -9,6 +9,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrent
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
+import { updateBluffAttentionState } from './src/bluffTokens.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { displayScript, loadScriptFile, loadScriptFromDataJson } from './src/script.js';
 import { initStorytellerMessages } from './src/storytellerMessages.js';
@@ -184,6 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.dayNightTracking.enabled = false;
     }
     try { updateStartGameEnabled(); } catch (_) { }
+    try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
   };
   function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
 
@@ -406,6 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { showGrimoire({ grimoireState }); } catch (_) { }
     try { grimoireState.winner = null; } catch (_) { }
     grimoireState.gameStarted = false;
+    try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
     try {
@@ -424,6 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { showGrimoire({ grimoireState }); } catch (_) { }
     try { grimoireState.winner = null; } catch (_) { }
     grimoireState.gameStarted = false;
+    try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
     if (startGameBtn) startGameBtn.style.display = '';
     if (endGameBtn) endGameBtn.style.display = 'none';
     try {
@@ -480,6 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
     if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = 'none';
     grimoireState.gameStarted = true;
+    try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
     updatePreGameClass();
     try { saveAppState({ grimoireState }); } catch (_) { }
 
@@ -542,6 +547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (endGameBtn) endGameBtn.style.display = 'none';
     applyModeUI();
     updateStartGameEnabled();
+    try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
     // Gate further starts or player setup until grimoire reset (winner flag presence is the gate)
     try {
       const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
