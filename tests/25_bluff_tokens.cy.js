@@ -1,5 +1,8 @@
 describe('Bluff Tokens', () => {
   beforeEach(() => {
+    cy.clearAllSessionStorage();
+    cy.clearAllLocalStorage();
+    cy.clearAllCookies();
     cy.visit('/');
     // Load Trouble Brewing and start game with 10 players via helper (handles pre-game gating)
     cy.get('#load-tb').click({ force: true });
@@ -102,6 +105,32 @@ describe('Bluff Tokens', () => {
     cy.get('#bluff-tokens-container .bluff-token[data-character="baron"]').should('exist');
     cy.get('#bluff-tokens-container .bluff-token[data-character="poisoner"]').should('exist');
     cy.get('#bluff-tokens-container .bluff-token[data-character="spy"]').should('exist');
+  });
+
+  it('should allow hiding in-play characters when selecting bluffs', () => {
+    // Assign washerwoman to first player
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-search').clear().type('washerwoman');
+    cy.get('#character-grid .token[data-token-id="washerwoman"]').first().click();
+
+    // Open bluff selector
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+
+    // Hide-in-play checkbox should be visible and checked by default
+    cy.get('#hide-in-play').should('be.visible').and('be.checked');
+
+    // Washerwoman should be filtered out
+    cy.get('#character-search').clear().type('washerwoman');
+    cy.get('#character-grid .token[data-token-id="washerwoman"]').should('not.exist');
+
+    // Uncheck to show in-play characters
+    cy.get('#hide-in-play').uncheck();
+    cy.get('#character-grid .token[data-token-id="washerwoman"]').should('exist');
+
+    // Check again to hide
+    cy.get('#hide-in-play').check();
+    cy.get('#character-grid .token[data-token-id="washerwoman"]').should('not.exist');
   });
 
   it('should show tooltips with character info on hover', () => {
