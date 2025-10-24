@@ -50,7 +50,15 @@ export function populateCharacterGrid({ grimoireState }) {
 
   const filteredRoles = Object.values(rolesToShow)
     .filter(role => role.name.toLowerCase().includes(filter))
-    .filter(role => !inPlayIds || !inPlayIds.has(role.id));
+    .filter(role => !inPlayIds || !inPlayIds.has(role.id))
+    .filter(role => {
+      // When selecting bluffs, only show townsfolk and outsiders
+      if (isBluffSelection) {
+        const team = (role.team || '').toLowerCase();
+        return team === 'townsfolk' || team === 'outsider';
+      }
+      return true;
+    });
 
   console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
 
