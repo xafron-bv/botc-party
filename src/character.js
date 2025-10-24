@@ -14,6 +14,15 @@ export function populateCharacterGrid({ grimoireState }) {
   characterGrid.innerHTML = '';
   const filter = characterSearch.value.toLowerCase();
 
+  // Check if we're selecting a bluff and should hide in-play characters
+  const isBluffSelection = typeof grimoireState.selectedBluffIndex === 'number';
+  const shouldHideInPlay = isBluffSelection && grimoireState.hideInPlayForBluffs;
+
+  // Build set of in-play character IDs if needed
+  const inPlayIds = shouldHideInPlay
+    ? new Set((grimoireState.players || []).map(p => p?.character).filter(Boolean))
+    : null;
+
   if (!filter || ['none', 'clear', 'empty'].some(term => term.includes(filter))) {
     const emptyToken = createTokenGridItem({
       id: 'empty',
@@ -40,7 +49,8 @@ export function populateCharacterGrid({ grimoireState }) {
   }
 
   const filteredRoles = Object.values(rolesToShow)
-    .filter(role => role.name.toLowerCase().includes(filter));
+    .filter(role => role.name.toLowerCase().includes(filter))
+    .filter(role => !inPlayIds || !inPlayIds.has(role.id));
 
   console.log(`Showing ${filteredRoles.length} characters for filter: "${filter}"`);
 
@@ -65,6 +75,18 @@ export function hideCharacterModal({ grimoireState, clearBluffSelection = false 
   try {
     characterModal.dispatchEvent(new CustomEvent('botc:character-modal-hidden'));
   } catch (_) { /* ignore */ }
+
+  // Hide and clean up the hide-in-play checkbox
+  const hideContainer = document.getElementById('hide-in-play-container');
+  const hideCheckbox = document.getElementById('hide-in-play');
+  if (hideContainer) {
+    hideContainer.style.display = 'none';
+  }
+  if (hideCheckbox && hideCheckbox._bluffHandler) {
+    hideCheckbox.removeEventListener('change', hideCheckbox._bluffHandler);
+    delete hideCheckbox._bluffHandler;
+  }
+
   if (clearBluffSelection && grimoireState) {
     delete grimoireState.selectedBluffIndex;
   }
