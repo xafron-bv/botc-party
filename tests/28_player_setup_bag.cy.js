@@ -225,6 +225,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Center setup info should now include the traveller count suffix
     cy.get('#setup-info').should('contain', '3/1/1/1/1');
   });
+
+
 });
 
 

@@ -162,18 +162,18 @@ describe('Traveller Bag Selection', () => {
     cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').should('not.exist');
   });
 
-  it('regular character numbers still work after travellers are in bag', () => {
+  it('shows traveller character names during selection while hiding regular character assignments', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag
     cy.get('#bag-random-fill').click({ force: true });
 
-    // Add traveller
+    // Add Gunslinger traveller
     cy.get('#include-travellers-in-bag').check({ force: true });
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
       .next('.team-grid')
-      .find('.token')
+      .find('.token[title="Gunslinger"]')
       .first()
       .click({ force: true });
 
@@ -189,7 +189,7 @@ describe('Traveller Bag Selection', () => {
 
     // Assign traveller to player 1
     cy.get('#player-circle li').eq(0).find('.number-overlay').click();
-    cy.get('#number-picker-grid .traveller-token').first().click();
+    cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').click();
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#reveal-confirm-btn').click();
 
@@ -200,7 +200,16 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#reveal-confirm-btn').click();
 
-    // Player 2 should show number 1
+    // During selection mode:
+    // - Traveller (player 1) should show character name "Gunslinger"
+    cy.get('#player-circle li').eq(0).find('.character-name').should('contain', 'Gunslinger');
+
+    // - Regular character assignment (player 2) should NOT show character name (hidden until game starts)
+    cy.get('#player-circle li').eq(1).find('.character-name').should('have.text', '');
     cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', '1');
+
+    // - Other unassigned players should show question marks and no character names
+    cy.get('#player-circle li').eq(2).find('.number-overlay').should('contain', '?');
+    cy.get('#player-circle li').eq(2).find('.character-name').should('have.text', '');
   });
 });

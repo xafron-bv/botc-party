@@ -580,6 +580,8 @@ export function initPlayerSetup({ grimoireState }) {
             travellerBag.splice(idx, 1);
           }
 
+          // Update grimoire display to show the traveller character
+          updateGrimoire({ grimoireState });
           saveAppState({ grimoireState });
 
           // Update player's overlay to show it's a traveller
@@ -640,14 +642,9 @@ export function initPlayerSetup({ grimoireState }) {
         if (bagIndex < 0 || bagIndex >= (grimoireState.playerSetup.bag || []).length) return;
 
         grimoireState.playerSetup.assignments[forIdx] = bagIndex;
-        // Immediately assign the character to the player
-        try {
-          const bag = grimoireState.playerSetup.bag || [];
-          const roleId = bag[bagIndex];
-          if (roleId && grimoireState.players && grimoireState.players[forIdx]) {
-            grimoireState.players[forIdx].character = roleId;
-          }
-        } catch (_) { }
+        const bag = grimoireState.playerSetup.bag || [];
+        const roleId = bag[bagIndex];
+        const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
         saveAppState({ grimoireState });
 
         // Disable picked number button
@@ -664,18 +661,17 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.className = 'number-overlay';
             li.appendChild(overlay);
           }
-          // Visible number is just bag index + 1 in simplified model
+          // Show the number but keep the assignment hidden
           overlay.textContent = String(bagIndex + 1);
           overlay.classList.add('disabled');
+          overlay.classList.add('number-picked');
+          overlay.setAttribute('data-number', String(bagIndex + 1));
           overlay.onclick = null;
         }
 
         // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
         try {
-          const bag = grimoireState.playerSetup.bag || [];
-          const roleId = bag[bagIndex];
-          const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
           if (playerRevealModal && role) {
             revealCurrentPlayerIndex = forIdx;
             if (revealCharacterTokenEl) {
