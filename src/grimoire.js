@@ -146,8 +146,13 @@ export function updateGrimoire({ grimoireState }) {
       li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
     }
 
-    if (!grimoireState.grimoireHidden && player.character) {
-      const role = getRoleById({ grimoireState, roleId: player.character });
+    // Check if we're in selection mode and this is a traveller
+    const isSelectionActive = grimoireState.playerSetup && grimoireState.playerSetup.selectionActive;
+    const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
+    const isTraveller = role && role.team === 'traveller';
+    const shouldShowCharacter = !grimoireState.grimoireHidden || (isSelectionActive && isTraveller);
+
+    if (shouldShowCharacter && player.character) {
       if (role) {
         tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
         tokenDiv.style.backgroundSize = '68% 68%, cover';
@@ -158,7 +163,7 @@ export function updateGrimoire({ grimoireState }) {
         tokenDiv.appendChild(svg);
         if (!('ontouchstart' in window)) {
           tokenDiv.addEventListener('mouseenter', (e) => {
-            if (grimoireState.grimoireHidden) return;
+            if (grimoireState.grimoireHidden && (!isSelectionActive || !isTraveller)) return;
             if (role.ability) {
               abilityTooltip.textContent = role.ability;
               abilityTooltip.classList.add('show');
@@ -169,7 +174,7 @@ export function updateGrimoire({ grimoireState }) {
           tokenDiv.addEventListener('mouseleave', () => {
             abilityTooltip.classList.remove('show');
           });
-        } else if (role.ability && !grimoireState.grimoireHidden) {
+        } else if (role.ability && shouldShowCharacter) {
           const infoIcon = document.createElement('div');
           infoIcon.className = 'ability-info-icon';
           infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
