@@ -20,15 +20,15 @@ describe('Bluff Token Player Interaction Bug', () => {
       .should('have.css', 'background-image')
       .and('include', 'washerwoman');
 
-    // Now assign a bluff token
+    // Now assign a bluff token (must use townsfolk/outsider)
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
-    cy.get('#character-search').should('be.visible').clear().type('baron', { force: true });
+    cy.get('#character-search').should('be.visible').clear().type('butler', { force: true });
     cy.get('#character-grid .token').first().click();
 
     // Verify bluff was assigned
     cy.get('#bluff-tokens-container .bluff-token').first()
-      .should('have.attr', 'data-character', 'baron');
+      .should('have.attr', 'data-character', 'butler');
 
     // Now try to click on another player token - this should work
     cy.get('#player-circle li').eq(1).find('.player-token').click({ force: true });

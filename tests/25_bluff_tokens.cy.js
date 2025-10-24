@@ -47,8 +47,8 @@ describe('Bluff Tokens', () => {
     // Click first bluff token
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
 
-    // Select a specific character (e.g., Baron)
-    cy.get('#character-search').type('baron');
+    // Select a specific character (e.g., Washerwoman - a townsfolk)
+    cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
     // Verify modal closes
@@ -59,15 +59,15 @@ describe('Bluff Tokens', () => {
       .should('not.have.class', 'empty')
       .should('have.class', 'has-character');
 
-    // Check that the Baron's image is displayed
+    // Check that the Washerwoman's image is displayed
     cy.get('#bluff-tokens-container .bluff-token').first()
-      .should('have.attr', 'data-character', 'baron');
+      .should('have.attr', 'data-character', 'washerwoman');
   });
 
   it('should allow clearing a bluff token by selecting "None"', () => {
     // First assign a character
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
-    cy.get('#character-search').type('baron');
+    cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
     // Verify character is assigned
@@ -88,8 +88,8 @@ describe('Bluff Tokens', () => {
   });
 
   it('should maintain independent state for each bluff token', () => {
-    // Assign different characters to each bluff token
-    const characters = ['baron', 'poisoner', 'spy'];
+    // Assign different townsfolk/outsider characters to each bluff token
+    const characters = ['washerwoman', 'librarian', 'butler'];
 
     characters.forEach((character, index) => {
       cy.get('#bluff-tokens-container .bluff-token').eq(index).click({ force: true });
@@ -102,9 +102,35 @@ describe('Bluff Tokens', () => {
     });
 
     // Verify all three have different characters
-    cy.get('#bluff-tokens-container .bluff-token[data-character="baron"]').should('exist');
-    cy.get('#bluff-tokens-container .bluff-token[data-character="poisoner"]').should('exist');
-    cy.get('#bluff-tokens-container .bluff-token[data-character="spy"]').should('exist');
+    cy.get('#bluff-tokens-container .bluff-token[data-character="washerwoman"]').should('exist');
+    cy.get('#bluff-tokens-container .bluff-token[data-character="librarian"]').should('exist');
+    cy.get('#bluff-tokens-container .bluff-token[data-character="butler"]').should('exist');
+  });
+
+  it('should only show townsfolk and outsiders when selecting bluffs', () => {
+    // Open bluff selector
+    cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+
+    // Search for a demon character (should not appear)
+    cy.get('#character-search').clear().type('imp');
+    cy.get('#character-grid .token[data-token-id="imp"]').should('not.exist');
+
+    // Search for a minion character (should not appear)
+    cy.get('#character-search').clear().type('baron');
+    cy.get('#character-grid .token[data-token-id="baron"]').should('not.exist');
+
+    // Search for a traveller character (should not appear)
+    cy.get('#character-search').clear().type('scapegoat');
+    cy.get('#character-grid .token[data-token-id="scapegoat"]').should('not.exist');
+
+    // Search for a townsfolk character (should appear)
+    cy.get('#character-search').clear().type('washerwoman');
+    cy.get('#character-grid .token[data-token-id="washerwoman"]').should('exist');
+
+    // Search for an outsider character (should appear)
+    cy.get('#character-search').clear().type('butler');
+    cy.get('#character-grid .token[data-token-id="butler"]').should('exist');
   });
 
   it('should allow hiding in-play characters when selecting bluffs', () => {
@@ -136,20 +162,20 @@ describe('Bluff Tokens', () => {
   it('should show tooltips with character info on hover', () => {
     // Assign a character first
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
-    cy.get('#character-search').type('baron');
+    cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
     // Hover over the bluff token
     cy.get('#bluff-tokens-container .bluff-token').first().trigger('mouseenter');
 
-    // Check for tooltip showing Baron's ability
+    // Check for tooltip showing Washerwoman's ability
     cy.get('#ability-tooltip').should('be.visible');
-    cy.get('#ability-tooltip').should('contain', 'There are extra Outsiders in play');
+    cy.get('#ability-tooltip').should('contain', 'You start knowing that 1 of 2 players is a particular Townsfolk');
   });
 
   it('should persist bluff tokens when saving and loading grimoire state', () => {
-    // Assign characters to bluff tokens
-    const characters = ['baron', 'poisoner', 'spy'];
+    // Assign townsfolk/outsider characters to bluff tokens
+    const characters = ['washerwoman', 'librarian', 'butler'];
 
     characters.forEach((character, index) => {
       cy.get('#bluff-tokens-container .bluff-token').eq(index).click({ force: true });
@@ -173,7 +199,7 @@ describe('Bluff Tokens', () => {
   it('should reset bluff tokens when starting a new game', () => {
     // Assign a character to a bluff token
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
-    cy.get('#character-search').type('baron');
+    cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
     // Start a new game - sidebar should already be visible
@@ -197,12 +223,12 @@ describe('Bluff Tokens', () => {
     cy.get('#character-modal').should('be.visible');
 
     // Select a character
-    cy.get('#character-search').type('baron');
+    cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
     // Verify assignment works on mobile
     cy.get('#bluff-tokens-container .bluff-token').first()
-      .should('have.attr', 'data-character', 'baron');
+      .should('have.attr', 'data-character', 'washerwoman');
   });
 
   it('should style bluff tokens distinctly from player tokens', () => {
@@ -230,10 +256,10 @@ describe('Bluff Tokens', () => {
     cy.get('#character-search').should('be.visible').type('washerwoman', { force: true });
     cy.get('#character-grid .token').first().click();
 
-    // Assign a character to a bluff token
+    // Assign a character to a bluff token (must be townsfolk/outsider)
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
-    cy.get('#character-search').should('be.visible').clear().type('baron', { force: true });
+    cy.get('#character-search').should('be.visible').clear().type('librarian', { force: true });
     cy.get('#character-grid .token').first().click();
 
     // Verify both assignments are independent
@@ -242,7 +268,7 @@ describe('Bluff Tokens', () => {
       .and('include', 'washerwoman');
 
     cy.get('#bluff-tokens-container .bluff-token').first()
-      .should('have.attr', 'data-character', 'baron');
+      .should('have.attr', 'data-character', 'librarian');
   });
 
   it('should work with different scripts', () => {
@@ -257,8 +283,8 @@ describe('Bluff Tokens', () => {
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
 
-    // Character grid should show Bad Moon Rising characters
-    cy.get('#character-search').type('zombuul');
+    // Character grid should show Bad Moon Rising townsfolk/outsiders only (not demons like Zombuul)
+    cy.get('#character-search').type('chambermaid');
     cy.get('#character-grid .token').should('have.length.greaterThan', 0);
   });
 });
