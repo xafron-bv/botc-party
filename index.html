@@ -218,6 +218,28 @@
         <button class="button" id="bag-random-fill">Randomly Fill</button>
         <button class="button start-selection">Start Number Selection</button>
       </div>
+      <div id="player-setup-counts" class="player-setup-counts" aria-live="polite" style="display:flex; flex-wrap:wrap; gap:12px; margin: 8px 0;">
+        <div class="team-count" data-team="townsfolk" style="display:flex; align-items:center; gap:6px;">
+          <span class="team-label" style="font-weight:600;">Townsfolk</span>
+          <span class="team-count-value"><span class="selected-count">0</span>/<span class="required-count">0</span></span>
+        </div>
+        <div class="team-count" data-team="outsiders" style="display:flex; align-items:center; gap:6px;">
+          <span class="team-label" style="font-weight:600;">Outsiders</span>
+          <span class="team-count-value"><span class="selected-count">0</span>/<span class="required-count">0</span></span>
+        </div>
+        <div class="team-count" data-team="minions" style="display:flex; align-items:center; gap:6px;">
+          <span class="team-label" style="font-weight:600;">Minions</span>
+          <span class="team-count-value"><span class="selected-count">0</span>/<span class="required-count">0</span></span>
+        </div>
+        <div class="team-count" data-team="demons" style="display:flex; align-items:center; gap:6px;">
+          <span class="team-label" style="font-weight:600;">Demons</span>
+          <span class="team-count-value"><span class="selected-count">0</span>/<span class="required-count">0</span></span>
+        </div>
+        <div class="team-count" data-team="travellers" style="display:none; align-items:center; gap:6px;">
+          <span class="team-label" style="font-weight:600;">Travellers</span>
+          <span class="team-count-value"><span class="selected-count">0</span></span>
+        </div>
+      </div>
       <div id="player-setup-character-list" style="max-height: 60vh; overflow-y: auto; margin-top: 8px;"></div>
     </div>
   </div>

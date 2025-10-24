@@ -11,7 +11,9 @@ export function countTravelers({ grimoireState }) {
     }
   });
   return travelerCount;
-} export function lookupCountsForPlayers({ grimoireState, count }) {
+}
+
+export function lookupCountsForPlayers({ grimoireState, count }) {
   if (!Array.isArray(grimoireState.playerSetupTable)) return null;
   const row = grimoireState.playerSetupTable.find(r => Number(r.players) === Number(count));
   return row || null;
@@ -31,7 +33,12 @@ export function renderSetupInfo({ grimoireState }) {
   const setupInfoEl = document.getElementById('setup-info');
   if (!setupInfoEl) return;
   const totalPlayers = grimoireState.players.length;
-  const travelerCount = countTravelers({ grimoireState });
+  const travellersInPlay = countTravelers({ grimoireState });
+  const playerSetupState = grimoireState.playerSetup || {};
+  const travellersAwaitingSelection = playerSetupState.selectionActive
+    ? Array.isArray(playerSetupState.travellerBag) ? playerSetupState.travellerBag.length : 0
+    : 0;
+  const travelerCount = travellersInPlay + travellersAwaitingSelection;
   const adjustedCount = totalPlayers - travelerCount;
   const row = lookupCountsForPlayers({ grimoireState, count: adjustedCount });
   // Prefer parsed meta name; otherwise keep any existing hint
