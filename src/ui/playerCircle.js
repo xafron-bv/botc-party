@@ -44,9 +44,8 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       return; // handled by info icon
     }
     if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-      const overlay = listItem.querySelector('.number-overlay');
-      const canPick = overlay && !overlay.classList.contains('disabled');
-      if (canPick && window.openNumberPickerForSelection) {
+      // Allow reassignment - openNumberPicker will handle freeing up previous selections
+      if (window.openNumberPickerForSelection) {
         window.openNumberPickerForSelection(playerIndex);
       }
     } else if (grimoireState && !grimoireState.grimoireHidden) {
