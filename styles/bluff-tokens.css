@@ -5,6 +5,7 @@
   left: 20px;
   display: flex;
   gap: 15px;
+  align-items: flex-end;
   z-index: 10;
 }
 
@@ -22,6 +23,7 @@
   background-color: rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
   overflow: visible;
+  flex-shrink: 0;
 }
 
 .bluff-token:hover {
@@ -42,6 +44,34 @@
     0 0 20px rgba(212, 175, 55, 0.7),
     inset 0 0 10px rgba(0, 0, 0, 0.2);
   background-color: transparent;
+}
+
+/* Attention pulse for storyteller reminder to add bluffs */
+.bluff-token.bluff-token-attention {
+  width: 120px;
+  height: 120px;
+  box-shadow:
+    0 0 22px rgba(255, 215, 0, 0.45),
+    inset 0 0 14px rgba(0, 0, 0, 0.35);
+  animation: bluff-token-attention-glow 1.6s ease-in-out infinite;
+}
+
+.bluff-token.bluff-token-attention:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes bluff-token-attention-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 22px rgba(255, 215, 0, 0.45),
+      inset 0 0 14px rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(255, 239, 150, 0.85),
+      inset 0 0 16px rgba(0, 0, 0, 0.4);
+  }
 }
 
 /* Readability improvements for curved labels on bluff & storyteller tokens */
@@ -104,6 +134,11 @@
     height: 60px;
   }
 
+  .bluff-token.bluff-token-attention {
+    width: 90px;
+    height: 90px;
+  }
+
   .bluff-label {
     font-size: 10px;
     bottom: -20px;
@@ -158,6 +193,11 @@
     height: 50px;
   }
 
+  .bluff-token.bluff-token-attention {
+    width: 75px;
+    height: 75px;
+  }
+
   .bluff-token .ability-info-icon {
     width: 20px;
     height: 20px;
@@ -174,6 +214,10 @@
     box-shadow:
       0 0 20px rgba(139, 69, 19, 0.8),
       inset 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .bluff-token.bluff-token-attention:hover {
+    transform: none;
   }
 }
 
