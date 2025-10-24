@@ -480,11 +480,15 @@ export function initPlayerSetup({ grimoireState }) {
     if (player && player.character) {
       const role = getRoleFromAnySources(grimoireState, player.character);
       if (role && role.team === 'traveller') {
-        if (!grimoireState.playerSetup.travellerBag) {
+        if (!Array.isArray(grimoireState.playerSetup.travellerBag)) {
           grimoireState.playerSetup.travellerBag = [];
         }
-        grimoireState.playerSetup.travellerBag.push(player.character);
+        if (!grimoireState.playerSetup.travellerBag.includes(player.character)) {
+          grimoireState.playerSetup.travellerBag.push(player.character);
+        }
         player.character = null;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
       }
     }
 
@@ -665,7 +669,6 @@ export function initPlayerSetup({ grimoireState }) {
         const bag = grimoireState.playerSetup.bag || [];
         const roleId = bag[bagIndex];
         const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
-        saveAppState({ grimoireState });
 
         // Disable picked number button
         target.classList.add('disabled');
@@ -685,10 +688,13 @@ export function initPlayerSetup({ grimoireState }) {
           overlay.textContent = String(bagIndex + 1);
           overlay.classList.add('disabled');
           overlay.classList.add('number-picked');
+          overlay.classList.remove('traveller-assigned');
           overlay.setAttribute('data-number', String(bagIndex + 1));
           // Keep onclick to allow reassignment
           overlay.onclick = () => openNumberPicker(forIdx);
         }
+
+        saveAppState({ grimoireState });
 
         // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
@@ -998,18 +1004,31 @@ export function restoreSelectionSession({ grimoireState }) {
 
       if (isTraveller) {
         // Travellers don't participate in number selection
-        overlay.textContent = '';
+        overlay.textContent = 'T';
         overlay.classList.add('disabled');
-        overlay.onclick = null;
+        overlay.classList.add('traveller-assigned');
+        overlay.classList.remove('number-picked');
+        overlay.removeAttribute('data-number');
+        overlay.onclick = () => {
+          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+        };
       } else {
         const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
         if (assigned) {
           overlay.textContent = String(assignments[idx] + 1); // visible numbering
           overlay.classList.add('disabled');
-          overlay.onclick = null;
+          overlay.classList.add('number-picked');
+          overlay.classList.remove('traveller-assigned');
+          overlay.setAttribute('data-number', String(assignments[idx] + 1));
+          overlay.onclick = () => {
+            if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+          };
         } else {
           overlay.textContent = '?';
           overlay.classList.remove('disabled');
+          overlay.classList.remove('number-picked');
+          overlay.classList.remove('traveller-assigned');
+          overlay.removeAttribute('data-number');
           overlay.onclick = () => {
             if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
           };
