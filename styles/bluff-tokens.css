@@ -5,6 +5,7 @@
   left: 20px;
   display: flex;
   gap: 15px;
+  align-items: flex-end;
   z-index: 10;
 }
 
@@ -22,6 +23,7 @@
   background-color: rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
   overflow: visible;
+  flex-shrink: 0;
 }
 
 .bluff-token:hover {
@@ -46,7 +48,8 @@
 
 /* Attention pulse for storyteller reminder to add bluffs */
 .bluff-token.bluff-token-attention {
-  transform: scale(1.05);
+  width: 120px;
+  height: 120px;
   box-shadow:
     0 0 22px rgba(255, 215, 0, 0.45),
     inset 0 0 14px rgba(0, 0, 0, 0.35);
@@ -54,7 +57,7 @@
 }
 
 .bluff-token.bluff-token-attention:hover {
-  transform: scale(1.05) translateY(-2px);
+  transform: translateY(-2px);
 }
 
 @keyframes bluff-token-attention-glow {
@@ -131,6 +134,11 @@
     height: 60px;
   }
 
+  .bluff-token.bluff-token-attention {
+    width: 90px;
+    height: 90px;
+  }
+
   .bluff-label {
     font-size: 10px;
     bottom: -20px;
@@ -185,6 +193,11 @@
     height: 50px;
   }
 
+  .bluff-token.bluff-token-attention {
+    width: 75px;
+    height: 75px;
+  }
+
   .bluff-token .ability-info-icon {
     width: 20px;
     height: 20px;
@@ -203,12 +216,8 @@
       inset 0 0 15px rgba(0, 0, 0, 0.3);
   }
 
-  .bluff-token.bluff-token-attention {
-    transform: scale(1.05);
-  }
-
   .bluff-token.bluff-token-attention:hover {
-    transform: scale(1.05);
+    transform: none;
   }
 }
 
