@@ -207,12 +207,38 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   }
 
   grimoireState.selectedBluffIndex = bluffIndex;
+
+  // Set up hide-in-play preference (default to true)
+  if (typeof grimoireState.hideInPlayForBluffs !== 'boolean') {
+    grimoireState.hideInPlayForBluffs = true;
+  }
+
   const modalTitle = characterModal.querySelector('h3');
   if (modalTitle) {
     modalTitle.textContent = `Select Bluff ${bluffIndex + 1}`;
   }
   if (characterModalPlayerName) {
     characterModalPlayerName.textContent = '';
+  }
+
+  // Show and configure hide-in-play checkbox
+  const hideContainer = document.getElementById('hide-in-play-container');
+  const hideCheckbox = document.getElementById('hide-in-play');
+  if (hideContainer && hideCheckbox) {
+    hideContainer.style.display = '';
+    hideCheckbox.checked = grimoireState.hideInPlayForBluffs;
+
+    // Remove old handler if exists
+    if (hideCheckbox._bluffHandler) {
+      hideCheckbox.removeEventListener('change', hideCheckbox._bluffHandler);
+    }
+
+    // Add new handler
+    hideCheckbox._bluffHandler = () => {
+      grimoireState.hideInPlayForBluffs = hideCheckbox.checked;
+      populateCharacterGrid({ grimoireState });
+    };
+    hideCheckbox.addEventListener('change', hideCheckbox._bluffHandler);
   }
 
   populateCharacterGrid({ grimoireState });

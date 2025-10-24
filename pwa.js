@@ -1,6 +1,11 @@
 // Service Worker registration and update handling (browser-native ES module)
 
-if ('serviceWorker' in navigator) {
+// Disable service worker during Cypress tests to avoid caching issues
+if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => registration.unregister());
+  });
+} else if (!window.Cypress && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('./service-worker.js')
