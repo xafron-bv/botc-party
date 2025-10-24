@@ -219,6 +219,10 @@ export function updateGrimoire({ grimoireState }) {
     ribbon.classList.add('death-ribbon');
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
+      // Prevent death ribbon interaction during number selection
+      if (grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+        return;
+      }
       const player = grimoireState.players[i];
       if (!player.dead) { // Phase 1: Alive -> Dead
         grimoireState.players[i].dead = true;
