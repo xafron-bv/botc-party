@@ -100,10 +100,12 @@ body.grimoire-hidden #player-circle li .player-token .death-vote-indicator {
   display: none !important;
 }
 
-/* During number selection, hide reminders and bluffs like hidden mode */
+/* During number selection, hide reminders, bluffs, and death UI like hidden mode */
 body.selection-active #player-circle li .reminders,
 body.selection-active #player-circle li .reminder-placeholder,
-body.selection-active #bluff-tokens-container {
+body.selection-active #bluff-tokens-container,
+body.selection-active #player-circle li .player-token .death-ribbon,
+body.selection-active #player-circle li .player-token .death-vote-indicator {
   display: none !important;
 }
 

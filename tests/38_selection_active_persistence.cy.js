@@ -9,25 +9,75 @@ describe('Selection session persistence', () => {
     cy.reload();
   });
 
-  it('restores selectionActive overlays and hidden grimoire after reload', () => {
+  it('restores selection state and keeps remaining players interactive after reload', () => {
     cy.get('#load-tb').click();
     cy.get('#player-count').clear().type('5');
     cy.get('#add-players').should('be.visible').click();
     cy.get('#player-circle li', { timeout: 8000 }).should('have.length', 5);
     cy.get('#open-player-setup').click();
-    // Random fill bag to satisfy bag count requirement
     cy.get('#bag-random-fill').click();
-    // Start number selection
     cy.get('#player-setup-panel .start-selection').click();
-    // Expect body state and hidden grimoire (grimoireHidden toggles token visibility; we assert body class and overlays)
     cy.get('body').should('have.class', 'selection-active');
     cy.get('#player-circle li .number-overlay', { timeout: 8000 }).should('have.length', 5);
-    // Reload
+
+    // Assign a number prior to reload
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().then(($btn) => {
+      const label = ($btn.text() || '').trim();
+      cy.wrap(label).as('reservedNumber');
+      cy.wrap($btn).click();
+    });
+    cy.get('body').then(($body) => {
+      const modal = $body.find('#player-reveal-modal:visible');
+      if (modal.length) {
+        const confirmBtn = modal.find('#reveal-confirm-btn');
+        if (confirmBtn.length) {
+          cy.wrap(confirmBtn).click();
+        }
+      }
+    });
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-circle li').eq(0).find('.number-overlay')
+      .invoke('text')
+      .should('match', /^[0-9]+$/);
+
+    // Reload mid-selection
     cy.reload();
-    // After reload restore selection-active UI
     cy.get('body').should('have.class', 'selection-active');
-    // Wait for player circle to be rebuilt and overlays re-applied (restoreSelectionSession may retry)
     cy.get('#player-circle li', { timeout: 8000 }).should('have.length', 5);
     cy.get('#player-circle li .number-overlay', { timeout: 8000 }).should('have.length', 5);
+
+    // Assigned player retains number and can reopen picker to change selection
+    cy.get('#player-circle li').eq(0).find('.number-overlay')
+      .invoke('text')
+      .should('match', /^[0-9]+$/);
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#close-number-picker').click({ force: true });
+    cy.get('#number-picker-overlay').should('not.be.visible');
+
+    // Unassigned player remains interactive
+    cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('@reservedNumber').then((reserved) => {
+      if (reserved) {
+        cy.get('#number-picker-grid .button.number').contains(reserved).should('have.class', 'disabled');
+      }
+    });
+    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().click();
+    cy.get('body').then(($body) => {
+      const modal = $body.find('#player-reveal-modal:visible');
+      if (modal.length) {
+        const confirmBtn = modal.find('#reveal-confirm-btn');
+        if (confirmBtn.length) {
+          cy.wrap(confirmBtn).click();
+        }
+      }
+    });
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-circle li').eq(1).find('.number-overlay')
+      .invoke('text')
+      .should('match', /^[0-9]+$/);
   });
 });

@@ -475,6 +475,23 @@ export function initPlayerSetup({ grimoireState }) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
     numberPickerGrid.innerHTML = '';
 
+    // Before opening picker, return any traveler assignment for this player to the bag
+    const player = grimoireState.players[forPlayerIndex];
+    if (player && player.character) {
+      const role = getRoleFromAnySources(grimoireState, player.character);
+      if (role && role.team === 'traveller') {
+        if (!Array.isArray(grimoireState.playerSetup.travellerBag)) {
+          grimoireState.playerSetup.travellerBag = [];
+        }
+        if (!grimoireState.playerSetup.travellerBag.includes(player.character)) {
+          grimoireState.playerSetup.travellerBag.push(player.character);
+        }
+        player.character = null;
+        updateGrimoire({ grimoireState });
+        saveAppState({ grimoireState });
+      }
+    }
+
     // Add traveller tokens first if any are in the traveller bag
     const travellerBag = grimoireState.playerSetup.travellerBag || [];
     if (travellerBag.length > 0) {
@@ -568,6 +585,12 @@ export function initPlayerSetup({ grimoireState }) {
 
           if (!roleId || !Number.isInteger(forIdx)) return;
 
+          // If this player already has a number assignment, free it up
+          const previousAssignment = grimoireState.playerSetup.assignments[forIdx];
+          if (previousAssignment !== null && previousAssignment !== undefined) {
+            grimoireState.playerSetup.assignments[forIdx] = null;
+          }
+
           // Assign traveller to player
           if (grimoireState.players && grimoireState.players[forIdx]) {
             grimoireState.players[forIdx].character = roleId;
@@ -597,7 +620,8 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.textContent = 'T'; // Mark as traveller
             overlay.classList.add('disabled');
             overlay.classList.add('traveller-assigned');
-            overlay.onclick = null;
+            // Keep onclick to allow reassignment
+            overlay.onclick = () => openNumberPicker(forIdx);
           }
 
           // Close picker, open reveal
@@ -645,7 +669,6 @@ export function initPlayerSetup({ grimoireState }) {
         const bag = grimoireState.playerSetup.bag || [];
         const roleId = bag[bagIndex];
         const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
-        saveAppState({ grimoireState });
 
         // Disable picked number button
         target.classList.add('disabled');
@@ -665,9 +688,13 @@ export function initPlayerSetup({ grimoireState }) {
           overlay.textContent = String(bagIndex + 1);
           overlay.classList.add('disabled');
           overlay.classList.add('number-picked');
+          overlay.classList.remove('traveller-assigned');
           overlay.setAttribute('data-number', String(bagIndex + 1));
-          overlay.onclick = null;
+          // Keep onclick to allow reassignment
+          overlay.onclick = () => openNumberPicker(forIdx);
         }
+
+        saveAppState({ grimoireState });
 
         // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
@@ -977,18 +1004,31 @@ export function restoreSelectionSession({ grimoireState }) {
 
       if (isTraveller) {
         // Travellers don't participate in number selection
-        overlay.textContent = '';
+        overlay.textContent = 'T';
         overlay.classList.add('disabled');
-        overlay.onclick = null;
+        overlay.classList.add('traveller-assigned');
+        overlay.classList.remove('number-picked');
+        overlay.removeAttribute('data-number');
+        overlay.onclick = () => {
+          if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+        };
       } else {
         const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
         if (assigned) {
           overlay.textContent = String(assignments[idx] + 1); // visible numbering
           overlay.classList.add('disabled');
-          overlay.onclick = null;
+          overlay.classList.add('number-picked');
+          overlay.classList.remove('traveller-assigned');
+          overlay.setAttribute('data-number', String(assignments[idx] + 1));
+          overlay.onclick = () => {
+            if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
+          };
         } else {
           overlay.textContent = '?';
           overlay.classList.remove('disabled');
+          overlay.classList.remove('number-picked');
+          overlay.classList.remove('traveller-assigned');
+          overlay.removeAttribute('data-number');
           overlay.onclick = () => {
             if (window.openNumberPickerForSelection) window.openNumberPickerForSelection(idx);
           };
