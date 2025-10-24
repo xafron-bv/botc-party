@@ -1,20 +1,22 @@
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
-import { loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid, hideCharacterModal } from './src/character.js';
-import { handleGrimoireBackgroundChange, initGrimoireBackground, loadPlayerSetupTable, renderSetupInfo, resetGrimoire, updateGrimoire, toggleGrimoireHidden, applyGrimoireHiddenState, showGrimoire } from './src/grimoire.js';
+import { hideCharacterModal, loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
+import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
+import { applyGrimoireHiddenState, resetGrimoire, showGrimoire, toggleGrimoireHidden, updateGrimoire } from './src/grimoire.js';
+import { initExportImport } from './src/history/exportImport.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
-import { initExportImport } from './src/history/exportImport.js';
-import { repositionPlayers } from './src/ui/layout.js';
+import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
+import { populateReminderTokenGrid } from './src/reminder.js';
 import { displayScript, loadScriptFile, loadScriptFromDataJson } from './src/script.js';
+import { initStorytellerMessages } from './src/storytellerMessages.js';
+import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initInAppTour } from './src/ui/tour.js';
-import { populateReminderTokenGrid } from './src/reminder.js';
-import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
-import { initDayNightTracking, generateReminderId, addReminderTimestamp, updateDayNightUI } from './src/dayNightTracking.js';
-import { initStorytellerMessages } from './src/storytellerMessages.js';
+import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui/background.js';
+import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
