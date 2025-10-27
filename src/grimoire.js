@@ -13,6 +13,7 @@ import { renderSetupInfo } from './utils/setup.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
+import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
@@ -178,28 +179,12 @@ export function updateGrimoire({ grimoireState }) {
         const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
         tokenDiv.appendChild(svg);
         if (role.ability && shouldShowCharacter) {
-          const infoIcon = document.createElement('div');
-          infoIcon.className = 'ability-info-icon';
-          // Provide screen-reader context and keyboard access without hover
-          infoIcon.setAttribute('role', 'button');
-          infoIcon.setAttribute('tabindex', '0');
-          infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
-          infoIcon.textContent = 'i';
-          infoIcon.dataset.playerIndex = i;
-          const handleInfoClick = (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            showTouchAbilityPopup(infoIcon, role.ability);
-          };
-          infoIcon.addEventListener('click', handleInfoClick);
-          infoIcon.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            handleInfoClick(e); // Call the click handler on touch
-          });
-          infoIcon.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              handleInfoClick(e);
+          const infoIcon = createAbilityInfoIcon({
+            ariaLabel: `Show ability for ${role.name}`,
+            title: `Show ability for ${role.name}`,
+            dataset: { playerIndex: String(i) },
+            onActivate: ({ icon }) => {
+              showTouchAbilityPopup(icon, role.ability);
             }
           });
           li.appendChild(infoIcon); // Append to li, not tokenDiv

@@ -3,6 +3,7 @@ import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
+import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 
 export function createBluffTokensContainer({ grimoireState }) {
   const container = document.createElement('div');
@@ -106,32 +107,14 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     }
 
     if (role.ability) {
-      const infoIcon = document.createElement('div');
-      infoIcon.className = 'ability-info-icon bluff-info-icon';
-      infoIcon.setAttribute('role', 'button');
-      infoIcon.setAttribute('tabindex', '0');
-      infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
-      infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-      infoIcon.dataset.bluffIndex = index;
-
-      const handleInfoClick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        showTouchAbilityPopup(infoIcon, role.ability);
-      };
-
-      infoIcon.addEventListener('click', handleInfoClick);
-      infoIcon.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleInfoClick(e);
-      });
-      infoIcon.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleInfoClick(e);
+      const infoIcon = createAbilityInfoIcon({
+        ariaLabel: `Show ability for ${role.name}`,
+        title: `Show ability for ${role.name}`,
+        dataset: { bluffIndex: String(index) },
+        onActivate: ({ icon }) => {
+          showTouchAbilityPopup(icon, role.ability);
         }
       });
-
       token.appendChild(infoIcon);
     }
   } else {
