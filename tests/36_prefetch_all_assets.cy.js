@@ -19,4 +19,15 @@ describe('Prefetch All Assets', () => {
     // Non-flaky minimal assertion: the manifest exists and is non-empty.
     // Prefetching is best-effort and may be environment-dependent in headless browsers.
   });
+
+  it('defers heavy asset prefetching to the service worker', () => {
+    cy.wait(500);
+    cy.get('body').then(($body) => {
+      expect($body.find('#loading-overlay').length, 'no loading overlay should be rendered').to.equal(0);
+    });
+    cy.window().then((win) => {
+      expect(win.__pagePrefetchPlanned, 'page-level prefetch loop should not run').to.be.undefined;
+      expect(win.__pagePrefetchDone, 'page-level prefetch loop completion flag should stay undefined').to.be.undefined;
+    });
+  });
 });

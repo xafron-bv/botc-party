@@ -72,28 +72,8 @@ if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.ge
         // Also attempt immediately in case it's already active
         triggerPrefetch();
 
-        // Additionally kick off eager fetches from the page so assets start
-        // downloading even before the SW takes control.
-        (async () => {
-          try {
-            const res = await fetch('./asset-manifest.json', { cache: 'no-store' });
-            if (!res.ok) return;
-            const { files } = await res.json();
-            if (!Array.isArray(files)) return;
-            try { window.__pagePrefetchPlanned = Array.isArray(files) ? files.length : 0; } catch (_) {}
-            const urls = files.map((u) => new URL(u, window.location.href).toString());
-            const CONCURRENCY = 8;
-            let index = 0;
-            async function worker() {
-              while (index < urls.length) {
-                const cur = urls[index++];
-                try { await fetch(cur, { cache: 'no-store' }); } catch (_) { /* best effort */ }
-              }
-            }
-            await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-            try { window.__pagePrefetchDone = true; } catch (_) {}
-          } catch (_) { /* ignore */ }
-        })();
+        // Rely on the service worker to handle bulk prefetching in the background
+        // so the main thread remains responsive during first paint.
       })
       .catch((error) => {
         console.error('Service worker registration failed:', error);
