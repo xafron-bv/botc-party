@@ -80,11 +80,11 @@ if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.ge
       });
   });
 
-  // Handle controller change (when skipWaiting is called)
-  let refreshing = false;
+  // Handle controller change (when skipWaiting is called). We no longer auto-reload; instead
+  // record the event so the app can decide when to refresh (avoids surprise reloads mid-session).
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload();
+    try {
+      window.__swControllerChanged = true;
+    } catch (_) { /* best effort */ }
   });
 }
