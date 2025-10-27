@@ -122,9 +122,7 @@ export function assignCharacter({ grimoireState, roleId }) {
           applyTokenArtwork({
             tokenEl: slotEl,
             baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
-            roleImage: resolveAssetPath(role.image),
-            activeColor: 'transparent',
-            emptyColor: 'rgba(0,0,0,0.2)'
+            roleImage: resolveAssetPath(role.image)
           });
           const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
           slotEl.appendChild(svg);
@@ -134,9 +132,7 @@ export function assignCharacter({ grimoireState, roleId }) {
           applyTokenArtwork({
             tokenEl: slotEl,
             baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
-            roleImage: null,
-            activeColor: 'transparent',
-            emptyColor: 'rgba(0,0,0,0.2)'
+            roleImage: null
           });
           const svg = createCurvedLabelSvg('story-slot-empty', 'None');
           slotEl.appendChild(svg);

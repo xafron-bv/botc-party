@@ -14,28 +14,24 @@ export function applyTokenArtwork({
   tokenEl,
   baseImage,
   roleImage,
-  activeColor = 'transparent',
-  emptyColor = 'rgba(0,0,0,0.2)',
   roleSize = '68% 68%, cover'
 }) {
   if (!tokenEl || !baseImage) return;
 
   const baseUrl = wrapUrl(baseImage);
-
   if (roleImage) {
     const roleUrl = wrapUrl(roleImage);
     tokenEl.style.backgroundImage = `${roleUrl}, ${baseUrl}`;
     tokenEl.style.backgroundSize = roleSize;
     tokenEl.style.backgroundPosition = 'center, center';
     tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
-    tokenEl.style.backgroundColor = activeColor;
   } else {
     tokenEl.style.backgroundImage = baseUrl;
     tokenEl.style.backgroundSize = 'cover';
     tokenEl.style.backgroundPosition = 'center';
     tokenEl.style.backgroundRepeat = 'no-repeat';
-    tokenEl.style.backgroundColor = emptyColor;
   }
+  tokenEl.style.backgroundColor = 'transparent';
 }
 
 function wrapUrl(url) {

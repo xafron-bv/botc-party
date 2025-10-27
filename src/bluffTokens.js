@@ -27,10 +27,11 @@ export function createBluffToken({ grimoireState, index }) {
   token.className = 'bluff-token empty';
   token.dataset.bluffIndex = index;
 
-  token.style.backgroundImage = `url('${BLUFF_BASE_TOKEN_IMAGE}')`;
-  token.style.backgroundSize = 'cover';
-  token.style.backgroundPosition = 'center';
-  token.style.backgroundRepeat = 'no-repeat';
+  applyTokenArtwork({
+    tokenEl: token,
+    baseImage: BLUFF_BASE_TOKEN_IMAGE,
+    roleImage: null
+  });
   token.style.position = 'relative';
   token.style.overflow = 'visible';
 
@@ -95,9 +96,7 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     applyTokenArtwork({
       tokenEl: token,
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
-      roleImage: characterImage,
-      activeColor: 'transparent',
-      emptyColor: 'rgba(0,0,0,0.3)'
+      roleImage: characterImage
     });
 
     let svg = token.querySelector('svg');
@@ -131,9 +130,7 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     applyTokenArtwork({
       tokenEl: token,
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
-      roleImage: null,
-      activeColor: 'transparent',
-      emptyColor: 'rgba(0,0,0,0.3)'
+      roleImage: null
     });
 
     const svg = token.querySelector('svg');

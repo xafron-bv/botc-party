@@ -177,9 +177,7 @@ export function updateGrimoire({ grimoireState }) {
         applyTokenArtwork({
           tokenEl: tokenDiv,
           baseImage: baseTokenImage,
-          roleImage,
-          emptyColor: 'rgba(0,0,0,0.2)',
-          activeColor: 'transparent'
+          roleImage
         });
         tokenDiv.classList.add('has-character');
         if (charNameDiv) charNameDiv.textContent = role.name;
@@ -200,9 +198,7 @@ export function updateGrimoire({ grimoireState }) {
         applyTokenArtwork({
           tokenEl: tokenDiv,
           baseImage: baseTokenImage,
-          roleImage: null,
-          emptyColor: 'rgba(0,0,0,0.2)',
-          activeColor: 'transparent'
+          roleImage: null
         });
         tokenDiv.classList.remove('has-character');
         if (charNameDiv) charNameDiv.textContent = '';
@@ -213,9 +209,7 @@ export function updateGrimoire({ grimoireState }) {
       applyTokenArtwork({
         tokenEl: tokenDiv,
         baseImage: baseTokenImage,
-        roleImage: null,
-        emptyColor: 'rgba(0,0,0,0.2)',
-        activeColor: 'transparent'
+        roleImage: null
       });
       tokenDiv.classList.remove('has-character');
       if (charNameDiv) charNameDiv.textContent = '';

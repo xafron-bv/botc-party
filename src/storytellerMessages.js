@@ -72,9 +72,7 @@ export function initStorytellerMessages({ grimoireState }) {
       applyTokenArtwork({
         tokenEl,
         baseImage,
-        roleImage: resolveAssetPath(role.image || './assets/img/token-BqDQdWeO.webp'),
-        activeColor: 'transparent',
-        emptyColor: 'rgba(0,0,0,0.2)'
+        roleImage: resolveAssetPath(role.image || './assets/img/token-BqDQdWeO.webp')
       });
       const svg = createCurvedLabelSvg(`story-msg-slot-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
       tokenEl.appendChild(svg);
@@ -84,9 +82,7 @@ export function initStorytellerMessages({ grimoireState }) {
       applyTokenArtwork({
         tokenEl,
         baseImage,
-        roleImage: null,
-        activeColor: 'transparent',
-        emptyColor: 'rgba(0,0,0,0.2)'
+        roleImage: null
       });
       const svg = createCurvedLabelSvg('story-msg-slot-empty', 'None');
       tokenEl.appendChild(svg);
