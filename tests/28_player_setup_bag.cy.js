@@ -288,7 +288,32 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
 
-  it('allows reassigning traveller to number and vice versa during number selection', () => {
+  it('locks a number assignment for a player once selected', () => {
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.get('#bag-random-fill').click();
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    cy.get('#player-setup-panel .start-selection').click();
+
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('body').then($body => {
+      if ($body.find('#player-reveal-modal:visible').length) {
+        cy.get('#reveal-confirm-btn').click();
+      }
+    });
+
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+    cy.get('#number-picker-overlay').should('not.be.visible');
+
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+  });
+
+  it('prevents reassigning traveller to a number during number selection', () => {
     // Use existing 10 player setup
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
@@ -324,33 +349,17 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     });
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
 
-    // Reassign that player to a number - click directly on the overlay with force
+    // Attempting to click again should not reopen the picker
     cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
-    cy.get('#number-picker-overlay').should('be.visible');
-    // Traveller should be back in the list
-    cy.get('#number-picker-overlay .traveller-token').should('have.length', 1);
-    cy.get('#number-picker-overlay .number').contains('1').click();
-    cy.get('body').then($body => {
-      if ($body.find('#player-reveal-modal:visible').length) {
-        cy.get('#reveal-confirm-btn').click();
-      }
-    });
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.window().its('grimoireState.players[0].character').should('not.be.null');
 
-    // Assign the traveller to another player to verify it's available
+    // The traveller should not appear for other players once assigned
     cy.get('#player-circle li').eq(1).click();
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-overlay .traveller-token').should('have.length', 1);
-    cy.get('#number-picker-overlay .traveller-token').first().click();
-    cy.get('body').then($body => {
-      if ($body.find('#player-reveal-modal:visible').length) {
-        cy.get('#reveal-confirm-btn').click();
-      }
-    });
-    cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', 'T');
+    cy.get('#number-picker-overlay .traveller-token').should('have.length', 0);
+    cy.get('#close-number-picker').click({ force: true });
   });
 
 
 });
-
-
