@@ -1,7 +1,7 @@
 import { resolveAssetPath } from '../utils.js';
 import { saveAppState } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
-import { calculateNightOrder, saveCurrentPhaseState, shouldShowNightOrder, updateDayNightUI } from './dayNightTracking.js';
+import { calculateNightOrder, saveCurrentPhaseState, shouldShowNightOrder, updateDayNightUI, getCurrentPhase } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal, renderRemindersForPlayer } from './reminder.js';
 import { showPlayerContextMenu, closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu } from './ui/contextMenu.js';
@@ -119,6 +119,14 @@ export function updateGrimoire({ grimoireState }) {
 
   const showNightReminders = shouldShowNightOrder(grimoireState);
   const nightOrderMap = showNightReminders ? calculateNightOrder(grimoireState) : {};
+  const currentPhase = getCurrentPhase(grimoireState);
+  const isFirstNight = currentPhase === 'N1';
+  const REMINDER_RADIUS_BASE = 1.26;
+  const NIGHT_ORDER_RADIUS = 1.24;
+  const RIGHT_OFFSET = Math.PI / 6;
+  const LEFT_OFFSET = -Math.PI / 6;
+  const LEFT_DELTA = Math.PI / 18;
+
   const getBluffRoleIds = () => {
     const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [];
     const ids = bluffs.slice(0, 3);
@@ -176,7 +184,7 @@ export function updateGrimoire({ grimoireState }) {
           infoIcon.setAttribute('role', 'button');
           infoIcon.setAttribute('tabindex', '0');
           infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
-          infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+          infoIcon.textContent = 'i';
           infoIcon.dataset.playerIndex = i;
           const handleInfoClick = (e) => {
             e.stopPropagation();
@@ -339,9 +347,8 @@ export function updateGrimoire({ grimoireState }) {
       ariaLabel,
       title,
       onActivate,
-      radius,
-      spacing,
-      offset
+      radiusFactor,
+      angleOffset = 0
     }) => {
       const reminder = document.createElement('div');
       reminder.className = `token-reminder${className ? ` ${className}` : ''}`;
@@ -350,14 +357,11 @@ export function updateGrimoire({ grimoireState }) {
       reminder.dataset.playerIndex = i;
       const orderIndex = nextReminderIndex++;
       reminder.dataset.reminderIndex = String(orderIndex);
-      if (typeof offset === 'number' && Number.isFinite(offset)) {
-        reminder.dataset.reminderOffset = String(offset);
+      if (typeof radiusFactor === 'number' && Number.isFinite(radiusFactor)) {
+        reminder.dataset.reminderRadius = String(radiusFactor);
       }
-      if (typeof radius === 'number') {
-        reminder.dataset.reminderRadius = String(radius);
-      }
-      if (typeof spacing === 'number') {
-        reminder.dataset.reminderSpacing = String(spacing);
+      if (typeof angleOffset === 'number' && Number.isFinite(angleOffset)) {
+        reminder.dataset.reminderAngleOffset = String(angleOffset);
       }
       if (onActivate) {
         reminder.setAttribute('role', 'button');
@@ -413,7 +417,7 @@ export function updateGrimoire({ grimoireState }) {
 
     const hasNightOrder = !!nightOrderMap[i];
     if (showNightReminders) {
-      if (role && role.team === 'demon') {
+      if (isFirstNight && role && role.team === 'demon') {
         addTokenReminder({
           text: 'B',
           testId: 'night-reminder-bluffs',
@@ -421,7 +425,8 @@ export function updateGrimoire({ grimoireState }) {
           ariaLabel: 'Show bluffs storyteller message',
           title: 'Show bluffs',
           onActivate: showBluffOverlay,
-          offset: hasNightOrder ? -1 : -0.5
+          radiusFactor: REMINDER_RADIUS_BASE,
+          angleOffset: LEFT_OFFSET - LEFT_DELTA
         });
       }
 
@@ -431,12 +436,13 @@ export function updateGrimoire({ grimoireState }) {
           testId: 'night-order-number',
           className: 'token-reminder--night-order',
           title: `Night order ${nightOrderMap[i]}`,
-          offset: 0
+          radiusFactor: NIGHT_ORDER_RADIUS,
+          angleOffset: RIGHT_OFFSET
         });
         reminder.dataset.playerIndex = i;
       }
 
-      if (role && role.team === 'demon') {
+      if (isFirstNight && role && role.team === 'demon') {
         addTokenReminder({
           text: 'M',
           testId: 'night-reminder-minions',
@@ -444,9 +450,10 @@ export function updateGrimoire({ grimoireState }) {
           ariaLabel: 'Show minions storyteller message',
           title: 'Show minions',
           onActivate: showMinionOverlay,
-          offset: hasNightOrder ? 1 : 0.5
+          radiusFactor: REMINDER_RADIUS_BASE,
+          angleOffset: LEFT_OFFSET + LEFT_DELTA
         });
-      } else if (role && role.team === 'minion') {
+      } else if (isFirstNight && role && role.team === 'minion') {
         addTokenReminder({
           text: 'D',
           testId: 'night-reminder-demon',
@@ -454,7 +461,8 @@ export function updateGrimoire({ grimoireState }) {
           ariaLabel: 'Show demon storyteller message',
           title: 'Show demon',
           onActivate: showDemonOverlay,
-          offset: hasNightOrder ? 1 : 0.5
+          radiusFactor: REMINDER_RADIUS_BASE,
+          angleOffset: LEFT_OFFSET
         });
       }
     }

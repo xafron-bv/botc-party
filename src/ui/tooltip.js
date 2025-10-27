@@ -123,25 +123,21 @@ export function positionTokenReminders() {
       return idxA - idxB;
     });
 
-    const baseAngle = angle - Math.PI / 4;
-    const baseRadialX = Math.cos(baseAngle);
-    const baseRadialY = Math.sin(baseAngle);
-    const tangentX = -baseRadialY;
-    const tangentY = baseRadialX;
-    const total = reminders.length;
-
     reminders.forEach((reminder, order) => {
-      const radiusFactor = parseFloat(reminder.dataset.reminderRadius || '1.35');
-      const spacingFactor = parseFloat(reminder.dataset.reminderSpacing || '0.6');
+      const radiusFactor = parseFloat(reminder.dataset.reminderRadius || '1.3');
+      const angleOffset = parseFloat(reminder.dataset.reminderAngleOffset || '0');
+      const spacingFactor = parseFloat(reminder.dataset.reminderSpacing || '0');
+      const customOffset = parseFloat(reminder.dataset.reminderOffset || 'NaN');
+      const offsetIndex = Number.isFinite(customOffset) ? customOffset : order;
+
+      const finalAngle = angle + angleOffset;
       const baseRadius = tokenRadius * radiusFactor;
       const spacing = tokenRadius * spacingFactor;
-      const customOffset = parseFloat(reminder.dataset.reminderOffset || 'NaN');
-      const offsetIndex = Number.isFinite(customOffset)
-        ? customOffset
-        : order - (total - 1) / 2;
+      const radialOffset = offsetIndex * spacing;
+      const radialMagnitude = baseRadius + radialOffset;
 
-      const x = baseRadius * baseRadialX + spacing * offsetIndex * tangentX;
-      const y = baseRadius * baseRadialY + spacing * offsetIndex * tangentY;
+      const x = radialMagnitude * Math.cos(finalAngle);
+      const y = radialMagnitude * Math.sin(finalAngle);
 
       reminder.style.left = `calc(50% + ${x}px)`;
       reminder.style.top = `calc(50% + ${y}px)`;
