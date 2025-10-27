@@ -4,6 +4,10 @@ import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { resolveAssetPath } from '../utils.js';
+
+const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
 
 export function createBluffTokensContainer({ grimoireState }) {
   const container = document.createElement('div');
@@ -23,7 +27,7 @@ export function createBluffToken({ grimoireState, index }) {
   token.className = 'bluff-token empty';
   token.dataset.bluffIndex = index;
 
-  token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
+  token.style.backgroundImage = `url('${BLUFF_BASE_TOKEN_IMAGE}')`;
   token.style.backgroundSize = 'cover';
   token.style.backgroundPosition = 'center';
   token.style.backgroundRepeat = 'no-repeat';
@@ -87,12 +91,14 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     token.classList.add('has-character');
     token.dataset.character = character;
 
-    const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
-    token.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
-    token.style.backgroundSize = '68% 68%, cover';
-    token.style.backgroundPosition = 'center, center';
-    token.style.backgroundRepeat = 'no-repeat, no-repeat';
-    token.style.backgroundColor = 'transparent';
+    const characterImage = role.image ? resolveAssetPath(role.image) : null;
+    applyTokenArtwork({
+      tokenEl: token,
+      baseImage: BLUFF_BASE_TOKEN_IMAGE,
+      roleImage: characterImage,
+      activeColor: 'transparent',
+      emptyColor: 'rgba(0,0,0,0.3)'
+    });
 
     let svg = token.querySelector('svg');
     if (svg) {
@@ -122,8 +128,13 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     token.classList.remove('has-character');
     delete token.dataset.character;
 
-    token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
-    token.style.backgroundSize = 'cover';
+    applyTokenArtwork({
+      tokenEl: token,
+      baseImage: BLUFF_BASE_TOKEN_IMAGE,
+      roleImage: null,
+      activeColor: 'transparent',
+      emptyColor: 'rgba(0,0,0,0.3)'
+    });
 
     const svg = token.querySelector('svg');
     if (svg) {
