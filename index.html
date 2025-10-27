@@ -27,6 +27,12 @@
       } catch(_){ /* ignore */ }
     })();
   </script>
+  <div id="app-loading" class="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-overlay__content">
+      <span class="loading-overlay__spinner" aria-hidden="true"></span>
+      <span id="app-loading-message">Loading the grimoire...</span>
+    </div>
+  </div>
   <div id="app">
     <div id="sidebar">
       <button class="button sidebar-close" id="sidebar-close" aria-label="Close sidebar">Close Sidebar</button>
