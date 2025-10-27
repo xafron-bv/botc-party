@@ -1,6 +1,5 @@
-
 import { createCurvedLabelSvg } from './ui/svg.js';
-import { positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
+import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
@@ -50,31 +49,6 @@ export function createBluffToken({ grimoireState, index }) {
     }
     e.stopPropagation();
     openBluffCharacterModal({ grimoireState, bluffIndex: index });
-  });
-
-  token.addEventListener('mouseenter', (_e) => {
-    const character = grimoireState.bluffs?.[index];
-    if (character) {
-      const role = grimoireState.allRoles[character];
-      if (role) {
-        const abilityTooltip = document.getElementById('ability-tooltip');
-        if (abilityTooltip) {
-          abilityTooltip.innerHTML = `
-            <div class="role-name">${role.name}</div>
-            <div class="role-ability">${role.ability || ''}</div>
-          `;
-          abilityTooltip.classList.add('show');
-          positionTooltip(token, abilityTooltip);
-        }
-      }
-    }
-  });
-
-  token.addEventListener('mouseleave', () => {
-    const abilityTooltip = document.getElementById('ability-tooltip');
-    if (abilityTooltip) {
-      abilityTooltip.classList.remove('show');
-    }
   });
 
   setupTouchHandling({
@@ -131,29 +105,12 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
       label.style.display = 'none';
     }
 
-    if (!('ontouchstart' in window)) {
-      let abilityTooltip = document.getElementById('ability-tooltip');
-      if (!abilityTooltip) {
-        abilityTooltip = document.createElement('div');
-        abilityTooltip.id = 'ability-tooltip';
-        abilityTooltip.className = 'ability-tooltip';
-        document.body.appendChild(abilityTooltip);
-      }
-
-      token.addEventListener('mouseenter', (e) => {
-        if (role.ability) {
-          abilityTooltip.textContent = role.ability;
-          abilityTooltip.classList.add('show');
-          positionTooltip(e.target, abilityTooltip);
-        }
-      });
-
-      token.addEventListener('mouseleave', () => {
-        abilityTooltip.classList.remove('show');
-      });
-    } else if (role.ability) {
+    if (role.ability) {
       const infoIcon = document.createElement('div');
       infoIcon.className = 'ability-info-icon bluff-info-icon';
+      infoIcon.setAttribute('role', 'button');
+      infoIcon.setAttribute('tabindex', '0');
+      infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
       infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
       infoIcon.dataset.bluffIndex = index;
 
@@ -163,11 +120,16 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
         showTouchAbilityPopup(infoIcon, role.ability);
       };
 
-      infoIcon.onclick = handleInfoClick;
+      infoIcon.addEventListener('click', handleInfoClick);
       infoIcon.addEventListener('touchstart', (e) => {
         e.stopPropagation();
         e.preventDefault();
         handleInfoClick(e);
+      });
+      infoIcon.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleInfoClick(e);
+        }
       });
 
       token.appendChild(infoIcon);

@@ -212,11 +212,6 @@ export function setupTouchHandling({
   } else {
     // Desktop (mouse) handlers - click for tap, right-click for long press equivalent
     const clickHandler = (e) => {
-      // Skip if click is on a child element that stopPropagation (like reminder action buttons)
-      if (e.target !== element && e.target.closest && e.target.closest('.reminder-action')) {
-        return;
-      }
-
       // Allow custom skip logic
       if (shouldSkip && shouldSkip(e)) {
         return;
@@ -231,11 +226,6 @@ export function setupTouchHandling({
 
     // Handle right-click (contextmenu) as equivalent to long press
     const contextMenuHandler = (e) => {
-      // Skip if right-click is on a child element with its own context menu
-      if (e.target !== element && e.target.closest && e.target.closest('.reminder-action')) {
-        return;
-      }
-
       // Allow custom skip logic
       if (shouldSkip && shouldSkip(e)) {
         return;
@@ -272,5 +262,4 @@ export function setupTouchHandling({
     };
   }
 }
-
 

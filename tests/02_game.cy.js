@@ -86,20 +86,23 @@ describe('Game', () => {
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
 
-    // Expand/collapse reminders stack using hover events (hover reminders region only)
-    cy.get('#player-circle li').eq(0).find('.reminders').trigger('mouseenter', { force: true });
+    // Expand reminders stack via click (no hover dependency)
+    cy.get('#player-circle li').eq(0).find('.reminders').click({ force: true });
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
 
-    // Delete one reminder via hover delete icon (no confirmation expected)
-    cy.get('#player-circle li').eq(0).find('.reminders .icon-reminder, .reminders .text-reminder').first().trigger('mouseenter');
+    // Delete one reminder via context menu (no confirmation expected)
     cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStubGame'); });
     cy.get('@confirmStubGame').its('callCount').then((before) => {
-      cy.get('#player-circle li').eq(0).find('.reminders .reminder-action.delete').first().click({ force: true });
+      cy.get('#player-circle li').eq(0)
+        .find('.reminders .icon-reminder, .reminders .text-reminder').first()
+        .trigger('contextmenu', { force: true });
+      cy.get('#reminder-context-menu').should('be.visible');
+      cy.get('#reminder-menu-delete').click({ force: true });
       cy.get('@confirmStubGame').its('callCount').should('eq', before);
     });
 
-    // Collapse stack
-    cy.get('#player-circle li').eq(0).find('.reminders').trigger('mouseleave', { force: true });
+    // Collapse stack by clicking outside
+    cy.get('body').click('topLeft');
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // Add custom text reminder via reminder token modal custom option
@@ -130,12 +133,11 @@ describe('Game', () => {
     // Name below token should be visible
     cy.get('#player-circle li .character-name').eq(0).should('contain', 'Chef');
 
-    // Tooltip should appear for non-touch simulation: mouseenter/mouseleave
-    cy.get('#player-circle li .player-token').eq(0).trigger('mouseenter');
-    cy.get('#ability-tooltip').should('have.class', 'show');
-    cy.get('#ability-tooltip').should('contain', 'pairs of evil players');
-    cy.get('#player-circle li .player-token').eq(0).trigger('mouseleave');
-    cy.get('#ability-tooltip').should('not.have.class', 'show');
+    // Info icon popup replaces hover tooltip on desktop
+    cy.get('#player-circle li').eq(0).find('.ability-info-icon').should('exist').click({ force: true });
+    cy.get('#touch-ability-popup').should('have.class', 'show').and('contain', 'pairs of evil players');
+    cy.get('body').click('topLeft');
+    cy.get('#touch-ability-popup').should('not.have.class', 'show');
   });
 
   it('grimoire history create/rename/load/delete', () => {

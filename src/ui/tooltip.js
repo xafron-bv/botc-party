@@ -119,8 +119,8 @@ export function positionNightOrderNumbers() {
     // Check if there's an info icon for this player
     const hasInfoIcon = li.querySelector('.ability-info-icon');
 
-    if (hasInfoIcon && 'ontouchstart' in window) {
-      // In touch mode with info icon, position at different angle
+    if (hasInfoIcon) {
+      // When ability info icon is present, offset night order to avoid overlapping
       // Position 45 degrees counter-clockwise from the character's angle
       const offsetAngle = angle - Math.PI / 4;
       const nightOrderRadius = tokenRadius * 1.35;
@@ -137,4 +137,3 @@ export function positionNightOrderNumbers() {
     }
   });
 }
-
