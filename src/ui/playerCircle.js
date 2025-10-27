@@ -93,37 +93,42 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   setupPlayerNameHandlers({ listItem, grimoireState, playerIndex });
 
   // Reminder placeholder click handler
-  listItem.querySelector('.reminder-placeholder').onclick = (e) => {
-    e.stopPropagation();
-    if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
+  const remindersEl = listItem.querySelector('.reminders');
+  const placeholderEl = listItem.querySelector('.reminder-placeholder');
 
-    const thisLi = listItem;
-    if (thisLi.dataset.expanded !== '1') {
-      const allLis = document.querySelectorAll('#player-circle li');
-      let someoneExpanded = false;
-      allLis.forEach(el => {
-        if (el !== thisLi && el.dataset.expanded === '1') {
-          someoneExpanded = true;
-          el.dataset.expanded = '0';
-          const idx = Array.from(allLis).indexOf(el);
-          positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
+  if (placeholderEl) {
+    placeholderEl.onclick = (e) => {
+      e.stopPropagation();
+      if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
+
+      const thisLi = listItem;
+      if (thisLi.dataset.expanded !== '1') {
+        const allLis = document.querySelectorAll('#player-circle li');
+        let someoneExpanded = false;
+        allLis.forEach(el => {
+          if (el !== thisLi && el.dataset.expanded === '1') {
+            someoneExpanded = true;
+            el.dataset.expanded = '0';
+            const idx = Array.from(allLis).indexOf(el);
+            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
+          }
+        });
+        if (someoneExpanded) {
+          thisLi.dataset.expanded = '1';
+          thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+          positionRadialStack(thisLi, getVisibleRemindersCount({ grimoireState, playerIndex }));
+          return;
         }
-      });
-      if (someoneExpanded) {
-        thisLi.dataset.expanded = '1';
-        thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-        positionRadialStack(thisLi, getVisibleRemindersCount({ grimoireState, playerIndex }));
-        return;
       }
-    }
-    if (isTouchDevice()) {
-      openReminderTokenModal({ grimoireState, playerIndex });
-    } else if (e.altKey) {
-      openTextReminderModal({ grimoireState, playerIndex });
-    } else {
-      openReminderTokenModal({ grimoireState, playerIndex });
-    }
-  };
+      if (isTouchDevice()) {
+        openReminderTokenModal({ grimoireState, playerIndex });
+      } else if (e.altKey) {
+        openTextReminderModal({ grimoireState, playerIndex });
+      } else {
+        openReminderTokenModal({ grimoireState, playerIndex });
+      }
+    };
+  }
 
   // Setup expand/collapse behavior
   listItem.dataset.expanded = '0';
@@ -145,29 +150,10 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
   };
 
-  const collapse = () => {
-    listItem.dataset.expanded = '0';
-    positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
-  };
-
-  // Desktop hover behavior
-  if (!isTouchDevice()) {
-    const remindersEl = listItem.querySelector('.reminders');
-    const placeholderEl = listItem.querySelector('.reminder-placeholder');
-
-    if (remindersEl) {
-      remindersEl.addEventListener('mouseenter', expand);
-      remindersEl.addEventListener('mouseleave', collapse);
-      remindersEl.addEventListener('pointerenter', expand);
-      remindersEl.addEventListener('pointerleave', collapse);
-    }
-
-    if (placeholderEl) {
-      placeholderEl.addEventListener('mouseenter', expand);
-      placeholderEl.addEventListener('mouseleave', collapse);
-      placeholderEl.addEventListener('pointerenter', expand);
-      placeholderEl.addEventListener('pointerleave', collapse);
-    }
+  if (remindersEl) {
+    remindersEl.addEventListener('click', () => {
+      expand();
+    });
   }
 
   // Touch expand behavior
@@ -196,7 +182,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   }, { passive: false });
 
   // Install global outside-click collapse handler (once per grimoire)
-  if (isTouchDevice() && !grimoireState.outsideCollapseHandlerInstalled) {
+  if (!grimoireState.outsideCollapseHandlerInstalled) {
     grimoireState.outsideCollapseHandlerInstalled = true;
     const maybeCollapseOnOutside = (ev) => {
       const target = ev.target;

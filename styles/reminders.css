@@ -203,54 +203,6 @@
 }
 
 /* Reminder hover actions (desktop): edit + delete icons */
-.reminder-action {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(16px, calc(var(--token-size) * 0.18), 28px);
-  height: clamp(16px, calc(var(--token-size) * 0.18), 28px);
-  min-width: 16px;
-  min-height: 16px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  border: 1px solid #D4AF37;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(12px, calc(var(--token-size) * 0.10), 16px);
-  line-height: 1;
-  opacity: 0;
-  transition: opacity .15s ease, transform .15s ease;
-  cursor: pointer;
-  z-index: 6;
-  pointer-events: auto;
-}
-
-.reminder-action i {
-  pointer-events: none;
-}
-
-.icon-reminder:hover .reminder-action,
-.text-reminder:hover .reminder-action {
-  opacity: 1;
-}
-
-.reminder-action.edit {
-  transform: translate(-50%, -50%) translate(-40%, -40%);
-}
-
-.reminder-action.delete {
-  transform: translate(-50%, -50%) translate(40%, -40%);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .reminder-action {
-    display: none;
-  }
-}
-
 /* purple placeholder circle on hover around plus button area */
 .reminder-placeholder::after {
   content: '';

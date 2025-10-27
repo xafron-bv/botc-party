@@ -159,18 +159,18 @@ describe('Bluff Tokens', () => {
     cy.get('#character-grid .token[data-token-id="washerwoman"]').should('not.exist');
   });
 
-  it('should show tooltips with character info on hover', () => {
+  it('should show ability info via bluff token info icon', () => {
     // Assign a character first
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-search').type('washerwoman');
     cy.get('#character-grid .token').first().click();
 
-    // Hover over the bluff token
-    cy.get('#bluff-tokens-container .bluff-token').first().trigger('mouseenter');
-
-    // Check for tooltip showing Washerwoman's ability
-    cy.get('#ability-tooltip').should('be.visible');
-    cy.get('#ability-tooltip').should('contain', 'You start knowing that 1 of 2 players is a particular Townsfolk');
+    // Info icon should display the ability popup
+    cy.get('#bluff-tokens-container .bluff-token').first().find('.ability-info-icon').should('exist').click({ force: true });
+    cy.get('#touch-ability-popup').should('have.class', 'show')
+      .and('contain', 'You start knowing that 1 of 2 players is a particular Townsfolk');
+    cy.get('body').click('topLeft');
+    cy.get('#touch-ability-popup').should('not.have.class', 'show');
   });
 
   it('should persist bluff tokens when saving and loading grimoire state', () => {
