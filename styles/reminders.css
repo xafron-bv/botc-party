@@ -95,6 +95,27 @@
   transform: scale(1.06);
 }
 
+/* Ensure reminder token labels match player token readability */
+.icon-reminder svg.icon-reminder-svg .icon-reminder-text {
+  fill: #fff;
+  paint-order: stroke fill;
+  stroke: rgba(0,0,0,0.675);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.675)) drop-shadow(0 0 4px rgba(0,0,0,0.6));
+}
+
+.icon-reminder svg.icon-reminder-svg path[id^="player-arc-"],
+.icon-reminder svg.icon-reminder-svg path[id^="arc-"],
+.icon-reminder svg.icon-reminder-svg path[id^="bluff-role-arc"],
+.icon-reminder svg.icon-reminder-svg path[id^="story-msg"],
+.icon-reminder svg.icon-reminder-svg path[id^="story-slot"],
+.icon-reminder svg.icon-reminder-svg path[id^="picker-role-arc"],
+.icon-reminder svg.icon-reminder-svg path[id^="picker-role-arc-empty"] {
+  stroke: none;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.525));
+}
+
 /* Touch press feedback for long-press capable reminders */
 .icon-reminder.press-feedback,
 .text-reminder.press-feedback {
