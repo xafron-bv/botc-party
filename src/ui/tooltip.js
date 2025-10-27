@@ -116,24 +116,14 @@ export function positionNightOrderNumbers() {
     const tokenEl = li.querySelector('.player-token');
     const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
 
-    // Check if there's an info icon for this player
-    const hasInfoIcon = li.querySelector('.ability-info-icon');
+    // Offset night order badge to avoid overlapping the info icon and match touch layout
+    const offsetAngle = angle - Math.PI / 4;
+    const nightOrderRadius = tokenRadius * 1.35;
 
-    if (hasInfoIcon) {
-      // When ability info icon is present, offset night order to avoid overlapping
-      // Position 45 degrees counter-clockwise from the character's angle
-      const offsetAngle = angle - Math.PI / 4;
-      const nightOrderRadius = tokenRadius * 1.35;
+    const x = nightOrderRadius * Math.cos(offsetAngle);
+    const y = nightOrderRadius * Math.sin(offsetAngle);
 
-      const x = nightOrderRadius * Math.cos(offsetAngle);
-      const y = nightOrderRadius * Math.sin(offsetAngle);
-
-      orderDiv.style.left = `calc(50% + ${x}px)`;
-      orderDiv.style.top = `calc(50% + ${y}px)`;
-    } else {
-      // No info icon or not in touch mode, use default position
-      orderDiv.style.left = '';
-      orderDiv.style.top = '';
-    }
+    orderDiv.style.left = `calc(50% + ${x}px)`;
+    orderDiv.style.top = `calc(50% + ${y}px)`;
   });
 }

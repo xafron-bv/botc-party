@@ -171,8 +171,8 @@
 /* Night Order Numbers */
 .night-order-number {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 50%;
+  left: 50%;
   width: 24px;
   height: 24px;
   background: #583286;
@@ -187,16 +187,7 @@
   z-index: 20;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
-}
-
-/* In touch mode, night order numbers have their position set dynamically */
-@media (hover: none) and (pointer: coarse) {
-  .night-order-number {
-    top: 50%;
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%);
-  }
+  transform: translate(-50%, -50%);
 }
 
 .player-token.is-dead .night-order-number {
