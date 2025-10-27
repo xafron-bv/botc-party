@@ -35,19 +35,6 @@ export function initStorytellerMessages({ grimoireState }) {
     });
   }
 
-  function focusMessageText() {
-    if (!messageTextEl) return;
-    try {
-      const selection = window.getSelection();
-      if (!selection) return;
-      const range = document.createRange();
-      range.selectNodeContents(messageTextEl);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    } catch (_) { /* ignore selection errors */ }
-    try { messageTextEl.focus(); } catch (_) { /* ignore focus errors */ }
-  }
-
   function applyRoleLookToToken(tokenEl, roleId) {
     if (!tokenEl) return;
     if (roleId) {
@@ -173,7 +160,11 @@ export function initStorytellerMessages({ grimoireState }) {
     if (messageTextEl) messageTextEl.textContent = text || '';
 
     messageDisplayModal.style.display = 'flex';
-    if (messageTextEl) requestAnimationFrame(() => focusMessageText());
+    if (messageTextEl) {
+      const selection = window.getSelection();
+      if (selection) selection.removeAllRanges();
+      try { messageTextEl.blur(); } catch (_) { /* ignore blur errors */ }
+    }
   }
 
   function hideStorytellerOverlay() {
