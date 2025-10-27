@@ -1,7 +1,7 @@
 // Layout and grimoire rendering helpers (browser-native ES module)
 
 import { minReminderSize } from '../constants.js';
-import { positionInfoIcons, positionNightOrderNumbers } from './tooltip.js';
+import { positionInfoIcons, positionTokenReminders } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
 
 export function repositionPlayers({ grimoireState }) {
@@ -89,7 +89,7 @@ export function repositionPlayers({ grimoireState }) {
     positionRadialStack(listItem, visibleCount);
   });
   positionInfoIcons();
-  positionNightOrderNumbers();
+  positionTokenReminders();
 }
 
 export function positionRadialStack(li, count) {
@@ -228,4 +228,3 @@ export function positionRadialStack(li, count) {
     }
   }
 }
-

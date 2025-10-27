@@ -168,16 +168,16 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Night Order Numbers */
-.night-order-number {
+/* Night Reminder Buttons */
+.token-reminder {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 24px;
   height: 24px;
-  background: #583286;
-  color: white;
-  border: 2px solid #7a4ba8;
+  background: rgba(88, 50, 134, 0.95);
+  color: #fff;
+  border: 2px solid rgba(122, 75, 168, 0.95);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -188,9 +188,55 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   transform: translate(-50%, -50%);
+  text-transform: uppercase;
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.player-token.is-dead .night-order-number {
+.token-reminder[role="button"] {
+  cursor: pointer;
+}
+
+.token-reminder[role="button"]:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.token-reminder[role="button"]:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+
+.token-reminder[role="button"]:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.token-reminder--night-order {
+  background: #583286;
+  border-color: #7a4ba8;
+}
+
+.token-reminder--bluffs {
+  background: #1e88e5;
+  border-color: #42a5f5;
+}
+
+.token-reminder--minions {
+  background: #fb8c00;
+  border-color: #ffb74d;
+  color: #1a1a1a;
+}
+
+.token-reminder--demon {
+  background: #e53935;
+  border-color: #ef5350;
+}
+
+.player-token.is-dead .token-reminder--night-order {
+  opacity: 0.6;
+}
+
+.player-token.is-dead .token-reminder--night-order[role="button"] {
   opacity: 0.6;
 }
 

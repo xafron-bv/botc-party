@@ -220,6 +220,69 @@ describe('Night Order Display', () => {
         expect(distance).to.be.greaterThan(tokenRect.width * 0.4);
       });
     });
+
+    it('should show demon and minion reminder buttons for night setup info', () => {
+      const bluffs = [
+        { id: 'washerwoman', name: 'Washerwoman' },
+        { id: 'librarian', name: 'Librarian' },
+        { id: 'investigator', name: 'Investigator' }
+      ];
+
+      bluffs.forEach((bluff, index) => {
+        cy.get('#bluff-tokens-container .bluff-token').eq(index).click({ force: true });
+        cy.get('#character-modal').should('be.visible');
+        cy.get('#character-search').clear().type(bluff.name);
+        cy.get(`#character-grid .token[data-token-id="${bluff.id}"]`).first().click();
+        cy.get('#character-modal').should('not.be.visible');
+      });
+
+      // Demon should have bluff and minion reminder buttons
+      cy.get('.player-token').eq(0).within(() => {
+        cy.get('[data-testid="night-reminder-bluffs"]').should('contain', 'B');
+        cy.get('[data-testid="night-reminder-minions"]').should('contain', 'M');
+      });
+
+      // Other players should not show these demon-specific buttons
+      cy.get('.player-token').eq(1).within(() => {
+        cy.get('[data-testid="night-reminder-bluffs"]').should('not.exist');
+        cy.get('[data-testid="night-reminder-minions"]').should('not.exist');
+      });
+
+      // Minion should have demon reminder button
+      cy.get('.player-token').eq(2).within(() => {
+        cy.get('[data-testid="night-reminder-demon"]').should('contain', 'D');
+      });
+
+      // Clicking demon bluff reminder should show bluff names
+      cy.get('.player-token').eq(0).find('[data-testid="night-reminder-bluffs"]').click({ force: true });
+      cy.get('#storyteller-message-display').should('be.visible');
+      cy.get('#storyteller-message-display .message-text').invoke('text').should('eq', 'THESE CHARACTERS ARE NOT IN PLAY');
+      cy.get('#storyteller-slots-display .token').should('have.length', 3);
+      cy.get('#storyteller-slots-display .token').then(($slots) => {
+        const roleIds = Array.from($slots, (el) => el.getAttribute('data-role-id'));
+        ['washerwoman', 'librarian', 'investigator'].forEach((id) => {
+          expect(roleIds).to.include(id);
+        });
+      });
+      cy.get('#close-storyteller-message-display').click();
+      cy.get('#storyteller-message-display').should('not.be.visible');
+
+      // Clicking demon minion reminder should show these are your minions message
+      cy.get('.player-token').eq(0).find('[data-testid="night-reminder-minions"]').click({ force: true });
+      cy.get('#storyteller-message-display').should('be.visible');
+      cy.get('#storyteller-message-display .message-text').invoke('text').should('eq', 'THESE ARE YOUR MINIONS');
+      cy.get('#storyteller-slots-display .token').should('have.length', 0);
+      cy.get('#close-storyteller-message-display').click();
+      cy.get('#storyteller-message-display').should('not.be.visible');
+
+      // Clicking minion demon reminder should show this is the demon message
+      cy.get('.player-token').eq(2).find('[data-testid="night-reminder-demon"]').click({ force: true });
+      cy.get('#storyteller-message-display').should('be.visible');
+      cy.get('#storyteller-message-display .message-text').invoke('text').should('eq', 'THIS IS THE DEMON');
+      cy.get('#storyteller-slots-display .token').should('have.length', 0);
+      cy.get('#close-storyteller-message-display').click();
+      cy.get('#storyteller-message-display').should('not.be.visible');
+    });
   });
 
   describe('Night Order with Different Scripts', () => {

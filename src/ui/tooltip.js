@@ -31,7 +31,9 @@ export function showTouchAbilityPopup(targetElement, ability) {
   popup.classList.add('show');
 
   // If targetElement is the info icon, find the nearest token element for better positioning
-  const isInfoIcon = targetElement.classList.contains('ability-info-icon');
+  const isInfoIcon = targetElement.classList.contains('ability-info-icon') ||
+    targetElement.classList.contains('night-reminder-button') ||
+    targetElement.classList.contains('token-reminder');
   const parent = targetElement.parentElement;
   const referenceElement = isInfoIcon
     ? (parent && (parent.querySelector('.player-token, .bluff-token') || parent))
@@ -69,7 +71,7 @@ export function hideTouchAbilityPopup() {
 
 // Hide touch popup when clicking outside
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.ability-info-icon') && !e.target.closest('.touch-ability-popup')) {
+  if (!e.target.closest('.ability-info-icon, .night-reminder-button, .token-reminder') && !e.target.closest('.touch-ability-popup')) {
     hideTouchAbilityPopup();
   }
 });
@@ -101,29 +103,52 @@ export function positionInfoIcons() {
   });
 }
 
-export function positionNightOrderNumbers() {
+export function positionTokenReminders() {
   const circle = document.getElementById('player-circle');
   if (!circle) return;
 
-  // Get all night order numbers
-  const nightOrders = circle.querySelectorAll('.night-order-number');
+  const tokens = circle.querySelectorAll('.player-token');
 
-  nightOrders.forEach((orderDiv) => {
-    const li = orderDiv.parentElement.parentElement; // parent is token, grandparent is li
+  tokens.forEach((token) => {
+    const li = token.parentElement;
+    if (!li) return;
     const angle = parseFloat(li.dataset.angle || '0');
+    const tokenRadius = token.offsetWidth ? token.offsetWidth / 2 : 50;
+    const reminders = Array.from(token.querySelectorAll('.token-reminder'));
+    if (!reminders.length) return;
 
-    // Calculate radius for night order numbers
-    const tokenEl = li.querySelector('.player-token');
-    const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
+    reminders.sort((a, b) => {
+      const idxA = parseFloat(a.dataset.reminderIndex || '0');
+      const idxB = parseFloat(b.dataset.reminderIndex || '0');
+      return idxA - idxB;
+    });
 
-    // Offset night order badge to avoid overlapping the info icon and match touch layout
-    const offsetAngle = angle - Math.PI / 4;
-    const nightOrderRadius = tokenRadius * 1.35;
+    const baseAngle = angle - Math.PI / 4;
+    const baseRadialX = Math.cos(baseAngle);
+    const baseRadialY = Math.sin(baseAngle);
+    const tangentX = -baseRadialY;
+    const tangentY = baseRadialX;
+    const total = reminders.length;
 
-    const x = nightOrderRadius * Math.cos(offsetAngle);
-    const y = nightOrderRadius * Math.sin(offsetAngle);
+    reminders.forEach((reminder, order) => {
+      const radiusFactor = parseFloat(reminder.dataset.reminderRadius || '1.35');
+      const spacingFactor = parseFloat(reminder.dataset.reminderSpacing || '0.6');
+      const baseRadius = tokenRadius * radiusFactor;
+      const spacing = tokenRadius * spacingFactor;
+      const customOffset = parseFloat(reminder.dataset.reminderOffset || 'NaN');
+      const offsetIndex = Number.isFinite(customOffset)
+        ? customOffset
+        : order - (total - 1) / 2;
 
-    orderDiv.style.left = `calc(50% + ${x}px)`;
-    orderDiv.style.top = `calc(50% + ${y}px)`;
+      const x = baseRadius * baseRadialX + spacing * offsetIndex * tangentX;
+      const y = baseRadius * baseRadialY + spacing * offsetIndex * tangentY;
+
+      reminder.style.left = `calc(50% + ${x}px)`;
+      reminder.style.top = `calc(50% + ${y}px)`;
+    });
   });
+}
+
+export function positionNightOrderNumbers() {
+  positionTokenReminders();
 }
