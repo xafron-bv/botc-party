@@ -7,7 +7,7 @@ import { openReminderTokenModal, renderRemindersForPlayer } from './reminder.js'
 import { showPlayerContextMenu, closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu } from './ui/contextMenu.js';
 import { positionRadialStack, repositionPlayers } from './ui/layout.js';
 import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './ui/svg.js';
-import { positionInfoIcons, positionNightOrderNumbers, positionTooltip, showTouchAbilityPopup } from './ui/tooltip.js';
+import { positionInfoIcons, positionNightOrderNumbers, showTouchAbilityPopup } from './ui/tooltip.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
@@ -142,9 +142,7 @@ export function updateGrimoire({ grimoireState }) {
     if (oldCircle) oldCircle.remove();
     const oldRibbon = tokenDiv.querySelector('.death-ribbon');
     if (oldRibbon) oldRibbon.remove();
-    if (grimoireState.grimoireHidden && tokenDiv) {
-      li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
-    }
+    li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
 
     // Check if we're in selection mode and this is a traveller
     const isSelectionActive = grimoireState.playerSetup && grimoireState.playerSetup.selectionActive;
@@ -161,22 +159,13 @@ export function updateGrimoire({ grimoireState }) {
         if (charNameDiv) charNameDiv.textContent = role.name;
         const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
         tokenDiv.appendChild(svg);
-        if (!('ontouchstart' in window)) {
-          tokenDiv.addEventListener('mouseenter', (e) => {
-            if (grimoireState.grimoireHidden && (!isSelectionActive || !isTraveller)) return;
-            if (role.ability) {
-              abilityTooltip.textContent = role.ability;
-              abilityTooltip.classList.add('show');
-              positionTooltip(e.target, abilityTooltip);
-            }
-          });
-
-          tokenDiv.addEventListener('mouseleave', () => {
-            abilityTooltip.classList.remove('show');
-          });
-        } else if (role.ability && shouldShowCharacter) {
+        if (role.ability && shouldShowCharacter) {
           const infoIcon = document.createElement('div');
           infoIcon.className = 'ability-info-icon';
+          // Provide screen-reader context and keyboard access without hover
+          infoIcon.setAttribute('role', 'button');
+          infoIcon.setAttribute('tabindex', '0');
+          infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
           infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
           infoIcon.dataset.playerIndex = i;
           const handleInfoClick = (e) => {
@@ -184,11 +173,16 @@ export function updateGrimoire({ grimoireState }) {
             e.preventDefault();
             showTouchAbilityPopup(infoIcon, role.ability);
           };
-          infoIcon.onclick = handleInfoClick;
+          infoIcon.addEventListener('click', handleInfoClick);
           infoIcon.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             e.preventDefault();
             handleInfoClick(e); // Call the click handler on touch
+          });
+          infoIcon.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleInfoClick(e);
+            }
           });
           li.appendChild(infoIcon); // Append to li, not tokenDiv
         }
@@ -344,9 +338,7 @@ export function updateGrimoire({ grimoireState }) {
     const visibleRemindersCount = renderRemindersForPlayer({ li, grimoireState, playerIndex: i });
     positionRadialStack(li, visibleRemindersCount);
   });
-  if ('ontouchstart' in window) {
-    positionInfoIcons();
-  }
+  positionInfoIcons();
   positionNightOrderNumbers();
   updateAllBluffTokens({ grimoireState });
 }

@@ -64,7 +64,7 @@
   overflow: visible;
 }
 
-/* Ability info icon for touch mode */
+/* Ability info icon used instead of hover tooltips */
 .ability-info-icon {
   position: absolute;
   width: calc(var(--token-size) * 0.25);
@@ -99,4 +99,3 @@
 .ability-info-icon:active {
   transform: translate(-50%, -50%) scale(0.95);
 }
-

@@ -14,15 +14,15 @@ describe('Ability UI - Desktop', () => {
     cy.setupGame({ players: 5, loadScript: true });
   });
 
-  it('tooltip appears on hover; content populated', () => {
+  it('uses ability info icon popup just like touch mode', () => {
     cy.get('#player-circle li .player-token').eq(0).click({ force: true });
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
-    // Hover shows tooltip; just ensure the tooltip element exists and eventually has non-empty text
-    cy.get('#player-circle li .player-token').eq(0).trigger('mouseenter');
-    cy.get('#ability-tooltip').should('exist');
-    cy.get('#ability-tooltip').invoke('text').should('match', /\S/);
+    cy.get('#player-circle li').eq(0).find('.ability-info-icon').should('exist').click({ force: true });
+    cy.get('#touch-ability-popup').should('have.class', 'show').and('contain', 'pairs of evil players');
+    cy.get('body').click('topLeft');
+    cy.get('#touch-ability-popup').should('not.have.class', 'show');
   });
 });
 
@@ -308,4 +308,3 @@ describe('Ability UI - Touch', () => {
 
 
 });
-

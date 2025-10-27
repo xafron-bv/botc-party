@@ -67,19 +67,21 @@ describe('Death & Reminders', () => {
     cy.get('#text-reminder-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned today');
 
-    // Edit via hover edit icon on desktop
+    // Edit via reminder context menu (consistent across input types)
     cy.window().then((win) => {
       cy.stub(win, 'prompt').returns('Poisoned at dusk');
     });
-    cy.get('#player-circle li .text-reminder').first().trigger('mouseenter');
-    cy.get('#player-circle li .text-reminder .reminder-action.edit').first().click({ force: true });
+    cy.get('#player-circle li .text-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('#reminder-context-menu').should('be.visible');
+    cy.get('#reminder-menu-edit').click({ force: true });
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned at dusk');
 
-    // Delete text reminder via hover delete icon on desktop (no confirmation expected)
+    // Delete text reminder via context menu (no confirmation expected)
     cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStub'); });
-    cy.get('#player-circle li .text-reminder').first().trigger('mouseenter');
+    cy.get('#player-circle li .text-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('#reminder-context-menu').should('be.visible');
     cy.get('@confirmStub').its('callCount').then((before) => {
-      cy.get('#player-circle li .text-reminder .reminder-action.delete').first().click({ force: true });
+      cy.get('#reminder-menu-delete').click({ force: true });
       cy.get('@confirmStub').its('callCount').should('eq', before);
     });
     cy.get('#player-circle li .text-reminder').should('have.length', 0);
@@ -93,14 +95,15 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
 
-    // Expand stack for hover actions (hover reminders region only)
-    cy.get('#player-circle li').first().find('.reminders').trigger('mouseenter', { force: true });
+    // Expand stack via click (no hover dependency)
+    cy.get('#player-circle li').first().find('.reminders').click({ force: true });
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
 
     // Edit the icon reminder label to a very short string 'hi'
     cy.window().then((win) => { cy.stub(win, 'prompt').returns('hi'); });
-    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('mouseenter');
-    cy.get('#player-circle li').first().find('.icon-reminder .reminder-action.edit').first().click({ force: true });
+    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('#reminder-context-menu').should('be.visible');
+    cy.get('#reminder-menu-edit').click({ force: true });
     // Assert the curved SVG text renders without forced spacing (no textLength for short labels)
     cy.get('#player-circle li').first().find('.icon-reminder .icon-reminder-svg textPath').first()
       .should('contain.text', 'hi')
@@ -108,9 +111,10 @@ describe('Death & Reminders', () => {
 
     // Delete the icon reminder and ensure no confirmation occurs
     cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStub2'); });
-    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('mouseenter');
+    cy.get('#player-circle li').first().find('.icon-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('#reminder-context-menu').should('be.visible');
     cy.get('@confirmStub2').its('callCount').then((before) => {
-      cy.get('#player-circle li').first().find('.icon-reminder .reminder-action.delete').first().click({ force: true });
+      cy.get('#reminder-menu-delete').click({ force: true });
       cy.get('@confirmStub2').its('callCount').should('eq', before);
     });
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length', 0);
@@ -236,4 +240,3 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
   });
 });
-
