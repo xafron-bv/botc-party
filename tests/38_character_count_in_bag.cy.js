@@ -33,6 +33,19 @@ describe('Player Setup - Character Count in Bag', () => {
     });
   });
 
+  it('adds exactly one entry when token label is toggled', () => {
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+
+    cy.get('#player-setup-character-list .team-grid .role').first().as('firstRole');
+    cy.get('@firstRole').click({ force: true });
+
+    cy.window().then((win) => {
+      const bag = (win.grimoireState && win.grimoireState.playerSetup && win.grimoireState.playerSetup.bag) || [];
+      expect(bag.length).to.equal(1);
+    });
+  });
+
   it('allows increasing character count', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');

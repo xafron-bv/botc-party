@@ -247,7 +247,7 @@ export function initPlayerSetup({ grimoireState }) {
           if (idxInBag !== -1) grimoireState.playerSetup.bag.splice(idxInBag, 1);
         }
 
-        const tokenEl = document.createElement('div');
+        const tokenEl = document.createElement('label');
         tokenEl.className = 'token role';
         tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
         tokenEl.style.backgroundSize = '68% 68%, cover';
@@ -395,9 +395,7 @@ export function initPlayerSetup({ grimoireState }) {
           saveAppState({ grimoireState });
         };
 
-        checkbox.addEventListener('click', (e) => { e.stopPropagation(); if (isBagDisabled) e.preventDefault(); });
         checkbox.addEventListener('change', (e) => { e.stopPropagation(); if (isBagDisabled) { e.preventDefault(); return; } toggle(); });
-        tokenEl.addEventListener('click', () => { if (isBagDisabled) return; checkbox.checked = !checkbox.checked; toggle(); });
         const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
         tokenEl.appendChild(svg);
         tokenEl.appendChild(checkbox);
