@@ -385,6 +385,9 @@ export function updateGrimoire({ grimoireState }) {
         reminder.addEventListener('touchstart', (event) => {
           event.stopPropagation();
         }, { passive: true });
+        reminder.addEventListener('touchend', (event) => {
+          activate(event);
+        }, { passive: false });
       } else {
         reminder.setAttribute('aria-hidden', 'true');
         if (title) reminder.setAttribute('title', title);
