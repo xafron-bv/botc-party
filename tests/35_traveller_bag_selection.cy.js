@@ -213,7 +213,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-circle li').eq(2).find('.character-name').should('have.text', '');
   });
 
-  it('restores traveller availability and removes traveller display when replaced by a number', () => {
+  it('locks traveller assignment once selected and keeps it unavailable to others', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
@@ -260,20 +260,18 @@ describe('Traveller Bag Selection', () => {
       }
     });
 
-    // Reassign same player to a numbered token
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
-    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().click();
-    cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-confirm-btn').click();
-    cy.window().its('grimoireState.players[0].character').should('be.null');
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('not.contain', 'T').and('have.class', 'number-picked');
-    cy.get('#player-circle li').eq(0).find('.player-token').should('not.have.class', 'has-character');
-    cy.get('#player-circle li').eq(0).find('.character-name').should('have.text', '');
+    // Attempting to reopen for the same player should do nothing
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.window().its('grimoireState.players[0].character').should('not.be.null');
 
-    // Traveller should be available again for other players
+    // Traveller should remain unavailable to other players
     cy.get('#player-circle li').eq(1).find('.number-overlay').click();
     cy.get('@travellerTitle').then((title) => {
-      cy.get('#number-picker-grid .traveller-token').filter((_, el) => el.getAttribute('title') === title).should('exist');
+      cy.get('#number-picker-grid').then(($grid) => {
+        const tokens = $grid.find(`.traveller-token[title="${title}"]`);
+        expect(tokens.length).to.equal(0);
+      });
     });
     cy.get('#close-number-picker').click({ force: true });
   });

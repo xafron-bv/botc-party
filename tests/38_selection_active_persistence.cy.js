@@ -48,13 +48,11 @@ describe('Selection session persistence', () => {
     cy.get('#player-circle li', { timeout: 8000 }).should('have.length', 5);
     cy.get('#player-circle li .number-overlay', { timeout: 8000 }).should('have.length', 5);
 
-    // Assigned player retains number and can reopen picker to change selection
+    // Assigned player retains number and cannot reopen picker to change selection
     cy.get('#player-circle li').eq(0).find('.number-overlay')
       .invoke('text')
       .should('match', /^[0-9]+$/);
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
-    cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#close-number-picker').click({ force: true });
+    cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
 
     // Unassigned player remains interactive
