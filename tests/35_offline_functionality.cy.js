@@ -23,7 +23,7 @@ describe('Offline Functionality', () => {
 
       if (cacheName) {
         const cache = await win.caches.open(cacheName);
-        const cachedResponse = await cache.match('./index.html') || await cache.match('/');
+        const cachedResponse = await cache.match('index.html') || await cache.match('./index.html') || await cache.match('/');
 
         if (cachedResponse) {
           // This is the KEY test for the redirect loop bug:
@@ -44,6 +44,17 @@ describe('Offline Functionality', () => {
         cy.log('Service worker cache not yet created');
       }
     });
+  });
+
+  it('should cache index.html using a normalized path', () => {
+    cy.request('/service-worker.js')
+      .its('body')
+      .then((body) => {
+        expect(body, 'service worker should declare normalized index cache key')
+          .to.include("const INDEX_HTML_CACHE_KEY = 'index.html'");
+        expect(body, 'service worker should not cache index.html using ./index.html key')
+          .to.not.include("cache.put('./index.html'");
+      });
   });
 
   it('should load the app when going offline after initial visit', () => {

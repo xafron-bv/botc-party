@@ -395,16 +395,18 @@ export async function loadAllCharacters({ grimoireState }) {
     if (Array.isArray(characters)) {
       characters.forEach(role => {
         if (!role || !role.id) return;
+        const teamName = (role.team || '').toLowerCase();
+        if (teamName === 'traveller') {
+          return;
+        }
+        if ((role.edition || '').toLowerCase() === 'special') {
+          return;
+        }
         const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
         const image = resolveAssetPath(imagePath);
-        const teamName = (role.team || '').toLowerCase();
         const canonical = { ...role, image, team: teamName };
         roleLookup[role.id] = canonical;
-        if (teamName === 'traveller') {
-          grimoireState.extraTravellerRoles[role.id] = canonical;
-        } else {
-          grimoireState.baseRoles[role.id] = canonical;
-        }
+        grimoireState.baseRoles[role.id] = canonical;
         characterIds.push(role.id);
       });
     }
@@ -426,5 +428,4 @@ export async function loadAllCharacters({ grimoireState }) {
     loadStatus.className = 'error';
   }
 }
-
 

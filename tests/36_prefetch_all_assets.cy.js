@@ -19,4 +19,27 @@ describe('Prefetch All Assets', () => {
     // Non-flaky minimal assertion: the manifest exists and is non-empty.
     // Prefetching is best-effort and may be environment-dependent in headless browsers.
   });
+
+  it('shows a loading overlay until initial render completes', () => {
+    cy.window().its('__overlayInitialVisible').should('be.true');
+    cy.window().its('__overlayInitialMessage').should('contain', 'Loading the grimoire');
+
+    // Once initialization is done, the overlay should cleanly disappear
+    cy.get('#app-loading', { timeout: 20000 }).should('not.exist');
+
+    // Verify overlay removal only happens after the load lifecycle
+    cy.window().should((win) => {
+      expect(win.__overlayRemoved, 'overlay should eventually be removed').to.be.true;
+      expect(win.__windowLoadCompleted, 'window load should complete before overlay removal').to.be.true;
+      if (typeof win.__overlayRemovedAt === 'number' && typeof win.__windowLoadTimestamp === 'number') {
+        expect(win.__overlayRemovedAt).to.be.at.least(win.__windowLoadTimestamp);
+      }
+    });
+
+    // Still no page-side prefetch loop flags should be set
+    cy.window().then((win) => {
+      expect(win.__pagePrefetchPlanned, 'page-level prefetch loop should not run').to.be.undefined;
+      expect(win.__pagePrefetchDone, 'page-level prefetch loop completion flag should stay undefined').to.be.undefined;
+    });
+  });
 });

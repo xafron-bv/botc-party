@@ -1,10 +1,11 @@
 const CACHE_NAME = 'botc-party-grimoire-v101';
 const ASSET_MANIFEST_URL = './asset-manifest.json';
+const INDEX_HTML_CACHE_KEY = 'index.html';
 
-// Minimal core files needed to bootstrap the app (avoid './' to prevent caching redirects)
+// Minimal core files needed to bootstrap the app using normalized paths (avoid './')
 const CORE_FILES = [
-  './index.html',
-  './manifest.json'
+  INDEX_HTML_CACHE_KEY,
+  'manifest.json'
 ];
 
 // Files and patterns that should use network-first strategy
@@ -65,8 +66,7 @@ self.addEventListener('fetch', event => {
       try {
         const preloaded = await event.preloadResponse;
         if (preloaded) {
-          const clone = preloaded.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
+          cacheIndexHtmlResponse(preloaded);
           return preloaded;
         }
       } catch (_) { }
@@ -74,12 +74,11 @@ self.addEventListener('fetch', event => {
       try {
         const networkResponse = await fetch(event.request);
         if (networkResponse && networkResponse.ok) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', clone));
+          cacheIndexHtmlResponse(networkResponse);
         }
         return networkResponse;
       } catch (_) {
-        const cached = await caches.match('./index.html');
+        const cached = await caches.match(INDEX_HTML_CACHE_KEY);
         if (cached) {
           return cached;
         }
@@ -118,7 +117,7 @@ self.addEventListener('fetch', event => {
               }
               // Return cached index.html for navigation requests
               if (event.request.mode === 'navigate') {
-                return caches.match('./index.html');
+                return caches.match(INDEX_HTML_CACHE_KEY);
               }
               return null;
             });
@@ -161,7 +160,7 @@ self.addEventListener('fetch', event => {
           .catch(() => {
             // Return cached index.html for navigation requests
             if (event.request.mode === 'navigate') {
-              return caches.match('./index.html');
+              return caches.match(INDEX_HTML_CACHE_KEY);
             }
             return null;
           });
@@ -259,6 +258,19 @@ async function prefetchSpecificAssets(files) {
 function isNetworkFirst(url) {
   const pathname = new URL(url).pathname;
   return NETWORK_FIRST_PATTERNS.some(pattern => pattern.test(pathname));
+}
+
+async function cacheIndexHtmlResponse(response) {
+  try {
+    if (!response) return;
+    if (!response.ok) return;
+    if (response.type === 'opaqueredirect') return;
+    const cache = await caches.open(CACHE_NAME);
+    await cache.put(INDEX_HTML_CACHE_KEY, response.clone());
+    try {
+      await cache.delete('./index.html');
+    } catch (_) { /* cleanup only */ }
+  } catch (_) { /* best effort */ }
 }
 
 // Handle background sync for offline functionality
