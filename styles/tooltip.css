@@ -67,9 +67,10 @@
 /* Ability info icon used instead of hover tooltips */
 .ability-info-icon {
   position: absolute;
-  width: calc(var(--token-size) * 0.25);
-  height: calc(var(--token-size) * 0.25);
-  background: none;
+  width: calc(var(--token-size) * 0.2);
+  height: calc(var(--token-size) * 0.2);
+  background: #D4AF37;
+  color: #1a1a1a;
   border: none;
   border-radius: 50%;
   display: flex;
@@ -85,15 +86,9 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-}
-
-.ability-info-icon i {
-  color: #D4AF37;
-  font-size: calc(var(--token-size) * 0.18);
-  line-height: 1;
-  display: block;
-  pointer-events: none;
-  /* Ensure clicks pass through to parent */
+  font-size: calc(var(--token-size) * 0.12);
+  font-weight: 700;
+  text-transform: lowercase;
 }
 
 .ability-info-icon:active {
