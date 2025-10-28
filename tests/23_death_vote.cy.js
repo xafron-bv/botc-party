@@ -219,4 +219,51 @@ describe('Death Vote Indicator', () => {
     // Alive count should update to 6/8
     cy.get('#setup-info').should('contain', '6/8');
   });
+
+  it('does not open character modal when using death vote indicator on touch', () => {
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.ontouchstart = null;
+      }
+    });
+    cy.viewport(1280, 900);
+    cy.window().then((win) => {
+      try { win.localStorage.clear(); } catch (_) { }
+    });
+    cy.get('#load-tb').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+
+    startGameWithPlayers(8);
+    cy.window().then((win) => {
+      win.grimoireState.gameStarted = true;
+      win.grimoireState.grimoireHidden = false;
+    });
+
+    // Mark first player as dead
+    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
+      cy.get('rect, path').first().click({ force: true });
+    });
+
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
+    cy.get('#character-modal').should('not.be.visible');
+
+    const baseTouch = {
+      eventConstructor: 'TouchEvent',
+      touches: [{ clientX: 20, clientY: 20, identifier: 1 }],
+      changedTouches: [{ clientX: 20, clientY: 20, identifier: 1 }],
+      bubbles: true,
+      cancelable: true,
+      force: true
+    };
+
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator')
+      .scrollIntoView({ offset: { top: -100, left: 0 } })
+      .trigger('touchstart', baseTouch)
+      .trigger('touchend', { ...baseTouch, touches: [] });
+
+    cy.wait(50);
+
+    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('not.exist');
+    cy.get('#character-modal').should('not.be.visible');
+  });
 });
