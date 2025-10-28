@@ -15,3 +15,46 @@
 @import url('./styles/night-order.css');
 @import url('./styles/day-night-tracking.css');
 @import url('./styles/bluff-tokens.css');
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 16, 36, 0.9);
+  color: #fff;
+  z-index: 9999;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-overlay__content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 90vw;
+}
+
+.loading-overlay__spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  animation: loading-overlay-spin 1s linear infinite;
+}
+
+@keyframes loading-overlay-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
