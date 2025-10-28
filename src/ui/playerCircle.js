@@ -43,6 +43,9 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     if (target && target.classList.contains('ability-info-icon')) {
       return; // handled by info icon
     }
+    if (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) {
+      return; // handled by death vote indicator
+    }
     if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
       // Allow reassignment - openNumberPicker will handle freeing up previous selections
       if (window.openNumberPickerForSelection) {
@@ -79,6 +82,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     shouldSkip: (e) => {
       const target = e.target;
       return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+        (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) ||
         (target && target.classList.contains('ability-info-icon'));
     }
   });
@@ -167,6 +171,9 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     }
     if (target && target.closest('.player-name')) {
       return; // Don't expand for player name taps
+    }
+    if (target && target.closest('.death-vote-indicator')) {
+      return; // Don't expand when tapping ghost vote indicator
     }
     const tappedReminders = !!(target && target.closest('.reminders'));
     const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
