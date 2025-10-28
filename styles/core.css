@@ -55,6 +55,88 @@ body {
   background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
 }
 
+/* Clock face readability & patina overlay */
+:is(
+  .player-token,
+  .icon-reminder,
+  .text-reminder,
+  #character-grid .token,
+  #player-setup-character-list .token,
+  #reminder-token-grid .token,
+  .bluff-token
+)::before {
+  content: '';
+  position: absolute;
+  inset: 2.5%;
+  border-radius: 50%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 50% 50%,
+      rgba(62, 44, 22, 0.12) 0%,
+      rgba(88, 62, 26, 0.16) 30%,
+      rgba(104, 74, 32, 0.22) 46%,
+      rgba(94, 66, 30, 0.34) 58%,
+      rgba(74, 52, 28, 0.48) 70%,
+      rgba(58, 42, 24, 0.64) 82%,
+      rgba(38, 26, 18, 0.82) 100%),
+    radial-gradient(circle at 32% 28%, rgba(196, 156, 82, 0.28) 0%, rgba(196, 156, 82, 0) 48%),
+    radial-gradient(circle at 68% 40%, rgba(168, 128, 66, 0.24) 0%, rgba(168, 128, 66, 0) 44%);
+  background-blend-mode: multiply;
+  filter: blur(3px) saturate(145%);
+  mix-blend-mode: multiply;
+  opacity: 0.94;
+  mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.04) 36%,
+    rgba(0, 0, 0, 0.62) 60%,
+    rgba(0, 0, 0, 0.84) 82%,
+    rgba(0, 0, 0, 1) 100%);
+  -webkit-mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.04) 36%,
+    rgba(0, 0, 0, 0.62) 60%,
+    rgba(0, 0, 0, 0.84) 82%,
+    rgba(0, 0, 0, 1) 100%);
+}
+
+:is(
+  .player-token,
+  .icon-reminder,
+  .text-reminder,
+  #character-grid .token,
+  #player-setup-character-list .token,
+  #reminder-token-grid .token,
+  .bluff-token
+)::after {
+  content: '';
+  position: absolute;
+  inset: 3.2%;
+  border-radius: 50%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 50% 32%, rgba(255, 232, 180, 0.28) 0%, rgba(255, 232, 180, 0.14) 32%, rgba(0, 0, 0, 0) 58%),
+    radial-gradient(circle at 45% 68%, rgba(150, 96, 42, 0.32) 0%, rgba(150, 96, 42, 0) 48%),
+    radial-gradient(circle at 62% 58%, rgba(118, 72, 26, 0.26) 0%, rgba(118, 72, 26, 0) 44%),
+    radial-gradient(circle at 22% 72%, rgba(186, 132, 58, 0.18) 0%, rgba(186, 132, 58, 0) 38%),
+    repeating-conic-gradient(
+      from 15deg,
+      rgba(176, 128, 62, 0.12) 0deg 10deg,
+      rgba(86, 52, 22, 0) 10deg 24deg),
+    radial-gradient(circle at 50% 50%, rgba(210, 170, 104, 0.14) 0%, rgba(210, 170, 104, 0) 80%);
+  background-blend-mode: screen, multiply, multiply, multiply, color-burn, overlay;
+  filter: saturate(125%);
+  opacity: 0.66;
+  mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.35) 56%,
+    rgba(0, 0, 0, 0.82) 100%);
+  -webkit-mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.35) 56%,
+    rgba(0, 0, 0, 0.82) 100%);
+}
+
+
 /* Background variants applied to #center via JS */
 #center.bg-dark {
   background-color: #111;
