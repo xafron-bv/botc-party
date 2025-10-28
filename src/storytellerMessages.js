@@ -2,6 +2,14 @@ import { populateCharacterGrid } from './character.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 // Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
+let showOverlayHandler = null;
+
+export function showStorytellerMessage({ text = '', slotCount = 0, slotRoleIds = [] } = {}) {
+  if (typeof showOverlayHandler === 'function') {
+    showOverlayHandler({ text, slotCount, slotRoleIds });
+  }
+}
+
 export function initStorytellerMessages({ grimoireState }) {
   const openStorytellerMessageBtn = document.getElementById('open-storyteller-message');
   const storytellerMessageModal = document.getElementById('storyteller-message-modal');
@@ -40,6 +48,11 @@ export function initStorytellerMessages({ grimoireState }) {
 
   function applyRoleLookToToken(tokenEl, roleId) {
     if (!tokenEl) return;
+    if (roleId) {
+      tokenEl.dataset.roleId = roleId;
+    } else {
+      delete tokenEl.dataset.roleId;
+    }
     const existingSvg = tokenEl.querySelector('svg');
     if (existingSvg) existingSvg.remove();
 
@@ -136,15 +149,25 @@ export function initStorytellerMessages({ grimoireState }) {
     } catch (_) { /* ignore */ }
   }
 
-  function showStorytellerOverlay(initialText, slotCount) {
+  function showStorytellerOverlay({ text = '', slotCount = 0, slotRoleIds = [] } = {}) {
     if (!messageDisplayModal) return;
-    currentMessageSlotCount = Math.max(0, slotCount || 0);
+    const providedSlotCount = Array.isArray(slotRoleIds) && slotRoleIds.length > 0
+      ? slotRoleIds.length
+      : slotCount;
+    currentMessageSlotCount = Math.max(0, providedSlotCount || 0);
     if (!Array.isArray(grimoireState.storytellerTempSlots) || grimoireState.storytellerTempSlots.length !== currentMessageSlotCount) {
       grimoireState.storytellerTempSlots = new Array(currentMessageSlotCount).fill(null);
     }
 
+    if (Array.isArray(slotRoleIds) && slotRoleIds.length) {
+      grimoireState.storytellerTempSlots = slotRoleIds.slice(0, currentMessageSlotCount);
+      while (grimoireState.storytellerTempSlots.length < currentMessageSlotCount) {
+        grimoireState.storytellerTempSlots.push(null);
+      }
+    }
+
     renderSlotTokens();
-    if (messageTextEl) messageTextEl.textContent = initialText || '';
+    if (messageTextEl) messageTextEl.textContent = text || '';
 
     messageDisplayModal.style.display = 'flex';
     if (messageTextEl) requestAnimationFrame(() => focusMessageText());
@@ -207,7 +230,7 @@ export function initStorytellerMessages({ grimoireState }) {
       btn.textContent = msg.text;
       btn.addEventListener('click', () => {
         if (storytellerMessageModal) storytellerMessageModal.style.display = 'none';
-        showStorytellerOverlay(msg.text, msg.slots || 0);
+        showStorytellerOverlay({ text: msg.text, slotCount: msg.slots || 0 });
       });
       storytellerMessagePicker.appendChild(btn);
     });
@@ -245,6 +268,10 @@ export function initStorytellerMessages({ grimoireState }) {
     });
   }
 
-
+  showOverlayHandler = ({ text = '', slotCount = 0, slotRoleIds = [] } = {}) => {
+    showStorytellerOverlay({ text, slotCount, slotRoleIds });
+  };
+  if (grimoireState) {
+    grimoireState.showStorytellerMessage = showOverlayHandler;
+  }
 }
-
