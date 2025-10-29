@@ -185,7 +185,7 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   position: absolute;
   left: 50%;
-  top: calc(50% + var(--token-size) * 0.8);
+  top: calc(50% + var(--token-size) / 2 + var(--player-name-gap));
   /* Base centering transform; rotation (if any) is appended via CSS var */
   --name-rotate: 0deg;
   transform: translate(-50%, -50%) rotate(var(--name-rotate));
@@ -206,7 +206,7 @@
 
 /* Position player names above tokens for top half of circle */
 .player-name.top-half {
-  top: calc(50% - var(--token-size) * 0.8);
+  top: calc(50% - var(--token-size) / 2 - var(--player-name-gap));
 }
 
 /* When in a curved quadrant (NE or SW), we rotate the tag to be tangent to the circle */

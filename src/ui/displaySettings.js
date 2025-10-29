@@ -150,23 +150,44 @@ export function initDisplaySettings({ grimoireState }) {
     if (element && element.parentElement) {
       markerElement = element.parentElement.querySelector(`.slider-marker[data-settings-marker="${attr}"]`);
     }
+    const defaultMinPercent = element ? Number(element.min || '0') : 0;
+    const defaultMaxPercent = element ? Number(element.max || '100') : 100;
     return {
       ...config,
       element,
-      markerElement
+      markerElement,
+      defaultMinPercent,
+      defaultMaxPercent
     };
   });
 
   sliderConfigs.forEach((cfg) => {
     if (!cfg.element) return;
     const scale = clampScale(stored[cfg.field] ?? cfg.defaultScale, cfg);
+    stored[cfg.field] = scale;
     cfg.element.value = String(Math.round(scale * 100));
     updateValueDisplay({ config: cfg, scale, panel });
-    stored[cfg.field] = scale;
     updateMarkerPosition(cfg);
   });
 
   let isOpen = false;
+  let isUpdatingBounds = false;
+  let boundsUpdateScheduled = false;
+
+  const scheduleSliderBoundsUpdate = () => {
+    if (boundsUpdateScheduled) return;
+    boundsUpdateScheduled = true;
+    const run = () => {
+      boundsUpdateScheduled = false;
+      updateSliderBounds();
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(run);
+    } else {
+      setTimeout(run, 16);
+    }
+  };
+
   const recalcMarkers = () => {
     const run = () => sliderConfigs.forEach((cfg) => updateMarkerPosition(cfg));
     if (typeof requestAnimationFrame === 'function') {

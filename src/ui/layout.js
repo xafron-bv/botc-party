@@ -8,6 +8,13 @@ export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
   const count = players.length;
   if (count === 0) return;
+  let nameGapPx = 32;
+  try {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const gapStr = rootStyles.getPropertyValue('--player-name-gap');
+    const parsed = parseFloat(gapStr);
+    if (!Number.isNaN(parsed)) nameGapPx = parsed;
+  } catch (_) { /* default gap */ }
   const circle = document.getElementById('player-circle');
   if (!circle) return;
   const listItemsForSize = circle.querySelectorAll('li');
@@ -73,8 +80,7 @@ export function repositionPlayers({ grimoireState }) {
         try {
           const tokenEl = listItem.querySelector('.player-token');
           const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
-          const baseOffset = tokenSize * 0.7; // tuned outward distance
-          const outward = baseOffset;
+          const outward = tokenSize / 2 + nameGapPx;
           const dx = Math.cos(angle) * outward;
           const dy = Math.sin(angle) * outward;
           playerNameEl.style.left = `calc(50% + ${dx}px)`;

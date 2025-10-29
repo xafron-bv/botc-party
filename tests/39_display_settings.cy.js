@@ -9,23 +9,42 @@ describe('Display Settings Controls', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { /* ignore */ } });
     cy.setupGame({ players: 5, loadScript: true });
     cy.get('#player-circle li').should('have.length', 5);
+    cy.get('#player-circle li').filter((_, el) => {
+      const $el = Cypress.$(el);
+      const nameEl = $el.find('.player-name');
+      return !$el.hasClass('is-north') && !nameEl.hasClass('curved-quadrant');
+    }).first().as('stablePlayer');
   });
 
   it('adjusts sizes through sliders and persists across reload', () => {
     let baseTokenWidth;
     let baseNameFontSize;
     let baseCircleWidth;
+    let baseNameGap;
 
     cy.get('#player-circle').then(($circle) => {
       baseCircleWidth = $circle[0].getBoundingClientRect().width;
     });
 
-    cy.get('#player-circle li').first().find('.player-token').then(($token) => {
+    cy.get('@stablePlayer').find('.player-token').then(($token) => {
       baseTokenWidth = $token[0].getBoundingClientRect().width;
     });
 
-    cy.get('#player-circle li').first().find('.player-name').then(($name) => {
+    cy.get('@stablePlayer').find('.player-name').then(($name) => {
       baseNameFontSize = parseFloat(getComputedStyle($name[0]).fontSize);
+    });
+
+    cy.get('@stablePlayer').then(($li) => {
+      const tokenEl = $li.find('.player-token')[0];
+      const nameEl = $li.find('.player-name')[0];
+      const tokenRect = tokenEl.getBoundingClientRect();
+      const nameRect = nameEl.getBoundingClientRect();
+      const tokenCenterX = tokenRect.left + tokenRect.width / 2;
+      const tokenCenterY = tokenRect.top + tokenRect.height / 2;
+      const nameCenterX = nameRect.left + nameRect.width / 2;
+      const nameCenterY = nameRect.top + nameRect.height / 2;
+      const centerDist = Math.hypot(nameCenterX - tokenCenterX, nameCenterY - tokenCenterY);
+      baseNameGap = Math.abs(centerDist - tokenRect.width / 2);
     });
 
     cy.get('[data-testid="display-settings-toggle"]').should('be.visible').click();
@@ -36,7 +55,7 @@ describe('Display Settings Controls', () => {
     cy.get('[data-testid="player-name-slider"]').should('have.value', '100')
       .invoke('val', 120).trigger('input');
 
-    cy.get('#player-circle li').first().find('.player-token').should(($token) => {
+    cy.get('@stablePlayer').find('.player-token').should(($token) => {
       const width = $token[0].getBoundingClientRect().width;
       expect(width).to.be.greaterThan(baseTokenWidth * 1.35);
     });
@@ -54,9 +73,23 @@ describe('Display Settings Controls', () => {
       expect(width).to.be.greaterThan(baseCircleWidth * 1.25);
     });
 
-    cy.get('#player-circle li').first().find('.player-name').should(($name) => {
+    cy.get('@stablePlayer').find('.player-name').should(($name) => {
       const fontSize = parseFloat(getComputedStyle($name[0]).fontSize);
       expect(fontSize).to.be.greaterThan(baseNameFontSize * 1.15);
+    });
+
+    cy.get('@stablePlayer').then(($li) => {
+      const tokenEl = $li.find('.player-token')[0];
+      const nameEl = $li.find('.player-name')[0];
+      const tokenRect = tokenEl.getBoundingClientRect();
+      const nameRect = nameEl.getBoundingClientRect();
+      const tokenCenterX = tokenRect.left + tokenRect.width / 2;
+      const tokenCenterY = tokenRect.top + tokenRect.height / 2;
+      const nameCenterX = nameRect.left + nameRect.width / 2;
+      const nameCenterY = nameRect.top + nameRect.height / 2;
+      const centerDist = Math.hypot(nameCenterX - tokenCenterX, nameCenterY - tokenCenterY);
+      const adjustedGap = Math.abs(centerDist - tokenRect.width / 2);
+      expect(adjustedGap).to.be.closeTo(baseNameGap, 4);
     });
 
     cy.window().then((win) => {
