@@ -7,6 +7,7 @@ import { renderSetupInfo } from './utils/setup.js';
 import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -118,19 +119,21 @@ export function assignCharacter({ grimoireState, roleId }) {
         if (role && role.image) {
           slotEl.classList.remove('empty');
           slotEl.classList.add('has-character');
-          slotEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-          slotEl.style.backgroundSize = '68% 68%, cover';
-          slotEl.style.backgroundPosition = 'center, center';
-          slotEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+          applyTokenArtwork({
+            tokenEl: slotEl,
+            baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
+            roleImage: resolveAssetPath(role.image)
+          });
           const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
           slotEl.appendChild(svg);
         } else {
           slotEl.classList.add('empty');
           slotEl.classList.remove('has-character');
-          slotEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-          slotEl.style.backgroundSize = 'cover';
-          slotEl.style.backgroundPosition = 'center';
-          slotEl.style.backgroundRepeat = 'no-repeat';
+          applyTokenArtwork({
+            tokenEl: slotEl,
+            baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
+            roleImage: null
+          });
           const svg = createCurvedLabelSvg('story-slot-empty', 'None');
           slotEl.appendChild(svg);
         }
@@ -428,4 +431,3 @@ export async function loadAllCharacters({ grimoireState }) {
     loadStatus.className = 'error';
   }
 }
-

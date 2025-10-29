@@ -8,6 +8,7 @@ import { positionRadialStack } from './ui/layout.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -199,7 +200,11 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       const iconEl = document.createElement('div');
       iconEl.className = 'icon-reminder';
       iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-      iconEl.style.backgroundImage = `url('${resolveAssetPath(reminder.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
+      applyTokenArtwork({
+        tokenEl: iconEl,
+        baseImage: resolveAssetPath('assets/img/token-BqDQdWeO.webp'),
+        roleImage: reminder.image ? resolveAssetPath(reminder.image) : null
+      });
       iconEl.title = (reminder.label || '');
 
       if (reminder.label) {

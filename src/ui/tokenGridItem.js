@@ -1,5 +1,6 @@
 import { resolveAssetPath } from '../../utils.js';
 import { createCurvedLabelSvg } from './svg.js';
+import { applyTokenArtwork } from './tokenArtwork.js';
 
 /**
  * Create a reusable token grid item element used by character and reminder pickers.
@@ -37,10 +38,12 @@ export function createTokenGridItem(options = {}) {
 
   const tokenEl = document.createElement('div');
   tokenEl.className = ['token', ...extraClasses].join(' ').trim();
-  tokenEl.style.backgroundImage = `url('${resolveAssetPath(image)}'), url('${resolveAssetPath(baseImage)}')`;
-  tokenEl.style.backgroundSize = '68% 68%, cover';
-  tokenEl.style.backgroundPosition = 'center, center';
-  tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
+  applyTokenArtwork({
+    tokenEl,
+    baseImage: resolveAssetPath(baseImage),
+    roleImage: image ? resolveAssetPath(image) : null,
+    activeColor: 'transparent'
+  });
   tokenEl.style.position = 'relative';
   tokenEl.style.overflow = 'visible';
   tokenEl.style.zIndex = '1';

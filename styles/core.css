@@ -63,6 +63,7 @@ body {
   #character-grid .token,
   #player-setup-character-list .token,
   #reminder-token-grid .token,
+  #storyteller-message-display .token,
   .bluff-token
 )::before {
   content: '';
@@ -106,6 +107,7 @@ body {
   #character-grid .token,
   #player-setup-character-list .token,
   #reminder-token-grid .token,
+  #storyteller-message-display .token,
   .bluff-token
 )::after {
   content: '';

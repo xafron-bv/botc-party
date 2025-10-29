@@ -20,6 +20,17 @@
 #storyteller-message-display {
   background-color: #000;
   backdrop-filter: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+#storyteller-message-display::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: -1;
 }
 
 /* Ensure character modal appears above other modals (e.g., edit message) */

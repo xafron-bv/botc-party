@@ -1,6 +1,8 @@
 import { saveAppState } from './app.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
+import { resolveAssetPath } from '../utils.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
 
 function getRoleFromAnySources(grimoireState, roleId) {
   if (grimoireState.allRoles && grimoireState.allRoles[roleId]) {
@@ -249,8 +251,11 @@ export function initPlayerSetup({ grimoireState }) {
 
         const tokenEl = document.createElement('label');
         tokenEl.className = 'token role';
-        tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-        tokenEl.style.backgroundSize = '68% 68%, cover';
+        applyTokenArtwork({
+          tokenEl,
+          baseImage: BASE_TOKEN_IMAGE,
+          roleImage: role.image ? resolveAssetPath(role.image) : null
+        });
         tokenEl.style.position = 'relative';
         tokenEl.style.overflow = 'visible';
         tokenEl.title = role.name;
@@ -506,9 +511,11 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.className = 'token traveller-token';
         tokenEl.style.width = '80px';
         tokenEl.style.height = '80px';
-        tokenEl.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-        tokenEl.style.backgroundSize = '68% 68%, cover';
-        tokenEl.style.backgroundPosition = 'center';
+        applyTokenArtwork({
+          tokenEl,
+          baseImage: BASE_TOKEN_IMAGE,
+          roleImage: role.image ? resolveAssetPath(role.image) : null
+        });
         tokenEl.style.cursor = 'pointer';
         tokenEl.style.position = 'relative';
         tokenEl.title = role.name;
@@ -613,10 +620,11 @@ export function initPlayerSetup({ grimoireState }) {
               revealCharacterTokenEl.innerHTML = '';
               const token = document.createElement('div');
               token.className = 'token has-character';
-              token.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-              token.style.backgroundSize = '68% 68%, cover';
-              token.style.backgroundPosition = 'center, center';
-              token.style.backgroundRepeat = 'no-repeat, no-repeat';
+              applyTokenArtwork({
+                tokenEl: token,
+                baseImage: BASE_TOKEN_IMAGE,
+                roleImage: role.image ? resolveAssetPath(role.image) : null
+              });
               token.title = role.name || '';
               const svg = createCurvedLabelSvg(`reveal-token-${role.id}-${Math.random().toString(36).slice(2)}`, role.name || '');
               token.appendChild(svg);
@@ -683,10 +691,11 @@ export function initPlayerSetup({ grimoireState }) {
               revealCharacterTokenEl.innerHTML = '';
               const token = document.createElement('div');
               token.className = 'token has-character';
-              token.style.backgroundImage = `url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp')`;
-              token.style.backgroundSize = '68% 68%, cover';
-              token.style.backgroundPosition = 'center, center';
-              token.style.backgroundRepeat = 'no-repeat, no-repeat';
+              applyTokenArtwork({
+                tokenEl: token,
+                baseImage: BASE_TOKEN_IMAGE,
+                roleImage: role.image ? resolveAssetPath(role.image) : null
+              });
               token.title = role.name || '';
               const svg = createCurvedLabelSvg(`reveal-token-${role.id}-${Math.random().toString(36).slice(2)}`, role.name || '');
               token.appendChild(svg);
@@ -1011,3 +1020,4 @@ export function restoreSelectionSession({ grimoireState }) {
     });
   } catch (_) { /* swallow restoration errors */ }
 }
+const BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
