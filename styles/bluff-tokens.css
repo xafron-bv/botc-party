@@ -11,8 +11,9 @@
 
 /* Individual Bluff Token */
 .bluff-token {
-  width: 80px;
-  height: 80px;
+  --token-size: 80px;
+  width: var(--token-size);
+  height: var(--token-size);
   border-radius: 50%;
   border: 3px solid #8B4513;
   box-shadow:
@@ -48,8 +49,9 @@
 
 /* Attention pulse for storyteller reminder to add bluffs */
 .bluff-token.bluff-token-attention {
-  width: 120px;
-  height: 120px;
+  --token-size: 120px;
+  width: var(--token-size);
+  height: var(--token-size);
   box-shadow:
     0 0 22px rgba(255, 215, 0, 0.45),
     inset 0 0 14px rgba(0, 0, 0, 0.35);
@@ -130,13 +132,15 @@
   }
 
   .bluff-token {
-    width: 60px;
-    height: 60px;
+    --token-size: 60px;
+    width: var(--token-size);
+    height: var(--token-size);
   }
 
   .bluff-token.bluff-token-attention {
-    width: 90px;
-    height: 90px;
+    --token-size: 90px;
+    width: var(--token-size);
+    height: var(--token-size);
   }
 
   .bluff-label {
@@ -152,32 +156,18 @@
 /* Info icon for bluff tokens - match character tokens (no border/background, no movement) */
 .bluff-token .ability-info-icon {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 0;
+  right: 0;
   left: auto;
-  width: 24px;
-  height: 24px;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: none;
-  z-index: 2;
-  transform: none;
+  z-index: 12;
+  transform: translate(50%, -50%);
+  width: max(16px, calc(var(--token-size) * 0.2));
+  height: max(16px, calc(var(--token-size) * 0.2));
+  font-size: max(10px, calc(var(--token-size) * 0.12));
 }
 
-.bluff-token .ability-info-icon:hover {
-  background: none;
-  transform: none;
-}
-
-/* Prevent active press animation from global .ability-info-icon from shifting bluff icon */
 .bluff-token .ability-info-icon:active {
-  transform: none;
+  transform: translate(50%, -50%) scale(0.95);
 }
 
 /* Very small screens */
@@ -189,21 +179,20 @@
   }
 
   .bluff-token {
-    width: 50px;
-    height: 50px;
+    --token-size: 50px;
+    width: var(--token-size);
+    height: var(--token-size);
   }
 
   .bluff-token.bluff-token-attention {
-    width: 75px;
-    height: 75px;
+    --token-size: 75px;
+    width: var(--token-size);
+    height: var(--token-size);
   }
 
   .bluff-token .ability-info-icon {
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-    top: -6px;
-    right: -6px;
+    top: 0;
+    right: 0;
   }
 }
 

@@ -83,7 +83,8 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       const target = e.target;
       return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
         (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) ||
-        (target && target.classList.contains('ability-info-icon'));
+        (target && target.classList.contains('ability-info-icon')) ||
+        (target && target.closest('.token-reminder'));
     }
   });
 

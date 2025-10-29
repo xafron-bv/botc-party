@@ -3,6 +3,11 @@ import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { saveAppState } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
+import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { resolveAssetPath } from '../utils.js';
+
+const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
 
 export function createBluffTokensContainer({ grimoireState }) {
   const container = document.createElement('div');
@@ -22,10 +27,11 @@ export function createBluffToken({ grimoireState, index }) {
   token.className = 'bluff-token empty';
   token.dataset.bluffIndex = index;
 
-  token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
-  token.style.backgroundSize = 'cover';
-  token.style.backgroundPosition = 'center';
-  token.style.backgroundRepeat = 'no-repeat';
+  applyTokenArtwork({
+    tokenEl: token,
+    baseImage: BLUFF_BASE_TOKEN_IMAGE,
+    roleImage: null
+  });
   token.style.position = 'relative';
   token.style.overflow = 'visible';
 
@@ -86,12 +92,12 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     token.classList.add('has-character');
     token.dataset.character = character;
 
-    const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
-    token.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
-    token.style.backgroundSize = '68% 68%, cover';
-    token.style.backgroundPosition = 'center, center';
-    token.style.backgroundRepeat = 'no-repeat, no-repeat';
-    token.style.backgroundColor = 'transparent';
+    const characterImage = role.image ? resolveAssetPath(role.image) : null;
+    applyTokenArtwork({
+      tokenEl: token,
+      baseImage: BLUFF_BASE_TOKEN_IMAGE,
+      roleImage: characterImage
+    });
 
     let svg = token.querySelector('svg');
     if (svg) {
@@ -106,32 +112,14 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     }
 
     if (role.ability) {
-      const infoIcon = document.createElement('div');
-      infoIcon.className = 'ability-info-icon bluff-info-icon';
-      infoIcon.setAttribute('role', 'button');
-      infoIcon.setAttribute('tabindex', '0');
-      infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
-      infoIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
-      infoIcon.dataset.bluffIndex = index;
-
-      const handleInfoClick = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        showTouchAbilityPopup(infoIcon, role.ability);
-      };
-
-      infoIcon.addEventListener('click', handleInfoClick);
-      infoIcon.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleInfoClick(e);
-      });
-      infoIcon.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleInfoClick(e);
+      const infoIcon = createAbilityInfoIcon({
+        ariaLabel: `Show ability for ${role.name}`,
+        title: `Show ability for ${role.name}`,
+        dataset: { bluffIndex: String(index) },
+        onActivate: ({ icon }) => {
+          showTouchAbilityPopup(icon, role.ability);
         }
       });
-
       token.appendChild(infoIcon);
     }
   } else {
@@ -139,8 +127,11 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     token.classList.remove('has-character');
     delete token.dataset.character;
 
-    token.style.backgroundImage = 'url(\'./assets/img/token-BqDQdWeO.webp\')';
-    token.style.backgroundSize = 'cover';
+    applyTokenArtwork({
+      tokenEl: token,
+      baseImage: BLUFF_BASE_TOKEN_IMAGE,
+      roleImage: null
+    });
 
     const svg = token.querySelector('svg');
     if (svg) {

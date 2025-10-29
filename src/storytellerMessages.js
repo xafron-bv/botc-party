@@ -1,5 +1,7 @@
 import { populateCharacterGrid } from './character.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { resolveAssetPath } from '../utils.js';
 // Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
 let showOverlayHandler = null;
@@ -33,19 +35,6 @@ export function initStorytellerMessages({ grimoireState }) {
     });
   }
 
-  function focusMessageText() {
-    if (!messageTextEl) return;
-    try {
-      const selection = window.getSelection();
-      if (!selection) return;
-      const range = document.createRange();
-      range.selectNodeContents(messageTextEl);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    } catch (_) { /* ignore selection errors */ }
-    try { messageTextEl.focus(); } catch (_) { /* ignore focus errors */ }
-  }
-
   function applyRoleLookToToken(tokenEl, roleId) {
     if (!tokenEl) return;
     if (roleId) {
@@ -62,25 +51,26 @@ export function initStorytellerMessages({ grimoireState }) {
     tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
     tokenEl.style.borderRadius = '50%';
 
+    const baseImage = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
     if (roleId && grimoireState.allRoles[roleId]) {
       const role = grimoireState.allRoles[roleId];
       tokenEl.classList.remove('empty');
       tokenEl.classList.add('has-character');
-      const characterImage = role.image || './assets/img/token-BqDQdWeO.webp';
-      tokenEl.style.backgroundImage = `url('${characterImage}'), url('./assets/img/token-BqDQdWeO.webp')`;
-      tokenEl.style.backgroundSize = '68% 68%, cover';
-      tokenEl.style.backgroundPosition = 'center, center';
-      tokenEl.style.backgroundRepeat = 'no-repeat, no-repeat';
-      tokenEl.style.backgroundColor = 'transparent';
+      applyTokenArtwork({
+        tokenEl,
+        baseImage,
+        roleImage: resolveAssetPath(role.image || './assets/img/token-BqDQdWeO.webp')
+      });
       const svg = createCurvedLabelSvg(`story-msg-slot-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
       tokenEl.appendChild(svg);
     } else {
       tokenEl.classList.add('empty');
       tokenEl.classList.remove('has-character');
-      tokenEl.style.backgroundImage = "url('./assets/img/token-BqDQdWeO.webp')";
-      tokenEl.style.backgroundSize = 'cover';
-      tokenEl.style.backgroundPosition = 'center';
-      tokenEl.style.backgroundRepeat = 'no-repeat';
+      applyTokenArtwork({
+        tokenEl,
+        baseImage,
+        roleImage: null
+      });
       const svg = createCurvedLabelSvg('story-msg-slot-empty', 'None');
       tokenEl.appendChild(svg);
     }
@@ -170,7 +160,11 @@ export function initStorytellerMessages({ grimoireState }) {
     if (messageTextEl) messageTextEl.textContent = text || '';
 
     messageDisplayModal.style.display = 'flex';
-    if (messageTextEl) requestAnimationFrame(() => focusMessageText());
+    if (messageTextEl) {
+      const selection = window.getSelection();
+      if (selection) selection.removeAllRanges();
+      try { messageTextEl.blur(); } catch (_) { /* ignore blur errors */ }
+    }
   }
 
   function hideStorytellerOverlay() {

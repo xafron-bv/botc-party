@@ -13,6 +13,8 @@ import { renderSetupInfo } from './utils/setup.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
+import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
+import { applyTokenArtwork } from './ui/tokenArtwork.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
@@ -126,6 +128,7 @@ export function updateGrimoire({ grimoireState }) {
   const RIGHT_OFFSET = Math.PI / 6;
   const LEFT_OFFSET = -Math.PI / 6;
   const LEFT_DELTA = Math.PI / 18;
+  const baseTokenImage = resolveAssetPath('assets/img/token-BqDQdWeO.webp');
 
   const getBluffRoleIds = () => {
     const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [];
@@ -170,53 +173,44 @@ export function updateGrimoire({ grimoireState }) {
 
     if (shouldShowCharacter && player.character) {
       if (role) {
-        tokenDiv.style.backgroundImage = `url('${resolveAssetPath(role.image)}'), url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-        tokenDiv.style.backgroundSize = '68% 68%, cover';
-        tokenDiv.style.backgroundColor = 'transparent';
+        const roleImage = role.image ? resolveAssetPath(role.image) : null;
+        applyTokenArtwork({
+          tokenEl: tokenDiv,
+          baseImage: baseTokenImage,
+          roleImage
+        });
         tokenDiv.classList.add('has-character');
         if (charNameDiv) charNameDiv.textContent = role.name;
         const svg = createCurvedLabelSvg(`player-arc-${i}`, role.name);
         tokenDiv.appendChild(svg);
         if (role.ability && shouldShowCharacter) {
-          const infoIcon = document.createElement('div');
-          infoIcon.className = 'ability-info-icon';
-          // Provide screen-reader context and keyboard access without hover
-          infoIcon.setAttribute('role', 'button');
-          infoIcon.setAttribute('tabindex', '0');
-          infoIcon.setAttribute('aria-label', `Show ability for ${role.name}`);
-          infoIcon.textContent = 'i';
-          infoIcon.dataset.playerIndex = i;
-          const handleInfoClick = (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            showTouchAbilityPopup(infoIcon, role.ability);
-          };
-          infoIcon.addEventListener('click', handleInfoClick);
-          infoIcon.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            handleInfoClick(e); // Call the click handler on touch
-          });
-          infoIcon.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              handleInfoClick(e);
+          const infoIcon = createAbilityInfoIcon({
+            ariaLabel: `Show ability for ${role.name}`,
+            title: `Show ability for ${role.name}`,
+            dataset: { playerIndex: String(i) },
+            onActivate: ({ icon }) => {
+              showTouchAbilityPopup(icon, role.ability);
             }
           });
           li.appendChild(infoIcon); // Append to li, not tokenDiv
         }
       } else {
-        tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-        tokenDiv.style.backgroundSize = 'cover';
-        tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+        applyTokenArtwork({
+          tokenEl: tokenDiv,
+          baseImage: baseTokenImage,
+          roleImage: null
+        });
         tokenDiv.classList.remove('has-character');
         if (charNameDiv) charNameDiv.textContent = '';
         const arc = tokenDiv.querySelector('.icon-reminder-svg');
         if (arc) arc.remove();
       }
     } else {
-      tokenDiv.style.backgroundImage = `url('${resolveAssetPath('assets/img/token-BqDQdWeO.webp')}')`;
-      tokenDiv.style.backgroundSize = 'cover';
-      tokenDiv.style.backgroundColor = 'rgba(0,0,0,0.2)';
+      applyTokenArtwork({
+        tokenEl: tokenDiv,
+        baseImage: baseTokenImage,
+        roleImage: null
+      });
       tokenDiv.classList.remove('has-character');
       if (charNameDiv) charNameDiv.textContent = '';
       const arc = tokenDiv.querySelector('.icon-reminder-svg');
@@ -385,6 +379,9 @@ export function updateGrimoire({ grimoireState }) {
         reminder.addEventListener('touchstart', (event) => {
           event.stopPropagation();
         }, { passive: true });
+        reminder.addEventListener('touchend', (event) => {
+          activate(event);
+        }, { passive: false });
       } else {
         reminder.setAttribute('aria-hidden', 'true');
         if (title) reminder.setAttribute('title', title);
