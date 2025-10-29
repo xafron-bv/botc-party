@@ -13,23 +13,33 @@ export function repositionPlayers({ grimoireState }) {
   const listItemsForSize = circle.querySelectorAll('li');
   if (!listItemsForSize.length) return;
   const sampleToken = listItemsForSize[0].querySelector('.player-token') || listItemsForSize[0];
-  const tokenDiameter = sampleToken.offsetWidth || 100;
-  const tokenRadius = tokenDiameter / 2;
-  const chordNeeded = tokenDiameter * 1.25;
+  const tokenDiameterActual = sampleToken.offsetWidth || 100;
+  const tokenScale = (() => {
+    const scale = grimoireState?.displaySettings?.tokenScale;
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+  })();
+  const tokenDiameterBase = tokenDiameterActual / tokenScale;
+  const tokenRadiusBase = tokenDiameterBase / 2;
+  const chordNeeded = tokenDiameterBase * 1.25;
   const minScreenRadius = Math.min(window.innerWidth, window.innerHeight) / 4;
-  const radius = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
+  const radiusBase = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
   const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect();
   const margin = 24;
   const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin);
-  const requiredContainerSize = Math.ceil(2 * (radius + tokenRadius + 12));
-  const containerSize = Math.min(requiredContainerSize, maxSize);
-  const effectiveRadius = Math.max(80, containerSize / 2 - tokenRadius - 12);
+  const requiredContainerSizeBase = Math.ceil(2 * (radiusBase + tokenRadiusBase + 12));
+  const containerSizeBase = Math.min(requiredContainerSizeBase, maxSize);
+  const circleScale = (() => {
+    const scale = grimoireState?.displaySettings?.circleScale;
+    return Number.isFinite(scale) ? scale : 1;
+  })();
+  const containerSize = containerSizeBase * circleScale;
+  const effectiveRadiusBase = Math.max(80, containerSizeBase / 2 - tokenRadiusBase - 12);
   circle.style.width = `${containerSize}px`;
   circle.style.height = `${containerSize}px`;
   const circleWidth = containerSize;
   const circleHeight = containerSize;
   const angleStep = (2 * Math.PI) / count;
-  const positionRadius = Math.min(radius, effectiveRadius);
+  const positionRadius = Math.min(radiusBase, effectiveRadiusBase) * circleScale;
   const listItems = circle.querySelectorAll('li');
   listItems.forEach((listItem, i) => {
     const angle = i * angleStep - Math.PI / 2;

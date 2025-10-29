@@ -172,9 +172,9 @@
 
 .player-name {
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(40, 40, 40, 0.9) 100%);
-  padding: 0.8vmin 2vmin;
+  padding: calc(0.8vmin * var(--player-name-scale)) calc(2vmin * var(--player-name-scale));
   border-radius: 20px;
-  font-size: clamp(12px, 2.2vmin, 18px);
+  font-size: calc(clamp(12px, 2.2vmin, 18px) * var(--player-name-scale));
   text-align: center;
   color: white;
   cursor: pointer;

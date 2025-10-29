@@ -1,6 +1,6 @@
 @media (max-width: 600px) {
   :root {
-    --token-size: clamp(56px, 16vmin, 120px);
+    --token-size-base: clamp(56px, 16vmin, 120px);
   }
 
   #character-grid {

@@ -15,6 +15,7 @@ import { displayScript, loadScriptFile, loadScriptFromDataJson } from './src/scr
 import { initStorytellerMessages } from './src/storytellerMessages.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
+import { initDisplaySettings } from './src/ui/displaySettings.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui/background.js';
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
@@ -243,6 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modePlayerRadio = document.getElementById('mode-player');
     const dayNightToggleBtn = document.getElementById('day-night-toggle');
     const dayNightSlider = document.getElementById('day-night-slider');
+    const displaySettingsToggleBtn = document.getElementById('display-settings-toggle');
     const revealToggleBtn = document.getElementById('reveal-assignments');
 
     const grimoireState = {
@@ -267,7 +269,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       outsideCollapseHandlerInstalled: false,
       mode: 'player',
       grimoireHidden: false,
-      gameStarted: false
+      gameStarted: false,
+      displaySettings: { tokenScale: 1, playerNameScale: 1, circleScale: 1 }
     };
 
     function updatePreGameOverlayMessage() {
@@ -315,6 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.updateButtonStates = updateButtonStates;
 
     initGrimoireBackground();
+    initDisplaySettings({ grimoireState });
 
     if (backgroundSelect) {
       backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
@@ -332,6 +336,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
       const isPlayer = grimoireState.mode === 'player';
       if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
+      if (displaySettingsToggleBtn) {
+        if (isPlayer) {
+          displaySettingsToggleBtn.classList.add('single-toggle');
+        } else {
+          displaySettingsToggleBtn.classList.remove('single-toggle');
+        }
+      }
       if (dayNightSlider && isPlayer) {
         dayNightSlider.classList.remove('open');
         dayNightSlider.style.display = 'none';
