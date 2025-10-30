@@ -379,15 +379,15 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 @media (max-width: 768px) {
   .day-night-toggle {
     bottom: 15px;
-    right: 15px;
+    right: 70px;
     width: 45px;
     height: 45px;
     font-size: 18px;
   }
 
   .day-night-slider {
-    width: calc(100vw - 80px);
-    right: 70px;
+    width: calc(100vw - 165px);
+    right: 125px;
     bottom: 15px;
     height: 45px;
     padding: 0 15px;
@@ -395,7 +395,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 
   .display-settings-toggle {
     bottom: 15px;
-    right: 70px;
+    right: 15px;
     width: 45px;
     height: 45px;
     font-size: 18px;
