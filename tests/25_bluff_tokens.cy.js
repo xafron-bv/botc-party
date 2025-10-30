@@ -15,7 +15,7 @@ describe('Bluff Tokens', () => {
     cy.get('#bluff-tokens-container').should('be.visible');
 
     // Verify it's positioned at bottom left
-    cy.get('#bluff-tokens-container').should('have.css', 'position', 'absolute');
+    cy.get('#bluff-tokens-container').should('have.css', 'position', 'fixed');
     cy.get('#bluff-tokens-container').should('have.css', 'bottom');
     cy.get('#bluff-tokens-container').should('have.css', 'left');
 
