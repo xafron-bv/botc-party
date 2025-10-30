@@ -3,6 +3,7 @@
   --bluff-token-size: var(--token-size-base);
   --player-token-scale: 1;
   --player-token-size: calc(var(--token-size-base) * var(--player-token-scale));
+  --reminder-token-size: calc(var(--player-token-size) * 0.5);
   --player-name-scale: 1;
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);

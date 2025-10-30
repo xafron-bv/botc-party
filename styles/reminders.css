@@ -23,8 +23,8 @@
   background-image: url('/assets/img/token-BqDQdWeO.webp');
   background-size: cover;
   border: 2px solid #D4AF37;
-  width: calc(var(--player-token-size) * 0.4);
-  height: calc(var(--player-token-size) * 0.4);
+  width: var(--reminder-token-size);
+  height: var(--reminder-token-size);
   min-width: var(--min-reminder-size);
   min-height: var(--min-reminder-size);
   border-radius: 50%;
@@ -68,8 +68,8 @@
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-  width: calc(var(--player-token-size) * 0.4);
-  height: calc(var(--player-token-size) * 0.4);
+  width: var(--reminder-token-size);
+  height: var(--reminder-token-size);
   min-width: var(--min-reminder-size);
   min-height: var(--min-reminder-size);
   border-radius: 50%;
