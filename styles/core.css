@@ -1,7 +1,7 @@
 :root {
   --token-size-base: clamp(64px, 14vmin, 140px);
-  --token-scale: 1;
-  --token-size: calc(var(--token-size-base) * var(--token-scale));
+  --player-token-scale: 1;
+  --player-token-size: calc(var(--token-size-base) * var(--player-token-scale));
   --player-name-scale: 1;
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);

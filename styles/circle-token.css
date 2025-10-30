@@ -16,8 +16,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: var(--token-size);
-  height: var(--token-size);
+  width: var(--player-token-size);
+  height: var(--player-token-size);
   /* serve as positioning container for absolute token */
   overflow: visible;
 }
@@ -185,7 +185,7 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   position: absolute;
   left: 50%;
-  top: calc(50% + var(--token-size) / 2 + var(--player-name-gap));
+  top: calc(50% + var(--player-token-size) / 2 + var(--player-name-gap));
   /* Base centering transform; rotation (if any) is appended via CSS var */
   --name-rotate: 0deg;
   transform: translate(-50%, -50%) rotate(var(--name-rotate));
@@ -206,7 +206,7 @@
 
 /* Position player names above tokens for top half of circle */
 .player-name.top-half {
-  top: calc(50% - var(--token-size) / 2 - var(--player-name-gap));
+  top: calc(50% - var(--player-token-size) / 2 - var(--player-name-gap));
 }
 
 /* When in a curved quadrant (NE or SW), we rotate the tag to be tangent to the circle */
@@ -227,7 +227,7 @@
 #player-circle li {
   position: relative;
   overflow: visible;
-  max-width: calc(var(--token-size) + var(--min-reminder-size));
+  max-width: calc(var(--player-token-size) + var(--min-reminder-size));
 }
 
 /* Keep hovered player (and its name) above siblings on desktop */

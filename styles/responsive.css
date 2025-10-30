@@ -22,7 +22,7 @@
   
   /* Ensure death vote indicator scales properly on small screens */
   .player-token .death-vote-indicator {
-    width: calc(var(--token-size) * 0.22);
-    height: calc(var(--token-size) * 0.22);
+    width: calc(var(--player-token-size) * 0.22);
+    height: calc(var(--player-token-size) * 0.22);
   }
 }

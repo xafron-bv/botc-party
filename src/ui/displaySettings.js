@@ -118,7 +118,7 @@ function updateMarkerPosition(cfg) {
 
 export function applyDisplaySettings({ grimoireState, settings }) {
   const merged = { ...DEFAULT_SETTINGS, ...(settings || {}) };
-  document.documentElement.style.setProperty('--token-scale', String(merged.tokenScale));
+  document.documentElement.style.setProperty('--player-token-scale', String(merged.tokenScale));
   document.documentElement.style.setProperty('--player-name-scale', String(merged.playerNameScale));
   document.documentElement.style.setProperty('--circle-scale', String(merged.circleScale));
 

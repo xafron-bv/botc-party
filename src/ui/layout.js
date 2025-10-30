@@ -79,7 +79,7 @@ export function repositionPlayers({ grimoireState }) {
         playerNameEl.classList.add('curved-quadrant');
         try {
           const tokenEl = listItem.querySelector('.player-token');
-          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--token-size')) || 64);
+          const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--player-token-size')) || 64);
           const outward = tokenSize / 2 + nameGapPx;
           const dx = Math.cos(angle) * outward;
           const dy = Math.sin(angle) * outward;

@@ -310,7 +310,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 
 /* Night Reminder Buttons */
 .token-reminder {
-  --reminder-size: calc(var(--token-size) * 0.2);
+  --reminder-size: calc(var(--player-token-size) * 0.2);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -324,7 +324,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(var(--token-size) * 0.12);
+  font-size: calc(var(--player-token-size) * 0.12);
   line-height: 1;
   font-weight: bold;
   z-index: 20;
