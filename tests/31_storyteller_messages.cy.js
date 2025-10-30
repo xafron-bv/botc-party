@@ -93,7 +93,7 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
     let borderWidthPx = 0;
     cy.document().then((doc) => {
       const temp = doc.createElement('div');
-      temp.style.width = 'calc(var(--player-token-size) * 1.5)';
+      temp.style.width = 'calc(var(--token-size-base) * 1.5)';
       temp.style.position = 'absolute';
       temp.style.left = '-9999px';
       doc.body.appendChild(temp);
