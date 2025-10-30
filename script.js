@@ -20,6 +20,7 @@ import { initInAppTour } from './src/ui/tour.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui/background.js';
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 import { resolveAssetPath } from './utils.js';
+import { setupModalCloseHandlers } from './src/modalCloseHandlers.js';
 
 function normalizeUrl(url) {
   if (!url) return null;
@@ -1055,6 +1056,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initInAppTour();
     initStorytellerMessages({ grimoireState });
+    setupModalCloseHandlers({ grimoireState });
 
     const centerEl = document.getElementById('center');
     if (centerEl) {
