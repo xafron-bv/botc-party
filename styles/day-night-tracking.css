@@ -6,7 +6,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 8000; /* Raised above player names (<=50), reminders, menus (5000) */
+  z-index: 9000; /* Raised above player names (<=50), reminders, menus (5000) */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 8000;
+  z-index: 8000; /* Above slider but below night/day toggle */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -176,7 +176,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   position: fixed;
   bottom: 20px;
   /* Same as toggle button */
-  right: 135px;
+  right: 75px;
   /* Small gap from toggle button */
   height: 50px;
   /* Same height as toggle button */
@@ -187,7 +187,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   border-radius: 25px;
   /* Full rounded corners */
   padding: 0 20px;
-  z-index: 7999; /* Just below the toggle button */
+  z-index: 8999; /* Just below the toggle button */
   /* Slightly below toggle button */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transform-origin: center right;
@@ -391,6 +391,25 @@ body.character-panel-open .display-settings-toggle.single-toggle {
     bottom: 15px;
     height: 45px;
     padding: 0 15px;
+  }
+
+  .display-settings-toggle {
+    bottom: 15px;
+    right: 70px;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+
+  .display-settings-value {
+    display: none;
+  }
+
+  .display-settings-panel {
+    width: min(280px, calc(100vw - 30px));
+    right: 15px;
+    bottom: 70px;
+    padding: 12px;
   }
 
   .slider-container {
