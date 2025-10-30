@@ -14,7 +14,7 @@ const SLIDERS = {
   playerName: {
     elementId: 'player-name-size-slider',
     field: 'playerNameScale',
-    min: 0.2,
+    min: 0.5,
     max: 1.2,
     valueAttr: 'player-name',
     defaultScale: 1,
@@ -171,22 +171,7 @@ export function initDisplaySettings({ grimoireState }) {
   });
 
   let isOpen = false;
-  let isUpdatingBounds = false;
   let boundsUpdateScheduled = false;
-
-  const scheduleSliderBoundsUpdate = () => {
-    if (boundsUpdateScheduled) return;
-    boundsUpdateScheduled = true;
-    const run = () => {
-      boundsUpdateScheduled = false;
-      updateSliderBounds();
-    };
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(run);
-    } else {
-      setTimeout(run, 16);
-    }
-  };
 
   const recalcMarkers = () => {
     const run = () => sliderConfigs.forEach((cfg) => updateMarkerPosition(cfg));
