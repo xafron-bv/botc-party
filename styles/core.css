@@ -6,7 +6,7 @@
   --player-name-scale: 1;
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
-  --player-name-gap: 32px;
+  --player-name-gap: calc(var(--player-name-scale) * 20px);
 }
 
 body {

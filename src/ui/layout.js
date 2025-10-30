@@ -8,7 +8,7 @@ export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
   const count = players.length;
   if (count === 0) return;
-  let nameGapPx = 32;
+  let nameGapPx = 20;
   try {
     const rootStyles = getComputedStyle(document.documentElement);
     const gapStr = rootStyles.getPropertyValue('--player-name-gap');
