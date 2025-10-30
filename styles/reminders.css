@@ -19,6 +19,11 @@
   z-index: 1;
 }
 
+/* Disable hover zone when reminders are collapsed to allow scrolling */
+#player-circle li:not([data-expanded="1"]) .reminder-hover-zone {
+  pointer-events: none;
+}
+
 .text-reminder {
   background-image: url('/assets/img/token-BqDQdWeO.webp');
   background-size: cover;
