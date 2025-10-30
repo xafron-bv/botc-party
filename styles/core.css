@@ -1,5 +1,6 @@
 :root {
   --token-size-base: clamp(64px, 14vmin, 140px);
+  --bluff-token-size: var(--token-size-base);
   --player-token-scale: 1;
   --player-token-size: calc(var(--token-size-base) * var(--player-token-scale));
   --player-name-scale: 1;
