@@ -14,7 +14,7 @@ const SLIDERS = {
   playerName: {
     elementId: 'player-name-size-slider',
     field: 'playerNameScale',
-    min: 0.5,
+    min: 0.6,
     max: 1.2,
     valueAttr: 'player-name',
     defaultScale: 1,
