@@ -292,6 +292,10 @@
 }
 
 #reminder-token-grid .token {
+  margin-bottom: 0;
+}
+
+#reminder-token-grid .token {
   width: 70px;
   height: 70px;
   background-size: cover;
