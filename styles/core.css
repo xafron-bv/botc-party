@@ -321,7 +321,7 @@ body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.45);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  z-index: 3;
+  z-index: 0;
   pointer-events: none;
   font-weight: bold;
   white-space: pre-line;
