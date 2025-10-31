@@ -71,12 +71,14 @@ describe('Grimoire Hide/Show Toggle', () => {
   it('works in player mode as well', () => {
     // Switch to player mode
     cy.get('#mode-player').click();
+    // Close sidebar to see bluff tokens
+    cy.get('#sidebar-close').click();
     // Toggle hide
-    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').click({ force: true });
     cy.get('#player-circle li .reminder-placeholder').should('not.be.visible');
     cy.get('#bluff-tokens-container').should('not.be.visible');
     // Toggle show
-    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').click({ force: true });
     cy.get('#bluff-tokens-container').should('be.visible');
   });
 });

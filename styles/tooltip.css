@@ -67,8 +67,8 @@
 /* Ability info icon used instead of hover tooltips */
 .ability-info-icon {
   position: absolute;
-  width: calc(var(--token-size) * 0.2);
-  height: calc(var(--token-size) * 0.2);
+  width: calc(var(--player-token-size) * 0.2);
+  height: calc(var(--player-token-size) * 0.2);
   background: #D4AF37;
   color: #1a1a1a;
   border: none;
@@ -86,7 +86,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: calc(var(--token-size) * 0.12);
+  font-size: calc(var(--player-token-size) * 0.12);
   font-weight: 700;
   text-transform: lowercase;
 }

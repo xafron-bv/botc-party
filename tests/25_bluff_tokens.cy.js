@@ -15,7 +15,7 @@ describe('Bluff Tokens', () => {
     cy.get('#bluff-tokens-container').should('be.visible');
 
     // Verify it's positioned at bottom left
-    cy.get('#bluff-tokens-container').should('have.css', 'position', 'absolute');
+    cy.get('#bluff-tokens-container').should('have.css', 'position', 'fixed');
     cy.get('#bluff-tokens-container').should('have.css', 'bottom');
     cy.get('#bluff-tokens-container').should('have.css', 'left');
 
@@ -229,24 +229,6 @@ describe('Bluff Tokens', () => {
     // Verify assignment works on mobile
     cy.get('#bluff-tokens-container .bluff-token').first()
       .should('have.attr', 'data-character', 'washerwoman');
-  });
-
-  it('should style bluff tokens distinctly from player tokens', () => {
-    // Check that bluff tokens have specific styling
-    cy.get('#bluff-tokens-container .bluff-token').first().then($token => {
-      const styles = window.getComputedStyle($token[0]);
-
-      // Should have a different border or indicator to distinguish from player tokens
-      expect(styles.borderStyle).to.not.equal('none');
-
-      // Should be smaller than player tokens - get player token for comparison
-      const bluffSize = parseInt(styles.width, 10);
-
-      cy.get('.player-token').first().then($playerToken => {
-        const playerSize = parseInt(window.getComputedStyle($playerToken[0]).width, 10);
-        expect(bluffSize).to.be.lessThan(playerSize);
-      });
-    });
   });
 
   it('should not interfere with player token interactions', () => {

@@ -1,6 +1,6 @@
 @media (max-width: 600px) {
   :root {
-    --token-size: clamp(56px, 16vmin, 120px);
+    --token-size-base: clamp(56px, 16vmin, 120px);
   }
 
   #character-grid {
@@ -22,7 +22,7 @@
   
   /* Ensure death vote indicator scales properly on small screens */
   .player-token .death-vote-indicator {
-    width: calc(var(--token-size) * 0.22);
-    height: calc(var(--token-size) * 0.22);
+    width: calc(var(--player-token-size) * 0.22);
+    height: calc(var(--player-token-size) * 0.22);
   }
 }

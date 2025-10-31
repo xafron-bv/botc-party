@@ -19,12 +19,17 @@
   z-index: 1;
 }
 
+/* Disable hover zone when reminders are collapsed to allow scrolling */
+#player-circle li:not([data-expanded="1"]) .reminder-hover-zone {
+  pointer-events: none;
+}
+
 .text-reminder {
   background-image: url('/assets/img/token-BqDQdWeO.webp');
   background-size: cover;
   border: 2px solid #D4AF37;
-  width: calc(var(--token-size) * 0.4);
-  height: calc(var(--token-size) * 0.4);
+  width: var(--reminder-token-size);
+  height: var(--reminder-token-size);
   min-width: var(--min-reminder-size);
   min-height: var(--min-reminder-size);
   border-radius: 50%;
@@ -46,7 +51,7 @@
   color: #fff;
   padding: 4px 6px;
   border-radius: 4px;
-  font-size: clamp(8px, calc(var(--token-size) * 0.08), 14px);
+  font-size: clamp(8px, calc(var(--player-token-size) * 0.08), 14px);
   font-weight: bold;
   text-align: center;
   max-width: 90%;
@@ -68,8 +73,8 @@
 
 /* icon reminder token that overlaps player token */
 .icon-reminder {
-  width: calc(var(--token-size) * 0.4);
-  height: calc(var(--token-size) * 0.4);
+  width: var(--reminder-token-size);
+  height: var(--reminder-token-size);
   min-width: var(--min-reminder-size);
   min-height: var(--min-reminder-size);
   border-radius: 50%;
@@ -175,8 +180,8 @@
 /* Death vote indicator */
 .player-token .death-vote-indicator {
   position: absolute;
-  width: calc(var(--token-size) * 0.25);
-  height: calc(var(--token-size) * 0.25);
+  width: calc(var(--player-token-size) * 0.25);
+  height: calc(var(--player-token-size) * 0.25);
   min-width: 20px;
   min-height: 20px;
   max-width: 35px;
@@ -212,7 +217,7 @@
   stroke-width: 2px;
   paint-order: stroke fill;
   font-weight: 800;
-  font-size: calc(var(--token-size) * 0.2);
+  font-size: calc(var(--player-token-size) * 0.2);
 }
 
 /* Character modal specific text styling */
@@ -325,8 +330,8 @@
   transform: translate(-50%, -50%);
   background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
   color: white;
-  width: calc(var(--token-size) * 0.3);
-  height: calc(var(--token-size) * 0.3);
+  width: calc(var(--player-token-size) * 0.3);
+  height: calc(var(--player-token-size) * 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;

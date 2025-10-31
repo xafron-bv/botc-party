@@ -216,9 +216,9 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
           textSpan.textContent = reminder.label;
           const textLength = reminder.label.length;
           if (textLength > 40) {
-            textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+            textSpan.style.fontSize = 'clamp(7px, calc(var(--player-token-size) * 0.06), 10px)';
           } else if (textLength > 20) {
-            textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+            textSpan.style.fontSize = 'clamp(8px, calc(var(--player-token-size) * 0.07), 12px)';
           }
 
           iconEl.appendChild(textSpan);
@@ -264,9 +264,9 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       textSpan.textContent = displayText;
       const textLength = displayText.length;
       if (textLength > 40) {
-        textSpan.style.fontSize = 'clamp(7px, calc(var(--token-size) * 0.06), 10px)';
+        textSpan.style.fontSize = 'clamp(7px, calc(var(--player-token-size) * 0.06), 10px)';
       } else if (textLength > 20) {
-        textSpan.style.fontSize = 'clamp(8px, calc(var(--token-size) * 0.07), 12px)';
+        textSpan.style.fontSize = 'clamp(8px, calc(var(--player-token-size) * 0.07), 12px)';
       }
 
       reminderEl.appendChild(textSpan);
