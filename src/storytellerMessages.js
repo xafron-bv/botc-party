@@ -45,8 +45,8 @@ export function initStorytellerMessages({ grimoireState }) {
     const existingSvg = tokenEl.querySelector('svg');
     if (existingSvg) existingSvg.remove();
 
-    tokenEl.style.width = 'calc(var(--token-size) * 1.5)';
-    tokenEl.style.height = 'calc(var(--token-size) * 1.5)';
+    tokenEl.style.width = 'calc(var(--token-size-base) * 1.5)';
+    tokenEl.style.height = 'calc(var(--token-size-base) * 1.5)';
     tokenEl.style.border = '4px solid #D4AF37';
     tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
     tokenEl.style.borderRadius = '50%';

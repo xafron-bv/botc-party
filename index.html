@@ -129,6 +129,37 @@
         aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
         <i class="fas fa-moon"></i>
       </button>
+      <button id="display-settings-toggle" data-testid="display-settings-toggle" class="button display-settings-toggle"
+        aria-label="Adjust display settings" aria-pressed="false" title="Adjust display settings">
+        <i class="fas fa-sliders-h"></i>
+      </button>
+      <div id="display-settings-panel" data-testid="display-settings-panel" class="display-settings-panel" aria-hidden="true">
+        <h4>Display Settings</h4>
+        <div class="display-settings-row">
+          <label for="player-name-size-slider">Player name</label>
+          <div class="slider-wrapper">
+            <input type="range" id="player-name-size-slider" data-testid="player-name-slider" min="60" max="120" step="5" value="100">
+            <span class="slider-marker" data-settings-marker="player-name" aria-hidden="true"></span>
+          </div>
+          <span class="display-settings-value" data-settings-value="player-name">100%</span>
+        </div>
+        <div class="display-settings-row">
+          <label for="token-size-slider">Player token</label>
+          <div class="slider-wrapper">
+            <input type="range" id="token-size-slider" data-testid="token-size-slider" min="60" max="160" step="5" value="100">
+            <span class="slider-marker" data-settings-marker="token" aria-hidden="true"></span>
+          </div>
+          <span class="display-settings-value" data-settings-value="token">100%</span>
+        </div>
+        <div class="display-settings-row">
+          <label for="circle-size-slider">Grimoire circle</label>
+          <div class="slider-wrapper">
+            <input type="range" id="circle-size-slider" data-testid="circle-size-slider" min="60" max="160" step="5" value="100">
+            <span class="slider-marker" data-settings-marker="circle" aria-hidden="true"></span>
+          </div>
+          <span class="display-settings-value" data-settings-value="circle">100%</span>
+        </div>
+      </div>
       <!-- Pre-game full overlay (covers grimoire content until game start) -->
       <div id="pre-game-overlay" aria-hidden="true">
         <div class="overlay-inner">
@@ -138,8 +169,10 @@
       </div>
       <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
       <div id="center">
-        <div id="setup-info" aria-live="polite"></div>
-        <ul id="player-circle" class="circle"></ul>
+        <div id="player-circle-wrapper">
+          <ul id="player-circle" class="circle"></ul>
+          <div id="setup-info" aria-live="polite"></div>
+        </div>
       </div>
       <div id="day-night-slider" data-testid="day-night-slider" class="day-night-slider">
         <div class="slider-container">

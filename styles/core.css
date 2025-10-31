@@ -1,6 +1,13 @@
 :root {
-  --token-size: clamp(64px, 14vmin, 140px);
+  --token-size-base: clamp(64px, 14vmin, 140px);
+  --bluff-token-size: var(--token-size-base);
+  --player-token-scale: 1;
+  --player-token-size: calc(var(--token-size-base) * var(--player-token-scale));
+  --reminder-token-size: calc(var(--player-token-size) * 0.5);
+  --player-name-scale: 1;
+  --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
+  --player-name-gap: calc(var(--player-name-scale) * 20px);
 }
 
 body {
@@ -53,6 +60,7 @@ body {
   flex-grow: 1;
   position: relative;
   background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
+  overflow: hidden;
 }
 
 /* Clock face readability & patina overlay */
@@ -223,7 +231,7 @@ body:not(.pre-game) #pre-game-overlay { display: none; }
 /* Block pointer events on grimoire content while pre-game via wrapper (sidebar still usable) */
 /* Block pointer events on grimoire content while pre-game via overlay; allow sidebar toggle click-through */
 /* Allow sidebar toggle, script panel toggle, and day/night toggle to remain interactive during pre-game */
-body.pre-game:not(.selection-active) #grimoire > *:not(#pre-game-overlay):not(#sidebar-toggle):not(#character-panel-toggle):not(#character-panel):not(#day-night-toggle) { pointer-events: none; }
+body.pre-game:not(.selection-active) #grimoire > *:not(#pre-game-overlay):not(#sidebar-toggle):not(#character-panel-toggle):not(#character-panel):not(#day-night-toggle):not(#display-settings-toggle):not(#display-settings-panel) { pointer-events: none; }
 body.pre-game #sidebar-toggle { pointer-events: auto; position: relative; z-index: 1600; }
 body.pre-game #character-panel-toggle { pointer-events: auto; z-index: 1600; }
 /* In pure pre-game (overlay visible), remove normal-flow vertical offset by absolutely positioning #center */
@@ -241,7 +249,7 @@ body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor
 
 /* Sidebar toggle button */
 .sidebar-toggle {
-  position: absolute;
+  position: fixed;
   top: 12px;
   left: 12px;
   z-index: 1000;
@@ -284,12 +292,20 @@ body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor
   height: 100%;
   width: 100%;
   position: relative;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+#player-circle-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
-  /* give breathing room on small screens */
-  box-sizing: border-box;
 }
 
 /* Center overlay with script name and role counts */
@@ -305,13 +321,10 @@ body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.45);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  z-index: 1;
-  /* Above background, below all game elements */
+  z-index: 3;
   pointer-events: none;
-  /* non-interactive overlay */
   font-weight: bold;
   white-space: pre-line;
-  /* preserve newlines */
   line-height: 1.4;
 }
 
