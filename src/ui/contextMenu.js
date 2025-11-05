@@ -147,7 +147,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   };
 
   addButtonHandler(addBeforeBtn, () => {
-    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -159,7 +159,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   });
 
   addButtonHandler(addAfterBtn, () => {
-    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -171,7 +171,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   });
 
   addButtonHandler(removeBtn, () => {
-    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
