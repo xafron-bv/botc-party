@@ -1,8 +1,8 @@
 /* Bluff Tokens Container */
 .bluff-tokens-container {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
+  position: absolute;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: calc(20px + env(safe-area-inset-left, 0px));
   display: flex;
   gap: 15px;
   align-items: flex-end;
@@ -125,8 +125,8 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .bluff-tokens-container {
-    bottom: 10px;
-    left: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    left: calc(10px + env(safe-area-inset-left, 0px));
     gap: 10px;
   }
 
@@ -160,8 +160,8 @@
 /* Very small screens */
 @media (max-width: 480px) {
   .bluff-tokens-container {
-    bottom: 5px;
-    left: 5px;
+    bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+    left: calc(5px + env(safe-area-inset-left, 0px));
     gap: 8px;
   }
 

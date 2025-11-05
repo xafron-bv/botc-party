@@ -14,8 +14,8 @@ describe('Bluff Tokens', () => {
     // Check that bluff tokens container exists
     cy.get('#bluff-tokens-container').should('be.visible');
 
-    // Verify it's positioned at bottom left
-    cy.get('#bluff-tokens-container').should('have.css', 'position', 'fixed');
+    // Verify it's positioned at bottom left within the grimoire container (absolute)
+    cy.get('#bluff-tokens-container').should('have.css', 'position', 'absolute');
     cy.get('#bluff-tokens-container').should('have.css', 'bottom');
     cy.get('#bluff-tokens-container').should('have.css', 'left');
 
