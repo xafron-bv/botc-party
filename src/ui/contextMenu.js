@@ -1,8 +1,10 @@
 import { saveAppState } from '../app.js';
 import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
+import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
+  if (!ensureGrimoireUnlocked({ grimoireState })) return;
   const menu = ensurePlayerContextMenu({ grimoireState });
   grimoireState.contextMenuTargetIndex = playerIndex;
   grimoireState.menuOpenedAt = Date.now();
@@ -41,6 +43,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   deleteBtn.textContent = 'Delete Reminder';
 
   editBtn.addEventListener('click', () => {
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
     hideReminderContextMenu({ grimoireState });
     if (playerIndex < 0 || reminderIndex < 0) return;
@@ -62,6 +65,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   });
 
   deleteBtn.addEventListener('click', () => {
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
     hideReminderContextMenu({ grimoireState });
     if (playerIndex < 0 || reminderIndex < 0) return;
@@ -143,6 +147,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   };
 
   addButtonHandler(addBeforeBtn, () => {
+    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -154,6 +159,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   });
 
   addButtonHandler(addAfterBtn, () => {
+    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -165,6 +171,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   });
 
   addButtonHandler(removeBtn, () => {
+    if (!ensureGrimoireUnlocked({ grimoireState, silent: true })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -182,6 +189,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   return menu;
 }
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
+  if (!ensureGrimoireUnlocked({ grimoireState })) return;
   const menu = ensureReminderContextMenu({ grimoireState });
   grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
   menu.style.display = 'block';
@@ -217,4 +225,3 @@ export function closeMenusOnOutsideEvent(e) {
     }
   }
 }
-

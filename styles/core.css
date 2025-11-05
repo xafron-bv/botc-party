@@ -353,3 +353,29 @@ body:not(.pre-game) #day-night-toggle { pointer-events: auto; opacity: 1; cursor
   color: #E74C3C;
   /* Light red */
 }
+#reveal-assignments.lock-indicator {
+  animation: lock-wiggle 0.35s ease;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+@keyframes lock-wiggle {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+body.grimoire-locked #player-circle .player-token,
+body.grimoire-locked #player-circle .player-name,
+body.grimoire-locked #player-circle .reminder-placeholder,
+body.grimoire-locked #player-circle .death-ribbon,
+body.grimoire-locked #player-circle .death-vote-indicator,
+body.grimoire-locked #bluff-tokens-container .bluff-token {
+  cursor: not-allowed;
+}
+
+body.grimoire-locked #player-circle .player-token,
+body.grimoire-locked #bluff-tokens-container .bluff-token {
+  filter: saturate(0.85);
+}

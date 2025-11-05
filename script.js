@@ -3,7 +3,8 @@ import { loadAppState, saveAppState } from './src/app.js';
 import { hideCharacterModal, loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
 import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
 import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
-import { applyGrimoireHiddenState, resetGrimoire, showGrimoire, toggleGrimoireHidden, updateGrimoire } from './src/grimoire.js';
+import { applyGrimoireHiddenState, applyGrimoireLockedState, resetGrimoire, showGrimoire, toggleGrimoireHidden, toggleGrimoireLocked, updateGrimoire } from './src/grimoire.js';
+import { ensureGrimoireUnlocked } from './src/grimoireLock.js';
 import { initExportImport } from './src/history/exportImport.js';
 import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
@@ -270,6 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       outsideCollapseHandlerInstalled: false,
       mode: 'player',
       grimoireHidden: false,
+      grimoireLocked: false,
       gameStarted: false,
       displaySettings: { tokenScale: 1, playerNameScale: 1, circleScale: 1 }
     };
@@ -332,6 +334,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.mode = 'storyteller';
     }
 
+    const updateGrimoireControlButton = () => {
+      if (!revealToggleBtn) return;
+      const isPlayer = grimoireState.mode === 'player';
+      if (isPlayer) {
+        revealToggleBtn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
+        revealToggleBtn.title = grimoireState.grimoireHidden ? 'Reveal characters to players' : 'Hide characters on this device';
+      } else {
+        const locked = !!grimoireState.grimoireLocked;
+        revealToggleBtn.textContent = locked ? 'Unlock Grimoire' : 'Lock Grimoire';
+        revealToggleBtn.title = locked ? 'Unlock to allow grimoire changes' : 'Lock to prevent lineup changes';
+      }
+    };
+
     const applyModeUI = () => {
       if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
       if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
@@ -359,8 +374,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       try { updateStartGameEnabled(); } catch (_) { }
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
+      updateGrimoireControlButton();
     };
-    function applyGrimoireHiddenUI() { applyGrimoireHiddenState({ grimoireState }); }
+    function applyGrimoireHiddenUI() {
+      applyGrimoireHiddenState({ grimoireState });
+      updateGrimoireControlButton();
+    }
 
     function _applyAssignmentsFromBag() {
       const assignments = (grimoireState.playerSetup && grimoireState.playerSetup.assignments) || [];
@@ -382,7 +401,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (revealToggleBtn) {
-      revealToggleBtn.addEventListener('click', () => toggleGrimoireHidden({ grimoireState }));
+      revealToggleBtn.addEventListener('click', () => {
+        if (grimoireState.mode === 'player') {
+          toggleGrimoireHidden({ grimoireState });
+        } else {
+          toggleGrimoireLocked({ grimoireState });
+        }
+        updateGrimoireControlButton();
+      });
     }
 
     if (modeStorytellerRadio && modePlayerRadio) {
@@ -812,6 +838,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     saveReminderBtn.onclick = () => {
+      if (!ensureGrimoireUnlocked({ grimoireState })) return;
       const text = reminderTextInput.value.trim();
       const { playerIndex, reminderIndex } = grimoireState.editingReminder;
       if (text) {
@@ -1038,6 +1065,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadAppState({ grimoireState, grimoireHistoryList });
     applyModeUI();
     applyGrimoireHiddenUI();
+    applyGrimoireLockedState({ grimoireState });
+    updateGrimoireControlButton();
     try {
       updatePreGameClass();
       if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage();

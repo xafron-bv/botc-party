@@ -8,6 +8,7 @@ import { saveAppState } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { ensureGrimoireUnlocked } from './grimoireLock.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -146,11 +147,19 @@ export function assignCharacter({ grimoireState, roleId }) {
   }
 
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
+    if (!ensureGrimoireUnlocked({ grimoireState })) {
+      hideCharacterModal({ grimoireState, clearBluffSelection: true });
+      return;
+    }
     assignBluffCharacter({ grimoireState, roleId });
     return;
   }
 
   if (grimoireState.selectedPlayerIndex > -1) {
+    if (!ensureGrimoireUnlocked({ grimoireState })) {
+      hideCharacterModal({ grimoireState });
+      return;
+    }
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
 
@@ -337,6 +346,9 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   const includeModalTravellersCheckbox = document.getElementById('include-travellers-in-modal');
 
   if (grimoireState && grimoireState.grimoireHidden) {
+    return;
+  }
+  if (!ensureGrimoireUnlocked({ grimoireState })) {
     return;
   }
   if (!grimoireState.scriptData) {

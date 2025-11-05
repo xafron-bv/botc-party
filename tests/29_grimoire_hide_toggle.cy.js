@@ -1,4 +1,4 @@
-describe('Grimoire Hide/Show Toggle', () => {
+describe('Grimoire visibility & locking controls', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
@@ -7,14 +7,20 @@ describe('Grimoire Hide/Show Toggle', () => {
     cy.get('#mode-storyteller').should('be.checked');
   });
 
-  it('hides and shows tokens, reminders, and bluffs while keeping blank circles', () => {
+  it('hides and shows tokens, reminders, and bluffs while keeping blank circles in player mode', () => {
+    // Switch to player mode to expose hide/show button
+    cy.get('#mode-player').click({ force: true });
+    cy.startGame();
+    cy.get('#sidebar-close').click({ force: true });
+    cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
+
     // Verify baseline visible elements
     cy.get('#player-circle li .player-token').should('have.length', 5);
     cy.get('#player-circle li .reminder-placeholder').should('be.visible');
     cy.get('#bluff-tokens-container').should('be.visible');
 
     // Hide grimoire
-    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').click({ force: true });
 
     // Reminders and plus should be hidden
     cy.get('#player-circle li .reminders').should('not.be.visible');
@@ -31,12 +37,16 @@ describe('Grimoire Hide/Show Toggle', () => {
       });
 
     // Show grimoire again
-    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').click({ force: true });
     cy.get('#player-circle li .reminder-placeholder').should('be.visible');
     cy.get('#bluff-tokens-container').should('be.visible');
   });
 
-  it('assigned tokens show no name/curved label and match unassigned in hidden mode', () => {
+  it('assigned tokens show no name/curved label and match unassigned in player hidden mode', () => {
+    cy.get('#mode-player').click({ force: true });
+    cy.startGame();
+    cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
+
     // Load a base script (if not already loaded by helper) so character modal has content
     cy.get('body').then($b => {
       if (!$b.find('#character-sheet .role').length) {
@@ -51,7 +61,7 @@ describe('Grimoire Hide/Show Toggle', () => {
     cy.get('#character-modal').should('not.be.visible');
 
     // Hide grimoire
-    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').click({ force: true });
 
     // No curved label
     cy.get('#player-circle li').eq(0).find('.icon-reminder-svg').should('not.exist');
@@ -68,19 +78,33 @@ describe('Grimoire Hide/Show Toggle', () => {
     // Show back
     cy.get('#reveal-assignments').click();
   });
-  it('works in player mode as well', () => {
-    // Switch to player mode
-    cy.get('#mode-player').click();
-    // Close sidebar to see bluff tokens
-    cy.get('#sidebar-close').click();
-    // Toggle hide
-    cy.get('#reveal-assignments').click({ force: true });
-    cy.get('#player-circle li .reminder-placeholder').should('not.be.visible');
-    cy.get('#bluff-tokens-container').should('not.be.visible');
-    // Toggle show
-    cy.get('#reveal-assignments').click({ force: true });
-    cy.get('#bluff-tokens-container').should('be.visible');
+
+  it('locks grimoire actions in storyteller mode until unlocked', () => {
+    // Add a reminder to attempt to delete later
+    cy.get('#player-circle li .reminder-placeholder').first().click({ altKey: true, force: true });
+    cy.get('#text-reminder-modal').should('be.visible');
+    cy.get('#reminder-text-input').type('Locked reminder');
+    cy.get('#save-reminder-btn').click({ force: true });
+    cy.get('#text-reminder-modal').should('not.be.visible');
+    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 1);
+
+    // Lock the grimoire
+    cy.get('#reveal-assignments').should('contain', 'Lock Grimoire').click();
+    cy.get('#reveal-assignments').should('contain', 'Unlock Grimoire');
+    cy.get('body').should('have.class', 'grimoire-locked');
+
+    // Attempting to delete reminders should be blocked
+    cy.get('#player-circle li').first().find('.text-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('body').find('#reminder-context-menu').should('have.length', 0);
+    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 1);
+
+    // Unlock and verify deletion works again
+    cy.get('#reveal-assignments').click();
+    cy.get('#reveal-assignments').should('contain', 'Lock Grimoire');
+    cy.get('body').should('not.have.class', 'grimoire-locked');
+    cy.get('#player-circle li').first().find('.text-reminder').first().trigger('contextmenu', { force: true });
+    cy.get('#reminder-context-menu').should('be.visible');
+    cy.get('#reminder-menu-delete').click({ force: true });
+    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 0);
   });
 });
-
-

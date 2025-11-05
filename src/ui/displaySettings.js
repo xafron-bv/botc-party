@@ -171,7 +171,6 @@ export function initDisplaySettings({ grimoireState }) {
   });
 
   let isOpen = false;
-  let boundsUpdateScheduled = false;
 
   const recalcMarkers = () => {
     const run = () => sliderConfigs.forEach((cfg) => updateMarkerPosition(cfg));
