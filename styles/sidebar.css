@@ -8,6 +8,8 @@
   border-right: 2px solid #D4AF37;
   box-shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
   transition: flex 0.3s ease, width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease;
+  position: relative;
+  z-index: 2500;
 }
 
 /* Sidebar sections with better spacing */

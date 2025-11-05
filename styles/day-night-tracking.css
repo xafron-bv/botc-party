@@ -6,7 +6,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 9000; /* Raised above player names (<=50), reminders, menus (5000) */
+  z-index: 130; /* Above grimoire content, below sidebar */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 8000; /* Above slider but below night/day toggle */
+  z-index: 120; /* Slightly below night/day toggle */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -72,7 +72,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   border: 2px solid #D4AF37;
   border-radius: 16px;
   padding: 16px;
-  z-index: 7999;
+  z-index: 115;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   opacity: 0;
   transform: translateY(10px);
@@ -187,7 +187,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   border-radius: 25px;
   /* Full rounded corners */
   padding: 0 20px;
-  z-index: 8999; /* Just below the toggle button */
+  z-index: 125; /* Just below the toggle button */
   /* Slightly below toggle button */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transform-origin: center right;
