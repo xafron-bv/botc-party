@@ -24,30 +24,44 @@ export async function displayScript({ data, grimoireState }) {
 
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
-
-    const nightOrderCharacters = [];
-    const noNightOrderCharacters = [];
-
-    Object.values(grimoireState.allRoles).forEach(role => {
-      if (role[nightOrderKey] && role[nightOrderKey] > 0) {
-        nightOrderCharacters.push(role);
-      } else {
-        noNightOrderCharacters.push(role);
+    const nightOrderCharacterIds = (grimoireState.nightOrderData && grimoireState.nightOrderData[nightOrderKey]) || [];
+    const officialOrderMap = new Map();
+    nightOrderCharacterIds.forEach((id, index) => {
+      if (!officialOrderMap.has(id)) {
+        officialOrderMap.set(id, index + 1);
       }
     });
 
-    nightOrderCharacters.sort((a, b) => a[nightOrderKey] - b[nightOrderKey]);
+    const rolesToRender = [];
+    Object.values(grimoireState.allRoles || {}).forEach(role => {
+      if (!role || !role.id || role.id === '_meta') return;
+      const orderFromData = officialOrderMap.get(role.id);
+      if (orderFromData !== undefined) {
+        rolesToRender.push({ role, order: orderFromData, sourcePriority: 0 });
+        return;
+      }
+      const scriptOrderValue = typeof role[nightOrderKey] === 'number' ? role[nightOrderKey] : null;
+      if (scriptOrderValue && scriptOrderValue > 0) {
+        rolesToRender.push({ role, order: scriptOrderValue, sourcePriority: 1 });
+      }
+    });
 
-    const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters];
+    rolesToRender.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      if (a.sourcePriority !== b.sourcePriority) return a.sourcePriority - b.sourcePriority;
+      const nameA = a.role.name || a.role.id || '';
+      const nameB = b.role.name || b.role.id || '';
+      return nameA.localeCompare(nameB);
+    });
 
-    allCharactersInOrder.forEach(role => {
+    rolesToRender.forEach(({ role }) => {
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
       roleEl.innerHTML = `
-                     <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
-                     <span class="name">${role.name}</span>
-                     <div class="ability">${role.ability || 'No ability description available'}</div>
-                 `;
+        <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+        <span class="name">${role.name}</span>
+        <div class="ability">${role.ability || 'No ability description available'}</div>
+      `;
       roleEl.addEventListener('click', () => {
         roleEl.classList.toggle('show-ability');
       });
@@ -55,7 +69,6 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     displayJinxes({ jinxData, grimoireState, characterSheet });
-
   } else {
     const teamGroups = {};
     Object.values(grimoireState.allRoles).forEach(role => {
@@ -66,7 +79,7 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     if (Object.keys(teamGroups).length > 0) {
-      const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
+      const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled', 'loric'];
       teamOrder.forEach(team => {
         if (teamGroups[team] && teamGroups[team].length > 0) {
           const teamHeader = document.createElement('h3');
