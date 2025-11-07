@@ -20,7 +20,6 @@ export function initStorytellerMessages({ grimoireState }) {
   const slotsDisplayEl = document.getElementById('storyteller-slots-display');
   const messageDisplayModal = document.getElementById('storyteller-message-display');
   const closeMessageDisplayBtn = document.getElementById('close-storyteller-message-display');
-  const closeMessageDisplayBtnBottom = document.getElementById('close-storyteller-message-display-bottom');
   const messageTextEl = messageDisplayModal ? messageDisplayModal.querySelector('.message-text') : null;
 
   let currentMessageSlotCount = 0;
@@ -199,7 +198,6 @@ export function initStorytellerMessages({ grimoireState }) {
   }
 
   if (closeMessageDisplayBtn) closeMessageDisplayBtn.addEventListener('click', hideStorytellerOverlay);
-  if (closeMessageDisplayBtnBottom) closeMessageDisplayBtnBottom.addEventListener('click', hideStorytellerOverlay);
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {

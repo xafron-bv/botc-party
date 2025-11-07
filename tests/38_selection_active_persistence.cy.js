@@ -31,7 +31,7 @@ describe('Selection session persistence', () => {
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
-        const confirmBtn = modal.find('#reveal-confirm-btn');
+        const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
@@ -67,7 +67,7 @@ describe('Selection session persistence', () => {
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
-        const confirmBtn = modal.find('#reveal-confirm-btn');
+        const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }

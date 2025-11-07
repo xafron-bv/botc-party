@@ -213,18 +213,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addPlayersBtn = document.getElementById('add-players');
 
     const characterModal = document.getElementById('character-modal');
-    const closeCharacterModalBtn = document.getElementById('close-character-modal');
     const characterSearch = document.getElementById('character-search');
 
     const textReminderModal = document.getElementById('text-reminder-modal');
     const reminderTextInput = document.getElementById('reminder-text-input');
     const saveReminderBtn = document.getElementById('save-reminder-btn');
-    const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
     const sidebarResizer = document.getElementById('sidebar-resizer');
 
     const sidebarEl = document.getElementById('sidebar');
     const reminderTokenModal = document.getElementById('reminder-token-modal');
-    const closeReminderTokenModalBtn = document.getElementById('close-reminder-token-modal');
     const reminderTokenSearch = document.getElementById('reminder-token-search');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
     const sidebarCloseBtn = document.getElementById('sidebar-close');
@@ -872,15 +869,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       textReminderModal.style.display = 'none';
     };
 
-    closeCharacterModalBtn.onclick = () => {
-      hideCharacterModal({ grimoireState, clearBluffSelection: true });
-    // Don't change selectedPlayerIndex as it might be legitimately set
-    };
-    cancelReminderBtn.onclick = () => textReminderModal.style.display = 'none';
     characterSearch.oninput = () => populateCharacterGrid({ grimoireState });
-    if (closeReminderTokenModalBtn) {
-      closeReminderTokenModalBtn.onclick = () => reminderTokenModal.style.display = 'none';
-    }
     if (reminderTokenSearch) {
       reminderTokenSearch.oninput = () => populateReminderTokenGrid({ grimoireState });
     }
