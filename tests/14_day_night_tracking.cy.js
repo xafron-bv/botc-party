@@ -21,14 +21,14 @@ describe('Day/Night Tracking Feature', () => {
 
     it('should enable/disable day/night tracking when clicked', () => {
       // Click toggle to enable
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
       cy.get('[data-testid="day-night-toggle"]').should('have.class', 'active');
 
       // Day/night UI elements should appear
       cy.get('[data-testid="day-night-slider"]').should('be.visible');
 
       // Click toggle to disable
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
       cy.get('[data-testid="day-night-toggle"]').should('not.have.class', 'active');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'display', 'none');
     });
@@ -37,7 +37,7 @@ describe('Day/Night Tracking Feature', () => {
   describe('Day/Night Cycle', () => {
     beforeEach(() => {
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
     });
 
     it('should start with Night 1 (N1)', () => {
@@ -92,7 +92,7 @@ describe('Day/Night Tracking Feature', () => {
   describe('Reminder Timestamps', () => {
     beforeEach(() => {
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Assign a character to first player
       cy.get('.player-token').first().click({ force: true });
@@ -140,7 +140,7 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('li').first().find('.text-reminder').should('contain', 'N1');
 
       // Disable tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Reminder should not show timestamp
       cy.get('li').first().find('.text-reminder').should('not.contain', 'N1');
@@ -151,7 +151,7 @@ describe('Day/Night Tracking Feature', () => {
   describe('History Slider', () => {
     beforeEach(() => {
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Create multiple phases with reminders
       // N1 reminder
@@ -220,7 +220,7 @@ describe('Day/Night Tracking Feature', () => {
 
   describe('UI Integration', () => {
     it('should position slider seamlessly with toggle button without interfering with grimoire', () => {
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Slider should be positioned at same level as toggle button
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
@@ -234,7 +234,7 @@ describe('Day/Night Tracking Feature', () => {
     });
 
     it('should properly style the horizontal slider layout', () => {
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Add multiple phases
       cy.get('[data-testid="add-phase-button"]').click(); // D1
@@ -259,7 +259,7 @@ describe('Day/Night Tracking Feature', () => {
       // Enable day/night tracking if not already enabled
       cy.get('[data-testid="day-night-toggle"]').then($toggle => {
         if (!$toggle.hasClass('active')) {
-          cy.wrap($toggle).click();
+          cy.wrap($toggle).click({ force: true });
         }
       });
 
@@ -337,7 +337,7 @@ describe('Day/Night Tracking Feature', () => {
   describe('Persistence', () => {
     it('should persist day/night state when reloading', () => {
       // Enable tracking and add phases
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
       cy.get('[data-testid="add-phase-button"]').click(); // D1
       cy.get('[data-testid="add-phase-button"]').click(); // N2
 

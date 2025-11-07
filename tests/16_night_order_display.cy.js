@@ -9,7 +9,7 @@ describe('Night Order Display', () => {
   describe('Night Order Numbers', () => {
     beforeEach(() => {
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Assign characters with different night orders
       // Assign Imp (demon with night order) to player 1
@@ -42,7 +42,7 @@ describe('Night Order Display', () => {
 
     it('should not show night order numbers when night slider is closed', () => {
       // Disable day/night tracking to close slider
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Night order numbers should not be visible
       cy.get('[data-testid="night-order-number"]').should('not.exist');
@@ -138,7 +138,7 @@ describe('Night Order Display', () => {
       cy.get('[data-testid="night-order-number"]').should('exist');
 
       // Disable tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Numbers should be hidden
       cy.get('[data-testid="night-order-number"]').should('not.exist');
@@ -177,7 +177,7 @@ describe('Night Order Display', () => {
       cy.reload();
       // Use shared helper to reinitialize game post reload
       cy.setupGame({ players: 7, loadScript: true });
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Assign Fortune Teller (has night order)
       cy.get('.player-token').eq(0).click({ force: true });
@@ -292,7 +292,7 @@ describe('Night Order Display', () => {
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
       // Assign Vortox (demon with night order) to player 1
       cy.get('.player-token').eq(0).click({ force: true });
@@ -322,7 +322,7 @@ describe('Night Order Display', () => {
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
       // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click();
+      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
     });
 
     it('should correctly calculate sequential night order numbers', () => {

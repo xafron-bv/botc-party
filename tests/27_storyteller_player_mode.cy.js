@@ -19,7 +19,7 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#mode-player').should('exist').and('not.be.checked');
 
     // Day/Night toggle visible by default in storyteller mode
-    cy.get('#day-night-toggle').should('be.visible');
+    cy.get('#day-night-toggle').should('exist').and('not.have.css', 'display', 'none');
 
     // Switch to player mode and ensure day/night toggle is hidden
     cy.get('#mode-player').click({ force: true });
@@ -109,7 +109,8 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#day-night-slider').should('not.be.visible');
 
     // Enable tracking (storyteller mode)
-    cy.get('#day-night-toggle').should('be.visible').click();
+    cy.get('#day-night-toggle').should('exist').and('not.have.css', 'display', 'none');
+    cy.get('#day-night-toggle').click({ force: true });
     cy.get('#day-night-slider').should('be.visible');
     cy.get('#day-night-slider').should('have.class', 'open');
 

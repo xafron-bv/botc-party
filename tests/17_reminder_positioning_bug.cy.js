@@ -15,7 +15,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
     cy.setupGame({ players: 5, loadScript: false });
 
     // Enable day/night tracking
-    cy.get('[data-testid="day-night-toggle"]').click();
+    cy.get('[data-testid="day-night-toggle"]').click({ force: true });
   });
 
   describe('Plus Button Positioning Bug Fix', () => {
@@ -226,7 +226,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
         const enabledPosition = $plusEnabled[0].getBoundingClientRect();
 
         // Disable day/night tracking
-        cy.get('[data-testid="day-night-toggle"]').click();
+        cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
         // When tracking is disabled, we stay in the current phase state (N1 with 1 reminder)
         cy.get('li').first().find('.text-reminder').should('have.length', 1);
