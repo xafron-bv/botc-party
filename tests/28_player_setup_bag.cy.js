@@ -173,7 +173,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Start selection should NOT lock or hide grimoire; button remains "Lock Grimoire"
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('body').should('not.have.class', 'grimoire-hidden');
-    cy.get('#reveal-assignments').should('contain', 'Lock Grimoire');
+    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire');
     // Number picker should open after clicking the overlay on a player
     cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');

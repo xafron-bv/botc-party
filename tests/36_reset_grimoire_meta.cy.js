@@ -11,8 +11,8 @@ describe('Reset Grimoire meta state', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
     // Lock the grimoire to ensure reset clears the state
-    cy.get('#reveal-assignments').should('contain', 'Lock Grimoire').click();
-    cy.get('#reveal-assignments').should('contain', 'Unlock Grimoire');
+    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire').click();
+    cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
     cy.get('body').should('have.class', 'grimoire-locked');
 
     // Open player setup and random fill bag to ensure >0 entries
@@ -38,7 +38,7 @@ describe('Reset Grimoire meta state', () => {
 
     // Grimoire unlocked
     cy.get('body').should('not.have.class', 'grimoire-locked');
-    cy.get('#reveal-assignments').should('contain', 'Lock Grimoire');
+    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire');
 
     // Player setup bag emptied: open panel and expect zero checked checkboxes
     cy.get('#open-player-setup').click();

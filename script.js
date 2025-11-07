@@ -248,6 +248,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dayNightSlider = document.getElementById('day-night-slider');
     const displaySettingsToggleBtn = document.getElementById('display-settings-toggle');
     const revealToggleBtn = document.getElementById('reveal-assignments');
+    const grimoireLockToggleBtn = document.getElementById('grimoire-lock-toggle');
 
     const grimoireState = {
       includeTravellers: false,
@@ -334,16 +335,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.mode = 'storyteller';
     }
 
-    const updateGrimoireControlButton = () => {
-      if (!revealToggleBtn) return;
+    const updateGrimoireControlButtons = () => {
       const isPlayer = grimoireState.mode === 'player';
-      if (isPlayer) {
-        revealToggleBtn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
-        revealToggleBtn.title = grimoireState.grimoireHidden ? 'Reveal characters to players' : 'Hide characters on this device';
-      } else {
+      if (revealToggleBtn) {
+        const hidden = !!grimoireState.grimoireHidden;
+        revealToggleBtn.style.display = isPlayer ? '' : 'none';
+        revealToggleBtn.textContent = hidden ? 'Show Grimoire' : 'Hide Grimoire';
+        revealToggleBtn.title = hidden ? 'Reveal characters to players' : 'Hide characters on this device';
+        revealToggleBtn.setAttribute('aria-pressed', String(hidden));
+      }
+      if (grimoireLockToggleBtn) {
         const locked = !!grimoireState.grimoireLocked;
-        revealToggleBtn.textContent = locked ? 'Unlock Grimoire' : 'Lock Grimoire';
-        revealToggleBtn.title = locked ? 'Unlock to allow grimoire changes' : 'Lock to prevent lineup changes';
+        grimoireLockToggleBtn.style.display = isPlayer ? 'none' : '';
+        grimoireLockToggleBtn.textContent = locked ? 'Unlock Grimoire' : 'Lock Grimoire';
+        grimoireLockToggleBtn.title = locked ? 'Unlock to allow grimoire changes' : 'Lock to prevent lineup changes';
+        grimoireLockToggleBtn.setAttribute('aria-pressed', String(locked));
       }
     };
 
@@ -374,11 +380,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       try { updateStartGameEnabled(); } catch (_) { }
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
-      updateGrimoireControlButton();
+      updateGrimoireControlButtons();
     };
     function applyGrimoireHiddenUI() {
       applyGrimoireHiddenState({ grimoireState });
-      updateGrimoireControlButton();
+      updateGrimoireControlButtons();
     }
 
     function _applyAssignmentsFromBag() {
@@ -402,12 +408,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (revealToggleBtn) {
       revealToggleBtn.addEventListener('click', () => {
-        if (grimoireState.mode === 'player') {
-          toggleGrimoireHidden({ grimoireState });
-        } else {
-          toggleGrimoireLocked({ grimoireState });
-        }
-        updateGrimoireControlButton();
+        if (grimoireState.mode !== 'player') return;
+        toggleGrimoireHidden({ grimoireState });
+        updateGrimoireControlButtons();
+      });
+    }
+    if (grimoireLockToggleBtn) {
+      grimoireLockToggleBtn.addEventListener('click', () => {
+        if (grimoireState.mode === 'player') return;
+        toggleGrimoireLocked({ grimoireState });
+        updateGrimoireControlButtons();
       });
     }
 
@@ -1066,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyModeUI();
     applyGrimoireHiddenUI();
     applyGrimoireLockedState({ grimoireState });
-    updateGrimoireControlButton();
+    updateGrimoireControlButtons();
     try {
       updatePreGameClass();
       if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage();

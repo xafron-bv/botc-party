@@ -6,7 +6,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 130; /* Above grimoire content, below sidebar */
+  z-index: 1900; /* Float above character panel so toggle remains clickable */
   border-radius: 50%;
   display: flex;
   align-items: center;
