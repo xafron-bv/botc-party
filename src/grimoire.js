@@ -15,11 +15,13 @@ import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
 import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { ensureGrimoireUnlocked } from './grimoireLock.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = (e) => {
     e.stopPropagation();
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const currentName = grimoireState.players[playerIndex].name;
     const newName = prompt('Enter player name:', currentName);
     if (newName) {
@@ -52,9 +54,21 @@ export function getRoleById({ grimoireState, roleId }) {
 
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
-  const btn = document.getElementById('reveal-assignments');
-  if (btn) btn.textContent = grimoireState.grimoireHidden ? 'Show Grimoire' : 'Hide Grimoire';
   updateGrimoire({ grimoireState });
+}
+
+export function applyGrimoireLockedState({ grimoireState }) {
+  try { document.body.classList.toggle('grimoire-locked', !!grimoireState.grimoireLocked); } catch (_) { }
+}
+
+export function setGrimoireLocked({ grimoireState, locked }) {
+  grimoireState.grimoireLocked = !!locked;
+  applyGrimoireLockedState({ grimoireState });
+  saveAppState({ grimoireState });
+}
+
+export function toggleGrimoireLocked({ grimoireState }) {
+  setGrimoireLocked({ grimoireState, locked: !grimoireState.grimoireLocked });
 }
 
 export function setGrimoireHidden({ grimoireState, hidden }) {
@@ -72,6 +86,8 @@ export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireSt
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
+  grimoireState.grimoireLocked = false;
+  applyGrimoireLockedState({ grimoireState });
   try {
     if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
@@ -229,6 +245,7 @@ export function updateGrimoire({ grimoireState }) {
     ribbon.classList.add('death-ribbon');
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
+      if (!ensureGrimoireUnlocked({ grimoireState })) return;
       const playerSetup = grimoireState.playerSetup || {};
       const selectionActive = !!playerSetup.selectionActive;
       const selectionComplete = !!playerSetup.selectionComplete;
@@ -300,6 +317,7 @@ export function updateGrimoire({ grimoireState }) {
       const deathVoteIndicator = createDeathVoteIndicatorSvg();
       const handleDeathVoteClick = (e) => {
         e.stopPropagation();
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
         const player = grimoireState.players[i];
         if (player.dead && !player.deathVote) {
           grimoireState.players[i].deathVote = true;
@@ -522,6 +540,8 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     return { name, character: null, reminders: [], dead: false, deathVote: false };
   });
   grimoireState.players = newPlayers;
+  grimoireState.grimoireLocked = false;
+  applyGrimoireLockedState({ grimoireState });
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
   grimoireState.bluffs = [null, null, null];
