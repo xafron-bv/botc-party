@@ -8,7 +8,7 @@ describe('Jinx Display', () => {
     });
   });
 
-  it('displays jinxes section immediately after demons and before travellers/fabled', () => {
+  it('displays jinxes section immediately after demons and before travellers/fabled/loric', () => {
     // Load all characters which has jinxes
     cy.get('#load-all-chars').click();
 
@@ -19,13 +19,14 @@ describe('Jinx Display', () => {
     cy.get('#character-sheet h3.team-demon').should('exist');
     cy.get('#character-sheet h3.team-jinxes').should('exist');
 
-    // Jinxes section should be immediately after demons and before travellers/fabled
+    // Jinxes section should be immediately after demons and before travellers/fabled/loric
     cy.get('#character-sheet h3').then(($headers) => {
       const headers = $headers.toArray().map(el => el.textContent);
       const demonIndex = headers.indexOf('Demon');
       const jinxIndex = headers.indexOf('Jinxes');
       const travellerIndex = headers.indexOf('Travellers');
       const fabledIndex = headers.indexOf('Fabled');
+      const loricIndex = headers.indexOf('Loric');
 
       // Jinxes should be after demons
       expect(jinxIndex).to.be.greaterThan(demonIndex);
@@ -41,6 +42,11 @@ describe('Jinx Display', () => {
       // If fabled exist, jinxes should be before them
       if (fabledIndex !== -1) {
         expect(jinxIndex).to.be.lessThan(fabledIndex);
+      }
+
+      // If loric exist, jinxes should be before them
+      if (loricIndex !== -1) {
+        expect(jinxIndex).to.be.lessThan(loricIndex);
       }
     });
   });

@@ -94,7 +94,7 @@ describe('Night Order Sorting', () => {
       });
     });
 
-    it('should display jinxes, fabled, and travellers after night order characters', () => {
+    it('should display jinxes, travellers, fabled, and lorics after night order characters', () => {
       // Load a script with travellers and jinxes
       cy.get('[data-testid="include-travellers-checkbox"]').click();
 

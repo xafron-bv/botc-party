@@ -69,6 +69,12 @@
   border-left: 4px solid #9c27b0;
 }
 
+#character-sheet h3.team-loric {
+  background: rgba(76, 175, 80, 0.18);
+  color: #b2fab4;
+  border-left: 4px solid #4CAF50;
+}
+
 /* Role items */
 #character-sheet .role {
   display: flex;
@@ -164,6 +170,10 @@
 
 .team-fabled {
   color: #FFC107;
+}
+
+.team-loric {
+  color: #8BC34A;
 }
 
 /* Jinx section styling */

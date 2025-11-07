@@ -66,7 +66,7 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     if (Object.keys(teamGroups).length > 0) {
-      const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled'];
+      const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled', 'loric'];
       teamOrder.forEach(team => {
         if (teamGroups[team] && teamGroups[team].length > 0) {
           const teamHeader = document.createElement('h3');
