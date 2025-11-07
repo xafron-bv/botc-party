@@ -24,31 +24,37 @@ export async function displayScript({ data, grimoireState }) {
 
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
-    const nightOrderCharacterIds = grimoireState.nightOrderData[nightOrderKey] || [];
-    const characterSheet = document.getElementById('character-sheet');
-    characterSheet.innerHTML = '';
-
-    const nightOrderCharacters = [];
-    const noNightOrderCharacters = [];
-
-    const scriptCharacterIds = new Set(Object.keys(grimoireState.allRoles));
-
-    nightOrderCharacterIds.forEach(id => {
-      if (scriptCharacterIds.has(id)) {
-        nightOrderCharacters.push(grimoireState.allRoles[id]);
+    const nightOrderCharacterIds = (grimoireState.nightOrderData && grimoireState.nightOrderData[nightOrderKey]) || [];
+    const officialOrderMap = new Map();
+    nightOrderCharacterIds.forEach((id, index) => {
+      if (!officialOrderMap.has(id)) {
+        officialOrderMap.set(id, index + 1);
       }
     });
 
-    Object.values(grimoireState.allRoles).forEach(role => {
-      if (!nightOrderCharacterIds.includes(role.id)) {
-        noNightOrderCharacters.push(role);
+    const rolesToRender = [];
+    Object.values(grimoireState.allRoles || {}).forEach(role => {
+      if (!role || !role.id || role.id === '_meta') return;
+      const orderFromData = officialOrderMap.get(role.id);
+      if (orderFromData !== undefined) {
+        rolesToRender.push({ role, order: orderFromData, sourcePriority: 0 });
+        return;
+      }
+      const scriptOrderValue = typeof role[nightOrderKey] === 'number' ? role[nightOrderKey] : null;
+      if (scriptOrderValue && scriptOrderValue > 0) {
+        rolesToRender.push({ role, order: scriptOrderValue, sourcePriority: 1 });
       }
     });
 
-    const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters];
+    rolesToRender.sort((a, b) => {
+      if (a.order !== b.order) return a.order - b.order;
+      if (a.sourcePriority !== b.sourcePriority) return a.sourcePriority - b.sourcePriority;
+      const nameA = a.role.name || a.role.id || '';
+      const nameB = b.role.name || b.role.id || '';
+      return nameA.localeCompare(nameB);
+    });
 
-    allCharactersInOrder.forEach(role => {
-      if (!role) return;
+    rolesToRender.forEach(({ role }) => {
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
       roleEl.innerHTML = `
