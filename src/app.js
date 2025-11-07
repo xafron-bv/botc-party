@@ -15,6 +15,7 @@ export function saveAppState({ grimoireState }) {
       bluffs: grimoireState.bluffs || [null, null, null],
       mode: grimoireState.mode || 'player',
       grimoireHidden: !!grimoireState.grimoireHidden,
+      grimoireLocked: !!grimoireState.grimoireLocked,
       playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
       gameStarted: !!grimoireState.gameStarted,
       winner: grimoireState.winner || null
@@ -57,6 +58,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && typeof saved.grimoireHidden === 'boolean') {
       grimoireState.grimoireHidden = !!saved.grimoireHidden;
+    }
+    if (saved && typeof saved.grimoireLocked === 'boolean') {
+      grimoireState.grimoireLocked = !!saved.grimoireLocked;
     }
     if (saved && saved.playerSetup) {
       grimoireState.playerSetup = saved.playerSetup;

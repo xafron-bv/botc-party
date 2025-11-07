@@ -9,6 +9,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { ensureGrimoireUnlocked } from './grimoireLock.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid');
@@ -27,6 +28,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     if (!tokenEl) return;
     try { e.preventDefault(); } catch (_) { }
     try { e.stopPropagation(); } catch (_) { }
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
 
     let label = tokenEl.dataset.tokenLabel || '';
 
@@ -147,6 +149,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
 
 
 export function openReminderTokenModal({ grimoireState, playerIndex }) {
+  if (!ensureGrimoireUnlocked({ grimoireState })) return;
 
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const reminderTokenSearch = document.getElementById('reminder-token-search');
@@ -160,6 +163,7 @@ export function openReminderTokenModal({ grimoireState, playerIndex }) {
 }
 
 export function openTextReminderModal({ grimoireState, playerIndex, reminderIndex = -1, existingText = '' }) {
+  if (!ensureGrimoireUnlocked({ grimoireState })) return;
 
   const reminderTextInput = document.getElementById('reminder-text-input');
   const textReminderModal = document.getElementById('text-reminder-modal');

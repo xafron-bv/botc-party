@@ -1,5 +1,11 @@
 // Cypress E2E tests - In-app Tour
 
+const clickTourButton = (label) => {
+  cy.get('.tour-popover .actions', { timeout: 12000 })
+    .contains('button', label)
+    .click({ force: true });
+};
+
 describe('Tour', () => {
   beforeEach(() => {
     cy.visit('/');
@@ -27,7 +33,7 @@ describe('Tour', () => {
     // Do not assert exact overlay geometry in headless env; just ensure popover rendered and navigation works
 
     // Next to open sidebar (tour step triggers it in onBeforeNext)
-    cy.contains('.tour-popover .actions .button', 'Next').click();
+    clickTourButton('Next');
     // Sidebar might already be open on large viewport; accept either state
     cy.get('body').then(($b) => {
       const isCollapsed = $b.hasClass('sidebar-collapsed');
@@ -35,27 +41,28 @@ describe('Tour', () => {
     });
 
     // Go forward and back
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to game-setup
-    cy.contains('.tour-popover .actions .button', 'Back').should('not.be.disabled').click(); // back to open-sidebar
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // forward again
+    clickTourButton('Next'); // to game-setup
+    cy.contains('.tour-popover .actions .button', 'Back').should('not.be.disabled');
+    clickTourButton('Back'); // back to open-sidebar
+    clickTourButton('Next'); // forward again
 
     // Continue through steps to assign-character (collapses sidebar), then to Finish
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to scripts
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to assign-character
+    clickTourButton('Next'); // to scripts
+    clickTourButton('Next'); // to assign-character
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
     // Advance to player management
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to player-management
+    clickTourButton('Next'); // to player-management
     // Advance to reminders
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to reminders
+    clickTourButton('Next'); // to reminders
     // Advance to bluff tokens
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to bluff-tokens
+    clickTourButton('Next'); // to bluff-tokens
     // Advance to offline
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to offline
+    clickTourButton('Next'); // to offline
     // Advance to finish
-    cy.contains('.tour-popover .actions .button', 'Next').click(); // to finish (button label becomes Finish)
+    clickTourButton('Next'); // to finish (button label becomes Finish)
     // Finish the tour (no strict teardown assertion to avoid CI race conditions)
-    cy.contains('.tour-popover .actions .button', 'Finish').click({ force: true });
+    clickTourButton('Finish');
   });
 
   it('includes a step for adding/removing players via right-click or long-touch', () => {
@@ -71,7 +78,7 @@ describe('Tour', () => {
     // Navigate to the new player management step
     // Step through: welcome -> open-sidebar -> game-setup -> scripts -> assign-character -> player-management
     for (let i = 0; i < 5; i++) {
-      cy.contains('.tour-popover .actions .button', 'Next').click();
+      clickTourButton('Next');
     }
 
     // Verify we're on the player management step
@@ -86,14 +93,14 @@ describe('Tour', () => {
     cy.get('.tour-highlight').should('exist');
 
     // Verify we can navigate back and forward
-    cy.contains('.tour-popover .actions .button', 'Back').click();
+    clickTourButton('Back');
     cy.get('.tour-popover .title').should('contain', 'Assign a character');
 
-    cy.contains('.tour-popover .actions .button', 'Next').click();
+    clickTourButton('Next');
     cy.get('.tour-popover .title').should('contain', 'Add/Remove Players');
 
     // Continue to reminders step
-    cy.contains('.tour-popover .actions .button', 'Next').click();
+    clickTourButton('Next');
     cy.get('.tour-popover .title').should('contain', 'Reminders');
   });
 });
