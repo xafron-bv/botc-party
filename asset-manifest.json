@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-11-07T14:29:53.133Z",
+  "generatedAt": "2025-11-07T14:50:14.950Z",
   "files": [
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
@@ -219,6 +219,7 @@
     "./src/constants.js",
     "./src/dayNightTracking.js",
     "./src/grimoire.js",
+    "./src/grimoireLock.js",
     "./src/history/exportImport.js",
     "./src/history/grimoire.js",
     "./src/history/index.js",
