@@ -20,7 +20,7 @@ describe('Night Order Sorting', () => {
       cy.get('[data-testid="night-order-sort-checkbox"]').should('not.be.checked');
 
       // Should have a label
-      cy.get('[data-testid="night-order-sort-label"]').should('contain', 'Sort by night order');
+      cy.get('[data-testid="night-order-sort-label"]').should('contain', 'Show night order');
     });
 
     it('should toggle between team sorting and night order sorting', () => {
@@ -80,37 +80,28 @@ describe('Night Order Sorting', () => {
       });
     });
 
-    it('should place characters with firstNight: 0 at the end of night order characters', () => {
+    it('hides characters without first night ordering', () => {
       cy.get('#character-sheet .role .name').then($names => {
         const names = [...$names].map(el => el.textContent);
-
-        // Characters with night orders should appear before those without
-        const poisonerIndex = names.indexOf('Poisoner'); // has firstNight > 0
-        const soldierIndex = names.indexOf('Soldier'); // has firstNight: 0
-        const virginIndex = names.indexOf('Virgin'); // has firstNight: 0
-
-        expect(poisonerIndex).to.be.lessThan(soldierIndex);
-        expect(poisonerIndex).to.be.lessThan(virginIndex);
+        expect(names, 'Soldier hidden').to.not.include('Soldier');
+        expect(names, 'Virgin hidden').to.not.include('Virgin');
       });
+
+      // Disable sorting to confirm they are available outside night order mode
+      cy.get('[data-testid="night-order-sort-checkbox"]').click();
+      cy.contains('#character-sheet .role .name', 'Soldier').should('exist');
+      cy.contains('#character-sheet .role .name', 'Virgin').should('exist');
     });
 
-    it('should display jinxes, fabled, and travellers after night order characters', () => {
+    it('keeps jinxes after ordered characters while hiding unordered travellers', () => {
       // Load a script with travellers and jinxes
       cy.get('[data-testid="include-travellers-checkbox"]').click();
 
       cy.get('#character-sheet .role .name').then($names => {
         const names = [...$names].map(el => el.textContent);
 
-        // Night order characters
-        const chefIndex = names.indexOf('Chef');
-        // Characters with no night order
-        const soldierIndex = names.indexOf('Soldier');
-        // Travellers
-        const beggarIndex = names.indexOf('Beggar');
-
-        // Night order characters < No night order characters < Travellers
-        expect(chefIndex).to.be.lessThan(soldierIndex);
-        expect(soldierIndex).to.be.lessThan(beggarIndex);
+        expect(names, 'unordered character hidden').to.not.include('Soldier');
+        expect(names, 'traveller hidden').to.not.include('Beggar');
       });
 
       // Check if jinxes section appears after regular characters (if any exist)
@@ -157,18 +148,17 @@ describe('Night Order Sorting', () => {
       });
     });
 
-    it('should place characters with otherNight: 0 at the end of night order characters', () => {
+    it('hides characters without other night ordering', () => {
       cy.get('#character-sheet .role .name').then($names => {
         const names = [...$names].map(el => el.textContent);
-
-        // Characters with night orders should appear before those without
-        const poisonerIndex = names.indexOf('Poisoner'); // has otherNight > 0
-        const chefIndex = names.indexOf('Chef'); // has otherNight: 0
-        const empathIndex = names.indexOf('Empath'); // has otherNight: 0
-
-        expect(poisonerIndex).to.be.lessThan(chefIndex);
-        expect(poisonerIndex).to.be.lessThan(empathIndex);
+        expect(names, 'Mayor hidden').to.not.include('Mayor');
+        expect(names, 'Saint hidden').to.not.include('Saint');
       });
+
+      // Disable sorting to confirm they are available outside night order mode
+      cy.get('[data-testid="night-order-sort-checkbox"]').click();
+      cy.contains('#character-sheet .role .name', 'Mayor').should('exist');
+      cy.contains('#character-sheet .role .name', 'Saint').should('exist');
     });
   });
 

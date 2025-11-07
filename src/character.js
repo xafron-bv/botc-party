@@ -194,7 +194,10 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
 
     const data = await response.json();
     const characters = data.roles;
+    const nightOrder = data.nightOrder;
     console.log('data.json loaded successfully');
+
+    grimoireState.nightOrderData = nightOrder;
 
     const roleLookup = {};
     const normalizedToCanonicalId = {};

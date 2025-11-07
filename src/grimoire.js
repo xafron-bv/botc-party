@@ -43,7 +43,11 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
 }
 
 export function getRoleById({ grimoireState, roleId }) {
-  return grimoireState.allRoles[roleId] || grimoireState.baseRoles[roleId] || grimoireState.extraTravellerRoles[roleId] || null;
+  if (!roleId) return null;
+  const allRoles = grimoireState.allRoles || {};
+  const baseRoles = grimoireState.baseRoles || {};
+  const extraTravellerRoles = grimoireState.extraTravellerRoles || {};
+  return allRoles[roleId] || baseRoles[roleId] || extraTravellerRoles[roleId] || null;
 }
 
 export function applyGrimoireHiddenState({ grimoireState }) {

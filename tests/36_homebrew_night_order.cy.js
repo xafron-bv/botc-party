@@ -64,4 +64,33 @@ describe('Homebrew Script Night Order', () => {
       expect(buccaneer).to.be.lessThan(kraken);
     });
   });
+
+  it('hides script characters without night order metadata for the active phase', () => {
+    const tempPath = '/tmp/high_seas_of_mutiny.json';
+    cy.readFile('high-seas-of-mutiny.json').then(contents => {
+      cy.writeFile(tempPath, contents);
+      cy.get('#script-file').selectFile(tempPath, { force: true });
+    });
+
+    cy.contains('#load-status', 'Custom script loaded successfully!', { timeout: 15000 }).should('exist');
+
+    // Enable night order on first night phase (default)
+    cy.get('[data-testid="night-order-sort-checkbox"]').click();
+    cy.get('#first-night-btn').should('be.checked');
+
+    // Commodore has no night order metadata, Bilge Rat only has otherNight so both should be hidden on first night
+    cy.get('#character-sheet').should('not.contain', 'Commodore');
+    cy.get('#character-sheet').should('not.contain', 'Bilge Rat');
+    cy.get('#character-sheet').should('contain', 'Scurvy Scalawag');
+
+    // Switch to Other Nights and ensure Bilge Rat becomes visible while Commodore stays hidden
+    cy.get('#night-phase-toggle').click();
+    cy.get('#night-phase-toggle').should('contain', 'Other Nights');
+    cy.get('#character-sheet').should('contain', 'Bilge Rat');
+    cy.get('#character-sheet').should('not.contain', 'Commodore');
+
+    // Disable night order sorting so Commodore returns in the default team sort view
+    cy.get('[data-testid="night-order-sort-checkbox"]').click();
+    cy.get('#character-sheet').should('contain', 'Commodore');
+  });
 });

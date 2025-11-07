@@ -193,27 +193,21 @@ export function calculateNightOrder(grimoireState) {
   const isFirstNight = currentPhase === 'N1';
   const nightOrderKey = isFirstNight ? 'firstNight' : 'otherNight';
 
-  const playersWithNightOrder = [];
-  grimoireState.players.forEach((player, index) => {
-    if (player.character) {
-      const role = grimoireState.allRoles[player.character] ||
-        grimoireState.baseRoles[player.character] ||
-        grimoireState.extraTravellerRoles[player.character];
-      if (role && role[nightOrderKey] && role[nightOrderKey] > 0) {
-        playersWithNightOrder.push({
-          playerIndex: index,
-          nightOrder: role[nightOrderKey],
-          characterId: player.character
-        });
-      }
-    }
-  });
-
-  playersWithNightOrder.sort((a, b) => a.nightOrder - b.nightOrder);
+  const nightOrderData = grimoireState.nightOrderData;
+  if (!nightOrderData || !nightOrderData[nightOrderKey]) {
+    return {};
+  }
+  const nightOrderCharacterIds = nightOrderData[nightOrderKey];
 
   const nightOrderMap = {};
-  playersWithNightOrder.forEach((item, index) => {
-    nightOrderMap[item.playerIndex] = index + 1;
+  let nightOrderIndex = 1;
+
+  nightOrderCharacterIds.forEach(characterId => {
+    grimoireState.players.forEach((player, playerIndex) => {
+      if (player.character === characterId) {
+        nightOrderMap[playerIndex] = nightOrderIndex++;
+      }
+    });
   });
 
   return nightOrderMap;
