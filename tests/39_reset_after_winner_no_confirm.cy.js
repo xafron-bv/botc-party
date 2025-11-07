@@ -31,7 +31,7 @@ describe('Reset after winner does not prompt', () => {
       cy.get('body').then($body => {
         const modal = $body.find('#player-reveal-modal');
         if (modal.length && modal.is(':visible')) {
-          const confirmBtn = modal.find('#reveal-confirm-btn');
+          const confirmBtn = modal.find('#close-player-reveal-modal');
           if (confirmBtn.length) {
             cy.wrap(confirmBtn).click();
           }

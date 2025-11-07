@@ -277,6 +277,24 @@
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Readability styling for reveal modal token curved text */
+#player-reveal-modal .token svg.icon-reminder-svg .icon-reminder-text {
+  fill: #fff;
+  paint-order: stroke fill;
+  stroke: rgba(0,0,0,0.75);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 6px rgba(0,0,0,0.7));
+  font-size: 12px !important;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+#player-reveal-modal .token svg.icon-reminder-svg path[id^="reveal-token"] {
+  stroke: none;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
+}
+
 /* Inline editing of storyteller message */
 #storyteller-message-display .message-text[contenteditable="true"] {
   outline: none;

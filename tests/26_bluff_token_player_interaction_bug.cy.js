@@ -46,7 +46,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     // Open bluff modal and then close it
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
-    cy.get('#close-character-modal').click({ force: true });
+    cy.get('#close-character-modal-x').click({ force: true });
     cy.get('#character-modal').should('not.be.visible');
 
     // Now player tokens should still work

@@ -37,7 +37,6 @@ export function initPlayerSetup({ grimoireState }) {
   const revealCharacterTokenEl = document.getElementById('reveal-character-token');
   const revealAbilityEl = document.getElementById('reveal-ability');
   const revealNameInput = document.getElementById('reveal-name-input');
-  const revealConfirmBtn = document.getElementById('reveal-confirm-btn');
   const includeTravellersCheckbox = document.getElementById('include-travellers-in-bag');
   const playerSetupCountsContainer = document.getElementById('player-setup-counts');
   const teamCountElements = {};
@@ -894,24 +893,32 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
 
-  // Reveal modal behavior
-  if (playerRevealModal && revealConfirmBtn) {
-    revealConfirmBtn.onclick = () => {
-      try {
-        if (revealCurrentPlayerIndex !== null && grimoireState.players && grimoireState.players[revealCurrentPlayerIndex]) {
-          const inputName = (revealNameInput && revealNameInput.value ? revealNameInput.value : '').trim();
-          if (inputName) {
-            grimoireState.players[revealCurrentPlayerIndex].name = inputName;
-            const playerCircle = document.getElementById('player-circle');
-            const li = playerCircle && playerCircle.children && playerCircle.children[revealCurrentPlayerIndex];
-            if (li) {
-              const nameEl = li.querySelector('.player-name');
-              if (nameEl) nameEl.textContent = inputName;
+  // Reveal modal behavior - only handle X button close, name update is automatic
+  if (playerRevealModal) {
+    // Name input auto-save on input change
+    if (revealNameInput) {
+      revealNameInput.addEventListener('input', () => {
+        try {
+          if (revealCurrentPlayerIndex !== null && grimoireState.players && grimoireState.players[revealCurrentPlayerIndex]) {
+            const inputName = (revealNameInput.value || '').trim();
+            if (inputName) {
+              grimoireState.players[revealCurrentPlayerIndex].name = inputName;
+              const playerCircle = document.getElementById('player-circle');
+              const li = playerCircle && playerCircle.children && playerCircle.children[revealCurrentPlayerIndex];
+              if (li) {
+                const nameEl = li.querySelector('.player-name');
+                if (nameEl) nameEl.textContent = inputName;
+              }
+              saveAppState({ grimoireState });
             }
-            saveAppState({ grimoireState });
           }
-        }
-      } catch (_) { }
+        } catch (_) { }
+      });
+    }
+  }
+
+  if (closePlayerRevealModalBtn && playerRevealModal) {
+    closePlayerRevealModalBtn.addEventListener('click', () => {
       playerRevealModal.style.display = 'none';
       revealCurrentPlayerIndex = null;
 
@@ -944,13 +951,6 @@ export function initPlayerSetup({ grimoireState }) {
           }
         }
       } catch (_) { }
-    };
-  }
-
-  if (closePlayerRevealModalBtn && playerRevealModal) {
-    closePlayerRevealModalBtn.addEventListener('click', () => {
-      playerRevealModal.style.display = 'none';
-      revealCurrentPlayerIndex = null;
     });
   }
 

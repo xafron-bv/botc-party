@@ -47,7 +47,7 @@ specs.forEach(({ name, viewport }) => {
       // Close the modal if still visible (fallback)
       cy.get('body').then(($b) => {
         if ($b.find('#reminder-token-modal:visible').length) {
-          cy.get('#close-reminder-token-modal').click({ force: true });
+          cy.get('#close-reminder-token-modal-x').click({ force: true });
         }
       });
 

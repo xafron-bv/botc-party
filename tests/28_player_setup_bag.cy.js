@@ -105,7 +105,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
         if (nameInput.length) {
           cy.wrap(nameInput).clear().type('Alice');
         }
-        const confirmBtn = modal.find('#reveal-confirm-btn');
+        const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
@@ -145,7 +145,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
         cy.get('body').then($body => {
           const modal = $body.find('#player-reveal-modal');
           if (modal.length && modal.is(':visible')) {
-            const confirmBtn = modal.find('#reveal-confirm-btn');
+            const confirmBtn = modal.find('#close-player-reveal-modal');
             if (confirmBtn.length) {
               cy.wrap(confirmBtn).click();
             }
@@ -268,7 +268,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {
-        const confirmBtn = modal.find('#reveal-confirm-btn');
+        const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
@@ -301,7 +301,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#number-picker-overlay .number').contains('1').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
-        cy.get('#reveal-confirm-btn').click();
+        cy.get('#close-player-reveal-modal').click();
       }
     });
 
@@ -344,7 +344,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#number-picker-overlay .traveller-token').first().click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
-        cy.get('#reveal-confirm-btn').click();
+        cy.get('#close-player-reveal-modal').click();
       }
     });
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
