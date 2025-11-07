@@ -150,7 +150,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#reveal-character-token').should('contain.text', 'Gunslinger');
 
     // Confirm
-    cy.get('#reveal-confirm-btn').click();
+    cy.get('#close-player-reveal-modal').click();
     cy.get('#player-reveal-modal').should('not.be.visible');
 
     // Player overlay should show 'T' for traveller
@@ -191,14 +191,14 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').click();
     cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-confirm-btn').click();
+    cy.get('#close-player-reveal-modal').click();
 
     // Assign regular character to player 2
     cy.get('#player-circle li').eq(1).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-grid .button.number').contains('1').click();
     cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-confirm-btn').click();
+    cy.get('#close-player-reveal-modal').click();
 
     // During selection mode:
     // - Traveller (player 1) should show character name "Gunslinger"
@@ -251,7 +251,7 @@ describe('Traveller Bag Selection', () => {
       cy.get('#number-picker-grid .traveller-token').filter((_, el) => el.getAttribute('title') === title).first().click();
     });
     cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-confirm-btn').click();
+    cy.get('#close-player-reveal-modal').click();
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
     cy.get('#player-circle li').eq(0).find('.player-token').should('have.class', 'has-character');
     cy.get('@travellerRoleId').then((roleId) => {

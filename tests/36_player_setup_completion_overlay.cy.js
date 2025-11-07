@@ -6,7 +6,7 @@ const completeNumberSelection = (playerCount) => {
     cy.get('#number-picker-grid button.button.number:not(.disabled)').first().click();
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#reveal-name-input').clear().type(`P${i + 1}`);
-    cy.get('#reveal-confirm-btn').click();
+    cy.get('#close-player-reveal-modal').click();
     cy.get('#player-reveal-modal').should('not.be.visible');
   }
 };
