@@ -24,30 +24,38 @@ export async function displayScript({ data, grimoireState }) {
 
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
+    const nightOrderCharacterIds = grimoireState.nightOrderData[nightOrderKey] || [];
+    const characterSheet = document.getElementById('character-sheet');
+    characterSheet.innerHTML = '';
 
     const nightOrderCharacters = [];
     const noNightOrderCharacters = [];
 
+    const scriptCharacterIds = new Set(Object.keys(grimoireState.allRoles));
+
+    nightOrderCharacterIds.forEach(id => {
+      if (scriptCharacterIds.has(id)) {
+        nightOrderCharacters.push(grimoireState.allRoles[id]);
+      }
+    });
+
     Object.values(grimoireState.allRoles).forEach(role => {
-      if (role[nightOrderKey] && role[nightOrderKey] > 0) {
-        nightOrderCharacters.push(role);
-      } else {
+      if (!nightOrderCharacterIds.includes(role.id)) {
         noNightOrderCharacters.push(role);
       }
     });
 
-    nightOrderCharacters.sort((a, b) => a[nightOrderKey] - b[nightOrderKey]);
-
     const allCharactersInOrder = [...nightOrderCharacters, ...noNightOrderCharacters];
 
     allCharactersInOrder.forEach(role => {
+      if (!role) return;
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
       roleEl.innerHTML = `
-                     <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
-                     <span class="name">${role.name}</span>
-                     <div class="ability">${role.ability || 'No ability description available'}</div>
-                 `;
+        <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+        <span class="name">${role.name}</span>
+        <div class="ability">${role.ability || 'No ability description available'}</div>
+      `;
       roleEl.addEventListener('click', () => {
         roleEl.classList.toggle('show-ability');
       });
@@ -55,7 +63,6 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     displayJinxes({ jinxData, grimoireState, characterSheet });
-
   } else {
     const teamGroups = {};
     Object.values(grimoireState.allRoles).forEach(role => {
