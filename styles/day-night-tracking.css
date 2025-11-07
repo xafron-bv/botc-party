@@ -6,7 +6,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 1900; /* Float above character panel so toggle remains clickable */
+  z-index: 1700; /* Sits beneath sidebar and script panel overlays */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
   width: 50px;
   height: 50px;
   padding: 0;
-  z-index: 120; /* Slightly below night/day toggle */
+  z-index: 1690; /* Keep beneath script panel */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -187,7 +187,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   border-radius: 25px;
   /* Full rounded corners */
   padding: 0 20px;
-  z-index: 125; /* Just below the toggle button */
+  z-index: 1710; /* Above floating toggles but still below script/sidebar overlays */
   /* Slightly below toggle button */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transform-origin: center right;
