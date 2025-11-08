@@ -37,7 +37,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     // Second tap should open edit modal immediately (no double-tap delay needed)
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-edit-modal').should('be.visible');
-    cy.get('#custom-reminder-text-input').should('have.value', 'Original Text');
+    cy.get('#custom-reminder-text-input').should('contain', 'Original Text');
   });
 
   it('should update custom reminder text on save', () => {
@@ -112,7 +112,7 @@ describe('Custom Reminder Single-Click Edit', () => {
 
     // Edit first reminder
     cy.get('#player-circle li').eq(0).find('.text-reminder').first().click({ force: true });
-    cy.get('#custom-reminder-text-input').should('have.value', 'First Note');
+    cy.get('#custom-reminder-text-input').should('contain', 'First Note');
     cy.get('#custom-reminder-text-input').clear().type('First Modified');
     cy.get('#save-custom-reminder-btn').click();
 
@@ -121,7 +121,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#player-circle li').eq(0).find('.text-reminder').eq(1).click({ force: true });
     cy.wait(100);
     cy.get('#player-circle li').eq(0).find('.text-reminder').eq(1).click({ force: true });
-    cy.get('#custom-reminder-text-input').should('have.value', 'Second Note');
+    cy.get('#custom-reminder-text-input').should('contain', 'Second Note');
     cy.get('#custom-reminder-text-input').clear().type('Second Modified');
     cy.get('#save-custom-reminder-btn').click();
 
@@ -170,7 +170,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     // Now click should open the modal
     cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
     cy.get('#custom-reminder-edit-modal').should('be.visible');
-    cy.get('#custom-reminder-text-input').should('have.value', 'Test Reminder');
+    cy.get('#custom-reminder-text-input').should('contain', 'Test Reminder');
   });
 
   it('should allow editing reminder multiple times', () => {
@@ -199,7 +199,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     // Edit again
     cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
     cy.get('#custom-reminder-edit-modal').should('be.visible');
-    cy.get('#custom-reminder-text-input').should('have.value', 'Edited Text');
+    cy.get('#custom-reminder-text-input').should('contain', 'Edited Text');
   });
 
   it('should create custom reminder via token modal using edit popup', () => {

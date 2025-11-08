@@ -160,8 +160,17 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   };
 
   if (remindersEl) {
-    remindersEl.addEventListener('click', () => {
-      expand();
+    remindersEl.addEventListener('click', (e) => {
+      const target = e.target;
+      // Only expand if clicking on the reminders container itself or placeholder
+      // Don't expand if clicking on individual reminders (they handle their own expand logic)
+      const clickedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+      const clickedRemindersContainer = !!(target && target.closest('.reminders'));
+      const clickedIndividualReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
+
+      if ((clickedPlaceholder || clickedRemindersContainer) && !clickedIndividualReminder) {
+        expand();
+      }
     });
   }
 
@@ -180,18 +189,16 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     if (target && target.closest('.death-vote-indicator')) {
       return; // Don't expand when tapping ghost vote indicator
     }
-    const tappedReminders = !!(target && target.closest('.reminders'));
     const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
+    const tappedRemindersContainer = !!(target && target.closest('.reminders'));
 
-    if (tappedReminders || tappedPlaceholder) {
-      if (tappedReminders) {
-        try { e.preventDefault(); } catch (_) { }
-        listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
-      }
+    // Only expand if tapping on placeholder or reminders container
+    if (tappedPlaceholder || tappedRemindersContainer) {
+      listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS);
       expand();
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
     }
-  }, { passive: false });
+  }, { passive: true });
 
   // Install global outside-click collapse handler (once per grimoire)
   if (!grimoireState.outsideCollapseHandlerInstalled) {
