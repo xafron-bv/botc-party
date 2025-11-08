@@ -110,6 +110,10 @@ describe('Game', () => {
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title*="Custom"]').first().click();
     cy.get('#reminder-token-modal').should('not.be.visible');
+    // Custom reminder edit modal should appear
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input').type('Custom note example');
+    cy.get('#save-custom-reminder-btn').click();
     // Ensure custom reminder visible (straight text content)
     cy.get('#player-circle li').eq(0).find('.icon-reminder-content').contains('Custom note example').should('exist');
 

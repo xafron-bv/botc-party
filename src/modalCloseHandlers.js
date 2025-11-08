@@ -72,4 +72,12 @@ export function setupModalCloseHandlers({ grimoireState }) {
   if (closeStorytellerMessageDisplay) {
     closeStorytellerMessageDisplay.addEventListener('click', closeStorytellerMessageDisplayHandler);
   }
+
+  // Custom reminder edit modal
+  const closeCustomReminderEdit = document.getElementById('close-custom-reminder-edit');
+  const customReminderEditModal = document.getElementById('custom-reminder-edit-modal');
+  const closeCustomReminderEditHandler = () => { if (customReminderEditModal) customReminderEditModal.style.display = 'none'; };
+  if (closeCustomReminderEdit) {
+    closeCustomReminderEdit.addEventListener('click', closeCustomReminderEditHandler);
+  }
 }
