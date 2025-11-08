@@ -191,9 +191,20 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
   if (!customReminderEditModal || !customReminderTextInput || !saveCustomReminderBtn) return;
 
   grimoireState.editingCustomReminder = { playerIndex, reminderIndex };
-  customReminderTextInput.value = existingText;
+  customReminderTextInput.textContent = existingText;
   customReminderEditModal.style.display = 'flex';
   customReminderTextInput.focus();
+
+  // Handle Escape key to close modal
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      customReminderEditModal.style.display = 'none';
+      grimoireState.editingCustomReminder = null;
+      customReminderTextInput.removeEventListener('keydown', handleKeyDown);
+    }
+  };
+  customReminderTextInput.addEventListener('keydown', handleKeyDown);
 
   // Set title based on whether we're creating or editing
   if (modalTitle) {
@@ -205,10 +216,11 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
   saveCustomReminderBtn.parentNode.replaceChild(newSaveBtn, saveCustomReminderBtn);
 
   newSaveBtn.addEventListener('click', () => {
-    const newText = customReminderTextInput.value.trim();
+    const newText = customReminderTextInput.textContent.trim();
     if (!newText) {
       customReminderEditModal.style.display = 'none';
       grimoireState.editingCustomReminder = null;
+      customReminderTextInput.removeEventListener('keydown', handleKeyDown);
       return;
     }
 
@@ -243,6 +255,7 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
     }
     customReminderEditModal.style.display = 'none';
     grimoireState.editingCustomReminder = null;
+    customReminderTextInput.removeEventListener('keydown', handleKeyDown);
   });
 } export function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   const player = grimoireState.players[playerIndex];

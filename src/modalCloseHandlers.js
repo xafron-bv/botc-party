@@ -76,7 +76,23 @@ export function setupModalCloseHandlers({ grimoireState }) {
   // Custom reminder edit modal
   const closeCustomReminderEdit = document.getElementById('close-custom-reminder-edit');
   const customReminderEditModal = document.getElementById('custom-reminder-edit-modal');
-  const closeCustomReminderEditHandler = () => { if (customReminderEditModal) customReminderEditModal.style.display = 'none'; };
+  const closeCustomReminderEditHandler = () => {
+    if (customReminderEditModal) {
+      customReminderEditModal.style.display = 'none';
+      // Clean up any editing state
+      if (grimoireState) {
+        grimoireState.editingCustomReminder = null;
+      }
+      // Remove keydown listener if it exists
+      const customReminderTextInput = document.getElementById('custom-reminder-text-input');
+      if (customReminderTextInput) {
+        // Note: The keydown listener is added dynamically in openCustomReminderEditModal
+        // and should be cleaned up there, but this provides additional cleanup
+        const clonedInput = customReminderTextInput.cloneNode(true);
+        customReminderTextInput.parentNode.replaceChild(clonedInput, customReminderTextInput);
+      }
+    }
+  };
   if (closeCustomReminderEdit) {
     closeCustomReminderEdit.addEventListener('click', closeCustomReminderEditHandler);
   }
