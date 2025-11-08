@@ -1,4 +1,4 @@
-const CACHE_NAME = 'botc-party-grimoire-v112';
+const CACHE_NAME = 'botc-party-grimoire-v113';
 const ASSET_MANIFEST_URL = './asset-manifest.json';
 const INDEX_HTML_CACHE_KEY = 'index.html';
 
