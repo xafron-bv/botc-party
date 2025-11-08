@@ -51,6 +51,64 @@ export function initPlayerSetup({ grimoireState }) {
   let revealCurrentPlayerIndex = null;
   let isNumberGridHandlerAttached = false;
 
+  // Helper function to clear next-player highlighting
+  function clearNextPlayerHighlight() {
+    const playerCircle = document.getElementById('player-circle');
+    if (!playerCircle) return;
+    Array.from(playerCircle.children).forEach((li) => {
+      const token = li.querySelector('.player-token');
+      if (token) token.classList.remove('next-player');
+    });
+  }
+
+  // Helper function to find next unassigned player clockwise from a given index
+  function findNextUnassignedPlayer(fromIndex) {
+    if (!Array.isArray(grimoireState.players)) return null;
+    const totalPlayers = grimoireState.players.length;
+    if (totalPlayers === 0) return null;
+
+    const assignments = Array.isArray(grimoireState.playerSetup?.assignments)
+      ? grimoireState.playerSetup.assignments
+      : [];
+
+    // Start searching from the next player clockwise
+    for (let offset = 1; offset <= totalPlayers; offset++) {
+      const idx = (fromIndex + offset) % totalPlayers;
+      const player = grimoireState.players[idx];
+
+      // Skip if already assigned
+      if (assignments[idx] !== null && assignments[idx] !== undefined) continue;
+
+      // Skip if traveller
+      const role = player?.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+      if (role && role.team === 'traveller') continue;
+
+      // Found next unassigned non-traveller player
+      return idx;
+    }
+
+    return null; // All players assigned
+  }
+
+  // Helper function to highlight the next player
+  function highlightNextPlayer(lastAssignedIndex) {
+    clearNextPlayerHighlight();
+
+    const nextIdx = findNextUnassignedPlayer(lastAssignedIndex);
+    if (nextIdx === null) return; // All done
+
+    const playerCircle = document.getElementById('player-circle');
+    if (!playerCircle) return;
+
+    const li = playerCircle.children[nextIdx];
+    if (!li) return;
+
+    const token = li.querySelector('.player-token');
+    if (token) {
+      token.classList.add('next-player');
+    }
+  }
+
   if (!grimoireState.playerSetup) {
     grimoireState.playerSetup = { bag: [], assignments: [], revealed: false, travellerBag: [], bagCounts: {} };
   }
@@ -609,6 +667,9 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.onclick = null;
           }
 
+          // Highlight next player for selection
+          highlightNextPlayer(forIdx);
+
           // Close picker, open reveal
           numberPickerOverlay.style.display = 'none';
 
@@ -680,6 +741,9 @@ export function initPlayerSetup({ grimoireState }) {
         }
 
         saveAppState({ grimoireState });
+
+        // Highlight next player for selection
+        highlightNextPlayer(forIdx);
 
         // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
@@ -872,9 +936,18 @@ export function initPlayerSetup({ grimoireState }) {
         }
       });
     }
+
+    // Highlight the first unassigned player to start the selection flow
+    // Start from player -1 so findNextUnassignedPlayer finds player 0 (or next available)
+    highlightNextPlayer(-1);
+
     try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
   });
-  if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { } });
+  if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => {
+    numberPickerOverlay.style.display = 'none';
+    maybeReopenPanel();
+    try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
+  });
 
   // Close by clicking outside modal content to match other modals
   if (playerSetupPanel) {
@@ -887,9 +960,16 @@ export function initPlayerSetup({ grimoireState }) {
 
   if (numberPickerOverlay) {
     numberPickerOverlay.addEventListener('click', (e) => {
-      if (e.target === numberPickerOverlay) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); return; }
+      if (e.target === numberPickerOverlay) {
+        numberPickerOverlay.style.display = 'none';
+        maybeReopenPanel();
+        return;
+      }
       const content = numberPickerOverlay.querySelector('.modal-content');
-      if (content && !content.contains(e.target)) { numberPickerOverlay.style.display = 'none'; maybeReopenPanel(); }
+      if (content && !content.contains(e.target)) {
+        numberPickerOverlay.style.display = 'none';
+        maybeReopenPanel();
+      }
     });
   }
 
@@ -932,6 +1012,8 @@ export function initPlayerSetup({ grimoireState }) {
             sel.selectionActive = false;
             // Mark selection complete so other UI logic (e.g., updateButtonStates) keeps setup button disabled until reset
             sel.selectionComplete = true;
+            // Clear next-player highlighting since selection is complete
+            clearNextPlayerHighlight();
             try { document.body.classList.remove('selection-active'); } catch (_) { }
             // Update overlay message to storyteller handoff prompt
             const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
@@ -956,9 +1038,40 @@ export function initPlayerSetup({ grimoireState }) {
 
   if (playerRevealModal) {
     playerRevealModal.addEventListener('click', (e) => {
-      if (e.target === playerRevealModal) { playerRevealModal.style.display = 'none'; revealCurrentPlayerIndex = null; return; }
+      if (e.target === playerRevealModal) {
+        playerRevealModal.style.display = 'none';
+        revealCurrentPlayerIndex = null;
+
+        // Check if all players assigned after closing
+        try {
+          const sel = grimoireState.playerSetup || {};
+          if (sel.selectionActive) {
+            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+            const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
+            if (allAssigned) {
+              clearNextPlayerHighlight();
+            }
+          }
+        } catch (_) { }
+        return;
+      }
       const content = playerRevealModal.querySelector('.modal-content');
-      if (content && !content.contains(e.target)) { playerRevealModal.style.display = 'none'; revealCurrentPlayerIndex = null; }
+      if (content && !content.contains(e.target)) {
+        playerRevealModal.style.display = 'none';
+        revealCurrentPlayerIndex = null;
+
+        // Check if all players assigned after closing
+        try {
+          const sel = grimoireState.playerSetup || {};
+          if (sel.selectionActive) {
+            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+            const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
+            if (allAssigned) {
+              clearNextPlayerHighlight();
+            }
+          }
+        } catch (_) { }
+      }
     });
   }
 }
@@ -1018,6 +1131,53 @@ export function restoreSelectionSession({ grimoireState }) {
         }
       }
     });
+
+    // Restore next-player highlighting
+    // Find the last assigned player and highlight the next one
+    const lastAssignedIndex = assignments.reduce((last, val, idx) => {
+      return (val !== null && val !== undefined) ? idx : last;
+    }, -1);
+
+    // Helper to find next unassigned in restore context
+    const findNext = (fromIdx) => {
+      const totalPlayers = grimoireState.players.length;
+      for (let offset = 1; offset <= totalPlayers; offset++) {
+        const idx = (fromIdx + offset) % totalPlayers;
+        const player = grimoireState.players[idx];
+
+        // Skip if already assigned
+        if (assignments[idx] !== null && assignments[idx] !== undefined) continue;
+
+        // Skip if traveller
+        const role = player?.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+        if (role && role.team === 'traveller') continue;
+
+        return idx;
+      }
+      return null;
+    };
+
+    if (lastAssignedIndex >= 0) {
+      // We have at least one assignment, highlight next from last assigned
+      const nextIdx = findNext(lastAssignedIndex);
+      if (nextIdx !== null) {
+        const li = playerCircle.children[nextIdx];
+        if (li) {
+          const token = li.querySelector('.player-token');
+          if (token) token.classList.add('next-player');
+        }
+      }
+    } else {
+      // No assignments yet, highlight first unassigned (from position -1)
+      const nextIdx = findNext(-1);
+      if (nextIdx !== null) {
+        const li = playerCircle.children[nextIdx];
+        if (li) {
+          const token = li.querySelector('.player-token');
+          if (token) token.classList.add('next-player');
+        }
+      }
+    }
   } catch (_) { /* swallow restoration errors */ }
 }
 const BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');

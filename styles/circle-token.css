@@ -79,6 +79,31 @@
   cursor: pointer; /* Keep clickable for reassignment */
 }
 
+/* Highlight the next player to pick a number */
+.player-token.next-player {
+  border-color: #4CAF50;
+  box-shadow:
+    0 0 30px rgba(76, 175, 80, 0.9),
+    0 0 40px rgba(76, 175, 80, 0.6),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  animation: pulse-next-player 2s ease-in-out infinite;
+}
+
+@keyframes pulse-next-player {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(76, 175, 80, 0.9),
+      0 0 40px rgba(76, 175, 80, 0.6),
+      inset 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(76, 175, 80, 1),
+      0 0 60px rgba(76, 175, 80, 0.8),
+      inset 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
 /* Debug: line from token center to circle center */
 .alignment-line {
   position: absolute;
