@@ -30,14 +30,21 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     try { e.stopPropagation(); } catch (_) { }
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
 
-    let label = tokenEl.dataset.tokenLabel || '';
+    const label = tokenEl.dataset.tokenLabel || '';
 
     const id = tokenEl.dataset.tokenId || '';
     const image = tokenEl.dataset.tokenImage || '';
     if ((label || '').toLowerCase().includes('custom')) {
-      const input = prompt('Enter reminder text:', '');
-      if (input === null) return;
-      label = input;
+      // Close the token modal first
+      try { reminderTokenModal.style.display = 'none'; } catch (_) { }
+      // Open the custom reminder edit modal for creating new reminder
+      openCustomReminderEditModal({
+        grimoireState,
+        playerIndex: grimoireState.selectedPlayerIndex,
+        reminderIndex: -1, // -1 indicates creating new reminder
+        existingText: ''
+      });
+      return;
     }
     const reminderId = generateReminderId();
     try {
@@ -171,6 +178,72 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
   reminderTextInput.value = existingText;
   textReminderModal.style.display = 'flex';
   reminderTextInput.focus();
+}
+
+export function openCustomReminderEditModal({ grimoireState, playerIndex, reminderIndex, existingText = '' }) {
+  if (!ensureGrimoireUnlocked({ grimoireState })) return;
+
+  const customReminderTextInput = document.getElementById('custom-reminder-text-input');
+  const customReminderEditModal = document.getElementById('custom-reminder-edit-modal');
+  const saveCustomReminderBtn = document.getElementById('save-custom-reminder-btn');
+  const modalTitle = document.getElementById('custom-reminder-modal-title');
+
+  if (!customReminderEditModal || !customReminderTextInput || !saveCustomReminderBtn) return;
+
+  grimoireState.editingCustomReminder = { playerIndex, reminderIndex };
+  customReminderTextInput.value = existingText;
+  customReminderEditModal.style.display = 'flex';
+  customReminderTextInput.focus();
+
+  // Set title based on whether we're creating or editing
+  if (modalTitle) {
+    modalTitle.textContent = reminderIndex === -1 ? 'Add Custom Reminder' : 'Edit Custom Reminder';
+  }
+
+  // Remove any existing save handler and add new one
+  const newSaveBtn = saveCustomReminderBtn.cloneNode(true);
+  saveCustomReminderBtn.parentNode.replaceChild(newSaveBtn, saveCustomReminderBtn);
+
+  newSaveBtn.addEventListener('click', () => {
+    const newText = customReminderTextInput.value.trim();
+    if (!newText) {
+      customReminderEditModal.style.display = 'none';
+      grimoireState.editingCustomReminder = null;
+      return;
+    }
+
+    if (grimoireState.editingCustomReminder) {
+      const { playerIndex: pIdx, reminderIndex: rIdx } = grimoireState.editingCustomReminder;
+
+      // If reminderIndex is -1, we're creating a new reminder
+      if (rIdx === -1) {
+        // Create new custom reminder
+        const reminderId = generateReminderId();
+        grimoireState.players[pIdx].reminders.push({
+          type: 'icon',
+          id: 'custom-note',
+          image: resolveAssetPath('assets/reminders/custom.webp'),
+          label: newText,
+          rotation: 0,
+          reminderId
+        });
+        addReminderTimestamp(grimoireState, reminderId);
+        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          saveCurrentPhaseState(grimoireState);
+        }
+      } else {
+        // Edit existing reminder
+        if (grimoireState.players[pIdx] && grimoireState.players[pIdx].reminders[rIdx]) {
+          grimoireState.players[pIdx].reminders[rIdx].label = newText;
+        }
+      }
+
+      updateGrimoire({ grimoireState });
+      saveAppState({ grimoireState });
+    }
+    customReminderEditModal.style.display = 'none';
+    grimoireState.editingCustomReminder = null;
+  });
 } export function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   const player = grimoireState.players[playerIndex];
   if (!player || !player.reminders) return 0;
@@ -231,17 +304,32 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
           iconEl.appendChild(svg);
         }
       }
+
+      const isCustomReminder = reminder.id === 'custom-note';
+
       setupTouchHandling({
         element: iconEl,
         onTap: (e) => {
           const parentLi = iconEl.closest('li');
           const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+
           if (isCollapsed) {
+            // First action: expand
             e.stopPropagation();
             try { e.preventDefault(); } catch (_) { }
             parentLi.dataset.expanded = '1';
             parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
             positionRadialStack(parentLi, visibleRemindersCount);
+          } else if (isCustomReminder) {
+            // When expanded: open edit modal for custom reminders
+            e.stopPropagation();
+            try { e.preventDefault(); } catch (_) { }
+            openCustomReminderEditModal({
+              grimoireState,
+              playerIndex,
+              reminderIndex: idx,
+              existingText: reminder.label || ''
+            });
           }
         },
         onLongPress: (e, x, y) => {
@@ -276,20 +364,30 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       reminderEl.appendChild(textSpan);
 
       reminderEl.style.transform = 'translate(-50%, -50%)';
+
       setupTouchHandling({
         element: reminderEl,
         onTap: (e) => {
-          e.stopPropagation();
           const parentLi = reminderEl.closest('li');
-          if (parentLi) {
-            const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-            if (parentLi.dataset.expanded !== '1' || Date.now() < suppressUntil) {
-              if (parentLi.dataset.expanded !== '1') {
-                parentLi.dataset.expanded = '1';
-                parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-                positionRadialStack(parentLi, visibleRemindersCount);
-              }
+          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+
+          if (isCollapsed) {
+            // First action: expand
+            e.stopPropagation();
+            if (parentLi) {
+              parentLi.dataset.expanded = '1';
+              parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+              positionRadialStack(parentLi, visibleRemindersCount);
             }
+          } else {
+            // When expanded: open edit modal for custom text reminders
+            e.stopPropagation();
+            openCustomReminderEditModal({
+              grimoireState,
+              playerIndex,
+              reminderIndex: idx,
+              existingText: displayText || ''
+            });
           }
         },
         onLongPress: (e, x, y) => {
