@@ -26,10 +26,10 @@ describe('Reset Grimoire preserves names but clears assignments/reminders/death'
     cy.get('#character-modal').should('not.be.visible');
     cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
 
-    // Add a reminder token to first player
+    // Add a reminder token to first player (not custom)
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-grid .token').first().click();
+    cy.get('#reminder-token-grid .token').not('[title*="Custom"]').first().click();
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('have.length.greaterThan', 0);
 
