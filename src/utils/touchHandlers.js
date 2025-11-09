@@ -44,6 +44,9 @@ export function setupTouchHandling({
       if (existingHandlers.suppressClick) {
         element.removeEventListener('click', existingHandlers.suppressClick, true);
       }
+      if (existingHandlers.contextmenu) {
+        element.removeEventListener('contextmenu', existingHandlers.contextmenu);
+      }
     } else {
       if (existingHandlers.click) {
         element.removeEventListener('click', existingHandlers.click);
@@ -62,6 +65,7 @@ export function setupTouchHandling({
   let longPressTimer = null;
   let isLongPress = false;
   let touchStartTime = 0;
+  let hadTouchStart = false;
 
   if (isTouchDevice) {
     // Touch device handlers
@@ -74,6 +78,7 @@ export function setupTouchHandling({
       // Mark that a touch occurred
       if (setTouchOccurred) setTouchOccurred(true);
       touchStartTime = Date.now();
+      hadTouchStart = true;
 
       // Reset flags
       isLongPress = false;
@@ -143,10 +148,14 @@ export function setupTouchHandling({
           if (!isLongPress) {
             onTap(e);
           }
+          hadTouchStart = false;
         }, actionDelay);
       } else if (!isLongPress && element && element.dataset) {
         // Ensure flag stays cleared when no long press occurred
         element.dataset.ignoreNextSyntheticClick = 'false';
+        hadTouchStart = false;
+      } else {
+        hadTouchStart = false;
       }
     };
 
@@ -167,6 +176,7 @@ export function setupTouchHandling({
       if (element && element.dataset) {
         element.dataset.ignoreNextSyntheticClick = 'false';
       }
+      hadTouchStart = false;
     };
 
     element.addEventListener('touchcancel', touchCancelHandler);
@@ -177,10 +187,46 @@ export function setupTouchHandling({
         try { event.stopImmediatePropagation(); } catch (_) { }
         event.stopPropagation();
         element.dataset.ignoreNextSyntheticClick = 'false';
+        return;
+      }
+      if (hadTouchStart) {
+        event.preventDefault();
+        try { event.stopImmediatePropagation(); } catch (_) { }
+        event.stopPropagation();
+        return;
+      }
+      if (onTap) {
+        onTap(event);
+        if (element && element.dataset) {
+          element.dataset.ignoreNextSyntheticClick = 'false';
+        }
       }
     };
 
     element.addEventListener('click', suppressClickHandler, true);
+
+    let contextMenuFallbackHandler = null;
+    if (onLongPress) {
+      contextMenuFallbackHandler = (event) => {
+        if (shouldSkip && shouldSkip(event)) {
+          return;
+        }
+        try { event.preventDefault(); } catch (_) { }
+        try { event.stopPropagation(); } catch (_) { }
+        const clientX = (event.clientX !== undefined)
+          ? event.clientX
+          : ((event.touches && event.touches[0] && event.touches[0].clientX) || 0);
+        const clientY = (event.clientY !== undefined)
+          ? event.clientY
+          : ((event.touches && event.touches[0] && event.touches[0].clientY) || 0);
+        if (element && element.dataset) {
+          element.dataset.ignoreNextSyntheticClick = 'true';
+        }
+        hadTouchStart = false;
+        onLongPress(event, clientX, clientY);
+      };
+      element.addEventListener('contextmenu', contextMenuFallbackHandler);
+    }
 
     // Store handlers and timers for cleanup
     const handlers = {
@@ -189,6 +235,7 @@ export function setupTouchHandling({
       touchend: touchEndHandler,
       touchcancel: touchCancelHandler,
       suppressClick: suppressClickHandler,
+      contextmenu: contextMenuFallbackHandler,
       longPressTimer,
       touchActionTimer
     };
@@ -205,6 +252,9 @@ export function setupTouchHandling({
       element.removeEventListener('touchend', touchEndHandler);
       element.removeEventListener('touchcancel', touchCancelHandler);
       element.removeEventListener('click', suppressClickHandler, true);
+      if (contextMenuFallbackHandler) {
+        element.removeEventListener('contextmenu', contextMenuFallbackHandler);
+      }
 
       // Remove from WeakMap
       elementHandlers.delete(element);

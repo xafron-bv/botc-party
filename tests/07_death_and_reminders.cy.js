@@ -68,12 +68,16 @@ describe('Death & Reminders', () => {
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned today');
 
     // Edit via reminder context menu (consistent across input types)
-    cy.window().then((win) => {
-      cy.stub(win, 'prompt').returns('Poisoned at dusk');
-    });
     cy.get('#player-circle li .text-reminder').first().trigger('contextmenu', { force: true });
     cy.get('#reminder-context-menu').should('be.visible');
     cy.get('#reminder-menu-edit').click({ force: true });
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input')
+      .focus()
+      .type('{selectall}{backspace}')
+      .type('Poisoned at dusk');
+    cy.get('#save-custom-reminder-btn').click();
+    cy.get('#custom-reminder-edit-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.text-reminder .text-reminder-content').should('contain', 'Poisoned at dusk');
 
     // Delete text reminder via context menu (no confirmation expected)

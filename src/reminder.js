@@ -234,7 +234,7 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
         grimoireState.players[pIdx].reminders.push({
           type: 'icon',
           id: 'custom-note',
-          image: resolveAssetPath('assets/reminders/custom.webp'),
+          image: resolveAssetPath('assets/reminders/custom-CLofFTEi.webp'),
           label: newText,
           rotation: 0,
           reminderId
@@ -333,10 +333,26 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
             parentLi.dataset.expanded = '1';
             parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
             positionRadialStack(parentLi, visibleRemindersCount);
+            if (iconEl && iconEl.dataset) {
+              iconEl.dataset.ignoreNextSyntheticClick = 'true';
+            }
           } else if (isCustomReminder) {
-            // When expanded: open edit modal for custom reminders
+            // When expanded: open edit modal for custom reminders (after suppress window)
             e.stopPropagation();
             try { e.preventDefault(); } catch (_) { }
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              const suppressForTouch = !!grimoireState.touchOccurred;
+              if (suppressForTouch && Date.now() < suppressUntil) {
+                if (iconEl && iconEl.dataset) {
+                  iconEl.dataset.ignoreNextSyntheticClick = 'true';
+                }
+                return;
+              }
+            }
+            if (iconEl && iconEl.dataset) {
+              iconEl.dataset.ignoreNextSyntheticClick = 'true';
+            }
             openCustomReminderEditModal({
               grimoireState,
               playerIndex,
@@ -392,9 +408,26 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
               parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
               positionRadialStack(parentLi, visibleRemindersCount);
             }
+            if (reminderEl && reminderEl.dataset) {
+              reminderEl.dataset.ignoreNextSyntheticClick = 'true';
+            }
           } else {
-            // When expanded: open edit modal for custom text reminders
+            // When expanded: open edit modal once suppress window expires
             e.stopPropagation();
+            try { e.preventDefault(); } catch (_) { }
+            if (parentLi) {
+              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+              const suppressForTouch = !!grimoireState.touchOccurred;
+              if (suppressForTouch && Date.now() < suppressUntil) {
+                if (reminderEl && reminderEl.dataset) {
+                  reminderEl.dataset.ignoreNextSyntheticClick = 'true';
+                }
+                return;
+              }
+            }
+            if (reminderEl && reminderEl.dataset) {
+              reminderEl.dataset.ignoreNextSyntheticClick = 'true';
+            }
             openCustomReminderEditModal({
               grimoireState,
               playerIndex,
