@@ -223,7 +223,28 @@ describe('Death Vote Indicator', () => {
   it('does not open character modal when using death vote indicator on touch', () => {
     cy.visit('/', {
       onBeforeLoad(win) {
-        win.ontouchstart = null;
+        try {
+          Object.defineProperty(win, 'ontouchstart', {
+            value: () => {},
+            configurable: true
+          });
+        } catch (_) { win.ontouchstart = () => {}; }
+        try {
+          Object.defineProperty(win.navigator, 'maxTouchPoints', {
+            value: 1,
+            configurable: true
+          });
+        } catch (_) { win.navigator.maxTouchPoints = 1; }
+        const originalMatchMedia = win.matchMedia ? win.matchMedia.bind(win) : null;
+        win.matchMedia = (query) => {
+          if (/(hover:\s*none).*(pointer:\s*coarse)/i.test(query)) {
+            return { matches: true, addListener: () => {}, removeListener: () => {} };
+          }
+          if (originalMatchMedia) {
+            return originalMatchMedia(query);
+          }
+          return { matches: false, addListener: () => {}, removeListener: () => {} };
+        };
       }
     });
     cy.viewport(1280, 900);
@@ -239,11 +260,20 @@ describe('Death Vote Indicator', () => {
       win.grimoireState.grimoireHidden = false;
     });
 
-    // Mark first player as dead
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    const ribbonTouch = {
+      eventConstructor: 'TouchEvent',
+      touches: [{ clientX: 20, clientY: 20, identifier: 1 }],
+      changedTouches: [{ clientX: 20, clientY: 20, identifier: 1 }],
+      bubbles: true,
+      cancelable: true,
+      force: true
+    };
 
+    cy.get('#player-circle li .player-token .death-ribbon').first()
+      .trigger('touchstart', ribbonTouch)
+      .trigger('touchend', { ...ribbonTouch, touches: [] });
+
+    cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
     cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
     cy.get('#character-modal').should('not.be.visible');
 
