@@ -2,9 +2,8 @@ describe('Grimoire visibility & locking controls', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Use shared helper (after visit)
+    cy.ensureStorytellerMode();
     cy.setupGame({ players: 5, loadScript: false });
-    cy.get('#mode-storyteller').should('be.checked');
   });
 
   it('shows hide/show control only in player mode and lock control only in storyteller mode', () => {

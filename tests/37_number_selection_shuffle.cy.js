@@ -5,6 +5,7 @@ describe('Number selection bag shuffle', () => {
     cy.visit('/');
     cy.viewport(1200, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.ensureStorytellerMode();
     cy.get('#player-count').clear().type('5');
     cy.get('#reset-grimoire').click();
     cy.get('#load-tb').click();

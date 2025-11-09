@@ -1,6 +1,7 @@
 describe('Reset Grimoire meta state', () => {
   it('clears winner, unlocks grimoire, and empties player setup bag', () => {
     cy.visit('/');
+    cy.ensureStorytellerMode();
 
     // Prepare players
     cy.get('#player-count').clear().type('5');

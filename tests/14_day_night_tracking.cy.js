@@ -352,6 +352,7 @@ describe('Day/Night Tracking Feature', () => {
 
       // Wait for page to load and state to be restored
       cy.get('#player-circle li').should('have.length', 5);
+      cy.ensureStorytellerMode();
 
       // Day/night tracking should still be enabled
       cy.get('[data-testid="day-night-toggle"]').should('have.class', 'active');

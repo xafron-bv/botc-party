@@ -3,7 +3,7 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#mode-storyteller').should('exist').and('be.checked');
+    cy.ensureStorytellerMode();
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
   });
@@ -138,5 +138,3 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
     cy.get('#close-storyteller-message-display').click();
   });
 });
-
-

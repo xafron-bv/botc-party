@@ -12,6 +12,7 @@ describe('Sidebar & State', () => {
     cy.viewport(1280, 900);
     cy.get('#load-tb').click();
     // Character roles now live in the right-side script panel; loading script still needed for rest of tests.
+    cy.ensureStorytellerMode();
   });
 
   it('sidebar toggle open/close and persists collapsed state', () => {
@@ -138,4 +139,3 @@ describe('Sidebar & State', () => {
     cy.get('body').should('not.have.class', 'sidebar-collapsed');
   });
 });
-

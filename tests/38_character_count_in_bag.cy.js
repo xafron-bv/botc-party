@@ -3,8 +3,7 @@ describe('Player Setup - Character Count in Bag', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Ensure storyteller mode
-    cy.get('#mode-storyteller').should('exist').and('be.checked');
+    cy.ensureStorytellerMode();
     // Load a base script
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
