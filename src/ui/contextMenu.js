@@ -2,6 +2,7 @@ import { saveAppState } from '../app.js';
 import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
+import { openCustomReminderEditModal } from '../reminder.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   if (!ensureGrimoireUnlocked({ grimoireState })) return;
@@ -47,9 +48,24 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
     const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
     hideReminderContextMenu({ grimoireState });
     if (playerIndex < 0 || reminderIndex < 0) return;
-    const rem = (grimoireState.players[playerIndex] && grimoireState.players[playerIndex].reminders && grimoireState.players[playerIndex].reminders[reminderIndex]) || null;
+    const player = grimoireState.players[playerIndex];
+    const reminders = player && player.reminders;
+    const rem = (reminders && reminders[reminderIndex]) || null;
     if (!rem) return;
+
+    const isCustomReminder = rem.id === 'custom-note' || rem.type === 'text';
     const current = rem.label || rem.value || '';
+
+    if (isCustomReminder) {
+      openCustomReminderEditModal({
+        grimoireState,
+        playerIndex,
+        reminderIndex,
+        existingText: current
+      });
+      return;
+    }
+
     const next = prompt('Edit reminder', current);
     if (next !== null) {
       if (rem.type === 'icon') {

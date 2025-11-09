@@ -93,6 +93,12 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
 
   // Context menu handler
   listItem.addEventListener('contextmenu', (e) => {
+    const target = e.target;
+    const fromReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
+    if (fromReminder) {
+      e.preventDefault();
+      return;
+    }
     e.preventDefault();
     showPlayerContextMenu({ grimoireState, x: e.clientX, y: e.clientY, playerIndex });
   });
