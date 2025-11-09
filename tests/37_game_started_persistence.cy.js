@@ -12,6 +12,7 @@ describe('Active game persistence', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 5);
     // Start game directly (allowed whenever players exist per new rules)
+    cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
     cy.get('#start-game').should('be.visible').click();
     cy.get('#end-game').should('be.visible');
     cy.get('#start-game').should('not.be.visible');

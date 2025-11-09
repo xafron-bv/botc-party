@@ -19,7 +19,7 @@ describe('Pre-game state persistence', () => {
 
     // Ensure game has NOT started yet
     cy.get('body').should('have.class', 'pre-game');
-    cy.get('#sidebar').scrollTo('top');
+    cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
     cy.get('#start-game').should('be.visible').and('not.be.disabled');
     cy.get('#end-game').should('not.be.visible');
 
@@ -29,7 +29,7 @@ describe('Pre-game state persistence', () => {
     // After reload, verify players and pre-game state restored
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('body').should('have.class', 'pre-game');
-    cy.get('#sidebar').scrollTo('top');
+    cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
     cy.get('#start-game').should('be.visible').and('not.be.disabled');
     cy.get('#end-game').should('not.be.visible');
   });

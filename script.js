@@ -1071,7 +1071,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (document.body.classList.contains('character-panel-open')) return;
         const isCollapsed = document.body.classList.contains('sidebar-collapsed');
         const noPlayers = !Array.isArray(grimoireState.players) || grimoireState.players.length === 0;
-        if (isCollapsed && noPlayers) {
+        const playerMode = grimoireState.mode === 'player';
+        if (isCollapsed && (noPlayers || playerMode)) {
           try { e.preventDefault(); } catch (_) { }
           try { e.stopPropagation(); } catch (_) { }
           const toggleBtn = document.getElementById('sidebar-toggle');

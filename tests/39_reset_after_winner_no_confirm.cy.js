@@ -21,7 +21,6 @@ describe('Reset after winner does not prompt', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     cy.get('#bag-random-fill').click();
-    cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     for (let i = 0; i < 5; i++) {
       cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();

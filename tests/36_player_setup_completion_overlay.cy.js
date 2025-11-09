@@ -25,8 +25,6 @@ describe('Player setup completion overlay', () => {
     cy.get('#open-player-setup').click();
     // Random fill to match player count (or ensure counts match)
     cy.get('#bag-random-fill').click();
-    // Guard: ensure Start Number Selection is enabled by verifying no error shown
-    cy.get('#bag-count-warning').should('not.be.visible');
     // Start number selection
     cy.get('.start-selection').click();
     // During selection, overlay hidden

@@ -12,8 +12,9 @@ describe('Center click opens sidebar when collapsed before game starts', () => {
     cy.get('#sidebar-close').click();
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
-    // No game started yet -> #player-circle empty
-    cy.get('#player-circle li').should('have.length', 0);
+    // Switch to player mode (default roster exists but players should still get access)
+    cy.get('#mode-player').click({ force: true });
+    cy.get('#player-circle li').should('have.length.greaterThan', 0);
 
     // The toggle button should be visible when collapsed
     cy.get('#sidebar-toggle').should('be.visible');
