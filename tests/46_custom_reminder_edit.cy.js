@@ -40,6 +40,34 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#custom-reminder-text-input').should('contain', 'Original Text');
   });
 
+  it('should open edit modal for custom note token when clicked after expand', () => {
+    // Add a custom note via reminder token modal
+    cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.contains('#reminder-token-grid .token', 'Custom note').click({ force: true });
+
+    // Modal opens to enter text for custom note
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input').clear().type('Token Custom Note');
+    cy.get('#save-custom-reminder-btn').click();
+
+    // Ensure reminder is present
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').should('have.length.at.least', 1);
+
+    // First click expands reminder stack
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().click({ force: true });
+    cy.wait(300);
+
+    // Emulate environments that label compatibility click events as touch
+    cy.get('#player-circle li').eq(0)
+      .find('.icon-reminder')
+      .first()
+      .trigger('click', { force: true, pointerType: 'touch' });
+
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input').should('contain', 'Token Custom Note');
+  });
+
   it('should update custom reminder text on save', () => {
     // Add a custom reminder
     cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
@@ -166,7 +194,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '1');
     // Clear the suppress window
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-action-suppress-until', '0');
-    
+
     // Now click should open the modal
     cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
     cy.get('#custom-reminder-edit-modal').should('be.visible');
@@ -182,20 +210,20 @@ describe('Custom Reminder Single-Click Edit', () => {
     // Manually expand and clear suppress window
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-action-suppress-until', '0');
-    
+
     // Open modal and edit
     cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
     cy.get('#custom-reminder-edit-modal').should('be.visible');
     cy.get('#custom-reminder-text-input').clear().type('Edited Text');
     cy.get('#save-custom-reminder-btn').click();
-    
+
     // Verify the text was updated
     cy.get('#player-circle li').eq(0).find('.text-reminder-content').should('contain', 'Edited Text');
-    
+
     // Re-expand after grimoire update (which collapses reminders)
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(0).invoke('attr', 'data-action-suppress-until', '0');
-    
+
     // Edit again
     cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
     cy.get('#custom-reminder-edit-modal').should('be.visible');
