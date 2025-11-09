@@ -128,6 +128,49 @@
   filter: drop-shadow(0 0 3px rgba(0,0,0,0.525)); /* 25% lighter */
 }
 
+#number-picker-grid .button.number {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  min-height: 56px;
+  border-radius: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#number-picker-grid .button.number:hover:not(.disabled):not(:disabled) {
+  transform: translateY(-2px);
+}
+
+#number-picker-grid .button.number.disabled,
+#number-picker-grid .button.number:disabled {
+  background: linear-gradient(135deg, rgba(90, 90, 90, 0.9), rgba(60, 60, 60, 0.95));
+  color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.15);
+  cursor: not-allowed;
+  opacity: 0.85;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+#number-picker-grid .button.number.disabled::after,
+#number-picker-grid .button.number:disabled::after {
+  content: 'TAKEN';
+  position: absolute;
+  inset: 6px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 @media (max-width: 600px) {
   .token {
     width: 60px;
