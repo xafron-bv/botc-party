@@ -1063,24 +1063,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initStorytellerMessages({ grimoireState });
     setupModalCloseHandlers({ grimoireState });
 
-    const centerEl = document.getElementById('center');
-    if (centerEl) {
-      centerEl.addEventListener('click', (e) => {
-      // If the character panel is currently open, ignore center clicks so closing the panel
-      // via outside click does not immediately trigger the sidebar to open (which hides the toggle)
-        if (document.body.classList.contains('character-panel-open')) return;
-        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-        const noPlayers = !Array.isArray(grimoireState.players) || grimoireState.players.length === 0;
-        const playerMode = grimoireState.mode === 'player';
-        if (isCollapsed && (noPlayers || playerMode)) {
-          try { e.preventDefault(); } catch (_) { }
-          try { e.stopPropagation(); } catch (_) { }
-          const toggleBtn = document.getElementById('sidebar-toggle');
-          if (toggleBtn) toggleBtn.click();
-        }
-      }, true);
-    }
-
     return { grimoireState };
   };
 
