@@ -328,9 +328,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
-      grimoireState.mode = storedMode === 'player' ? 'player' : 'storyteller';
+      grimoireState.mode = storedMode === 'storyteller' ? 'storyteller' : 'player';
     } catch (_) {
-      grimoireState.mode = 'storyteller';
+      grimoireState.mode = 'player';
     }
 
     const updateGrimoireControlButtons = () => {
