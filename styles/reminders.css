@@ -25,7 +25,7 @@
 }
 
 .text-reminder {
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   background-size: cover;
   border: 2px solid #D4AF37;
   width: var(--reminder-token-size);
@@ -87,7 +87,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   overflow: visible;
   /* allow SVG text to overdraw border */
   z-index: 5;

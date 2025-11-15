@@ -138,7 +138,7 @@
 .token {
   width: 70px;
   height: 70px;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -162,7 +162,7 @@
 #player-setup-character-list .token {
   width: 70px;
   height: 70px;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

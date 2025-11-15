@@ -64,7 +64,7 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
       .and('be.visible')
       .and(($el) => {
         const bg = getComputedStyle($el[0]).backgroundImage;
-        expect(bg).to.contain('token-BqDQdWeO.webp');
+        expect(bg).to.contain('token.png');
       });
     cy.get('#close-storyteller-message-display').click();
   });

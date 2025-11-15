@@ -1180,4 +1180,4 @@ export function restoreSelectionSession({ grimoireState }) {
     }
   } catch (_) { /* swallow restoration errors */ }
 }
-const BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
+const BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token.png');
