@@ -35,4 +35,14 @@ describe('Pre-game grimoire disabled/gray state', () => {
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
   });
+
+  it('hides the pre-game overlay when switching to player mode', () => {
+    cy.get('body').should('have.class', 'pre-game');
+    cy.get('#pre-game-overlay').should('be.visible');
+
+    cy.get('#mode-player').click({ force: true });
+
+    cy.get('body').should('not.have.class', 'pre-game');
+    cy.get('#pre-game-overlay').should('not.be.visible');
+  });
 });

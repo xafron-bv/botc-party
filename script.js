@@ -305,7 +305,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updatePreGameClass() {
       try {
         const hasPlayers = Array.isArray(grimoireState.players) && grimoireState.players.length > 0;
-        if (hasPlayers && !grimoireState.gameStarted && !grimoireState.winner) {
+        const storytellerMode = grimoireState.mode !== 'player';
+        if (storytellerMode && hasPlayers && !grimoireState.gameStarted && !grimoireState.winner) {
           document.body.classList.add('pre-game');
         } else {
           document.body.classList.remove('pre-game');
@@ -438,6 +439,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Apply mode and UI
         grimoireState.mode = nextMode;
         applyModeUI();
+        updatePreGameClass();
         updateStartGameEnabled();
         try { localStorage.setItem(MODE_STORAGE_KEY, grimoireState.mode); } catch (_) { }
         saveAppState({ grimoireState });
