@@ -27,7 +27,7 @@
 .text-reminder {
   background-image: url('/assets/img/token.png');
   background-size: cover;
-  border: 2px solid #D4AF37;
+  border: 2px solid var(--token-ring-color);
   width: var(--reminder-token-size);
   height: var(--reminder-token-size);
   min-width: var(--min-reminder-size);
@@ -38,10 +38,13 @@
   align-items: center;
   justify-content: center;
   pointer-events: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 12px var(--token-halo-outer),
+    0 4px 8px rgba(0, 0, 0, 0.35);
   position: absolute;
   overflow: hidden;
   padding: 4px;
+  background-color: var(--token-surface-tint);
 }
 
 /* Text content with dark background */
@@ -80,8 +83,10 @@
   border-radius: 50%;
   background-size: cover;
   background-position: center;
-  border: 3px solid #D4AF37;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  border: 3px solid var(--token-ring-color);
+  box-shadow:
+    0 0 16px var(--token-halo-outer),
+    0 6px 12px rgba(0, 0, 0, 0.45);
   pointer-events: auto;
   position: absolute;
   display: flex;
@@ -124,9 +129,9 @@
 /* Touch press feedback for long-press capable reminders */
 .icon-reminder.press-feedback,
 .text-reminder.press-feedback {
-  outline: 3px solid rgba(212, 175, 55, 0.9);
+  outline: 3px solid var(--token-press-outline);
   outline-offset: -2px;
-  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.35), 0 0 12px rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 0 4px var(--token-press-outline-outer), 0 0 18px var(--token-halo-inner);
   transform: translate(-50%, -50%) scale(0.96) !important;
   transition: box-shadow 120ms ease, outline-color 120ms ease, transform 120ms ease;
 }
@@ -251,7 +256,7 @@
   position: fixed;
   z-index: 5000;
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-  border: 2px solid #D4AF37;
+  border: 2px solid var(--token-ring-color);
   border-radius: 8px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
   display: none;
@@ -304,18 +309,24 @@
   border-radius: 50%;
   cursor: pointer;
   /* Match character modal token ring and glow */
-  border: 3px solid #D4AF37;
+  border: 3px solid var(--token-ring-color);
   transition: all 0.25s ease;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 16px var(--token-halo-outer),
+    0 4px 10px rgba(0, 0, 0, 0.45);
   overflow: visible;
   position: relative;
   z-index: 1;
+  background-image: url('/assets/img/token.png');
+  background-color: var(--token-surface-tint);
 }
 
 #reminder-token-grid .token:hover {
   /* Match hover emphasis from character modal */
   transform: scale(1.08);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6), 0 6px 16px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 22px var(--token-halo-inner),
+    0 6px 18px rgba(0, 0, 0, 0.55);
 }
 
 .text-reminder:hover {
@@ -332,7 +343,7 @@
   position: absolute;
   /* left/top set dynamically next to the last reminder */
   transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  background: linear-gradient(135deg, #f9dcaa 0%, #d0a253 100%);
   color: white;
   width: calc(var(--player-token-size) * 0.3);
   height: calc(var(--player-token-size) * 0.3);
@@ -344,7 +355,7 @@
   font-size: clamp(12px, 2vmin, 18px);
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  border: 2px solid #B8860B;
+  border: 2px solid #d0a253;
   transition: all 0.3s ease;
   z-index: 6;
   /* above hover zone and reminders to ensure clickability */

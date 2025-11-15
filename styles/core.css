@@ -8,6 +8,12 @@
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
   --player-name-gap: calc(var(--player-name-scale) * 20px);
+  --token-ring-color: #f6d48f;
+  --token-halo-inner: rgba(255, 222, 158, 0.75);
+  --token-halo-outer: rgba(255, 191, 111, 0.45);
+  --token-surface-tint: rgba(255, 244, 214, 0.45);
+  --token-press-outline: rgba(255, 226, 171, 0.95);
+  --token-press-outline-outer: rgba(255, 212, 153, 0.4);
 }
 
 body {
