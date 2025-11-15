@@ -38,16 +38,7 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true } = {}) => {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  cy.get('#add-players, #reset-grimoire').then(($btns) => {
-    // Prefer reset-grimoire if players already exist; else use add-players
-    const reset = $btns.filter('#reset-grimoire');
-    if (reset.length) {
-      cy.wrap(reset).click({ force: true });
-    } else {
-      const add = $btns.filter('#add-players');
-      if (add.length) cy.wrap(add).click({ force: true });
-    }
-  });
+  cy.get('#reset-grimoire').click({ force: true });
   cy.get('#player-circle li').should('have.length', players);
   cy.get('#start-game').should('not.be.disabled').click({ force: true });
   cy.get('body').should('not.have.class', 'pre-game');
@@ -58,4 +49,3 @@ Cypress.Commands.add('startGame', () => {
   cy.get('#start-game').should('not.be.disabled').click({ force: true });
   cy.get('body').should('not.have.class', 'pre-game');
 });
-

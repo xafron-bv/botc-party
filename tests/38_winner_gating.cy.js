@@ -11,14 +11,8 @@ describe('Winner gating disables start flow until reset', () => {
 
 
   it('gates start/player setup after winner until reset', () => {
-    // Initially, with no players, open-player-setup is disabled
-    cy.get('#open-player-setup').should('be.disabled');
-
-    // Add players
-    cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    // Controls should be available immediately since players are preloaded
     cy.get('#open-player-setup').should('not.be.disabled');
-    // New behavior: Start Game is enabled as soon as players exist
     cy.get('#start-game').should('not.be.disabled');
 
     // Load a script so roles are available

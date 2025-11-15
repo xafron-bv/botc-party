@@ -10,15 +10,16 @@ describe('Pre-game state persistence', () => {
     // Add players (default count already present after picking a script and adding players)
     // Load a script first so players can be meaningfully set up
     cy.get('#load-tb').click();
-    // Add players (uses current player count input value)
+    // Ensure player list is refreshed to known length
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
 
     // Ensure players rendered
     cy.get('#player-circle li').should('have.length', 5);
 
     // Ensure game has NOT started yet
     cy.get('body').should('have.class', 'pre-game');
+    cy.get('#sidebar').scrollTo('top');
     cy.get('#start-game').should('be.visible').and('not.be.disabled');
     cy.get('#end-game').should('not.be.visible');
 
@@ -28,6 +29,7 @@ describe('Pre-game state persistence', () => {
     // After reload, verify players and pre-game state restored
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('body').should('have.class', 'pre-game');
+    cy.get('#sidebar').scrollTo('top');
     cy.get('#start-game').should('be.visible').and('not.be.disabled');
     cy.get('#end-game').should('not.be.visible');
   });

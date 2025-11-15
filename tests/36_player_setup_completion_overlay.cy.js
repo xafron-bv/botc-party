@@ -18,7 +18,7 @@ describe('Player setup completion overlay', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     // Configure 5 players
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
     // Load a script so characters exist
     cy.get('#load-tb').click();
     // Open player setup

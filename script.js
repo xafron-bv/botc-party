@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadAllCharsBtn = document.getElementById('load-all-chars');
     const scriptFileInput = document.getElementById('script-file');
     const playerCountInput = document.getElementById('player-count');
-    const addPlayersBtn = document.getElementById('add-players');
     const openRulebookBtn = document.getElementById('open-rulebook');
 
     const characterModal = document.getElementById('character-modal');
@@ -630,24 +629,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       updatePreGameClass();
     });
 
-    if (addPlayersBtn) addPlayersBtn.addEventListener('click', () => {
-      resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
-      try { showGrimoire({ grimoireState }); } catch (_) { }
-      try { grimoireState.winner = null; } catch (_) { }
-      grimoireState.gameStarted = false;
-      try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
-      if (startGameBtn) startGameBtn.style.display = '';
-      if (endGameBtn) endGameBtn.style.display = 'none';
-      try {
-        if (startGameBtn) { startGameBtn.disabled = false; startGameBtn.title = ''; }
-        const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
-        if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
-      } catch (_) { }
-      applyModeUI();
-      updateStartGameEnabled();
-      updateButtonStates();
-      updatePreGameClass();
-    });
     if (startGameBtn) startGameBtn.addEventListener('click', () => {
     // In player mode, starting a game should reset the grimoire (fresh state for players)
     // In storyteller mode, we preserve current assignments/reminders/death states.
@@ -776,29 +757,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateStartGameEnabled() {
       if (!startGameBtn) return;
       const players = grimoireState.players || [];
-      const hasPlayers = players.length > 0;
+      const hasPlayers = players.length >= 5;
       startGameBtn.disabled = !!grimoireState.winner || !hasPlayers;
     }
 
     function updateButtonStates() {
-      const players = grimoireState.players || [];
-      const hasPlayers = players.length > 0;
-      const addPlayersBtn = document.getElementById('add-players');
       const openPlayerSetupBtn = document.getElementById('open-player-setup');
       const startGameBtn = document.getElementById('start-game');
-
-      if (addPlayersBtn) {
-        addPlayersBtn.style.display = hasPlayers ? 'none' : 'block';
-      }
 
       if (openPlayerSetupBtn) {
         const sel = grimoireState.playerSetup || {};
         const selectionComplete = !!sel.selectionComplete;
-        openPlayerSetupBtn.disabled = !hasPlayers || !!grimoireState.winner || selectionComplete;
+        openPlayerSetupBtn.disabled = !!grimoireState.winner || selectionComplete;
         if (grimoireState.winner) {
           openPlayerSetupBtn.title = 'Reset grimoire to configure a new game';
-        } else if (!hasPlayers) {
-          openPlayerSetupBtn.title = 'Add players first';
         } else if (selectionComplete) {
           openPlayerSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
         } else {
@@ -807,15 +779,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (startGameBtn) {
-        if (!hasPlayers) {
-          startGameBtn.disabled = true;
-        } else {
-          updateStartGameEnabled();
-        }
+        updateStartGameEnabled();
         if (grimoireState.winner) {
           startGameBtn.title = 'Reset grimoire to start a new game';
-        } else if (!hasPlayers) {
-          startGameBtn.title = 'Add players first';
         } else {
           startGameBtn.title = '';
         }
@@ -823,8 +789,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const modeStorytellerRadio = document.getElementById('mode-storyteller');
       const modePlayerRadio = document.getElementById('mode-player');
-      if (modeStorytellerRadio) modeStorytellerRadio.disabled = !hasPlayers;
-      if (modePlayerRadio) modePlayerRadio.disabled = !hasPlayers;
+      if (modeStorytellerRadio) modeStorytellerRadio.disabled = false;
+      if (modePlayerRadio) modePlayerRadio.disabled = false;
 
       updatePreGameClass();
       try { updatePreGameOverlayMessage(); } catch (_) { }
@@ -1064,6 +1030,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     initDayNightTracking(grimoireState);
 
     await loadAppState({ grimoireState, grimoireHistoryList });
+    const hasPlayers = Array.isArray(grimoireState.players) && grimoireState.players.length > 0;
+    if (!hasPlayers && playerCountInput) {
+      if (!playerCountInput.value) {
+        playerCountInput.value = '5';
+      }
+      resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
+    }
     applyModeUI();
     applyGrimoireHiddenUI();
     applyGrimoireLockedState({ grimoireState });

@@ -13,7 +13,7 @@ describe('Reset after winner does not prompt', () => {
 
   function addFivePlayers() {
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
   }
 
   function fullyAssignFivePlayers() {

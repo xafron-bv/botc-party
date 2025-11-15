@@ -5,9 +5,9 @@ describe('Pre-game grimoire disabled/gray state', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Add players
+    // Ensure five players
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
   });
 
   it('applies pre-game class before starting game', () => {

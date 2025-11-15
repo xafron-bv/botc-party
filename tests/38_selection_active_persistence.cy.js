@@ -12,7 +12,7 @@ describe('Selection session persistence', () => {
   it('restores selection state and keeps remaining players interactive after reload', () => {
     cy.get('#load-tb').click();
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').should('be.visible').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li', { timeout: 8000 }).should('have.length', 5);
     cy.get('#open-player-setup').click();
     cy.get('#bag-random-fill').click();

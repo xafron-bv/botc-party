@@ -7,9 +7,9 @@ describe('Active game persistence', () => {
 
   it('restores active game UI after reload', () => {
     cy.get('#load-tb').click();
-    // Configure player count and add players explicitly
+    // Configure player count explicitly
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 5);
     // Start game directly (allowed whenever players exist per new rules)
     cy.get('#start-game').should('be.visible').click();
