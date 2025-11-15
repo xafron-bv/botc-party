@@ -10,7 +10,7 @@ describe('Number selection bag shuffle', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#load-tb').click();
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
   });
 
   it('shuffles the bag so numbers map to a new random order', () => {

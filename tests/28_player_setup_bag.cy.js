@@ -13,7 +13,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li').should('have.length', 10);
   });
 
-  it('shows bag builder with counts warning and random fill', () => {
+  it('shows bag builder with counts warning that clears when bag is filled', () => {
     // Open Player Setup panel
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
@@ -21,8 +21,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Initially, bag is empty and warning shows mismatch
     cy.get('#bag-count-warning').should('be.visible');
 
-    // Click Random Fill and ensure counts match configured setup for 10 players
-    cy.get('#bag-random-fill').click();
+    // Use helper to fill and ensure counts match configured setup for 10 players
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Toggling a non-matching character should show the warning again
@@ -48,6 +48,32 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     });
   });
 
+  it('shuffles character order within teams without altering selections', () => {
+    cy.get('#open-player-setup').click();
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.fillBag();
+    cy.get('#bag-count-warning').should('not.be.visible');
+
+    const getTownsfolkOrder = () => cy.contains('#player-setup-character-list .team-header', 'Townsfolk')
+      .next('.team-grid')
+      .find('.token.role')
+      .then($tokens => Array.from($tokens, el => el.dataset.roleId));
+
+    getTownsfolkOrder().as('initialTownsfolkOrder');
+
+    cy.get('#bag-shuffle').click();
+
+    cy.get('@initialTownsfolkOrder').then((initialOrder) => {
+      getTownsfolkOrder().should((shuffledOrder) => {
+        expect(shuffledOrder).to.not.deep.equal(initialOrder);
+      });
+    });
+
+    cy.get('#player-setup-character-list .role input[type="checkbox"]:checked')
+      .should('have.length', 10);
+    cy.get('#bag-count-warning').should('not.be.visible');
+  });
+
   it('displays live setup counts for each team', () => {
     // Reconfigure to 7 players to take advantage of a 5 townsfolk requirement
     cy.get('#player-count').clear().type('7');
@@ -63,8 +89,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-counts [data-team="minions"] .team-count-value').should('contain', '0/1');
     cy.get('#player-setup-counts [data-team="demons"] .team-count-value').should('contain', '0/1');
 
-    // After random fill the counts should match the required distribution
-    cy.get('#bag-random-fill').click();
+    // After filling via helper the counts should match the required distribution
+    cy.fillBag();
     cy.get('#player-setup-counts [data-team="townsfolk"] .team-count-value').should('contain', '5/5');
     cy.get('#player-setup-counts [data-team="outsiders"] .team-count-value').should('contain', '0/0');
     cy.get('#player-setup-counts [data-team="minions"] .team-count-value').should('contain', '1/1');
@@ -83,10 +109,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   });
 
   it('supports number picking without revealing assignments prematurely', () => {
-    // Open and random fill the bag
+    // Open and fill the bag via helper
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Enter selection flow and click overlay to open number picker
@@ -133,7 +159,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   it('reveals all assigned characters when requested', () => {
     // Build and assign two players quickly
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
     // Assign all players sequentially by clicking overlays and choosing numbers 1..N
     cy.get('#player-circle li').should('have.length', 10).then(() => {
@@ -163,10 +189,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   });
 
   it('does not auto-hide grimoire on start selection (button controls it)', () => {
-    // Open and random fill the bag
+    // Open and fill the bag via helper
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Start selection should NOT lock or hide grimoire; button remains "Lock Grimoire"
@@ -190,7 +216,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#include-travellers-in-bag').check({ force: true }).should('be.checked');
 
     // Auto-fill base setup for 7 players then add a traveller to the bag
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
       .next('.team-grid')
       .find('input[type="checkbox"]')
@@ -246,7 +272,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Open Player Setup panel and configure bag
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Start number selection
@@ -290,7 +316,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   it('locks a number assignment for a player once selected', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     cy.get('#player-setup-panel .start-selection').click();
@@ -319,7 +345,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     // Enable travellers and fill bag
     cy.get('#include-travellers-in-bag').check({ force: true });
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
 
     // Add one traveller, remove one townsfolk to keep total at 10
     cy.contains('#player-setup-character-list .team-header', 'Travellers')

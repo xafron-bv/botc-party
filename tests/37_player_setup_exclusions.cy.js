@@ -25,7 +25,7 @@ describe('Player Setup - Exclusions (bag-disabled roles)', () => {
         cy.get('input[type="checkbox"]').should('be.disabled').and('not.be.checked');
       });
 
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.window().then(win => {
       const bag = (win.grimoireState && win.grimoireState.playerSetup && win.grimoireState.playerSetup.bag) || [];
@@ -47,7 +47,7 @@ describe('Player Setup - Exclusions (bag-disabled roles)', () => {
         cy.wrap(mar).within(() => {
           cy.get('input[type="checkbox"]').should('be.disabled').and('not.be.checked');
         });
-        cy.get('#bag-random-fill').click();
+        cy.fillBag();
         cy.get('#bag-count-warning').should('not.be.visible');
         cy.window().then(win => {
           const bag = (win.grimoireState && win.grimoireState.playerSetup && win.grimoireState.playerSetup.bag) || [];

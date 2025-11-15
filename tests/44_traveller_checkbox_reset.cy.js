@@ -18,7 +18,7 @@ describe('Player Setup - Traveller Checkbox Reset', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag for 8 players
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Enable travellers in bag
@@ -71,8 +71,8 @@ describe('Player Setup - Traveller Checkbox Reset', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
-    // Use random fill to get a valid bag for 8 players
-    cy.get('#bag-random-fill').click({ force: true });
+    // Use helper to get a valid bag for 8 players
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Enable and select travellers
@@ -124,7 +124,7 @@ describe('Player Setup - Traveller Checkbox Reset', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
 
     // Enable and select a traveller
     cy.get('#include-travellers-in-bag').check({ force: true });
