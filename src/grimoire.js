@@ -100,7 +100,8 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     character: null,
     reminders: [],
     dead: false,
-    deathVote: false
+    deathVote: false,
+    nightKilledPhase: null
   }));
   if (playerCountInput) {
     try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
@@ -241,7 +242,14 @@ export function updateGrimoire({ grimoireState }) {
     overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
     tokenDiv.appendChild(overlay);
 
-    const ribbon = createDeathRibbonSvg();
+    const shouldHighlightNightKill = Boolean(
+      player &&
+      player.dead &&
+      player.nightKilledPhase &&
+      currentPhase &&
+      player.nightKilledPhase === currentPhase
+    );
+    const ribbon = createDeathRibbonSvg({ highlightNightKill: shouldHighlightNightKill });
     ribbon.classList.add('death-ribbon');
     const handleRibbonToggle = (e) => {
       e.stopPropagation();
@@ -255,15 +263,19 @@ export function updateGrimoire({ grimoireState }) {
         return;
       }
       const player = grimoireState.players[i];
+      const phaseAtClick = getCurrentPhase(grimoireState);
+      const killedDuringNight = !!(phaseAtClick && phaseAtClick.startsWith('N'));
       if (!player.dead) { // Phase 1: Alive -> Dead
         grimoireState.players[i].dead = true;
         grimoireState.players[i].deathVote = false; // initialize unused vote
+        grimoireState.players[i].nightKilledPhase = killedDuringNight ? phaseAtClick : null;
       } else if (player.dead && !player.deathVote) { // Phase 2: mark vote used
         grimoireState.players[i].deathVote = true;
       } else if (player.dead && player.deathVote) { // Phase 3: confirm resurrect
         if (window.confirm('Resurrect this player?')) {
           grimoireState.players[i].dead = false;
           grimoireState.players[i].deathVote = false;
+          grimoireState.players[i].nightKilledPhase = null;
         } else {
           return; // abort update/save if cancelled
         }
@@ -537,7 +549,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
   const newPlayers = Array.from({ length: playerCount }, (_, i) => {
     const existing = existingPlayers[i];
     const name = existing && existing.name ? existing.name : `Player ${i + 1}`;
-    return { name, character: null, reminders: [], dead: false, deathVote: false };
+    return { name, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
   });
   grimoireState.players = newPlayers;
   grimoireState.grimoireLocked = false;
