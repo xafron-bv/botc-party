@@ -20,10 +20,16 @@ describe('Player Setup - Exclusions (bag-disabled roles)', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Drunk token appears but checkbox is disabled and not checkable
-    cy.get('#player-setup-character-list .role').filter('[title="Drunk"]').should('have.length', 1)
-      .within(() => {
-        cy.get('input[type="checkbox"]').should('be.disabled').and('not.be.checked');
-      });
+    cy.get('#player-setup-character-list .role').filter('[title="Drunk"]').as('drunkToken');
+    cy.get('@drunkToken').should('have.length', 1);
+    cy.get('@drunkToken').should('have.class', 'bag-disabled');
+    cy.get('@drunkToken').should(($token) => {
+      const opacity = parseFloat(getComputedStyle($token[0]).opacity || '0');
+      expect(opacity).to.be.closeTo(0.45, 0.02);
+    });
+    cy.get('@drunkToken').within(() => {
+      cy.get('input[type="checkbox"]').should('be.disabled').and('not.be.checked');
+    });
 
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
