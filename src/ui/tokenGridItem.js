@@ -7,7 +7,7 @@ import { applyTokenArtwork } from './tokenArtwork.js';
  * Options:
  * - id: string (data-token-id)
  * - image: string (foreground icon URL)
- * - baseImage: string (base token URL, defaults to assets/img/token-BqDQdWeO.webp)
+ * - baseImage: string (base token URL, defaults to assets/img/token.png)
  * - label: string (curved text rendered inside token)
  * - title: string (tooltip)
  * - onClick: function (optional click handler)
@@ -23,7 +23,7 @@ export function createTokenGridItem(options = {}) {
   const {
     id = '',
     image = '',
-    baseImage = 'assets/img/token-BqDQdWeO.webp',
+    baseImage = 'assets/img/token.png',
     label = '',
     title = '',
     onClick = null,

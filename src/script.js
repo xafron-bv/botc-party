@@ -58,7 +58,7 @@ export async function displayScript({ data, grimoireState }) {
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
       roleEl.innerHTML = `
-        <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+        <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
         <span class="name">${role.name}</span>
         <div class="ability">${role.ability || 'No ability description available'}</div>
       `;
@@ -93,7 +93,7 @@ export async function displayScript({ data, grimoireState }) {
             const roleEl = document.createElement('div');
             roleEl.className = 'role';
             roleEl.innerHTML = `
-                           <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                           <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
                            <span class="name">${role.name}</span>
                            <div class="ability">${role.ability || 'No ability description available'}</div>
                        `;
@@ -119,16 +119,16 @@ export async function displayScript({ data, grimoireState }) {
           const roleEl = document.createElement('div');
           roleEl.className = 'role';
           roleEl.innerHTML = `
-                       <span class="icon" style="background-image: url('./assets/img/token-BqDQdWeO.webp'); background-size: cover;"></span>
+                       <span class="icon" style="background-image: url('./assets/img/token.png'); background-size: cover;"></span>
                        <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
                    `;
           characterSheet.appendChild(roleEl);
         } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
           const roleEl = document.createElement('div');
           roleEl.className = 'role';
-          const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token-BqDQdWeO.webp';
+          const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token.png';
           roleEl.innerHTML = `
-                      <span class="icon" style="background-image: url('${image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+                      <span class="icon" style="background-image: url('${image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
                       <span class="name">${characterItem.name || characterItem.id}</span>
                       <div class="ability">${characterItem.ability || 'No ability description available'}</div>
                   `;
@@ -350,10 +350,10 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
 
       jinxEl.innerHTML = `
         <div class="jinx-characters">
-          <span class="icon" style="background-image: url('${char1Role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+          <span class="icon" style="background-image: url('${char1Role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
           <span class="name">${char1Role.name}</span>
           <span class="jinx-plus">+</span>
-          <span class="icon" style="background-image: url('${char2Role.image}'), url('./assets/img/token-BqDQdWeO.webp'); background-size: cover, cover;"></span>
+          <span class="icon" style="background-image: url('${char2Role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
           <span class="name">${char2Role.name}</span>
         </div>
         <div class="jinx-reason">${jinx.reason}</div>

@@ -138,46 +138,56 @@
 .token {
   width: 70px;
   height: 70px;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
   /* Always show the gold ring instead of only on hover */
-  border: 3px solid #D4AF37;
+  border: var(--token-ring-width-sm) solid var(--token-ring-color);
   transition: all 0.25s ease;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 16px var(--token-halo-outer),
+    0 4px 10px rgba(0, 0, 0, 0.45);
   position: relative;
   overflow: visible;
+  background-color: var(--token-surface-tint);
 }
 
 .token:hover {
   /* Emphasize via scale + stronger glow (border already present) */
   transform: scale(1.08);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6), 0 6px 16px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 22px var(--token-halo-inner),
+    0 6px 18px rgba(0, 0, 0, 0.55);
 }
 
 /* Match hover/touch effect for player setup token grid */
 #player-setup-character-list .token {
   width: 70px;
   height: 70px;
-  background-image: url('/assets/img/token-BqDQdWeO.webp');
+  background-image: url('/assets/img/token.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
-  border: 3px solid #D4AF37;
+  border: var(--token-ring-width-sm) solid var(--token-ring-color);
   transition: all 0.25s ease;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4), 0 4px 8px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 16px var(--token-halo-outer),
+    0 4px 10px rgba(0, 0, 0, 0.45);
   position: relative;
   overflow: visible;
+  background-color: var(--token-surface-tint);
 }
 
 #player-setup-character-list .token:hover {
   transform: scale(1.08);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6), 0 6px 16px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 22px var(--token-halo-inner),
+    0 6px 18px rgba(0, 0, 0, 0.55);
 }
 
 /* Checkbox overlay styling */
@@ -191,7 +201,7 @@
   font-weight: bold;
   margin-top: 12px;
   margin-bottom: 6px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+  border-bottom: 1px solid rgba(246, 212, 143, 0.45);
   padding-bottom: 4px;
 }
 
@@ -267,14 +277,20 @@
   width: calc(var(--token-size-base) * 2);
   height: calc(var(--token-size-base) * 2);
   border-radius: 50%;
-  border: 4px solid #D4AF37;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
+  border: var(--token-ring-width) solid var(--token-ring-color);
+  box-shadow:
+    0 0 34px var(--token-halo-inner),
+    0 0 48px var(--token-halo-outer),
+    inset 0 0 18px rgba(255, 249, 235, 0.55);
   cursor: default;
 }
 
 #player-reveal-modal .token:hover {
   transform: none;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 34px var(--token-halo-inner),
+    0 0 48px var(--token-halo-outer),
+    inset 0 0 18px rgba(255, 249, 235, 0.55);
 }
 
 /* Readability styling for reveal modal token curved text */

@@ -148,7 +148,7 @@ export function updateGrimoire({ grimoireState }) {
   const RIGHT_OFFSET = Math.PI / 6;
   const LEFT_OFFSET = -Math.PI / 6;
   const LEFT_DELTA = Math.PI / 18;
-  const baseTokenImage = resolveAssetPath('assets/img/token-BqDQdWeO.webp');
+  const baseTokenImage = resolveAssetPath('assets/img/token.png');
 
   const getBluffRoleIds = () => {
     const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [];

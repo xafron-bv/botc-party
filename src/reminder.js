@@ -133,7 +133,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       const tokenEl = createTokenGridItem({
         id: token.id || '',
         image: resolveAssetPath(token.image),
-        baseImage: 'assets/img/token-BqDQdWeO.webp',
+        baseImage: 'assets/img/token.png',
         label: token.label || '',
         title: token.label || '',
         curvedId: `picker-arc-${idx}`,
@@ -292,7 +292,7 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
       applyTokenArtwork({
         tokenEl: iconEl,
-        baseImage: resolveAssetPath('assets/img/token-BqDQdWeO.webp'),
+        baseImage: resolveAssetPath('assets/img/token.png'),
         roleImage: reminder.image ? resolveAssetPath(reminder.image) : null
       });
       iconEl.title = (reminder.label || '');

@@ -57,7 +57,7 @@ function collectVisibleAssetUrls({ grimoireState }) {
     if (normalized) urls.add(normalized);
   };
 
-  add('./assets/img/token-BqDQdWeO.webp');
+  add('./assets/img/token.png');
 
   try {
     if (Array.isArray(grimoireState?.players)) {

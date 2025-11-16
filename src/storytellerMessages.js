@@ -46,11 +46,12 @@ export function initStorytellerMessages({ grimoireState }) {
 
     tokenEl.style.width = 'calc(var(--token-size-base) * 1.5)';
     tokenEl.style.height = 'calc(var(--token-size-base) * 1.5)';
-    tokenEl.style.border = '4px solid #D4AF37';
-    tokenEl.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.3)';
+    tokenEl.style.border = 'var(--token-ring-width) solid var(--token-ring-color)';
+    tokenEl.style.boxShadow = '0 0 34px var(--token-halo-inner), 0 0 48px var(--token-halo-outer), inset 0 0 18px rgba(255, 249, 235, 0.55)';
     tokenEl.style.borderRadius = '50%';
+    tokenEl.style.backgroundColor = 'var(--token-surface-tint)';
 
-    const baseImage = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
+    const baseImage = resolveAssetPath('./assets/img/token.png');
     if (roleId && grimoireState.allRoles[roleId]) {
       const role = grimoireState.allRoles[roleId];
       tokenEl.classList.remove('empty');
@@ -58,7 +59,7 @@ export function initStorytellerMessages({ grimoireState }) {
       applyTokenArtwork({
         tokenEl,
         baseImage,
-        roleImage: resolveAssetPath(role.image || './assets/img/token-BqDQdWeO.webp')
+        roleImage: resolveAssetPath(role.image || './assets/img/token.png')
       });
       const svg = createCurvedLabelSvg(`story-msg-slot-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
       tokenEl.appendChild(svg);
