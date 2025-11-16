@@ -29,7 +29,7 @@ export function populateCharacterGrid({ grimoireState }) {
     const emptyToken = createTokenGridItem({
       id: 'empty',
       image: '',
-      baseImage: 'assets/img/token-BqDQdWeO.webp',
+      baseImage: 'assets/img/token.png',
       label: 'None',
       title: 'No character',
       curvedId: 'picker-role-arc-empty',
@@ -68,7 +68,7 @@ export function populateCharacterGrid({ grimoireState }) {
     const tokenEl = createTokenGridItem({
       id: role.id,
       image: role.image,
-      baseImage: 'assets/img/token-BqDQdWeO.webp',
+      baseImage: 'assets/img/token.png',
       label: role.name,
       title: role.name,
       curvedId: `picker-role-arc-${role.id}`,
@@ -122,7 +122,7 @@ export function assignCharacter({ grimoireState, roleId }) {
           slotEl.classList.add('has-character');
           applyTokenArtwork({
             tokenEl: slotEl,
-            baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
+            baseImage: resolveAssetPath('./assets/img/token.png'),
             roleImage: resolveAssetPath(role.image)
           });
           const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
@@ -132,7 +132,7 @@ export function assignCharacter({ grimoireState, roleId }) {
           slotEl.classList.remove('has-character');
           applyTokenArtwork({
             tokenEl: slotEl,
-            baseImage: resolveAssetPath('./assets/img/token-BqDQdWeO.webp'),
+            baseImage: resolveAssetPath('./assets/img/token.png'),
             roleImage: null
           });
           const svg = createCurvedLabelSvg('story-slot-empty', 'None');
@@ -272,7 +272,7 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
             name: characterItem.name,
             team: String(characterItem.team || '').toLowerCase(),
             ability: characterItem.ability,
-            image: img ? resolveAssetPath(img) : './assets/img/token-BqDQdWeO.webp'
+            image: img ? resolveAssetPath(img) : './assets/img/token.png'
           };
           if (characterItem.reminders) customRole.reminders = characterItem.reminders;
           if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
@@ -305,7 +305,7 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
         grimoireState.baseRoles[characterItem] = {
           id: characterItem,
           name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1),
-          image: './assets/img/token-BqDQdWeO.webp',
+          image: './assets/img/token.png',
           team: 'unknown'
         };
       } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
@@ -319,7 +319,7 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
             name: characterItem.name,
             team: String(characterItem.team || '').toLowerCase(),
             ability: characterItem.ability,
-            image: img ? resolveAssetPath(img) : './assets/img/token-BqDQdWeO.webp'
+            image: img ? resolveAssetPath(img) : './assets/img/token.png'
           };
           if (typeof characterItem.firstNight === 'number') customFallback.firstNight = characterItem.firstNight;
           if (typeof characterItem.otherNight === 'number') customFallback.otherNight = characterItem.otherNight;

@@ -46,7 +46,7 @@ describe('Grimoire visibility & locking controls', () => {
       .then(($el) => {
         const style = window.getComputedStyle($el[0]);
         // Should contain base token image
-        expect(style.backgroundImage).to.contain('token-BqDQdWeO.webp');
+        expect(style.backgroundImage).to.contain('token.png');
       });
 
     // Show grimoire again

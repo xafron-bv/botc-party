@@ -8,7 +8,7 @@ import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { resolveAssetPath } from '../utils.js';
 import { ensureGrimoireUnlocked } from './grimoireLock.js';
 
-const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token-BqDQdWeO.webp');
+const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token.png');
 
 export function createBluffTokensContainer({ grimoireState }) {
   const container = document.createElement('div');
