@@ -18,25 +18,11 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
   const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
   textPath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${uniqueId}`);
   textPath.setAttribute('startOffset', '50%');
-  // Truncate display on token to avoid overcrowding, but keep tooltip full
   const full = String(labelText || '');
-  const maxChars = 14;
-  const display = full.length > maxChars ? `${full.slice(0, maxChars - 1)}…` : full;
-  const len = display.length;
-  // Dynamic font size based on length
-  let fontSize = 12;
-  if (len > 12 && len <= 16) fontSize = 11.5;
-  else if (len > 16) fontSize = 11;
-  text.style.fontSize = `${fontSize}px`;
-  // For short labels, do NOT stretch spacing (prevents "h     i" look)
-  // Only force-fit very long labels to avoid overflow
-  if (len >= 10) {
-    text.style.letterSpacing = '0.1px';
-    text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
-    const targetLength = 92; // visual arc length
-    textPath.setAttribute('textLength', String(targetLength));
-  }
-  textPath.textContent = display;
+  text.style.fontSize = '12.5px';
+  text.style.letterSpacing = '2px';
+  text.removeAttribute('lengthAdjust');
+  textPath.textContent = full;
   text.appendChild(textPath);
   svg.appendChild(text);
   return svg;
