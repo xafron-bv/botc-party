@@ -196,6 +196,25 @@
   height: 16px;
 }
 
+#player-setup-character-list .player-setup-warning-icon {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 18px;
+  color: #f6c344;
+  display: none;
+  pointer-events: none;
+  text-shadow:
+    0 0 6px rgba(0, 0, 0, 0.9),
+    0 0 2px rgba(0, 0, 0, 0.8);
+  z-index: 3;
+}
+
+#player-setup-character-list .player-setup-warning-icon .fas {
+  line-height: 1;
+  color: inherit;
+}
+
 /* Team grouping styles for player setup */
 #player-setup-character-list .team-header {
   font-weight: bold;
