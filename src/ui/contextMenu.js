@@ -169,7 +169,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     if (idx < 0) return;
     if (grimoireState.players.length >= 20) return; // clamp to max
     const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
     grimoireState.players.splice(idx, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
@@ -181,7 +181,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
     if (idx < 0) return;
     if (grimoireState.players.length >= 20) return; // clamp to max
     const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false };
+    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
     grimoireState.players.splice(idx + 1, 0, newPlayer);
     rebuildPlayerCircleUiPreserveState({ grimoireState });
   });

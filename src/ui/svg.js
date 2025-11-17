@@ -42,27 +42,45 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
   return svg;
 }
 
-export function createDeathRibbonSvg() {
+export function createDeathRibbonSvg({ highlightNightKill = false } = {}) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 100 140');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.style.pointerEvents = 'none';
+  if (highlightNightKill) {
+    svg.classList.add('night-kill-pending');
+  }
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-  pattern.setAttribute('id', 'deathPattern');
+  const patternId = highlightNightKill ? 'deathPatternNight' : 'deathPattern';
+  pattern.setAttribute('id', patternId);
   pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-  pattern.setAttribute('width', '12');
-  pattern.setAttribute('height', '12');
+  pattern.setAttribute('width', highlightNightKill ? '14' : '12');
+  pattern.setAttribute('height', highlightNightKill ? '14' : '12');
+  if (highlightNightKill) {
+    pattern.setAttribute('patternTransform', 'rotate(45)');
+  }
   const pbg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  pbg.setAttribute('width', '12');
-  pbg.setAttribute('height', '12');
-  pbg.setAttribute('fill', '#0f0f10');
+  pbg.setAttribute('width', highlightNightKill ? '14' : '12');
+  pbg.setAttribute('height', highlightNightKill ? '14' : '12');
+  pbg.setAttribute('fill', highlightNightKill ? '#0d0d10' : '#0f0f10');
   const p1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   p1.setAttribute('d', 'M0 12 L12 0 M-3 9 L3 3 M9 15 L15 9');
-  p1.setAttribute('stroke', '#1b1b1d');
-  p1.setAttribute('stroke-width', '2');
+  p1.setAttribute('stroke', highlightNightKill ? '#3e3f45' : '#1b1b1d');
+  p1.setAttribute('stroke-width', highlightNightKill ? '3' : '2');
+  let accent = null;
+  if (highlightNightKill) {
+    accent = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    accent.setAttribute('d', 'M0 0 L12 12 M-3 -3 L3 3 M9 9 L15 15');
+    accent.setAttribute('stroke', '#6e6f75');
+    accent.setAttribute('stroke-width', '1.6');
+    accent.setAttribute('opacity', '0.55');
+  }
   defs.appendChild(pattern);
   pattern.appendChild(pbg);
+  if (accent) {
+    pattern.appendChild(accent);
+  }
   pattern.appendChild(p1);
   svg.appendChild(defs);
 
@@ -74,7 +92,7 @@ export function createDeathRibbonSvg() {
   rect.setAttribute('ry', '6');
   rect.setAttribute('width', '56');
   rect.setAttribute('height', '88');
-  rect.setAttribute('fill', 'url(#deathPattern)');
+  rect.setAttribute('fill', `url(#${patternId})`);
   rect.setAttribute('stroke', '#000');
   rect.setAttribute('stroke-width', '6');
   rect.setAttribute('pointer-events', 'visiblePainted');
@@ -104,7 +122,7 @@ export function createDeathRibbonSvg() {
     'Z'
   ].join(' '));
   [leftTri, rightTri].forEach(tri => {
-    tri.setAttribute('fill', 'url(#deathPattern)');
+    tri.setAttribute('fill', `url(#${patternId})`);
     tri.setAttribute('stroke', '#000');
     tri.setAttribute('stroke-width', '6');
     tri.setAttribute('pointer-events', 'visiblePainted');
@@ -156,4 +174,3 @@ export function createDeathVoteIndicatorSvg() {
   svg.appendChild(checkmark);
   return svg;
 }
-
