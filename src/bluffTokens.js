@@ -43,11 +43,13 @@ export function createBluffToken({ grimoireState, index }) {
 
   let touchOccurred = false;
 
+  const canInteract = () => grimoireState.gameStarted || grimoireState.mode === 'player';
+
   token.addEventListener('click', (e) => {
     if (e.target.closest('.ability-info-icon')) {
       return;
     }
-    if (!grimoireState.gameStarted) {
+    if (!canInteract()) {
       return;
     }
     if (touchOccurred) {
@@ -62,7 +64,7 @@ export function createBluffToken({ grimoireState, index }) {
   setupTouchHandling({
     element: token,
     onTap: () => {
-      if (!grimoireState.gameStarted) {
+      if (!canInteract()) {
         return;
       }
       if (!ensureGrimoireUnlocked({ grimoireState })) return;

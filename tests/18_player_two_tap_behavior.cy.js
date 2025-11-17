@@ -12,6 +12,13 @@ describe('Player two-tap behavior in touch mode', () => {
       Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
     });
 
+    // Ensure sidebar is open so we can interact with controls in narrow viewports
+    cy.get('body').then(($body) => {
+      if ($body.hasClass('sidebar-collapsed')) {
+        cy.get('#sidebar-toggle').click({ force: true });
+      }
+    });
+
     // Load script and start game with many players
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -25,6 +32,8 @@ describe('Player two-tap behavior in touch mode', () => {
     });
     cy.get('#reset-grimoire').click({ force: true });
     cy.get('#player-circle li').should('have.length', 20);
+    cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
+    cy.get('#start-game').should('be.visible').click({ force: true });
   });
 
   it('demonstrates two-tap behavior for overlapping players', () => {
