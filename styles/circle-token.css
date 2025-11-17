@@ -84,24 +84,44 @@
 .player-token.next-player {
   border-color: #4CAF50;
   box-shadow:
-    0 0 30px rgba(76, 175, 80, 0.9),
-    0 0 40px rgba(76, 175, 80, 0.6),
-    inset 0 0 20px rgba(0, 0, 0, 0.3);
-  animation: pulse-next-player 2s ease-in-out infinite;
+    0 0 36px rgba(76, 175, 80, 0.55),
+    0 0 72px rgba(76, 175, 80, 0.4),
+    0 0 100px rgba(76, 175, 80, 0.18),
+    inset 0 0 16px rgba(0, 0, 0, 0.28);
+  animation: pulse-next-player 2.4s ease-in-out infinite;
+  position: relative;
+}
+
+.player-token.next-player::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 180%;
+  height: 180%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(118, 255, 154, 0.35) 0%, rgba(76, 175, 80, 0.1) 60%, transparent 100%);
+  filter: blur(2px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 @keyframes pulse-next-player {
   0%, 100% {
     box-shadow:
-      0 0 30px rgba(76, 175, 80, 0.9),
-      0 0 40px rgba(76, 175, 80, 0.6),
-      inset 0 0 20px rgba(0, 0, 0, 0.3);
+      0 0 36px rgba(76, 175, 80, 0.55),
+      0 0 72px rgba(76, 175, 80, 0.4),
+      0 0 100px rgba(76, 175, 80, 0.18),
+      inset 0 0 16px rgba(0, 0, 0, 0.28);
   }
   50% {
     box-shadow:
-      0 0 40px rgba(76, 175, 80, 1),
-      0 0 60px rgba(76, 175, 80, 0.8),
-      inset 0 0 20px rgba(0, 0, 0, 0.3);
+      0 0 50px rgba(76, 175, 80, 0.7),
+      0 0 90px rgba(76, 175, 80, 0.45),
+      0 0 120px rgba(76, 175, 80, 0.25),
+      inset 0 0 16px rgba(0, 0, 0, 0.28);
   }
 }
 
@@ -217,12 +237,12 @@
   /* Base centering transform; rotation (if any) is appended via CSS var */
   --name-rotate: 0deg;
   transform: translate(-50%, -50%) rotate(var(--name-rotate));
-  z-index: 0;
-  /* Below all other game elements */
+  z-index: 25;
+  /* Above glow but below overlays */
   transition: all 0.3s ease;
-  opacity: 0.3;
+  opacity: 0.8;
   pointer-events: auto;
-  filter: blur(0.5px);
+  filter: none;
 }
 
 .player-name:hover {
