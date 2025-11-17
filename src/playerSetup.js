@@ -317,6 +317,21 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.style.overflow = 'visible';
         tokenEl.title = role.name;
 
+        const shouldShowSetupWarning = !!(role && role.setup);
+        let setupWarningEl = null;
+        if (shouldShowSetupWarning) {
+          setupWarningEl = document.createElement('div');
+          setupWarningEl.className = 'player-setup-warning-icon';
+          setupWarningEl.setAttribute('role', 'img');
+          setupWarningEl.setAttribute('aria-label', 'Setup-modifying character selected');
+          setupWarningEl.setAttribute('aria-hidden', 'true');
+          setupWarningEl.title = 'This character modifies the standard setup';
+          setupWarningEl.style.display = 'none';
+          const icon = document.createElement('i');
+          icon.className = 'fas fa-triangle-exclamation';
+          setupWarningEl.appendChild(icon);
+        }
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
 
@@ -362,6 +377,20 @@ export function initPlayerSetup({ grimoireState }) {
         countInput.value = currentCount;
 
         countInput.style.display = (checkbox.checked && !isBagDisabled) ? 'block' : 'none';
+
+        const isRoleCurrentlySelected = () => {
+          if (isBagDisabled) return false;
+          const currentBag = isTraveller ? (grimoireState.playerSetup.travellerBag || []) : (grimoireState.playerSetup.bag || []);
+          return currentBag.includes(role.id);
+        };
+
+        const updateSetupWarningVisibility = () => {
+          if (!setupWarningEl) return;
+          const shouldDisplay = isRoleCurrentlySelected();
+          setupWarningEl.style.display = shouldDisplay ? 'flex' : 'none';
+          setupWarningEl.setAttribute('aria-hidden', shouldDisplay ? 'false' : 'true');
+        };
+        updateSetupWarningVisibility();
 
         const updateCount = () => {
           if (isBagDisabled) return;
@@ -453,6 +482,7 @@ export function initPlayerSetup({ grimoireState }) {
             }
           }
 
+          updateSetupWarningVisibility();
           updateBagWarning();
           saveAppState({ grimoireState });
         };
@@ -462,6 +492,7 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.appendChild(svg);
         tokenEl.appendChild(checkbox);
         tokenEl.appendChild(countInput);
+        if (setupWarningEl) tokenEl.appendChild(setupWarningEl);
         grid.appendChild(tokenEl);
       });
       playerSetupCharacterList.appendChild(grid);
