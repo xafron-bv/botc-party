@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const scriptFileInput = document.getElementById('script-file');
     const playerCountInput = document.getElementById('player-count');
     const addPlayersBtn = document.getElementById('add-players');
+    const openRulebookBtn = document.getElementById('open-rulebook');
 
     const characterModal = document.getElementById('character-modal');
     const characterSearch = document.getElementById('character-search');
@@ -368,6 +369,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
       if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = isPlayer ? 'none' : '';
+      if (openRulebookBtn) openRulebookBtn.style.display = isPlayer ? 'none' : '';
       // Always show Start/End Game button in both modes
       if (startGameBtn) startGameBtn.style.display = '';
       const _openStBtn = document.getElementById('open-storyteller-message');
