@@ -29,13 +29,15 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const tokenEl = listItem.querySelector('.player-token');
   let touchOccurred = false;
 
+  const canInteract = () => grimoireState.gameStarted || grimoireState.mode === 'player';
+
   // Click handler for player token
   tokenEl.onclick = (e) => {
     if (touchOccurred) {
       touchOccurred = false;
       return;
     }
-    if (!grimoireState.gameStarted) return;
+    if (!canInteract()) return;
 
     const target = e.target;
     if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
@@ -66,6 +68,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
         e,
         listItem,
         actionCallback: () => {
+          if (!canInteract()) return;
           if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
             if (window.openNumberPickerForSelection) {
               window.openNumberPickerForSelection(playerIndex);
@@ -113,7 +116,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   if (placeholderEl) {
     placeholderEl.onclick = (e) => {
       e.stopPropagation();
-      if (!grimoireState.gameStarted) return; // Gate adding reminders pre-game
+      if (!canInteract()) return; // Gate adding reminders pre-game in storyteller mode
 
       const thisLi = listItem;
       if (thisLi.dataset.expanded !== '1') {

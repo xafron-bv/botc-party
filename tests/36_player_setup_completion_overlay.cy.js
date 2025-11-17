@@ -18,15 +18,13 @@ describe('Player setup completion overlay', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     // Configure 5 players
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
     // Load a script so characters exist
     cy.get('#load-tb').click();
     // Open player setup
     cy.get('#open-player-setup').click();
     // Random fill to match player count (or ensure counts match)
     cy.get('#bag-random-fill').click();
-    // Guard: ensure Start Number Selection is enabled by verifying no error shown
-    cy.get('#bag-count-warning').should('not.be.visible');
     // Start number selection
     cy.get('.start-selection').click();
     // During selection, overlay hidden

@@ -47,8 +47,8 @@ export function renderSetupInfo({ grimoireState }) {
     const meta = grimoireState.scriptData.find(x => x && typeof x === 'object' && x.id === '_meta');
     if (meta && meta.name) scriptName = String(meta.name);
   }
-  if (!row && !scriptName) {
-    setupInfoEl.textContent = 'Select a script and add players from the sidebar.';
+  if (!scriptName) {
+    setupInfoEl.textContent = 'Select a script from the sidebar to get started.';
     return;
   }
 
@@ -99,4 +99,3 @@ export function renderSetupInfo({ grimoireState }) {
     setupInfoEl.appendChild(msg);
   }
 }
-

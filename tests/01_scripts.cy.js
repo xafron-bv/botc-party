@@ -9,7 +9,7 @@ describe('Scripts', () => {
   });
 
   it('shows an empty-state hint before a script is loaded and before players are added', () => {
-    cy.contains('#setup-info', 'Select a script and add players from the sidebar.').should('exist');
+    cy.contains('#setup-info', 'Select a script from the sidebar to get started.').should('exist');
   });
 
   it('loads a built-in script and shows abilities that can be expanded', () => {
@@ -76,4 +76,3 @@ describe('Scripts', () => {
     cy.contains('#script-history-list .history-item .history-name', 'Renamed Script').should('not.exist');
   });
 });
-

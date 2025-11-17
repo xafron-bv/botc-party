@@ -5,9 +5,9 @@ describe('Pre-game grimoire disabled/gray state', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Add players
+    // Ensure five players
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
   });
 
   it('applies pre-game class before starting game', () => {
@@ -34,5 +34,15 @@ describe('Pre-game grimoire disabled/gray state', () => {
     // Click token to open; allow for async render
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
+  });
+
+  it('hides the pre-game overlay when switching to player mode', () => {
+    cy.get('body').should('have.class', 'pre-game');
+    cy.get('#pre-game-overlay').should('be.visible');
+
+    cy.get('#mode-player').click({ force: true });
+
+    cy.get('body').should('not.have.class', 'pre-game');
+    cy.get('#pre-game-overlay').should('not.be.visible');
   });
 });

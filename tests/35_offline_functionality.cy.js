@@ -95,7 +95,7 @@ describe('Offline Functionality', () => {
 
     // Set player count
     cy.get('#player-count').clear().type('7');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
     cy.wait(500);
 
     // Verify game state

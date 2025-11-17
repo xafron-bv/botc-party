@@ -8,7 +8,7 @@ describe('Overlay hidden after game end', () => {
   it('hides pre-game overlay after declaring winner', () => {
     cy.get('#load-tb').click();
     cy.get('#player-count').clear().type('5');
-    cy.get('#add-players').click();
+    cy.get('#reset-grimoire').click();
     // Pre-game overlay should be visible (pre-game state)
     cy.get('body').should('have.class', 'pre-game');
     cy.get('#pre-game-overlay').should('be.visible');
