@@ -156,6 +156,39 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('.player-token').eq(2).should('have.class', 'is-dead');
       cy.get('.player-token').eq(2).should('have.class', 'has-character');
     });
+
+    it('stripes night kills until the next day begins', () => {
+      cy.get('[data-testid="current-phase"]').should('contain', 'N1');
+
+      // Kill player 0 during the night and verify the ribbon is marked as hidden
+      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
+        cy.get('rect, path').first().click({ force: true });
+      });
+      cy.get('.player-token').eq(0).should('have.class', 'is-dead');
+      cy.get('.player-token').eq(0).find('.death-ribbon')
+        .should('have.class', 'night-kill-pending');
+
+      // Advance to D1 – the ribbon should immediately return to the normal style
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'D1');
+      cy.get('.player-token').eq(0).find('.death-ribbon')
+        .should('not.have.class', 'night-kill-pending');
+
+      // Go to the next night and ensure previous night kills stay normal
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'N2');
+      cy.get('.player-token').eq(0).find('.death-ribbon')
+        .should('not.have.class', 'night-kill-pending');
+
+      // Kill another player on the new night and ensure only that ribbon is striped
+      cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
+        cy.get('rect, path').first().click({ force: true });
+      });
+      cy.get('.player-token').eq(1).find('.death-ribbon')
+        .should('have.class', 'night-kill-pending');
+      cy.get('.player-token').eq(0).find('.death-ribbon')
+        .should('not.have.class', 'night-kill-pending');
+    });
   });
 
   describe('Phase Tracking Summary', () => {
