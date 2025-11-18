@@ -7,6 +7,7 @@ describe('Selection session persistence', () => {
     cy.clearLocalStorage();
     // Reload once more after clearing to start from a blank slate
     cy.reload();
+    cy.ensureStorytellerMode();
   });
 
   it('restores selection state and keeps remaining players interactive after reload', () => {

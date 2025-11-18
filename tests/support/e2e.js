@@ -27,7 +27,12 @@ Cypress.on('window:before:load', (win) => {
 // Adds N players, optionally loads Trouble Brewing script, then starts the game
 // Usage: cy.setupGame({ players: 5, loadScript: true })
 // Default: players=5, loadScript=true
-Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true } = {}) => {
+Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'storyteller' } = {}) => {
+  if (mode === 'storyteller') {
+    cy.ensureStorytellerMode();
+  } else if (mode === 'player') {
+    cy.ensurePlayerMode();
+  }
   if (loadScript) {
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
@@ -42,6 +47,24 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true } = {}) => {
   cy.get('#player-circle li').should('have.length', players);
   cy.get('#start-game').should('not.be.disabled').click({ force: true });
   cy.get('body').should('not.have.class', 'pre-game');
+});
+
+Cypress.Commands.add('ensureStorytellerMode', () => {
+  cy.get('#mode-storyteller').then(($radio) => {
+    if (!$radio.is(':checked')) {
+      cy.wrap($radio).click({ force: true });
+    }
+  });
+  cy.get('#mode-storyteller').should('be.checked');
+});
+
+Cypress.Commands.add('ensurePlayerMode', () => {
+  cy.get('#mode-player').then(($radio) => {
+    if (!$radio.is(':checked')) {
+      cy.wrap($radio).click({ force: true });
+    }
+  });
+  cy.get('#mode-player').should('be.checked');
 });
 
 // Simple command to just start the game assuming players already exist

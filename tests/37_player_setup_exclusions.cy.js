@@ -3,7 +3,7 @@ describe('Player Setup - Exclusions (bag-disabled roles)', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#mode-storyteller').should('exist').and('be.checked');
+    cy.ensureStorytellerMode();
   });
 
   function baseSetup(players = 8) {

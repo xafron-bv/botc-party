@@ -7,10 +7,12 @@ describe('Storyteller / Player Mode', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.ensureStorytellerMode();
     // Start game with script load for deterministic reminders/characters
     cy.setupGame({ players: 5, loadScript: true });
     // Ensure script roles populated before tests proceed
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.ensureStorytellerMode();
   });
 
   it('shows mode toggle and hides day/night toggle in player mode', () => {
@@ -125,5 +127,3 @@ describe('Storyteller / Player Mode', () => {
     });
   });
 });
-
-
