@@ -16,6 +16,7 @@ describe('Player setup completion overlay', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.ensureStorytellerMode();
     // Configure 5 players
     cy.get('#player-count').clear().type('5');
     cy.get('#reset-grimoire').click();

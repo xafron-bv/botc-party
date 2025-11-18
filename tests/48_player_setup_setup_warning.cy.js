@@ -6,7 +6,7 @@ describe('Player Setup - Setup Warning Indicators', () => {
         win.localStorage.clear();
       } catch (_) { }
     });
-    cy.get('#mode-storyteller').should('exist').and('be.checked');
+    cy.ensureStorytellerMode();
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     cy.get('#player-count').clear().type('5');

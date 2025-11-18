@@ -9,6 +9,7 @@ describe('Game', () => {
     });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.ensureStorytellerMode();
   });
 
   it('starts a game with 5 and 20 players (tokens rendered, no overlap)', () => {

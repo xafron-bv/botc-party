@@ -3,6 +3,7 @@
 describe('Overlay hidden after game end', () => {
   beforeEach(() => {
     cy.visit('./index.html');
+    cy.ensureStorytellerMode();
   });
 
   it('hides pre-game overlay after declaring winner', () => {

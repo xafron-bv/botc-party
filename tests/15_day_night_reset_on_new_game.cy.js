@@ -23,6 +23,7 @@ describe('Day/Night slider resets when starting a new game', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.ensureStorytellerMode();
   });
 
   it('resets tracking to N1 for a new game (tracking only available in-game)', () => {
@@ -52,4 +53,3 @@ describe('Day/Night slider resets when starting a new game', () => {
     cy.get('#current-phase').should('have.text', 'N1');
   });
 });
-

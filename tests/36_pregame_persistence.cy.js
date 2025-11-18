@@ -4,6 +4,7 @@
 describe('Pre-game state persistence', () => {
   beforeEach(() => {
     cy.visit('./index.html');
+    cy.ensureStorytellerMode();
   });
 
   it('persists players and pre-game gating across reload', () => {
