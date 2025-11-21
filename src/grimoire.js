@@ -11,11 +11,11 @@ import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
 import { ensureGrimoireUnlocked } from './grimoireLock.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
+import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
-  const handlePlayerNameClick = (e) => {
-    e.stopPropagation();
+  const handlePlayerNameClick = (_e) => {
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const currentName = grimoireState.players[playerIndex].name;
     const newName = prompt('Enter player name:', currentName);
@@ -25,9 +25,9 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
       saveAppState({ grimoireState });
     }
   };
-  listItem.querySelector('.player-name').onclick = handlePlayerNameClick;
+  listItem.querySelector('.player-name').onclick = createSafeClickHandler(handlePlayerNameClick);
   if ('ontouchstart' in window) {
-    listItem.querySelector('.player-name').addEventListener('touchstart', (e) => {
+    attachTouchHandler(listItem.querySelector('.player-name'), (e) => {
       handlePlayerElementTouch({
         e,
         listItem,
@@ -35,7 +35,7 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
         grimoireState,
         playerIndex
       });
-    });
+    }, { triggerOnStart: true });
   }
 }
 
