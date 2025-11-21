@@ -43,7 +43,7 @@ export function createBluffToken({ grimoireState, index }) {
 
   let touchOccurred = false;
 
-  const canInteract = () => grimoireState.gameStarted || grimoireState.mode === 'player';
+  const canInteract = () => grimoireState.mode === 'player' || !grimoireState.winner;
 
   token.addEventListener('click', (e) => {
     if (e.target.closest('.ability-info-icon')) {

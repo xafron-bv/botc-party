@@ -541,6 +541,7 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
   } catch (_) { }
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
+  try { grimoireState.gameStarted = false; } catch (_) { }
   try {
     if (!grimoireState.playerSetup) {
       grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };

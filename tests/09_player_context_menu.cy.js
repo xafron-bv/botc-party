@@ -58,7 +58,7 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#player-menu-remove').click({ force: true }); // back to 7
     cy.get('#grimoire-history-list .history-item').should('have.length', 0);
 
-    // Now change the count and start a new game (this should snapshot the previous 7-player state)
+    // Now change the count and finish a game (this should snapshot the previous 7-player state)
     cy.get('#player-count').then(($el) => {
       const el = $el[0];
       el.value = '6';
@@ -67,9 +67,9 @@ describe('Player context menu - desktop right-click', () => {
     });
     cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 6);
-    // Start and end a game so a snapshot is created
+    // End a game so a snapshot is created
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.get('#sidebar-toggle').click({ force: true });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -261,4 +261,3 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
   });
 });
-

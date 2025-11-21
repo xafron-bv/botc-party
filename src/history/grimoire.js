@@ -265,26 +265,18 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
 
-    // Update Start/End Game button visibility based on restored gameStarted and mode
+    // Update End Game and setup visibility based on restored state
     try {
-      const startBtn = document.getElementById('start-game');
       const endBtn = document.getElementById('end-game');
       const openSetupBtn = document.getElementById('open-player-setup');
-      if (grimoireState.gameStarted) {
-        if (endBtn) endBtn.style.display = '';
-        if (startBtn) startBtn.style.display = 'none';
-        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : 'none';
-      } else {
-        if (endBtn) endBtn.style.display = 'none';
-        if (startBtn) startBtn.style.display = '';
-        if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
+      const revealSelectedBtn = document.getElementById('reveal-selected-characters');
+      if (endBtn) endBtn.style.display = grimoireState.winner ? 'none' : '';
+      if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
+      if (revealSelectedBtn) {
+        const sel = grimoireState.playerSetup || {};
+        const shouldShow = sel.selectionComplete && !sel.revealed && !grimoireState.winner;
+        revealSelectedBtn.style.display = shouldShow ? '' : 'none';
       }
-      // Ensure the Start button is brought into view to be visibly assertable in tests
-      try {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.scrollTop = 0;
-        if (startBtn && startBtn.scrollIntoView) startBtn.scrollIntoView({ block: 'nearest' });
-      } catch (_) { }
     } catch (_) { }
   } catch (e) {
     console.error('Failed to restore grimoire from history:', e);

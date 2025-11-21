@@ -161,6 +161,7 @@ export function assignCharacter({ grimoireState, roleId }) {
       return;
     }
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
+    grimoireState.gameStarted = true;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
 
     if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
@@ -168,14 +169,6 @@ export function assignCharacter({ grimoireState, roleId }) {
     }
 
     updateGrimoire({ grimoireState });
-    try {
-      const startGameBtn = document.getElementById('start-game');
-      if (startGameBtn) {
-        const players = grimoireState.players || [];
-        const allAssigned = players.length > 0 && players.every(p => !!p.character);
-        startGameBtn.disabled = !allAssigned;
-      }
-    } catch (_) { }
     renderSetupInfo({ grimoireState });
     hideCharacterModal({ grimoireState });
     saveAppState({ grimoireState });

@@ -28,6 +28,7 @@ Cypress.on('window:before:load', (win) => {
 // Usage: cy.setupGame({ players: 5, loadScript: true })
 // Default: players=5, loadScript=true
 Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'storyteller' } = {}) => {
+  cy.window().then((win) => { try { win.localStorage.removeItem('sidebarCollapsed'); } catch (_) { } });
   if (mode === 'storyteller') {
     cy.ensureStorytellerMode();
   } else if (mode === 'player') {
@@ -45,8 +46,18 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'sto
   });
   cy.get('#reset-grimoire').click({ force: true });
   cy.get('#player-circle li').should('have.length', players);
-  cy.get('#start-game').should('not.be.disabled').click({ force: true });
-  cy.get('body').should('not.have.class', 'pre-game');
+  // Ensure sidebar is open so the End Game button is visible
+  cy.get('body').then(($b) => {
+    if ($b.hasClass('sidebar-collapsed')) {
+      cy.get('#sidebar-toggle').click({ force: true });
+    }
+  });
+  cy.get('#sidebar').then(($sidebar) => {
+    if (($sidebar.width() || 0) < 50) {
+      cy.get('#sidebar-toggle').click({ force: true });
+    }
+  });
+  cy.get('#end-game').scrollIntoView().should('be.visible');
 });
 
 Cypress.Commands.add('ensureStorytellerMode', () => {
@@ -67,10 +78,9 @@ Cypress.Commands.add('ensurePlayerMode', () => {
   cy.get('#mode-player').should('be.checked');
 });
 
-// Simple command to just start the game assuming players already exist
+// Simple command kept for compatibility; no Start Game gate exists anymore
 Cypress.Commands.add('startGame', () => {
-  cy.get('#start-game').should('not.be.disabled').click({ force: true });
-  cy.get('body').should('not.have.class', 'pre-game');
+  cy.get('#end-game').should('be.visible');
 });
 
 Cypress.Commands.add('fillBag', () => {
