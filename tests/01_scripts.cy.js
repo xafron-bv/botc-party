@@ -75,4 +75,38 @@ describe('Scripts', () => {
 
     cy.contains('#script-history-list .history-item .history-name', 'Renamed Script').should('not.exist');
   });
+
+  it('renders script meta and bootlegger notes when provided', () => {
+    const customScript = [
+      {
+        id: '_meta',
+        name: 'Whalebuffet',
+        author: 'Ernsty',
+        bootlegger: ['Rule one', 'Rule two']
+      },
+      'chef'
+    ];
+    cy.get('#script-text-input').clear().type(JSON.stringify(customScript), { parseSpecialCharSequences: false });
+    cy.get('#load-script-text').click();
+
+    cy.contains('#character-sheet .script-meta__title', 'Whalebuffet').should('be.visible');
+    cy.contains('#character-sheet .script-meta__author', 'Ernsty').should('be.visible');
+    cy.get('#character-sheet .script-meta__bootlegger-list li').should('have.length', 2);
+    cy.contains('#character-sheet .role .name', 'Chef').should('be.visible');
+  });
+
+  it('loads a shared script link via the URL loader input', () => {
+    const sharedScript = [{ id: '_meta', name: 'Shared', author: 'Link' }, 'chef'];
+    cy.window().then((win) => {
+      const json = JSON.stringify(sharedScript);
+      const encoded = win.btoa(unescape(encodeURIComponent(json)));
+      const url = `https://example.com/?script=${encodeURIComponent(encoded)}`;
+      cy.get('#script-url-input').clear().type(url);
+      cy.get('#load-script-url').click();
+    });
+
+    cy.contains('#character-sheet .script-meta__title', 'Shared').should('be.visible');
+    cy.contains('#character-sheet .script-meta__author', 'Link').should('be.visible');
+    cy.contains('#character-sheet .role .name', 'Chef').should('be.visible');
+  });
 });

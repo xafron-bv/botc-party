@@ -354,11 +354,41 @@ export async function loadScriptFromUrl({ grimoireState, url }) {
   }
 
   let targetUrl = trimmed;
+  let urlObj = null;
   try {
-    targetUrl = new URL(trimmed, window.location.href).toString();
+    urlObj = new URL(trimmed, window.location.href);
+    targetUrl = urlObj.toString();
   } catch (_) {
     setStatus('That link is not a valid URL.', 'error');
     return;
+  }
+
+  const sharedScriptParam = urlObj?.searchParams?.get('script');
+  if (sharedScriptParam) {
+    setStatus('Loading script from link...');
+    const data = decodeSharedScriptParam(sharedScriptParam);
+    if (!data) {
+      setStatus('Could not load shared script (invalid share link).', 'error');
+      return;
+    }
+    try {
+      await processScriptData({ data, addToHistory: true, grimoireState });
+      setStatus('Custom script loaded from link!');
+    } catch (error) {
+      console.error('Error processing shared script data:', error);
+      setStatus(`Invalid script data: ${error.message}`, 'error');
+    }
+    return;
+  }
+
+  const nestedUrl = urlObj?.searchParams?.get('scriptUrl');
+  if (nestedUrl) {
+    try {
+      targetUrl = new URL(nestedUrl, window.location.href).toString();
+    } catch (_) {
+      setStatus('That nested link is not a valid URL.', 'error');
+      return;
+    }
   }
 
   setStatus('Loading script from link...');
