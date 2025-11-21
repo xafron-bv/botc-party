@@ -6,10 +6,7 @@
 
 describe('Reset after winner does not prompt', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.ensureStorytellerMode();
+    cy.resetApp({ mode: 'storyteller', loadScript: false });
   });
 
   function addFivePlayers() {

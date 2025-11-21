@@ -13,12 +13,7 @@ const startGameWithPlayers = (n) => {
 
 describe('Reset confirmation after loading ended game from history', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('#load-tb').click();
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    cy.ensureSidebarOpen();
+    cy.resetApp({ mode: 'storyteller', loadScript: true });
   });
 
   it('does not ask for confirmation when resetting after loading an ended game from history', () => {

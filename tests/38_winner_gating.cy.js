@@ -4,10 +4,7 @@
 
 describe('Winner gating disables start flow until reset', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.ensureSidebarOpen();
+    cy.resetApp({ mode: 'storyteller', loadScript: false });
   });
 
 

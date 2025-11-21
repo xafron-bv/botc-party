@@ -3,12 +3,7 @@
 
 describe('Default Players & Setup Controls', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
-    cy.ensureSidebarOpen();
+    cy.resetApp({ mode: 'storyteller', loadScript: false });
   });
 
   it('preloads five players and keeps setup buttons enabled', () => {

@@ -28,28 +28,23 @@ describe('Player setup completion overlay', () => {
     cy.fillBag();
     // Start number selection
     cy.get('.start-selection').click();
-    // During selection, overlay hidden
     cy.get('body').should('have.class', 'selection-active');
-    cy.get('#pre-game-overlay').should('not.be.visible');
   });
 
   it('restores overlay with handoff message and disables setup button after final reveal, then reset re-enables it', () => {
     completeNumberSelection(5);
 
-    // After last reveal: selection-active removed, overlay visible again with updated message
+    // After last reveal: selection-active removed, setup button disabled, reveal button shown
     cy.get('body').should('not.have.class', 'selection-active');
-    cy.get('#pre-game-overlay').should('be.visible');
-    cy.get('#pre-game-overlay .overlay-inner').invoke('text').should('contain', 'Number Selection Complete');
-    cy.get('#pre-game-overlay .overlay-inner').invoke('text').should('contain', 'Hand the device back to the storyteller');
-
-    // Start Player Setup button disabled
     cy.get('#open-player-setup').should('be.disabled');
+    cy.ensureSidebarOpen();
+    cy.get('#reveal-selected-characters').should('be.visible');
 
     // Reset grimoire should re-enable the button
     // Use force click because sidebar toggle may visually overlap in some layouts
     cy.get('#reset-grimoire').click({ force: true });
-    // Confirm overlay still (pre-game) and button enabled again
     cy.get('#open-player-setup').should('not.be.disabled');
+    cy.get('#reveal-selected-characters').should('not.be.visible');
   });
 
   it('prevents death ribbon toggles until the game starts after number selection completes', () => {

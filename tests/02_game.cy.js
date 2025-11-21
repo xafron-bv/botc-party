@@ -44,6 +44,7 @@ describe('Game', () => {
 
   it('rename players, assign characters, reminders add/collapse/expand/delete/custom', () => {
     cy.setupGame({ players: 7, loadScript: true });
+    cy.ensureSidebarOpen();
 
     // Stub prompt once for both rename and custom reminder flows
     cy.window().then((win) => {
