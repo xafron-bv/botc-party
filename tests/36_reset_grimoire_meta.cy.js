@@ -16,10 +16,10 @@ describe('Reset Grimoire meta state', () => {
     cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
     cy.get('body').should('have.class', 'grimoire-locked');
 
-    // Open player setup and random fill bag to ensure >0 entries
+    // Open player setup and fill bag to ensure >0 entries
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     // Ensure at least one role checkbox is checked (bag populated)
     cy.get('#player-setup-character-list input[type="checkbox"]').then(($checks) => {
       const checked = $checks.filter(':checked');

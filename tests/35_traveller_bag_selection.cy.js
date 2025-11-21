@@ -45,7 +45,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag for 8 players (should be 5/1/1/1)
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Check travellers checkbox
@@ -79,7 +79,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
 
     // Add travellers
     cy.get('#include-travellers-in-bag').check({ force: true });
@@ -118,7 +118,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
 
     // Add Gunslinger traveller
     cy.get('#include-travellers-in-bag').check({ force: true });
@@ -167,7 +167,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill regular bag
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
 
     // Add Gunslinger traveller
     cy.get('#include-travellers-in-bag').check({ force: true });
@@ -217,7 +217,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#include-travellers-in-bag').check({ force: true });
 
     cy.contains('#player-setup-character-list .team-header', 'Travellers')

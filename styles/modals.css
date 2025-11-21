@@ -226,6 +226,27 @@
   background-color: var(--token-surface-tint);
 }
 
+#player-setup-character-list .token.bag-disabled {
+  opacity: 0.45;
+  filter: grayscale(1) brightness(0.8);
+  cursor: not-allowed;
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.35),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  transform: none !important;
+}
+
+#player-setup-character-list .token.bag-disabled:hover {
+  transform: none;
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.35),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+#player-setup-character-list input[type="checkbox"].bag-disabled {
+  cursor: not-allowed;
+}
+
 #player-setup-character-list .token:hover {
   transform: scale(1.08);
   box-shadow:

@@ -24,8 +24,8 @@ describe('Player setup completion overlay', () => {
     cy.get('#load-tb').click();
     // Open player setup
     cy.get('#open-player-setup').click();
-    // Random fill to match player count (or ensure counts match)
-    cy.get('#bag-random-fill').click();
+    // Fill the bag to match player count
+    cy.fillBag();
     // Start number selection
     cy.get('.start-selection').click();
     // During selection, overlay hidden

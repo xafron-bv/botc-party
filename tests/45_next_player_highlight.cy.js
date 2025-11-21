@@ -17,7 +17,7 @@ describe('Next Player Highlight During Number Selection', () => {
     // Open Player Setup panel and fill bag
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Start selection
@@ -35,7 +35,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('moves highlight clockwise after a player picks a number', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // First player should be highlighted
@@ -61,7 +61,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('continues highlighting clockwise as players pick numbers in sequence', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // Pick numbers for first 3 players
@@ -92,7 +92,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('clears highlight when all players have picked numbers', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // All 7 players pick numbers
@@ -116,7 +116,7 @@ describe('Next Player Highlight During Number Selection', () => {
     // Setup with travellers
     cy.get('#open-player-setup').click();
     cy.get('#include-travellers-in-bag').check({ force: true });
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
 
     // Add a traveller to bag
     cy.contains('#player-setup-character-list .team-header', 'Travellers')
@@ -159,7 +159,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('highlights correct player when picking out of order', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // Player 0 is highlighted initially
@@ -197,7 +197,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('wraps around to beginning of circle when reaching end', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // Pick numbers for players 0-5 quickly by clicking them out of visual order
@@ -231,7 +231,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('restores highlight correctly after page reload during selection', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // Player 0 and 1 pick numbers
@@ -268,7 +268,7 @@ describe('Next Player Highlight During Number Selection', () => {
   it('pulsing animation is visible on highlighted player', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
     // Check that the animation is applied
@@ -280,7 +280,7 @@ describe('Next Player Highlight During Number Selection', () => {
     // Setup with more travellers
     cy.get('#open-player-setup').click();
     cy.get('#include-travellers-in-bag').check({ force: true });
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
 
     // Add 2 travellers
     cy.contains('#player-setup-character-list .team-header', 'Travellers')

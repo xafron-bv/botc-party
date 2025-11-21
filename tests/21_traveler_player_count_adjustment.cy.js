@@ -166,7 +166,7 @@ describe('Traveler Player Count Adjustment', () => {
     // Open player setup and auto-fill bag for 12 players
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
 
     // Verify initial fill selects 12 roles with no warning
     cy.get('#player-setup-character-list input[type="checkbox"]:checked')

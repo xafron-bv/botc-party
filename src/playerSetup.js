@@ -24,7 +24,7 @@ export function initPlayerSetup({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup');
   const playerSetupPanel = document.getElementById('player-setup-panel');
   const closePlayerSetupBtn = document.getElementById('close-player-setup');
-  const bagRandomFillBtn = document.getElementById('bag-random-fill');
+  const shuffleCharactersBtn = document.getElementById('bag-shuffle');
   const playerSetupCharacterList = document.getElementById('player-setup-character-list');
   const bagCountWarning = document.getElementById('bag-count-warning');
   const defaultBagWarningText = bagCountWarning ? bagCountWarning.textContent : 'Warning: Selected bag does not match player count configuration.';
@@ -119,6 +119,9 @@ export function initPlayerSetup({ grimoireState }) {
 
   if (!grimoireState.playerSetup.bagCounts) {
     grimoireState.playerSetup.bagCounts = {};
+  }
+  if (!grimoireState.playerSetup.roleOrder) {
+    grimoireState.playerSetup.roleOrder = {};
   }
 
   function maybeReopenPanel() {
@@ -250,6 +253,24 @@ export function initPlayerSetup({ grimoireState }) {
     }
   }
 
+  function getOrderedRolesForTeam({ teamKey, roles }) {
+    if (!grimoireState.playerSetup.roleOrder) grimoireState.playerSetup.roleOrder = {};
+    const roleIds = roles.map(role => role.id);
+    const existingOrder = Array.isArray(grimoireState.playerSetup.roleOrder[teamKey])
+      ? grimoireState.playerSetup.roleOrder[teamKey].filter(roleId => roleIds.includes(roleId))
+      : [];
+    const missingRoles = roleIds.filter(roleId => !existingOrder.includes(roleId));
+    const finalOrder = [...existingOrder, ...missingRoles];
+    grimoireState.playerSetup.roleOrder[teamKey] = finalOrder;
+    const orderMap = new Map(finalOrder.map((roleId, index) => [roleId, index]));
+    return roles.slice().sort((a, b) => {
+      const aIndex = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
   function renderPlayerSetupList() {
     if (!playerSetupCharacterList) return;
     playerSetupCharacterList.innerHTML = '';
@@ -290,13 +311,14 @@ export function initPlayerSetup({ grimoireState }) {
       const groupRoles = allRoles
         .filter(r => (r.team || '').toLowerCase() === team.key);
       if (!groupRoles.length) return;
+      const orderedRoles = getOrderedRolesForTeam({ teamKey: team.key, roles: groupRoles });
       const header = document.createElement('div');
       header.className = 'team-header';
       header.textContent = team.label;
       playerSetupCharacterList.appendChild(header);
       const grid = document.createElement('div');
       grid.className = 'team-grid';
-      groupRoles.forEach(role => {
+      orderedRoles.forEach(role => {
         const isBagDisabled = Array.isArray(role.special) && role.special.some(s => s && s.name === 'bag-disabled');
         const isTraveller = role.team === 'traveller';
 
@@ -316,6 +338,8 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.style.position = 'relative';
         tokenEl.style.overflow = 'visible';
         tokenEl.title = role.name;
+        tokenEl.dataset.roleId = role.id;
+        tokenEl.dataset.team = (role.team || '').toLowerCase();
 
         const shouldShowSetupWarning = !!(role && role.setup);
         let setupWarningEl = null;
@@ -504,7 +528,7 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
 
-  function randomFillBag() {
+  function fillBagWithStandardSetup() {
     const totalPlayers = grimoireState.players.length;
     const travellerCount = countTravellersInPlay();
     const effectivePlayers = getEffectivePlayerCount();
@@ -556,6 +580,36 @@ export function initPlayerSetup({ grimoireState }) {
     uniqueRoles.forEach(roleId => {
       grimoireState.playerSetup.bagCounts[roleId] = 1;
     });
+
+    renderPlayerSetupList();
+    updateBagWarning();
+    saveAppState({ grimoireState });
+  }
+
+  function shuffleCharacterOrderWithinTeams() {
+    const baseRoles = Object.values(grimoireState.baseRoles || {});
+    const scriptTravellers = Object.values(grimoireState.scriptTravellerRoles || {});
+    const extraTravellers = Object.values(grimoireState.extraTravellerRoles || {});
+    const allRoles = [...baseRoles, ...scriptTravellers, ...extraTravellers];
+    const teamsToShuffle = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller'];
+    let didShuffle = false;
+
+    teamsToShuffle.forEach((teamKey) => {
+      const roles = allRoles.filter(role => (role.team || '').toLowerCase() === teamKey);
+      if (!roles.length) return;
+      const orderedRoles = getOrderedRolesForTeam({ teamKey, roles });
+      if (orderedRoles.length < 2) return;
+      const ids = orderedRoles.map(role => role.id);
+      const shuffled = ids.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      grimoireState.playerSetup.roleOrder[teamKey] = shuffled;
+      didShuffle = true;
+    });
+
+    if (!didShuffle) return;
 
     renderPlayerSetupList();
     updateBagWarning();
@@ -838,7 +892,16 @@ export function initPlayerSetup({ grimoireState }) {
       try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
     });
   }
-  if (bagRandomFillBtn) bagRandomFillBtn.addEventListener('click', randomFillBag);
+  if (shuffleCharactersBtn) shuffleCharactersBtn.addEventListener('click', shuffleCharacterOrderWithinTeams);
+
+  if (typeof window !== 'undefined' && window.Cypress) {
+    try {
+      window.__BOTCPARTY_TEST_API = window.__BOTCPARTY_TEST_API || {};
+      window.__BOTCPARTY_TEST_API.fillBagWithStandardSetup = () => {
+        fillBagWithStandardSetup();
+      };
+    } catch (_) { }
+  }
 
   // Add listener for include travellers checkbox
   if (includeTravellersCheckbox) {

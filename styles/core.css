@@ -55,6 +55,7 @@ body {
   font-size: clamp(22px, 6vmin, 38px);
   line-height: 1.4;
   font-weight: 800;
+  text-align: center;
 }
 
 #storyteller-message-overlay .bluffs-container,

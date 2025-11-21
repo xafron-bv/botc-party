@@ -18,10 +18,10 @@ describe('Reset after winner does not prompt', () => {
   }
 
   function fullyAssignFivePlayers() {
-    // Open player setup and random fill
+    // Open player setup and fill bag for the current configuration
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
     for (let i = 0; i < 5; i++) {
       cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();

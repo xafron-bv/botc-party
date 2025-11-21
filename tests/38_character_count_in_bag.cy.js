@@ -162,12 +162,12 @@ describe('Player Setup - Character Count in Bag', () => {
     });
   });
 
-  it('random fill sets count to 1 for each selected character', () => {
+  it('auto-fill helper sets count to 1 for each selected character', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
 
-    // Click random fill
-    cy.get('#bag-random-fill').click();
+    // Use helper to populate the bag
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // All checked characters should have count inputs visible with value 1

@@ -15,6 +15,8 @@ describe('Storyteller Messages (viewer-only, inline edit)', () => {
     cy.get('#storyteller-message-modal').should('not.be.visible');
     cy.get('#storyteller-message-display').should('be.visible');
     cy.get('#storyteller-message-display .message-text').invoke('text').should('eq', 'YOU ARE');
+    cy.get('#storyteller-message-display .message-text')
+      .should('have.css', 'text-align', 'center');
     cy.get('#storyteller-slots-display').should('be.visible');
   });
 
