@@ -16,7 +16,7 @@ describe('Selection session persistence', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#player-circle li', { timeout: 8000 }).should('have.length', 5);
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('body').should('have.class', 'selection-active');
     cy.get('#player-circle li .number-overlay', { timeout: 8000 }).should('have.length', 5);

@@ -72,3 +72,13 @@ Cypress.Commands.add('startGame', () => {
   cy.get('#start-game').should('not.be.disabled').click({ force: true });
   cy.get('body').should('not.have.class', 'pre-game');
 });
+
+Cypress.Commands.add('fillBag', () => {
+  return cy.window().then((win) => {
+    const helper = win.__BOTCPARTY_TEST_API && win.__BOTCPARTY_TEST_API.fillBagWithStandardSetup;
+    if (typeof helper !== 'function') {
+      throw new Error('Unable to access fillBagWithStandardSetup helper');
+    }
+    helper();
+  });
+});

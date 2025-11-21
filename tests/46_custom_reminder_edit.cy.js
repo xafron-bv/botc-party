@@ -37,7 +37,9 @@ describe('Custom Reminder Single-Click Edit', () => {
     // Second tap should open edit modal immediately (no double-tap delay needed)
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-edit-modal').should('be.visible');
-    cy.get('#custom-reminder-text-input').should('contain', 'Original Text');
+    cy.get('#custom-reminder-text-input')
+      .should('contain', 'Original Text')
+      .and('have.css', 'text-align', 'center');
   });
 
   it('should open edit modal for custom note token when clicked after expand', () => {

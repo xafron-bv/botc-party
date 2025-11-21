@@ -18,7 +18,7 @@ describe('Player Setup - Traveller Bag Player Count Adjustment', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // 10 players should need 10 characters: 7/0/2/1
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Enable travellers in bag
@@ -53,7 +53,7 @@ describe('Player Setup - Traveller Bag Player Count Adjustment', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill bag for 10 players
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Enable travellers and add 2
@@ -101,7 +101,7 @@ describe('Player Setup - Traveller Bag Player Count Adjustment', () => {
     cy.get('#player-setup-panel').should('be.visible');
 
     // Fill for 12 players (7/2/2/1)
-    cy.get('#bag-random-fill').click({ force: true });
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Add 1 traveller
@@ -150,8 +150,8 @@ describe('Player Setup - Traveller Bag Player Count Adjustment', () => {
     cy.get('#open-player-setup').click({ force: true });
     cy.get('#player-setup-panel').should('be.visible');
 
-    // First use random fill which will fill for 8 players (5/1/1/1)
-    cy.get('#bag-random-fill').click({ force: true });
+    // First use helper which will fill for 8 players (5/1/1/1)
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
     // Now enable travellers and add 2

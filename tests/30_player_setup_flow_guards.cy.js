@@ -16,7 +16,7 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     // Fill then uncheck one to make count mismatch
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-character-list input[type="checkbox"]').filter(':checked').first().click({ force: true });
     cy.get('#bag-count-warning').should('be.visible');
@@ -34,7 +34,7 @@ describe('Player Setup - Guards and Resets', () => {
 
   it('shows expected composition when team counts mismatch', () => {
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     // Force count mismatch first
     cy.get('#player-setup-character-list input[type="checkbox"]').filter(':checked').first().then($cb => {
@@ -69,7 +69,7 @@ describe('Player Setup - Guards and Resets', () => {
 
   it('resets previously selected numbers when Start Number Selection is clicked again', () => {
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     // Pick a number for Player 1
@@ -89,7 +89,7 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#open-player-setup').click();
     // Model B: opening player setup resets grimoire & clears bag; refill before starting selection again
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     // Overlays should reset to '?'
@@ -98,7 +98,7 @@ describe('Player Setup - Guards and Resets', () => {
 
   it('forgets previously selected numbers after Start Game (requires reset after winner)', () => {
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     // Assign all players 1..N
@@ -129,7 +129,7 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#open-player-setup').should('not.be.disabled').click();
     // Re-fill bag and start selection again after reset to regenerate overlays
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('#player-circle li .number-overlay').should('have.length', 5);
@@ -140,7 +140,7 @@ describe('Player Setup - Guards and Resets', () => {
 
   it('checkbox click toggles selection like clicking the token', () => {
     cy.get('#open-player-setup').click();
-    cy.get('#bag-random-fill').click();
+    cy.fillBag();
     cy.get('#player-setup-character-list input[type="checkbox"]').first().then(($cb) => {
       const wasChecked = $cb.prop('checked');
       cy.wrap($cb).click({ force: true });
