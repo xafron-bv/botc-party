@@ -35,7 +35,7 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#day-night-toggle').should('exist').and('not.have.css', 'display', 'none');
   });
 
-  it('storyteller shows character-specific reminders; player hides them', () => {
+  it('storyteller and player both show character-specific reminders', () => {
     // First assign a character to the first player so character-specific reminders are available
     cy.get('#player-circle li').first().find('.player-token').click({ force: true });
     cy.get('#character-modal').should('be.visible');
@@ -64,8 +64,8 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
     cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
 
-    // Character-specific reminder tokens should be hidden in player mode
-    cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length', 0);
+    // Character-specific reminder tokens should still be available in player mode
+    cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length.greaterThan', 0);
 
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
