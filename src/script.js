@@ -353,6 +353,31 @@ export async function loadScriptFromUrl({ grimoireState, url }) {
   }
 }
 
+export function decodeSharedScriptParam(param) {
+  if (!param) return null;
+  try {
+    const decoded = decodeURIComponent(param);
+    const normalized = decoded.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    let jsonStr = '';
+    if (typeof TextDecoder !== 'undefined') {
+      try {
+        jsonStr = new TextDecoder().decode(bytes);
+      } catch (_) { /* fallback below */ }
+    }
+    if (!jsonStr) {
+      jsonStr = Array.from(bytes).map((b) => `%${b.toString(16).padStart(2, '0')}`).join('');
+      jsonStr = decodeURIComponent(jsonStr);
+    }
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error('Failed to decode shared script param', err);
+    return null;
+  }
+}
+
 export async function loadScriptFile({ event, grimoireState }) {
   const loadStatus = document.getElementById('load-status');
   const file = event.target.files[0];

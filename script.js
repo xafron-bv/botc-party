@@ -12,7 +12,9 @@ import { addScriptHistoryListListeners, renderScriptHistory } from './src/histor
 import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
 import { updateBluffAttentionState } from './src/bluffTokens.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
-import { displayScript, loadScriptFile, loadScriptFromDataJson, loadScriptFromText, loadScriptFromUrl } from './src/script.js';
+import { displayScript, loadScriptFile, loadScriptFromDataJson, loadScriptFromText, loadScriptFromUrl, decodeSharedScriptParam, processScriptData } from './src/script.js';
+
+try { window.processScriptData = processScriptData; } catch (_) { /* noop */ }
 import { initStorytellerMessages } from './src/storytellerMessages.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
@@ -615,6 +617,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loadScriptUrlBtn && scriptUrlInput) {
       loadScriptUrlBtn.addEventListener('click', () => loadScriptFromUrl({ grimoireState, url: scriptUrlInput.value }));
     }
+
+    const applySharedScriptFromUrl = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const encodedScript = params.get('script');
+      const scriptUrlParam = params.get('scriptUrl');
+      if (encodedScript) {
+        const data = decodeSharedScriptParam(encodedScript);
+        if (!data) {
+          const loadStatus = document.getElementById('load-status');
+          if (loadStatus) {
+            loadStatus.textContent = 'Could not load shared script (invalid share link).';
+            loadStatus.className = 'error';
+          }
+          return;
+        }
+        const loadStatus = document.getElementById('load-status');
+        const updateStatus = (text, className = 'status') => {
+          if (!loadStatus) return;
+          loadStatus.textContent = text;
+          loadStatus.className = className;
+        };
+        updateStatus('Loading shared script...');
+        try {
+          await processScriptData({ data, addToHistory: true, grimoireState });
+          await displayScript({ data: grimoireState.scriptData, grimoireState });
+          renderSetupInfo({ grimoireState });
+          saveAppState({ grimoireState });
+          if (typeof window.updateButtonStates === 'function') window.updateButtonStates();
+          updateStatus('Shared script loaded');
+        } catch (err) {
+          console.error('Failed to load shared script', err);
+          updateStatus('Could not load shared script', 'error');
+        }
+        return;
+      }
+      if (scriptUrlParam) {
+        await loadScriptFromUrl({ grimoireState, url: scriptUrlParam });
+      }
+    };
+
+    applySharedScriptFromUrl().catch((err) => console.error('Failed to load shared script', err));
 
     loadPlayerSetupTable({ grimoireState });
 
