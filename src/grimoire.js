@@ -116,13 +116,18 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     });
     playerCircle.appendChild(listItem);
   });
-  const center = document.getElementById('center');
+  const grimoireRoot = document.getElementById('grimoire');
   const existingContainer = document.getElementById('bluff-tokens-container');
   if (existingContainer) {
     existingContainer.remove();
   }
   const bluffContainer = createBluffTokensContainer({ grimoireState });
-  center.appendChild(bluffContainer);
+  if (grimoireRoot) {
+    grimoireRoot.appendChild(bluffContainer);
+  } else {
+    const center = document.getElementById('center');
+    if (center) center.appendChild(bluffContainer);
+  }
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
@@ -589,13 +594,18 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     });
     playerCircle.appendChild(listItem);
   });
-  const center = document.getElementById('center');
+  const grimoireRoot = document.getElementById('grimoire');
   const existingContainer = document.getElementById('bluff-tokens-container');
   if (existingContainer) {
     existingContainer.remove();
   }
   const bluffContainer = createBluffTokensContainer({ grimoireState });
-  center.appendChild(bluffContainer);
+  if (grimoireRoot) {
+    grimoireRoot.appendChild(bluffContainer);
+  } else {
+    const center = document.getElementById('center');
+    if (center) center.appendChild(bluffContainer);
+  }
   repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });
   saveAppState({ grimoireState });
