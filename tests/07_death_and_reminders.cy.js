@@ -147,6 +147,20 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
   });
 
+  it('resets reminder search filter when reopening the token modal', () => {
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-search').clear().type('wrong');
+    cy.get('#reminder-token-grid .token[title="Good"]').should('have.length', 0);
+    cy.get('#close-reminder-token-modal-x').click({ force: true });
+    cy.get('#reminder-token-modal').should('not.be.visible');
+
+    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+    cy.get('#reminder-token-modal').should('be.visible');
+    cy.get('#reminder-token-search').should('have.value', '');
+    cy.get('#reminder-token-grid .token[title="Good"]').should('have.length.greaterThan', 0);
+  });
+
   it('searches reminder tokens by character name and combined terms', () => {
     // Open modal
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });

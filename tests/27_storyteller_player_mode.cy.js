@@ -106,6 +106,20 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
   });
 
+  it('resets character search filter after closing the modal', () => {
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').clear().type('librarian');
+    cy.get('#character-grid .token[title="Washerwoman"]').should('have.length', 0);
+    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').should('not.be.visible');
+
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').should('have.value', '');
+    cy.get('#character-grid .token[title="Washerwoman"]').should('have.length.greaterThan', 0);
+  });
+
   it('collapses night slider and disables tracking when switching to player', () => {
     // Ensure slider is closed initially
     cy.get('#day-night-slider').should('not.be.visible');

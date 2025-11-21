@@ -131,12 +131,12 @@ export function initStorytellerMessages({ grimoireState }) {
     grimoireState._tempStorytellerSlotIndex = slotIndex;
     const modalTitle = characterModal.querySelector('h3');
     if (modalTitle) modalTitle.textContent = 'Select a Character';
-    populateCharacterGrid({ grimoireState });
-    characterModal.style.display = 'flex';
     try {
       characterSearch.value = '';
-      characterSearch.focus();
     } catch (_) { /* ignore */ }
+    populateCharacterGrid({ grimoireState });
+    characterModal.style.display = 'flex';
+    try { characterSearch.focus(); } catch (_) { /* ignore */ }
   }
 
   function showStorytellerOverlay({ text = '', slotCount = 0, slotRoleIds = [] } = {}) {

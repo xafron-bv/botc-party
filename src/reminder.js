@@ -165,8 +165,8 @@ export function openReminderTokenModal({ grimoireState, playerIndex }) {
   if (!reminderTokenModal) return;
   grimoireState.selectedPlayerIndex = playerIndex;
   if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = grimoireState.players[playerIndex].name;
-  reminderTokenModal.style.display = 'flex';
   if (reminderTokenSearch) reminderTokenSearch.value = '';
+  reminderTokenModal.style.display = 'flex';
   populateReminderTokenGrid({ grimoireState });
 }
 
