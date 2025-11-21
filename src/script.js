@@ -9,6 +9,46 @@ export async function displayScript({ data, grimoireState }) {
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
 
+  const metaEntry = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
+  const scriptTitle = metaEntry?.name || grimoireState.scriptMetaName || '';
+  const scriptAuthor = metaEntry?.author || '';
+  const bootleggerNotes = Array.isArray(metaEntry?.bootlegger) ? metaEntry.bootlegger.filter(Boolean) : [];
+
+  if (scriptTitle || scriptAuthor || bootleggerNotes.length) {
+    const metaBlock = document.createElement('div');
+    metaBlock.className = 'script-meta';
+    if (scriptTitle) {
+      const titleEl = document.createElement('div');
+      titleEl.className = 'script-meta__title';
+      titleEl.textContent = scriptTitle;
+      metaBlock.appendChild(titleEl);
+    }
+    if (scriptAuthor) {
+      const authorEl = document.createElement('div');
+      authorEl.className = 'script-meta__author';
+      authorEl.textContent = `Author: ${scriptAuthor}`;
+      metaBlock.appendChild(authorEl);
+    }
+    if (bootleggerNotes.length) {
+      const bootleggerEl = document.createElement('div');
+      bootleggerEl.className = 'script-meta__bootlegger';
+      const heading = document.createElement('div');
+      heading.className = 'script-meta__bootlegger-title';
+      heading.textContent = 'Bootlegger';
+      bootleggerEl.appendChild(heading);
+      const list = document.createElement('ul');
+      list.className = 'script-meta__bootlegger-list';
+      bootleggerNotes.forEach((note) => {
+        const li = document.createElement('li');
+        li.textContent = note;
+        list.appendChild(li);
+      });
+      bootleggerEl.appendChild(list);
+      metaBlock.appendChild(bootleggerEl);
+    }
+    characterSheet.appendChild(metaBlock);
+  }
+
   let jinxData = [];
   try {
     const dataResponse = await fetch('./data.json');
