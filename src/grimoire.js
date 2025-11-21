@@ -83,6 +83,19 @@ export function toggleGrimoireHidden({ grimoireState }) {
 
 export function hideGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: true }); }
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
+
+function mountBluffTokensContainer({ grimoireState }) {
+  const existingContainer = document.getElementById('bluff-tokens-container');
+  if (existingContainer) {
+    existingContainer.remove();
+  }
+  const bluffContainer = createBluffTokensContainer({ grimoireState });
+  const parent = document.getElementById('grimoire') || document.getElementById('center');
+  if (parent) {
+    parent.appendChild(bluffContainer);
+  }
+}
+
 export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
@@ -116,18 +129,7 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
     });
     playerCircle.appendChild(listItem);
   });
-  const grimoireRoot = document.getElementById('grimoire');
-  const existingContainer = document.getElementById('bluff-tokens-container');
-  if (existingContainer) {
-    existingContainer.remove();
-  }
-  const bluffContainer = createBluffTokensContainer({ grimoireState });
-  if (grimoireRoot) {
-    grimoireRoot.appendChild(bluffContainer);
-  } else {
-    const center = document.getElementById('center');
-    if (center) center.appendChild(bluffContainer);
-  }
+  mountBluffTokensContainer({ grimoireState });
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
@@ -594,18 +596,7 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
     });
     playerCircle.appendChild(listItem);
   });
-  const grimoireRoot = document.getElementById('grimoire');
-  const existingContainer = document.getElementById('bluff-tokens-container');
-  if (existingContainer) {
-    existingContainer.remove();
-  }
-  const bluffContainer = createBluffTokensContainer({ grimoireState });
-  if (grimoireRoot) {
-    grimoireRoot.appendChild(bluffContainer);
-  } else {
-    const center = document.getElementById('center');
-    if (center) center.appendChild(bluffContainer);
-  }
+  mountBluffTokensContainer({ grimoireState });
   repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });
   saveAppState({ grimoireState });
