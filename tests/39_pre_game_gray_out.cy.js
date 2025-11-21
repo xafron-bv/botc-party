@@ -1,6 +1,6 @@
-// Cypress E2E tests - Pre-game grimoire gray-out behavior
+// Cypress E2E tests - Pre-game gating removed
 
-describe('Pre-game grimoire disabled/gray state', () => {
+describe('Pre-game grimoire access is always available', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
@@ -11,39 +11,18 @@ describe('Pre-game grimoire disabled/gray state', () => {
     cy.get('#reset-grimoire').click();
   });
 
-  it('applies pre-game class before starting game', () => {
-    cy.get('body').should('have.class', 'pre-game');
-  });
-
-  it('prevents opening character modal before Start Game', () => {
-    cy.get('#player-circle li .player-token').first().click({ force: true });
-    cy.get('#character-modal').should('not.be.visible');
-    // Also ensure pointer-events is none on a representative interactive element
-    cy.get('#player-circle li .player-token').first().should('have.css', 'pointer-events', 'none');
-    // And reminder placeholder cannot open modal either
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('not.be.visible');
-  });
-
-  it('allows Start Game then enables interactions', () => {
-    // Load a script so character modal can open
-    cy.get('#load-tb').click();
-    cy.get('#start-game').should('not.be.disabled').click();
+  it('keeps the grimoire interactive without a start gate', () => {
     cy.get('body').should('not.have.class', 'pre-game');
-    // Ensure modal initially hidden
+    cy.get('#pre-game-overlay').should('not.exist');
+    cy.get('#load-tb').click();
     cy.get('#character-modal').should('not.be.visible');
-    // Click token to open; allow for async render
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal').should('be.visible');
   });
 
-  it('hides the pre-game overlay when switching to player mode', () => {
-    cy.get('body').should('have.class', 'pre-game');
-    cy.get('#pre-game-overlay').should('be.visible');
-
+  it('remains overlay-free when switching to player mode', () => {
     cy.get('#mode-player').click({ force: true });
-
     cy.get('body').should('not.have.class', 'pre-game');
-    cy.get('#pre-game-overlay').should('not.be.visible');
+    cy.get('#pre-game-overlay').should('not.exist');
   });
 });

@@ -179,9 +179,10 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
       }
     });
 
-    // Finalize by starting the game: assigns characters, removes overlays, shows grimoire
-    cy.get('#sidebar-toggle').should('be.visible').click();
-    cy.get('#start-game').click();
+    // Sidebar is collapsed after selection; reopen it to access the reveal button
+    cy.get('#sidebar-toggle').click({ force: true });
+    cy.get('#reveal-selected-characters').should('be.visible').and('not.be.disabled').click();
+
     // Character names should appear under player tokens and overlays removed
     cy.get('#player-circle li').eq(0).find('.character-name').invoke('text').should('not.equal', '');
     cy.get('#player-circle li').eq(1).find('.character-name').invoke('text').should('not.equal', '');
@@ -252,8 +253,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
   });
 
   it('hides death ribbon and death vote indicator during number selection', () => {
-    // First, start the game and mark a player as dead to ensure death ribbon exists
-    cy.get('#start-game').click();
+    // Mark a player as dead to ensure death ribbon exists
     cy.get('#player-circle li .player-token .death-ribbon').first().should('be.visible');
 
     // Mark first player as dead

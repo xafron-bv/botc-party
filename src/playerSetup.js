@@ -711,6 +711,37 @@ export function initPlayerSetup({ grimoireState }) {
     if (!isNumberGridHandlerAttached) {
       isNumberGridHandlerAttached = true;
       numberPickerGrid.addEventListener('click', (e) => {
+        const maybeCompleteSelection = () => {
+          try {
+            const sel = grimoireState.playerSetup || {};
+            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+            const allAssigned = (grimoireState.players || []).every((p, idx) => {
+              const role = p && p.character ? getRoleFromAnySources(grimoireState, p.character) : null;
+              const isTraveller = role && role.team === 'traveller';
+              if (isTraveller) return true;
+              return assignments[idx] !== null && assignments[idx] !== undefined;
+            });
+            if (allAssigned) {
+              sel.selectionActive = false;
+              sel.selectionComplete = true;
+              try { document.body.classList.remove('selection-active'); } catch (_) { }
+              clearNextPlayerHighlight();
+              const openSetupBtn = document.getElementById('open-player-setup');
+              if (openSetupBtn) {
+                openSetupBtn.disabled = true;
+                openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
+              }
+              const revealBtn = document.getElementById('reveal-selected-characters');
+              if (revealBtn) {
+                revealBtn.style.display = sel.revealed ? 'none' : '';
+                revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
+              }
+              try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
+              saveAppState({ grimoireState });
+            }
+          } catch (_) { }
+        };
+
         // Check if clicked on a traveller token
         const travellerToken = e.target && e.target.closest && e.target.closest('.traveller-token');
         if (travellerToken) {
@@ -783,6 +814,7 @@ export function initPlayerSetup({ grimoireState }) {
             }
             playerRevealModal.style.display = 'flex';
           }
+          maybeCompleteSelection();
           return;
         }
 
@@ -858,6 +890,7 @@ export function initPlayerSetup({ grimoireState }) {
             playerRevealModal.style.display = 'flex';
           }
         } catch (_) { }
+        maybeCompleteSelection();
       });
     }
   }
@@ -881,7 +914,7 @@ export function initPlayerSetup({ grimoireState }) {
       renderPlayerSetupList();
       updateBagWarning();
       try { playerSetupPanel.scrollIntoView({ block: 'center' }); } catch (_) { }
-      // Mark body state for CSS to hide pre-game overlay while configuring bag
+      // Mark body state for CSS while configuring bag
       try { document.body.classList.add('player-setup-open'); } catch (_) { }
     });
   }
@@ -949,16 +982,7 @@ export function initPlayerSetup({ grimoireState }) {
       playerSetupPanel.style.display = 'none';
       try { document.body.classList.remove('player-setup-open'); } catch (_) { }
     }
-    // When starting number selection, consider game not started: show Start, hide End
-    try {
-      const startGameBtn = document.getElementById('start-game');
-      const endGameBtn = document.getElementById('end-game');
-      const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
-      if (startGameBtn) startGameBtn.style.display = '';
-      if (endGameBtn) endGameBtn.style.display = 'none';
-      if (openPlayerSetupBtn2) openPlayerSetupBtn2.style.display = '';
-      if (window.grimoireState) window.grimoireState.gameStarted = false;
-    } catch (_) { }
+    if (window.grimoireState) window.grimoireState.gameStarted = false;
     // Collapse sidebar to immediately show the grimoire area
     try {
       document.body.classList.add('sidebar-collapsed');
@@ -971,6 +995,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (!grimoireState.playerSetup) grimoireState.playerSetup = {};
     grimoireState.playerSetup._reopenOnPickerClose = false;
     grimoireState.playerSetup.selectionActive = true;
+    grimoireState.playerSetup.selectionComplete = false;
     // Simplified: directly shuffle the bag so numbers 1..N correspond to shuffled characters
     try {
       const list = grimoireState.playerSetup.bag || [];
@@ -981,19 +1006,11 @@ export function initPlayerSetup({ grimoireState }) {
     } catch (_) { }
     // Reflect selection active on body for CSS (hide overlay & enable interaction)
     try { document.body.classList.add('selection-active'); } catch (_) { }
-    // Restore default overlay text when a new selection session begins
-    try {
-      const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
-      if (overlayInner && overlayInner.dataset.initialContent) {
-        overlayInner.innerHTML = overlayInner.dataset.initialContent;
-      } else if (overlayInner && !overlayInner.dataset.initialContent) {
-        overlayInner.dataset.initialContent = overlayInner.innerHTML;
-      }
-    } catch (_) { }
     // Always reset previously selected numbers for a new selection session (local to selection flow)
     if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
+    grimoireState.playerSetup.selectionComplete = false;
     saveAppState({ grimoireState });
     updateBagWarning();
     // Do not auto-hide the grimoire; sidebar button controls visibility
@@ -1109,12 +1126,6 @@ export function initPlayerSetup({ grimoireState }) {
             // Clear next-player highlighting since selection is complete
             clearNextPlayerHighlight();
             try { document.body.classList.remove('selection-active'); } catch (_) { }
-            // Update overlay message to storyteller handoff prompt
-            const overlayInner = document.querySelector('#pre-game-overlay .overlay-inner');
-            if (overlayInner) {
-              if (!overlayInner.dataset.initialContent) overlayInner.dataset.initialContent = overlayInner.innerHTML;
-              overlayInner.innerHTML = '<h2>Number Selection Complete</h2><p>Hand the device back to the storyteller to finish setup and start the game.</p>';
-            }
             // Disable Start Player Setup button until a reset occurs
             try {
               const openSetupBtn = document.getElementById('open-player-setup');
@@ -1122,6 +1133,16 @@ export function initPlayerSetup({ grimoireState }) {
                 openSetupBtn.disabled = true;
                 openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
               }
+            } catch (_) { }
+            try {
+              const revealBtn = document.getElementById('reveal-selected-characters');
+              if (revealBtn) {
+                revealBtn.style.display = sel.revealed ? 'none' : '';
+                revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
+              }
+            } catch (_) { }
+            try {
+              if (window.updateButtonStates) window.updateButtonStates();
             } catch (_) { }
             try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
           }
@@ -1176,10 +1197,14 @@ export function initPlayerSetup({ grimoireState }) {
 export function restoreSelectionSession({ grimoireState }) {
   try {
     const ps = grimoireState.playerSetup || {};
-    if (!ps.selectionActive) return; // Nothing to restore
+    const selectionActive = !!ps.selectionActive;
+    const selectionCompletePendingReveal = !!ps.selectionComplete && !ps.revealed;
+    if (!selectionActive && !selectionCompletePendingReveal) return; // Nothing to restore
     if (grimoireState.gameStarted) return; // Ignore if game already started
     // Body class so overlay hides and gating styles apply
-    try { document.body.classList.add('selection-active'); } catch (_) { }
+    if (selectionActive) {
+      try { document.body.classList.add('selection-active'); } catch (_) { }
+    }
     // Do not auto-hide the grimoire during restore; sidebar button controls visibility
     const assignments = Array.isArray(ps.assignments) ? ps.assignments : [];
     const playerCircle = document.getElementById('player-circle');
@@ -1271,6 +1296,18 @@ export function restoreSelectionSession({ grimoireState }) {
           if (token) token.classList.add('next-player');
         }
       }
+    }
+
+    // Ensure reveal button is visible when selection is done but unrevealed after a restore
+    if (selectionCompletePendingReveal) {
+      try {
+        const revealBtn = document.getElementById('reveal-selected-characters');
+        if (revealBtn) {
+          revealBtn.style.display = ps.revealed ? 'none' : '';
+          revealBtn.disabled = !!(grimoireState && grimoireState.winner);
+        }
+      } catch (_) { }
+      try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
     }
   } catch (_) { /* swallow restoration errors */ }
 }

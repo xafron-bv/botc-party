@@ -1,5 +1,5 @@
-// Verifies that pre-game state (players added but game not started) persists across reload
-// and that Start Game button remains visible/enabled while End Game hidden after refresh.
+// Verifies that setup state persists across reload without a start gate
+// and that End Game remains available.
 
 describe('Pre-game state persistence', () => {
   beforeEach(() => {
@@ -18,20 +18,18 @@ describe('Pre-game state persistence', () => {
     // Ensure players rendered
     cy.get('#player-circle li').should('have.length', 5);
 
-    // Ensure game has NOT started yet
-    cy.get('body').should('have.class', 'pre-game');
+    // Ensure interactions are available without gating
+    cy.get('body').should('not.have.class', 'pre-game');
     cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
-    cy.get('#start-game').should('be.visible').and('not.be.disabled');
-    cy.get('#end-game').should('not.be.visible');
+    cy.get('#end-game').should('be.visible');
 
     // Reload page
     cy.reload();
 
     // After reload, verify players and pre-game state restored
     cy.get('#player-circle li').should('have.length', 5);
-    cy.get('body').should('have.class', 'pre-game');
+    cy.get('body').should('not.have.class', 'pre-game');
     cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
-    cy.get('#start-game').should('be.visible').and('not.be.disabled');
-    cy.get('#end-game').should('not.be.visible');
+    cy.get('#end-game').should('be.visible');
   });
 });

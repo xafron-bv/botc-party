@@ -29,7 +29,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const tokenEl = listItem.querySelector('.player-token');
   let touchOccurred = false;
 
-  const canInteract = () => grimoireState.gameStarted || grimoireState.mode === 'player';
+  const canInteract = () => grimoireState.mode === 'player' || !grimoireState.winner;
 
   // Click handler for player token
   tokenEl.onclick = (e) => {
