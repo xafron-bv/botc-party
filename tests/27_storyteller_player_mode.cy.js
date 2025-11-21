@@ -35,7 +35,7 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#day-night-toggle').should('exist').and('not.have.css', 'display', 'none');
   });
 
-  it('storyteller shows character-specific reminders; player hides them', () => {
+  it('storyteller and player both show character-specific reminders', () => {
     // First assign a character to the first player so character-specific reminders are available
     cy.get('#player-circle li').first().find('.player-token').click({ force: true });
     cy.get('#character-modal').should('be.visible');
@@ -64,8 +64,8 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#reminder-token-modal').then($m => { if ($m.css('display') === 'none') { cy.window().then(win => { if (win.openReminderTokenModal) win.openReminderTokenModal({ grimoireState: win.grimoireState, playerIndex: 0 }); }); } });
     cy.get('#reminder-token-modal', { timeout: 8000 }).should('be.visible');
 
-    // Character-specific reminder tokens should be hidden in player mode
-    cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length', 0);
+    // Character-specific reminder tokens should still be available in player mode
+    cy.get('#reminder-token-grid .token[title="Outsider"]').should('have.length.greaterThan', 0);
 
     // Close
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
@@ -104,6 +104,42 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#reminder-token-grid .token[title="Washerwoman"]').first().click({ force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
+  });
+
+  it('resets character search filter after closing the modal', () => {
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').clear().type('librarian');
+    cy.get('#character-grid .token[title="Washerwoman"]').should('have.length', 0);
+    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').should('not.be.visible');
+
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#character-search').should('have.value', '');
+    cy.get('#character-grid .token[title="Washerwoman"]').should('have.length.greaterThan', 0);
+  });
+
+  it('keeps character modal height stable and shows nothing when no search results', () => {
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+
+    let baseHeight;
+    cy.get('#character-grid').then(($grid) => {
+      baseHeight = $grid[0].getBoundingClientRect().height;
+    });
+
+    cy.get('#character-search').clear().type('washerwoman');
+    cy.get('#character-grid .token').should('have.length.greaterThan', 0);
+    cy.get('#character-grid').should(($grid) => {
+      expect($grid[0].getBoundingClientRect().height).to.be.closeTo(baseHeight, 1);
+    });
+
+    cy.get('#character-search').clear().type('no-such-character');
+    cy.get('#character-grid .token').should('have.length', 0);
+    cy.get('#character-grid').should(($grid) => {
+      expect($grid[0].getBoundingClientRect().height).to.be.closeTo(baseHeight, 1);
+    });
   });
 
   it('collapses night slider and disables tracking when switching to player', () => {

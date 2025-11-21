@@ -74,25 +74,23 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       Object.values(grimoireState.allRoles || {}).forEach(role => {
         const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`;
         const roleImage = resolveAssetPath(imagePath);
-        if (!isPlayerMode) {
-          if (role && Array.isArray(role.reminders) && role.reminders.length) {
-            role.reminders.forEach(rem => {
-              const label = String(rem || '').trim();
-              if (!label) return;
-              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-              const id = `${role.id}-${norm}`;
-              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-            });
-          }
-          if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
-            role.remindersGlobal.forEach(rem => {
-              const label = String(rem || '').trim();
-              if (!label) return;
-              const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
-              const id = `${role.id}-global-${norm}`;
-              scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-            });
-          }
+        if (role && Array.isArray(role.reminders) && role.reminders.length) {
+          role.reminders.forEach(rem => {
+            const label = String(rem || '').trim();
+            if (!label) return;
+            const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            const id = `${role.id}-${norm}`;
+            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+          });
+        }
+        if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
+          role.remindersGlobal.forEach(rem => {
+            const label = String(rem || '').trim();
+            if (!label) return;
+            const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            const id = `${role.id}-global-${norm}`;
+            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
+          });
         }
       });
     } catch (_) { }
@@ -116,9 +114,12 @@ export async function populateReminderTokenGrid({ grimoireState }) {
         });
       } catch (_) { }
     }
-    reminderTokens = isPlayerMode
-      ? [...genericTokens, ...playerModeCharacterTokens, ...reminderTokens]
-      : [...genericTokens, ...scriptReminderTokens, ...reminderTokens];
+    reminderTokens = [
+      ...genericTokens,
+      ...playerModeCharacterTokens,
+      ...scriptReminderTokens,
+      ...reminderTokens
+    ];
     const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
     reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) }));
     const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
@@ -129,7 +130,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       const terms = filter.split(/\s+/).filter(Boolean);
       return terms.every(term => combined.includes(term));
     });
-    (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
+    filtered.forEach((token, idx) => {
       const tokenEl = createTokenGridItem({
         id: token.id || '',
         image: resolveAssetPath(token.image),
@@ -164,8 +165,8 @@ export function openReminderTokenModal({ grimoireState, playerIndex }) {
   if (!reminderTokenModal) return;
   grimoireState.selectedPlayerIndex = playerIndex;
   if (reminderTokenModalPlayerName) reminderTokenModalPlayerName.textContent = grimoireState.players[playerIndex].name;
-  reminderTokenModal.style.display = 'flex';
   if (reminderTokenSearch) reminderTokenSearch.value = '';
+  reminderTokenModal.style.display = 'flex';
   populateReminderTokenGrid({ grimoireState });
 }
 

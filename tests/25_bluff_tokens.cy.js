@@ -14,7 +14,8 @@ describe('Bluff Tokens', () => {
     // Check that bluff tokens container exists
     cy.get('#bluff-tokens-container').should('be.visible');
 
-    // Verify it's positioned at bottom left within the grimoire container (absolute)
+    // Verify it's anchored to the grimoire and positioned at bottom left
+    cy.get('#bluff-tokens-container').parent().should('have.id', 'grimoire');
     cy.get('#bluff-tokens-container').should('have.css', 'position', 'absolute');
     cy.get('#bluff-tokens-container').should('have.css', 'bottom');
     cy.get('#bluff-tokens-container').should('have.css', 'left');
@@ -26,6 +27,34 @@ describe('Bluff Tokens', () => {
     cy.get('#bluff-tokens-container .bluff-token').each(($token) => {
       cy.wrap($token).should('have.class', 'empty');
       cy.wrap($token).should('have.css', 'background-image');
+    });
+  });
+
+  it('keeps bluff tokens pinned when the grimoire scrolls at large circle sizes', () => {
+    cy.viewport(1200, 720);
+
+    cy.get('[data-testid="display-settings-toggle"]').should('be.visible').click();
+    cy.get('[data-testid="token-size-slider"]').invoke('val', 160).trigger('input');
+    cy.get('[data-testid="circle-size-slider"]').invoke('val', 160).trigger('input');
+
+    cy.get('#center').should(($center) => {
+      expect($center[0].scrollHeight).to.be.greaterThan($center[0].clientHeight);
+    });
+
+    let initialRect;
+    cy.get('#bluff-tokens-container').then(($container) => {
+      initialRect = $container[0].getBoundingClientRect();
+    });
+
+    cy.get('#center').scrollTo('bottom', 'right');
+    cy.get('#center').should(($center) => {
+      expect($center[0].scrollTop).to.be.greaterThan(0);
+    });
+
+    cy.get('#bluff-tokens-container').should(($container) => {
+      const rect = $container[0].getBoundingClientRect();
+      expect(rect.left).to.be.closeTo(initialRect.left, 1);
+      expect(rect.bottom).to.be.closeTo(initialRect.bottom, 1);
     });
   });
 

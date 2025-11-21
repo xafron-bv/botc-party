@@ -377,10 +377,14 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
     includeModalTravellersCheckbox.addEventListener('change', includeModalTravellersCheckbox._modalChangeHandler);
   }
 
+  if (characterSearch) {
+    characterSearch.value = '';
+  }
   populateCharacterGrid({ grimoireState });
   characterModal.style.display = 'flex';
-  characterSearch.value = '';
-  characterSearch.focus();
+  if (characterSearch) {
+    characterSearch.focus();
+  }
 }
 
 export function onIncludeTravellersChange({ grimoireState, includeTravellersCheckbox }) {
