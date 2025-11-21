@@ -24,7 +24,7 @@ describe('Reset confirmation after loading ended game from history', () => {
     // Create and end a game to generate a history item
     startGameWithPlayers(5);
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -48,16 +48,16 @@ describe('Reset confirmation after loading ended game from history', () => {
     // Create ended game history entry
     startGameWithPlayers(5);
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
 
-    // Reset after winner to clear gating and start a fresh active game
+    // Reset after winner to clear gating and mark an active game
     cy.get('#reset-grimoire').click();
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click(); // active game with no winner now
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Stub confirm and click a history item (ended game) -> should prompt
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(false).as('confirmStub2'); });
@@ -71,16 +71,16 @@ describe('Reset confirmation after loading ended game from history', () => {
     // Create ended game history entry
     startGameWithPlayers(5);
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
 
-    // Reset after winner, then start a fresh active game so End Game button is visible
+    // Reset after winner, then mark a fresh active game so End Game button is visible
     cy.get('#reset-grimoire').click();
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').should('be.visible');
 
     // Load the ended game; accept confirmation
@@ -88,8 +88,6 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.get('#grimoire-history-list .history-item').first().click();
 
     cy.get('#end-game').should('not.be.visible');
-    cy.get('#start-game').should('be.visible');
   });
 });
-
 

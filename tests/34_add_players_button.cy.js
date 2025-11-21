@@ -16,7 +16,7 @@ describe('Default Players & Setup Controls', () => {
     cy.get('#add-players').should('not.exist');
 
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
+    cy.get('#end-game').should('be.visible');
     cy.get('#mode-storyteller').should('not.be.disabled');
     cy.get('#mode-player').should('not.be.disabled');
   });
@@ -27,7 +27,7 @@ describe('Default Players & Setup Controls', () => {
 
     cy.get('#player-circle li').should('have.length', 7);
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
+    cy.get('#end-game').should('be.visible');
   });
 
   it('allows script loading with immediate access to setup actions', () => {
@@ -35,7 +35,7 @@ describe('Default Players & Setup Controls', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
+    cy.get('#end-game').should('be.visible');
   });
 
   it('keeps controls enabled after resetting multiple times', () => {
@@ -48,6 +48,6 @@ describe('Default Players & Setup Controls', () => {
     cy.get('#player-circle li').should('have.length', 5);
 
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#start-game').should('not.be.disabled');
+    cy.get('#end-game').should('be.visible');
   });
 });

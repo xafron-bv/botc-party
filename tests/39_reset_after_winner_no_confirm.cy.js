@@ -46,8 +46,7 @@ describe('Reset after winner does not prompt', () => {
     cy.get('#load-tb').click();
     fullyAssignFivePlayers();
 
-    // Start then end game with winner
-    cy.get('#start-game').click({ force: true });
+    // End game with winner
     cy.get('#end-game').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();

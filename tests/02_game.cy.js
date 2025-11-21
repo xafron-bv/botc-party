@@ -146,8 +146,9 @@ describe('Game', () => {
 
   it('grimoire history create/rename/load/delete', () => {
     cy.setupGame({ players: 6, loadScript: false });
-    // Start & end a game to create an initial snapshot for 6-player state
-    cy.get('#mode-player').check({ force: true }); // start-game already clicked in helper
+    // End a game to create an initial snapshot for 6-player state
+    cy.get('#mode-player').check({ force: true });
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -162,9 +163,9 @@ describe('Game', () => {
     // Confirm reset prompt if shown
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
     cy.setupGame({ players: 7, loadScript: false }); // restore 7 players (no snapshot yet)
-    // Start game so loading 6-player history snapshots the current 7-player state
+    // Mark active so loading 6-player history snapshots the current 7-player state
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // There should be at least one grimoire history entry
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);

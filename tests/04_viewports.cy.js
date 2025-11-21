@@ -21,12 +21,10 @@ specs.forEach(({ name, viewport }) => {
       cy.get('#load-tb').click();
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
-      // Start a small game
+      // Prepare a small game
       cy.get('#player-count').clear().type('5');
       cy.get('#reset-grimoire').click();
       cy.get('#player-circle li').should('have.length', 5);
-      // Explicitly start game to enable token interactions under new pre-game gating
-      cy.get('#start-game').click();
 
       // Assign one character
       // Ensure sidebar is closed to avoid coverage by sidebar elements
@@ -56,4 +54,3 @@ specs.forEach(({ name, viewport }) => {
     });
   });
 });
-
