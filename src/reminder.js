@@ -130,7 +130,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       const terms = filter.split(/\s+/).filter(Boolean);
       return terms.every(term => combined.includes(term));
     });
-    (filtered.length ? filtered : reminderTokens).forEach((token, idx) => {
+    filtered.forEach((token, idx) => {
       const tokenEl = createTokenGridItem({
         id: token.id || '',
         image: resolveAssetPath(token.image),

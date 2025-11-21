@@ -120,6 +120,28 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#character-grid .token[title="Washerwoman"]').should('have.length.greaterThan', 0);
   });
 
+  it('keeps character modal height stable and shows nothing when no search results', () => {
+    cy.get('#player-circle li').first().find('.player-token').click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+
+    let baseHeight;
+    cy.get('#character-grid').then(($grid) => {
+      baseHeight = $grid[0].getBoundingClientRect().height;
+    });
+
+    cy.get('#character-search').clear().type('washerwoman');
+    cy.get('#character-grid .token').should('have.length.greaterThan', 0);
+    cy.get('#character-grid').should(($grid) => {
+      expect($grid[0].getBoundingClientRect().height).to.be.closeTo(baseHeight, 1);
+    });
+
+    cy.get('#character-search').clear().type('no-such-character');
+    cy.get('#character-grid .token').should('have.length', 0);
+    cy.get('#character-grid').should(($grid) => {
+      expect($grid[0].getBoundingClientRect().height).to.be.closeTo(baseHeight, 1);
+    });
+  });
+
   it('collapses night slider and disables tracking when switching to player', () => {
     // Ensure slider is closed initially
     cy.get('#day-night-slider').should('not.be.visible');
