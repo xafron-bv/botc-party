@@ -43,7 +43,7 @@ describe('Game', () => {
   });
 
   it('rename players, assign characters, reminders add/collapse/expand/delete/custom', () => {
-    cy.setupGame({ players: 7, loadScript: false });
+    cy.setupGame({ players: 7, loadScript: true });
 
     // Stub prompt once for both rename and custom reminder flows
     cy.window().then((win) => {
@@ -78,11 +78,10 @@ describe('Game', () => {
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
 
-    // If Balloonist is in the script, its per-character reminders should also be available
-    // Open and search for "Seen Townsfolk" as a sanity check
+    // Script-specific reminders should be available (e.g., Fortune Teller's Red Herring)
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-search').clear().type('seen towns');
+    cy.get('#reminder-token-search').clear().type('red herring');
     cy.get('#reminder-token-grid .token').should('have.length.greaterThan', 0);
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');

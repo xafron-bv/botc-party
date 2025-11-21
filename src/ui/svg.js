@@ -19,12 +19,37 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
   textPath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${uniqueId}`);
   textPath.setAttribute('startOffset', '50%');
   const full = String(labelText || '');
-  text.style.fontSize = '12.5px';
-  text.style.letterSpacing = '2px';
+  const charCount = full.length;
+
+  // Simple sizing heuristic: shrink font/spacing and squeeze width for long labels.
+  let fontSize = 12.5;
+  let letterSpacing = 1.6;
+  let textLengthOverride = null;
+
+  if (charCount >= 16) {
+    fontSize = 10.5;
+    letterSpacing = 1.1;
+    textLengthOverride = 118; // ~94% of the arc length
+  } else if (charCount >= 14) {
+    fontSize = 11.5;
+    letterSpacing = 1.3;
+    textLengthOverride = 118;
+  }
+
+  text.style.fontSize = `${fontSize}px`;
+  text.style.letterSpacing = `${letterSpacing}px`;
   text.removeAttribute('lengthAdjust');
   textPath.textContent = full;
+  if (textLengthOverride) {
+    textPath.setAttribute('textLength', String(textLengthOverride));
+    textPath.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+  } else {
+    textPath.removeAttribute('textLength');
+    textPath.removeAttribute('lengthAdjust');
+  }
   text.appendChild(textPath);
   svg.appendChild(text);
+
   return svg;
 }
 

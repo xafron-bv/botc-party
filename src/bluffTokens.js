@@ -201,9 +201,13 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   }
 
   populateCharacterGrid({ grimoireState });
+  if (characterSearch) {
+    characterSearch.value = '';
+  }
   characterModal.style.display = 'flex';
-  characterSearch.value = '';
-  characterSearch.focus();
+  if (characterSearch) {
+    characterSearch.focus();
+  }
 }
 
 export function assignBluffCharacter({ grimoireState, roleId }) {
