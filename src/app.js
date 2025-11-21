@@ -5,6 +5,32 @@ import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 import { updateDayNightUI } from './dayNightTracking.js';
 
+export function withStateSave(fn) {
+  return function (...args) {
+    const result = fn.apply(this, args);
+    let grimoireState = null;
+    for (const arg of args) {
+      if (arg && arg.grimoireState) {
+        grimoireState = arg.grimoireState;
+        break;
+      }
+    }
+    if (!grimoireState && window.grimoireState) {
+      grimoireState = window.grimoireState;
+    }
+
+    if (result instanceof Promise) {
+      return result.then((res) => {
+        if (grimoireState) saveAppState({ grimoireState });
+        return res;
+      });
+    } else {
+      if (grimoireState) saveAppState({ grimoireState });
+      return result;
+    }
+  };
+}
+
 export function saveAppState({ grimoireState }) {
   try {
     const state = {

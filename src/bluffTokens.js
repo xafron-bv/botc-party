@@ -1,7 +1,7 @@
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
-import { saveAppState } from './app.js';
+import { withStateSave } from './app.js';
 import { setupTouchHandling } from './utils/touchHandlers.js';
 import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
@@ -210,7 +210,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   }
 }
 
-export function assignBluffCharacter({ grimoireState, roleId }) {
+export const assignBluffCharacter = withStateSave(function ({ grimoireState, roleId }) {
   if (!ensureGrimoireUnlocked({ grimoireState })) {
     hideCharacterModal({ grimoireState, clearBluffSelection: true });
     return;
@@ -225,10 +225,8 @@ export function assignBluffCharacter({ grimoireState, roleId }) {
     updateBluffToken({ grimoireState, index: grimoireState.selectedBluffIndex });
 
     hideCharacterModal({ grimoireState, clearBluffSelection: true });
-
-    saveAppState({ grimoireState });
   }
-}
+});
 
 export function updateAllBluffTokens({ grimoireState }) {
   for (let i = 0; i < 3; i++) {

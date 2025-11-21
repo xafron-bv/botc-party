@@ -1,6 +1,6 @@
 import { processScriptCharacters, applyTravellerToggleAndRefresh } from './character.js';
 import { resolveAssetPath, isExcludedScriptName } from '../utils.js';
-import { saveAppState } from './app.js';
+import { withStateSave } from './app.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { addScriptToHistory } from './history/script.js';
 
@@ -264,7 +264,7 @@ export async function loadScriptFromFile({ path, grimoireState }) {
   }
 }
 
-export async function processScriptData({ data, addToHistory = false, grimoireState }) {
+export const processScriptData = withStateSave(async function ({ data, addToHistory = false, grimoireState }) {
   const scriptHistoryList = document.getElementById('script-history-list');
   console.log('Processing script data:', data);
   grimoireState.scriptData = data;
@@ -286,7 +286,6 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
 
   console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
   applyTravellerToggleAndRefresh({ grimoireState });
-  saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
   // Update button states after script is loaded
   if (typeof window.updateButtonStates === 'function') {
@@ -298,7 +297,7 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
       addScriptToHistory({ name: histName, data, scriptHistoryList });
     }
   }
-}
+});
 
 export async function loadScriptFromText({ grimoireState, text }) {
   const loadStatus = document.getElementById('load-status');

@@ -1,4 +1,4 @@
-import { saveAppState } from './app.js';
+import { withStateSave } from './app.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { resolveAssetPath } from '../utils.js';
@@ -416,7 +416,7 @@ export function initPlayerSetup({ grimoireState }) {
         };
         updateSetupWarningVisibility();
 
-        const updateCount = () => {
+        const updateCount = withStateSave(() => {
           if (isBagDisabled) return;
           let newCount = parseInt(countInput.value, 10);
           if (isNaN(newCount) || newCount < 1) {
@@ -448,8 +448,7 @@ export function initPlayerSetup({ grimoireState }) {
           }
 
           updateBagWarning();
-          saveAppState({ grimoireState });
-        };
+        });
 
         countInput.addEventListener('change', (e) => {
           e.stopPropagation();
@@ -467,7 +466,7 @@ export function initPlayerSetup({ grimoireState }) {
           e.stopPropagation();
         });
 
-        const toggle = () => {
+        const toggle = withStateSave(() => {
           if (isBagDisabled) return; // no-op for disabled roles
 
           if (isTraveller) {
@@ -508,8 +507,7 @@ export function initPlayerSetup({ grimoireState }) {
 
           updateSetupWarningVisibility();
           updateBagWarning();
-          saveAppState({ grimoireState });
-        };
+        });
 
         checkbox.addEventListener('change', (e) => { e.stopPropagation(); if (isBagDisabled) { e.preventDefault(); return; } toggle(); });
         const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
@@ -528,7 +526,7 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
 
-  function fillBagWithStandardSetup() {
+  const fillBagWithStandardSetup = withStateSave(() => {
     const totalPlayers = grimoireState.players.length;
     const travellerCount = countTravellersInPlay();
     const effectivePlayers = getEffectivePlayerCount();
@@ -583,10 +581,9 @@ export function initPlayerSetup({ grimoireState }) {
 
     renderPlayerSetupList();
     updateBagWarning();
-    saveAppState({ grimoireState });
-  }
+  });
 
-  function shuffleCharacterOrderWithinTeams() {
+  const shuffleCharacterOrderWithinTeams = withStateSave(() => {
     const baseRoles = Object.values(grimoireState.baseRoles || {});
     const scriptTravellers = Object.values(grimoireState.scriptTravellerRoles || {});
     const extraTravellers = Object.values(grimoireState.extraTravellerRoles || {});
@@ -613,8 +610,7 @@ export function initPlayerSetup({ grimoireState }) {
 
     renderPlayerSetupList();
     updateBagWarning();
-    saveAppState({ grimoireState });
-  }
+  });
 
   function openNumberPicker(forPlayerIndex) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
@@ -710,7 +706,7 @@ export function initPlayerSetup({ grimoireState }) {
 
     if (!isNumberGridHandlerAttached) {
       isNumberGridHandlerAttached = true;
-      numberPickerGrid.addEventListener('click', (e) => {
+      numberPickerGrid.addEventListener('click', withStateSave((e) => {
         const maybeCompleteSelection = () => {
           try {
             const sel = grimoireState.playerSetup || {};
@@ -737,7 +733,6 @@ export function initPlayerSetup({ grimoireState }) {
                 revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
               }
               try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
-              saveAppState({ grimoireState });
             }
           } catch (_) { }
         };
@@ -765,7 +760,6 @@ export function initPlayerSetup({ grimoireState }) {
 
           // Update grimoire display to show the traveller character
           updateGrimoire({ grimoireState });
-          saveAppState({ grimoireState });
 
           // Update player's overlay to show it's a traveller
           const playerCircle = document.getElementById('player-circle');
@@ -857,8 +851,6 @@ export function initPlayerSetup({ grimoireState }) {
           overlay.onclick = null;
         }
 
-        saveAppState({ grimoireState });
-
         // Highlight next player for selection
         highlightNextPlayer(forIdx);
 
@@ -891,7 +883,7 @@ export function initPlayerSetup({ grimoireState }) {
           }
         } catch (_) { }
         maybeCompleteSelection();
-      });
+      }));
     }
   }
 
@@ -948,7 +940,7 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
 
-  if (startSelectionBtn) startSelectionBtn.addEventListener('click', () => {
+  if (startSelectionBtn) startSelectionBtn.addEventListener('click', withStateSave(() => {
     // Prevent starting selection if no players exist
     const totalPlayers = grimoireState.players.length;
     const travellerCount = countTravellersInPlay();
@@ -1011,7 +1003,6 @@ export function initPlayerSetup({ grimoireState }) {
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
     grimoireState.playerSetup.selectionComplete = false;
-    saveAppState({ grimoireState });
     updateBagWarning();
     // Do not auto-hide the grimoire; sidebar button controls visibility
     // Render half-opaque overlays on each token for selection
@@ -1053,7 +1044,7 @@ export function initPlayerSetup({ grimoireState }) {
     highlightNextPlayer(-1);
 
     try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
-  });
+  }));
   if (closeNumberPickerBtn && numberPickerOverlay) closeNumberPickerBtn.addEventListener('click', () => {
     numberPickerOverlay.style.display = 'none';
     maybeReopenPanel();
@@ -1088,7 +1079,7 @@ export function initPlayerSetup({ grimoireState }) {
   if (playerRevealModal) {
     // Name input auto-save on input change
     if (revealNameInput) {
-      revealNameInput.addEventListener('input', () => {
+      revealNameInput.addEventListener('input', withStateSave(() => {
         try {
           if (revealCurrentPlayerIndex !== null && grimoireState.players && grimoireState.players[revealCurrentPlayerIndex]) {
             const inputName = (revealNameInput.value || '').trim();
@@ -1100,11 +1091,10 @@ export function initPlayerSetup({ grimoireState }) {
                 const nameEl = li.querySelector('.player-name');
                 if (nameEl) nameEl.textContent = inputName;
               }
-              saveAppState({ grimoireState });
             }
           }
         } catch (_) { }
-      });
+      }));
     }
   }
 
