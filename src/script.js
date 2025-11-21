@@ -260,6 +260,99 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
   }
 }
 
+export async function loadScriptFromText({ grimoireState, text }) {
+  const loadStatus = document.getElementById('load-status');
+  const setStatus = (message, className = 'status') => {
+    if (!loadStatus) return;
+    loadStatus.textContent = message;
+    loadStatus.className = className;
+  };
+
+  const raw = (text || '').trim();
+  if (!raw) {
+    setStatus('Paste script JSON into the textbox first.', 'error');
+    return;
+  }
+
+  let json;
+  try {
+    json = JSON.parse(raw);
+  } catch (error) {
+    setStatus(`Pasted content is not valid JSON: ${error.message}`, 'error');
+    return;
+  }
+
+  if (json && typeof json === 'object' && !Array.isArray(json)) {
+    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
+      setStatus('This looks like a history export. Use Import History instead.', 'error');
+      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
+      return;
+    }
+  }
+
+  try {
+    await processScriptData({ data: json, addToHistory: true, grimoireState });
+    setStatus('Custom script loaded from pasted text!');
+  } catch (error) {
+    console.error('Error processing pasted script:', error);
+    setStatus(`Invalid script data: ${error.message}`, 'error');
+  }
+}
+
+export async function loadScriptFromUrl({ grimoireState, url }) {
+  const loadStatus = document.getElementById('load-status');
+  const setStatus = (message, className = 'status') => {
+    if (!loadStatus) return;
+    loadStatus.textContent = message;
+    loadStatus.className = className;
+  };
+
+  const trimmed = (url || '').trim();
+  if (!trimmed) {
+    setStatus('Enter a script URL first.', 'error');
+    return;
+  }
+
+  let targetUrl = trimmed;
+  try {
+    targetUrl = new URL(trimmed, window.location.href).toString();
+  } catch (_) {
+    setStatus('That link is not a valid URL.', 'error');
+    return;
+  }
+
+  setStatus('Loading script from link...');
+  let json;
+  try {
+    const res = await fetch(targetUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    json = await res.json();
+  } catch (error) {
+    console.error('Failed to fetch script from URL', error);
+    const msg = /Failed to fetch/i.test(error?.message || '')
+      ? 'This link will not allow us to download the script. Please paste the JSON or upload the file instead.'
+      : `Failed to load script from URL: ${error.message}`;
+    setStatus(msg, 'error');
+    return;
+  }
+
+  if (json && typeof json === 'object' && !Array.isArray(json)) {
+    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
+      setStatus('This looks like a history export. Use Import History instead.', 'error');
+      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
+      return;
+    }
+  }
+
+  try {
+    await processScriptData({ data: json, addToHistory: true, grimoireState });
+    setStatus('Custom script loaded from URL!');
+  } catch (error) {
+    console.error('Error processing URL script:', error);
+    setStatus(`Invalid script data: ${error.message}`, 'error');
+  }
+}
+
 export async function loadScriptFile({ event, grimoireState }) {
   const loadStatus = document.getElementById('load-status');
   const file = event.target.files[0];

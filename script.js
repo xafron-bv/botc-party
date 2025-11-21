@@ -12,7 +12,7 @@ import { addScriptHistoryListListeners, renderScriptHistory } from './src/histor
 import { initPlayerSetup, restoreSelectionSession } from './src/playerSetup.js';
 import { updateBluffAttentionState } from './src/bluffTokens.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
-import { displayScript, loadScriptFile, loadScriptFromDataJson } from './src/script.js';
+import { displayScript, loadScriptFile, loadScriptFromDataJson, loadScriptFromText, loadScriptFromUrl } from './src/script.js';
 import { initStorytellerMessages } from './src/storytellerMessages.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
@@ -209,6 +209,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadSavBtn = document.getElementById('load-sav');
     const loadAllCharsBtn = document.getElementById('load-all-chars');
     const scriptFileInput = document.getElementById('script-file');
+    const loadScriptTextBtn = document.getElementById('load-script-text');
+    const scriptTextInput = document.getElementById('script-text-input');
+    const loadScriptUrlBtn = document.getElementById('load-script-url');
+    const scriptUrlInput = document.getElementById('script-url-input');
     const playerCountInput = document.getElementById('player-count');
     const openRulebookBtn = document.getElementById('open-rulebook');
 
@@ -605,6 +609,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     scriptFileInput.addEventListener('change', (event) => loadScriptFile({ event, grimoireState }));
+    if (loadScriptTextBtn && scriptTextInput) {
+      loadScriptTextBtn.addEventListener('click', () => loadScriptFromText({ grimoireState, text: scriptTextInput.value }));
+    }
+    if (loadScriptUrlBtn && scriptUrlInput) {
+      loadScriptUrlBtn.addEventListener('click', () => loadScriptFromUrl({ grimoireState, url: scriptUrlInput.value }));
+    }
 
     loadPlayerSetupTable({ grimoireState });
 
