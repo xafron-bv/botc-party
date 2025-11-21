@@ -186,6 +186,21 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#player-circle li').eq(0).find('.text-reminder-content').should('contain', longText);
   });
 
+  it('should show full custom reminder text without clamping', () => {
+    const longText = 'This is an extremely long custom reminder message that should wrap naturally without any truncation so the entire note stays visible on the token even when it spans many words.';
+
+    cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
+    cy.get('#reminder-text-input').type(longText);
+    cy.get('#save-reminder-btn').click();
+
+    cy.get('#player-circle li').eq(0).find('.text-reminder').should('exist');
+    cy.get('#player-circle li').eq(0).find('.text-reminder-content')
+      .should('contain', longText)
+      .and('have.css', '-webkit-line-clamp', 'none')
+      .and('have.css', 'overflow', 'visible')
+      .and('have.css', 'max-height', 'none');
+  });
+
   it('should open edit modal when clicking expanded custom reminder', () => {
     // Create a custom reminder
     cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
