@@ -317,6 +317,11 @@ describe('Night Order Display', () => {
 
   describe('Night Order Calculation', () => {
     beforeEach(() => {
+      cy.visit('/');
+      cy.viewport(1280, 900);
+      cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+      cy.ensureStorytellerMode();
+      cy.ensureSidebarOpen();
       // Load Trouble Brewing script to have characters available
       cy.get('#load-tb').click();
       cy.get('#character-sheet .role').should('have.length.greaterThan', 5);

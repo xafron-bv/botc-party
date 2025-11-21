@@ -7,10 +7,13 @@ describe('Winner gating disables start flow until reset', () => {
     cy.visit('/');
     cy.viewport(1280, 900);
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+    cy.ensureSidebarOpen();
   });
 
 
   it('gates start/player setup after winner until reset', () => {
+    cy.ensureSidebarOpen();
+
     // Controls should be available immediately since players are preloaded
     cy.get('#open-player-setup').should('not.be.disabled');
     cy.get('#end-game').should('be.visible');
@@ -19,6 +22,11 @@ describe('Winner gating disables start flow until reset', () => {
     cy.get('#load-tb').click();
 
     // End game -> open modal and declare winner (force in case sidebar collapsed)
+    cy.get('#sidebar').then(($s) => {
+      if (($s.width() || 0) < 50) {
+        cy.get('#sidebar-toggle').click({ force: true });
+      }
+    });
     cy.get('#end-game').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();

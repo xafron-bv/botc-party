@@ -22,7 +22,8 @@ describe('Reset after winner does not prompt', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     cy.fillBag();
-    cy.get('#player-setup-panel .start-selection').click();
+    cy.get('#player-setup-panel .start-selection').click({ force: true });
+    cy.get('body').should('have.class', 'selection-active');
     for (let i = 0; i < 5; i++) {
       cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();
       cy.get('#number-picker-overlay').should('be.visible');
@@ -38,6 +39,14 @@ describe('Reset after winner does not prompt', () => {
         }
       });
     }
+    // Open sidebar for reveal/end controls
+    cy.get('body').then(($b) => {
+      if ($b.hasClass('sidebar-collapsed')) {
+        cy.get('#sidebar-toggle').click({ force: true });
+      }
+    });
+    // Reveal assignments to apply characters
+    cy.get('#reveal-selected-characters').should('be.visible').click();
   }
 
   it('does not show confirm after winner declared', () => {

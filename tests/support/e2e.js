@@ -83,6 +83,23 @@ Cypress.Commands.add('startGame', () => {
   cy.get('#end-game').should('be.visible');
 });
 
+Cypress.Commands.add('ensureSidebarOpen', () => {
+  cy.window().then((win) => {
+    const body = win.document.body;
+    body.classList.remove('sidebar-collapsed');
+    body.classList.add('sidebar-open');
+    const sidebar = win.document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.style.width = '';
+      sidebar.style.display = '';
+      sidebar.style.overflow = 'visible';
+    }
+  });
+  cy.get('#sidebar-toggle').then($btn => {
+    if ($btn.is(':visible')) cy.wrap($btn).click({ force: true });
+  });
+});
+
 Cypress.Commands.add('fillBag', () => {
   return cy.window().then((win) => {
     const helper = win.__BOTCPARTY_TEST_API && win.__BOTCPARTY_TEST_API.fillBagWithStandardSetup;

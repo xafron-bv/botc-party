@@ -18,6 +18,7 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.ensureSidebarOpen();
   });
 
   it('does not ask for confirmation when resetting after loading an ended game from history', () => {
@@ -81,6 +82,7 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#mode-player').check({ force: true });
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
+    cy.get('body').then(($b) => { if ($b.hasClass('sidebar-collapsed')) cy.get('#sidebar-toggle').click({ force: true }); });
     cy.get('#end-game').should('be.visible');
 
     // Load the ended game; accept confirmation
@@ -90,4 +92,3 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.get('#end-game').should('not.be.visible');
   });
 });
-
