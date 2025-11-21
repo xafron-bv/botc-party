@@ -74,6 +74,13 @@
         <div style="margin-top: 15px;">
           <label for="script-file">Or Upload Custom Script:</label>
           <input type="file" id="script-file" accept=".json">
+          <label for="script-text-input" style="display:block; margin-top:8px;">Or Paste Script JSON:</label>
+          <textarea id="script-text-input" rows="6" style="width:100%; resize:vertical;" placeholder='Paste script JSON here'></textarea>
+          <button class="button" id="load-script-text" style="margin-top:8px;">Load Pasted Script</button>
+          <label for="script-url-input" style="display:block; margin-top:8px;">Or Load From Link:</label>
+          <input type="url" id="script-url-input" placeholder="https://www.botcscripts.com/api/scripts/.../json/" style="width:100%;">
+          <button class="button" id="load-script-url" style="margin-top:8px;">Load Script From URL</button>
+          <p style="font-size:12px; opacity:0.8; margin-top:6px;">Tip: Use a shared link to auto-load a script on open.</p>
         </div>
         <div style="margin-top: 15px;">
           <h3>Script History</h3>
