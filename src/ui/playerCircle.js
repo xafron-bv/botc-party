@@ -67,38 +67,40 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   });
 
   // Touch handling for player token
-  setupTouchHandling({
-    element: tokenEl,
-    onTap: (e) => {
-      handlePlayerElementTouch({
-        e,
-        listItem,
-        actionCallback: () => {
-          if (!canInteract()) return;
-          if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-            if (window.openNumberPickerForSelection) {
-              window.openNumberPickerForSelection(playerIndex);
+  if ('ontouchstart' in window) {
+    setupTouchHandling({
+      element: tokenEl,
+      onTap: (e) => {
+        handlePlayerElementTouch({
+          e,
+          listItem,
+          actionCallback: () => {
+            if (!canInteract()) return;
+            if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+              if (window.openNumberPickerForSelection) {
+                window.openNumberPickerForSelection(playerIndex);
+              }
+            } else if (grimoireState && !grimoireState.grimoireHidden) {
+              if (!ensureGrimoireUnlocked({ grimoireState })) return;
+              openCharacterModal({ grimoireState, playerIndex });
             }
-          } else if (grimoireState && !grimoireState.grimoireHidden) {
-            if (!ensureGrimoireUnlocked({ grimoireState })) return;
-            openCharacterModal({ grimoireState, playerIndex });
           }
-        }
-      });
-    },
-    onLongPress: (e, x, y) => {
-      clearTimeout(grimoireState.longPressTimer);
-      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-    },
-    setTouchOccurred: (value) => { touchOccurred = value; },
-    shouldSkip: (e) => {
-      const target = e.target;
-      return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
-        (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) ||
-        (target && target.classList.contains('ability-info-icon')) ||
-        (target && target.closest('.token-reminder'));
-    }
-  });
+        });
+      },
+      onLongPress: (e, x, y) => {
+        clearTimeout(grimoireState.longPressTimer);
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+      },
+      setTouchOccurred: (value) => { touchOccurred = value; },
+      shouldSkip: (e) => {
+        const target = e.target;
+        return (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) ||
+          (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) ||
+          (target && target.classList.contains('ability-info-icon')) ||
+          (target && target.closest('.token-reminder'));
+      }
+    });
+  }
 
   // Context menu handler
   listItem.addEventListener('contextmenu', (e) => {

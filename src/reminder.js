@@ -402,15 +402,15 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
     }
     visibleRemindersCount++;
 
-    const isCustom = reminder.id === 'custom-note';
+    const isCustom = reminder.id === 'custom-note' || reminder.type === 'text';
     const timestamp = (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled)
       ? getReminderTimestamp(grimoireState, reminder.reminderId)
       : null;
 
-    const onTap = (e) => {
+    const onTap = (e, targetElement) => {
       const parentLi = li;
       const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
-      const element = e.currentTarget;
+      const element = targetElement || e.currentTarget;
 
       if (isCollapsed) {
         // First action: expand
@@ -443,7 +443,7 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
           grimoireState,
           playerIndex,
           reminderIndex: idx,
-          existingText: reminder.label || ''
+          existingText: reminder.label || reminder.value || ''
         });
       }
     };
