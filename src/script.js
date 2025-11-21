@@ -9,6 +9,46 @@ export async function displayScript({ data, grimoireState }) {
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
 
+  const metaEntry = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
+  const scriptTitle = metaEntry?.name || grimoireState.scriptMetaName || '';
+  const scriptAuthor = metaEntry?.author || '';
+  const bootleggerNotes = Array.isArray(metaEntry?.bootlegger) ? metaEntry.bootlegger.filter(Boolean) : [];
+
+  if (scriptTitle || scriptAuthor || bootleggerNotes.length) {
+    const metaBlock = document.createElement('div');
+    metaBlock.className = 'script-meta';
+    if (scriptTitle) {
+      const titleEl = document.createElement('div');
+      titleEl.className = 'script-meta__title';
+      titleEl.textContent = scriptTitle;
+      metaBlock.appendChild(titleEl);
+    }
+    if (scriptAuthor) {
+      const authorEl = document.createElement('div');
+      authorEl.className = 'script-meta__author';
+      authorEl.textContent = `Author: ${scriptAuthor}`;
+      metaBlock.appendChild(authorEl);
+    }
+    if (bootleggerNotes.length) {
+      const bootleggerEl = document.createElement('div');
+      bootleggerEl.className = 'script-meta__bootlegger';
+      const heading = document.createElement('div');
+      heading.className = 'script-meta__bootlegger-title';
+      heading.textContent = 'Bootlegger';
+      bootleggerEl.appendChild(heading);
+      const list = document.createElement('ul');
+      list.className = 'script-meta__bootlegger-list';
+      bootleggerNotes.forEach((note) => {
+        const li = document.createElement('li');
+        li.textContent = note;
+        list.appendChild(li);
+      });
+      bootleggerEl.appendChild(list);
+      metaBlock.appendChild(bootleggerEl);
+    }
+    characterSheet.appendChild(metaBlock);
+  }
+
   let jinxData = [];
   try {
     const dataResponse = await fetch('./data.json');
@@ -257,6 +297,124 @@ export async function processScriptData({ data, addToHistory = false, grimoireSt
     if (!isExcludedScriptName(histName)) {
       addScriptToHistory({ name: histName, data, scriptHistoryList });
     }
+  }
+}
+
+export async function loadScriptFromText({ grimoireState, text }) {
+  const loadStatus = document.getElementById('load-status');
+  const setStatus = (message, className = 'status') => {
+    if (!loadStatus) return;
+    loadStatus.textContent = message;
+    loadStatus.className = className;
+  };
+
+  const raw = (text || '').trim();
+  if (!raw) {
+    setStatus('Paste script JSON into the textbox first.', 'error');
+    return;
+  }
+
+  let json;
+  try {
+    json = JSON.parse(raw);
+  } catch (error) {
+    setStatus(`Pasted content is not valid JSON: ${error.message}`, 'error');
+    return;
+  }
+
+  if (json && typeof json === 'object' && !Array.isArray(json)) {
+    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
+      setStatus('This looks like a history export. Use Import History instead.', 'error');
+      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
+      return;
+    }
+  }
+
+  try {
+    await processScriptData({ data: json, addToHistory: true, grimoireState });
+    setStatus('Custom script loaded from pasted text!');
+  } catch (error) {
+    console.error('Error processing pasted script:', error);
+    setStatus(`Invalid script data: ${error.message}`, 'error');
+  }
+}
+
+export async function loadScriptFromUrl({ grimoireState, url }) {
+  const loadStatus = document.getElementById('load-status');
+  const setStatus = (message, className = 'status') => {
+    if (!loadStatus) return;
+    loadStatus.textContent = message;
+    loadStatus.className = className;
+  };
+
+  const trimmed = (url || '').trim();
+  if (!trimmed) {
+    setStatus('Enter a script URL first.', 'error');
+    return;
+  }
+
+  let targetUrl = trimmed;
+  try {
+    targetUrl = new URL(trimmed, window.location.href).toString();
+  } catch (_) {
+    setStatus('That link is not a valid URL.', 'error');
+    return;
+  }
+
+  setStatus('Loading script from link...');
+  let json;
+  try {
+    const res = await fetch(targetUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    json = await res.json();
+  } catch (error) {
+    console.error('Failed to fetch script from URL', error);
+    const msg = /Failed to fetch/i.test(error?.message || '')
+      ? 'This link will not allow us to download the script. Please paste the JSON or upload the file instead.'
+      : `Failed to load script from URL: ${error.message}`;
+    setStatus(msg, 'error');
+    return;
+  }
+
+  if (json && typeof json === 'object' && !Array.isArray(json)) {
+    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
+      setStatus('This looks like a history export. Use Import History instead.', 'error');
+      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
+      return;
+    }
+  }
+
+  try {
+    await processScriptData({ data: json, addToHistory: true, grimoireState });
+    setStatus('Custom script loaded from URL!');
+  } catch (error) {
+    console.error('Error processing URL script:', error);
+    setStatus(`Invalid script data: ${error.message}`, 'error');
+  }
+}
+
+export function decodeSharedScriptParam(param) {
+  if (!param) return null;
+  try {
+    const decoded = decodeURIComponent(param);
+    const normalized = decoded.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    let jsonStr = '';
+    if (typeof TextDecoder !== 'undefined') {
+      try {
+        jsonStr = new TextDecoder().decode(bytes);
+      } catch (_) { /* fallback below */ }
+    }
+    if (!jsonStr) {
+      jsonStr = Array.from(bytes).map((b) => `%${b.toString(16).padStart(2, '0')}`).join('');
+      jsonStr = decodeURIComponent(jsonStr);
+    }
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error('Failed to decode shared script param', err);
+    return null;
   }
 }
 

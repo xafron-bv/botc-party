@@ -43,6 +43,41 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 #character-panel #character-sheet { max-height:none; padding-right:4px; }
 #character-panel #character-sheet .role { cursor:pointer; }
 
+.script-meta {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 6px 0 12px 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.script-meta__title {
+  font-weight: 700;
+  color: #f5d247;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+.script-meta__author {
+  font-size: 13px;
+  color: #ddd;
+  margin-bottom: 8px;
+}
+.script-meta__bootlegger-title {
+  font-weight: 600;
+  color: #f0c36f;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.script-meta__bootlegger-list {
+  margin: 0;
+  padding-left: 16px;
+  color: #f0f0f0;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+.script-meta__bootlegger-list li { line-height: 1.4; }
+
 /* Night phase toggle styling */
 .night-phase-buttons input[type="radio"] { position: absolute; left: -9999px; }
 .night-phase-buttons label { display:none; }

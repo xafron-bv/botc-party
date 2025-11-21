@@ -4,6 +4,28 @@ import { renderSetupInfo } from '../utils/setup.js';
 import { saveAppState } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
 
+function encodeScriptForShare(data) {
+  try {
+    const json = JSON.stringify(data);
+    return btoa(unescape(encodeURIComponent(json)));
+  } catch (_) {
+    return '';
+  }
+}
+
+function triggerJsonDownload({ name, data }) {
+  const safeName = (name || 'script').replace(/[^a-z0-9_\-]+/gi, '_');
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeName}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 250);
+}
+
 export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireState }) {
   const li = e.target.closest('li');
   if (!li) return;
@@ -13,6 +35,8 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireS
   const clickedDelete = e.target.closest('.icon-btn.delete');
   const clickedRename = e.target.closest('.icon-btn.rename');
   const clickedSave = e.target.closest('.icon-btn.save');
+  const clickedDownload = e.target.closest('.icon-btn.download');
+  const clickedShare = e.target.closest('.icon-btn.share');
   const clickedInput = e.target.closest('.history-edit-input');
   if (clickedDelete) {
     if (confirm('Delete this script from history?')) {
@@ -46,6 +70,24 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireS
       renderScriptHistory({ scriptHistoryList });
     }
     li.classList.remove('editing');
+    return;
+  }
+  if (clickedDownload) {
+    triggerJsonDownload({ name: entry.name, data: entry.data });
+    return;
+  }
+  if (clickedShare) {
+    const encoded = encodeScriptForShare(entry.data);
+    if (!encoded) return;
+    const base = `${window.location.origin}${window.location.pathname}`;
+    const shareUrl = `${base}?script=${encodeURIComponent(encoded)}`;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).catch(() => {
+        window.prompt('Copy this link to share:', shareUrl);
+      });
+    } else {
+      window.prompt('Copy this link to share:', shareUrl);
+    }
     return;
   }
   if (clickedInput) return; // don't load when clicking into input
@@ -118,6 +160,14 @@ export function renderScriptHistory({ scriptHistoryList }) {
     saveBtn.title = 'Save';
     saveBtn.style.display = 'none';
     saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'icon-btn download';
+    downloadBtn.title = 'Download JSON';
+    downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'icon-btn share';
+    shareBtn.title = 'Copy share link';
+    shareBtn.innerHTML = '<i class="fa-solid fa-link"></i>';
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'icon-btn delete';
     deleteBtn.title = 'Delete';
@@ -126,6 +176,8 @@ export function renderScriptHistory({ scriptHistoryList }) {
     li.appendChild(nameInput);
     li.appendChild(renameBtn);
     li.appendChild(saveBtn);
+    li.appendChild(downloadBtn);
+    li.appendChild(shareBtn);
     li.appendChild(deleteBtn);
     scriptHistoryList.appendChild(li);
   });

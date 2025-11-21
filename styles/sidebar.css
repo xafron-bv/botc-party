@@ -42,7 +42,9 @@
 }
 
 #sidebar input[type="number"],
-#sidebar input[type="file"] {
+#sidebar input[type="file"],
+#sidebar input[type="url"],
+#sidebar textarea {
   width: 100%;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.08);
@@ -55,7 +57,9 @@
 }
 
 #sidebar input[type="number"]:focus,
-#sidebar input[type="file"]:focus {
+#sidebar input[type="file"]:focus,
+#sidebar input[type="url"]:focus,
+#sidebar textarea:focus {
   outline: none;
   border-color: #D4AF37;
   background: rgba(255, 255, 255, 0.12);
