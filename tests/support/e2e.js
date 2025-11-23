@@ -83,6 +83,55 @@ Cypress.Commands.add('startGame', () => {
   cy.get('#end-game').should('be.visible');
 });
 
+Cypress.Commands.add('ensureSidebarOpen', () => {
+  cy.window().then((win) => {
+    const body = win.document.body;
+    body.classList.remove('sidebar-collapsed');
+    body.classList.add('sidebar-open');
+    const sidebar = win.document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.style.width = '';
+      sidebar.style.display = '';
+      sidebar.style.overflow = 'visible';
+    }
+  });
+  cy.get('#sidebar-toggle').then($btn => {
+    if ($btn.is(':visible')) cy.wrap($btn).click({ force: true });
+  });
+});
+
+Cypress.Commands.add('resetApp', ({
+  mode = 'storyteller',
+  loadScript = false,
+  viewport = [1280, 900],
+  clearStorage = true,
+  showSidebar = true,
+  showGrimoire = true
+} = {}) => {
+  cy.visit('/');
+  if (viewport) {
+    Array.isArray(viewport) ? cy.viewport(viewport[0], viewport[1]) : cy.viewport(viewport);
+  }
+  if (clearStorage) {
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
+  }
+  if (mode === 'storyteller') {
+    cy.ensureStorytellerMode();
+  } else if (mode === 'player') {
+    cy.ensurePlayerMode();
+  }
+  if (showSidebar) {
+    cy.ensureSidebarOpen();
+  }
+  if (loadScript) {
+    cy.get('#load-tb').click({ force: true });
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+  }
+  if (showGrimoire) {
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.grimoireHidden = false; });
+  }
+});
+
 Cypress.Commands.add('fillBag', () => {
   return cy.window().then((win) => {
     const helper = win.__BOTCPARTY_TEST_API && win.__BOTCPARTY_TEST_API.fillBagWithStandardSetup;

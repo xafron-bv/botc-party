@@ -2,13 +2,7 @@
 
 describe('Pre-game grimoire access is always available', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.ensureStorytellerMode();
-    // Ensure five players
-    cy.get('#player-count').clear().type('5');
-    cy.get('#reset-grimoire').click();
+    cy.resetApp({ mode: 'storyteller', loadScript: false });
   });
 
   it('keeps the grimoire interactive without a start gate', () => {

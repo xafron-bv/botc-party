@@ -7,9 +7,10 @@ describe('Overlay hidden after game end', () => {
   });
 
   it('hides pre-game overlay after declaring winner', () => {
-    cy.get('#load-tb').click();
+    cy.resetApp({ mode: 'storyteller', loadScript: true });
     cy.get('#player-count').clear().type('5');
     cy.get('#reset-grimoire').click();
+    cy.ensureSidebarOpen();
     cy.get('#pre-game-overlay').should('not.exist');
     cy.get('#end-game').should('be.visible');
     // Declare winner (open end game modal and pick a side)

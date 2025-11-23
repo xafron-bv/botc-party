@@ -317,9 +317,7 @@ describe('Night Order Display', () => {
 
   describe('Night Order Calculation', () => {
     beforeEach(() => {
-      // Load Trouble Brewing script to have characters available
-      cy.get('#load-tb').click();
-      cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+      cy.resetApp({ mode: 'storyteller', loadScript: true });
 
       // Enable day/night tracking
       cy.get('[data-testid="day-night-toggle"]').click({ force: true });

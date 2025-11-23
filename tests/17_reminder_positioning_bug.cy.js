@@ -90,12 +90,6 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
 
           // Save current state and reload the page
           cy.reload();
-          // After reload, if gating restored pre-game state, start the game again
-          cy.get('body').then(($b) => {
-            if ($b.hasClass('pre-game')) {
-              cy.get('#start-game').click({ force: true });
-            }
-          });
 
           // Wait for page to load and state to be restored
           cy.get('#player-circle li').should('have.length', 5);
@@ -169,7 +163,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       cy.reload();
       cy.get('body').then(($b) => {
         if ($b.hasClass('pre-game')) {
-          cy.get('#start-game').click({ force: true });
+          cy.get('#end-game').click({ force: true });
         }
       });
       cy.get('#player-circle li').should('have.length', 5);

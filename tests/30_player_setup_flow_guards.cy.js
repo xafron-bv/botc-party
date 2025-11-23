@@ -118,7 +118,7 @@ describe('Player Setup - Guards and Resets', () => {
       }
     });
     cy.get('#sidebar-toggle').should('be.visible').click();
-    cy.get('#start-game').click();
+    cy.get('#reveal-selected-characters').should('be.visible').click();
     // End current game declaring a winner (winner gating engages)
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');

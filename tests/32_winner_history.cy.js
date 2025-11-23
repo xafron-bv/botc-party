@@ -14,17 +14,15 @@ describe('Winner state persisted in history', () => {
   });
 
   it('stores Good/Evil winner per game and restores from history', () => {
-    // 1) Start a game, end it, set evil has won -> adds history item
-    cy.get('#start-game').should('not.be.disabled').click({ force: true });
+    // 1) End game, set evil has won -> adds history item
     cy.get('#end-game').scrollIntoView().should('be.visible').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#evil-wins-btn').click();
     cy.get('#end-game-modal').should('not.be.visible');
     cy.get('#grimoire-history-list li').should('have.length.at.least', 1);
 
-    // 2) Start a new game, end it, set good has won -> adds new history item
+    // 2) New state, end it, set good has won -> adds new history item
     cy.get('#reset-grimoire').click();
-    cy.get('#start-game').should('not.be.disabled').click({ force: true });
     cy.get('#end-game').scrollIntoView().should('be.visible').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -41,5 +39,4 @@ describe('Winner state persisted in history', () => {
     cy.get('#winner-message').should('contain.text', 'Evil has won');
   });
 });
-
 
