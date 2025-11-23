@@ -35,9 +35,9 @@ describe('Grimoire history preservation', () => {
     cy.get('#player-circle li').eq(1).find('.player-name').click();
     cy.get('#player-circle li').eq(1).find('.player-name').should('contain', 'Bob');
 
-    // Start and end a game with 5 players to create the first history entry
+    // End a game with 5 players to create the first history entry
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -45,9 +45,9 @@ describe('Grimoire history preservation', () => {
 
     // Now change to 6 players (no snapshot since game not started)
     startGameWithPlayers(6);
-    // Start a new game (player mode allows start without assignments)
+    // Mark game active
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Rename the first player in the 6-player game
     cy.get('#player-circle li').eq(0).find('.player-name').click();
@@ -91,7 +91,7 @@ describe('Grimoire history preservation', () => {
 
     // Create a first history snapshot by starting/ending the 5-player game
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
@@ -101,7 +101,7 @@ describe('Grimoire history preservation', () => {
     startGameWithPlayers(6);
     // Start this game so it becomes the current active state
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Load the history item (5 players) - should create snapshot of 6-player game
     cy.get('#grimoire-history-list .history-item').first().click();
@@ -128,18 +128,18 @@ describe('Grimoire history preservation', () => {
     cy.get('#player-circle li').eq(0).find('.player-name').click();
     cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'State A Player');
 
-    // Create a first snapshot by starting/ending the 5-player game
+    // Create a first snapshot by ending the 5-player game
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
     cy.get('#grimoire-history-list .history-item').should('have.length', 1);
 
-    // Start new game with 6 players (State B), start it so it becomes current
+    // Start new game with 6 players (State B), mark active so it becomes current
     startGameWithPlayers(6);
     cy.get('#mode-player').check({ force: true });
-    cy.get('#start-game').click();
+    cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Load State A (5 players) - this should save State B
     cy.get('#grimoire-history-list .history-item').last().click();

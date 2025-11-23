@@ -1,14 +1,14 @@
 // Cypress E2E tests - Start Game button reset behavior differs by mode (uses shared cy.setupGame helper)
 
-describe('Start Game button conditional reset', () => {
+describe('Game state reset vs preserve by mode changes', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.setupGame({ players: 5, loadScript: true });
   });
 
-  it('Player mode: Starting game after switching resets grimoire (clears characters/reminders/death)', () => {
-    // Game already started via beforeEach helper
+  it('Player mode: resetting after winner clears characters/reminders/death', () => {
+    // Game already set up via beforeEach helper
     // Assign a character and death state to first player
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal', { timeout: 6000 }).should('be.visible');
@@ -23,21 +23,23 @@ describe('Start Game button conditional reset', () => {
     });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
-    // Switch to player mode triggers reset on second Start Game (simulate by ending and restarting)
+    // Switch to player mode and end with winner
     cy.get('#mode-player').check({ force: true });
     cy.get('#end-game').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
-    // Now Start Game becomes available again
-    cy.get('#start-game').click({ force: true });
-    // After restarting in player mode we expect a reset state: characters cleared, not dead
+
+    // Reset grimoire should clear state
+    cy.get('#reset-grimoire').click({ force: true });
+
+    // After reset we expect a clean state: characters cleared, not dead
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'has-character');
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
 
   it('Storyteller mode: State preserved when already started (no implicit reset)', () => {
-    // Game already started via beforeEach helper
-    // Assign one character and death state, then end and restart in storyteller to ensure preservation
+    // Game already set up via beforeEach helper
+    // Assign one character and death state, then end with winner to ensure state remains until reset
     cy.get('#player-circle li .player-token').first().click({ force: true });
     cy.get('#character-modal', { timeout: 6000 }).should('be.visible');
     cy.get('#character-search').type('Chef');
@@ -51,9 +53,7 @@ describe('Start Game button conditional reset', () => {
     cy.get('#end-game').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
-    // Restart in storyteller (default mode)
-    cy.get('#start-game').click({ force: true });
-    // Expect state preserved in storyteller mode (no implicit reset of characters)
+    // Expect state preserved in storyteller mode (no implicit reset of characters until manual reset)
     cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
   });
 });

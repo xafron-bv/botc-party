@@ -33,7 +33,6 @@ describe('Player two-tap behavior in touch mode', () => {
     cy.get('#reset-grimoire').click({ force: true });
     cy.get('#player-circle li').should('have.length', 20);
     cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
-    cy.get('#start-game').should('be.visible').click({ force: true });
   });
 
   it('demonstrates two-tap behavior for overlapping players', () => {
