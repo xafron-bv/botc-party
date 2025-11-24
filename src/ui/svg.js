@@ -1,10 +1,37 @@
 // SVG helpers for curved text labels and death ribbon (browser-native ES module)
 
-export function createCurvedLabelSvg(uniqueId, labelText) {
+export function createSvgElement({
+  viewBox = '0 0 100 100',
+  preserveAspectRatio = 'xMidYMid meet',
+  classes = [],
+  styles = {},
+  attributes = {}
+} = {}) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 100 100');
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.classList.add('icon-reminder-svg');
+  svg.setAttribute('viewBox', viewBox);
+  svg.setAttribute('preserveAspectRatio', preserveAspectRatio);
+
+  if (Array.isArray(classes) && classes.length) {
+    svg.classList.add(...classes);
+  }
+
+  if (styles) {
+    Object.assign(svg.style, styles);
+  }
+
+  if (attributes) {
+    Object.entries(attributes).forEach(([key, value]) => {
+      svg.setAttribute(key, value);
+    });
+  }
+
+  return svg;
+}
+
+export function createCurvedLabelSvg(uniqueId, labelText) {
+  const svg = createSvgElement({
+    classes: ['icon-reminder-svg']
+  });
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('id', uniqueId);
@@ -54,13 +81,12 @@ export function createCurvedLabelSvg(uniqueId, labelText) {
 }
 
 export function createDeathRibbonSvg({ highlightNightKill = false } = {}) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 100 140');
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.style.pointerEvents = 'none';
-  if (highlightNightKill) {
-    svg.classList.add('night-kill-pending');
-  }
+  const classes = highlightNightKill ? ['night-kill-pending'] : [];
+  const svg = createSvgElement({
+    viewBox: '0 0 100 140',
+    styles: { pointerEvents: 'none' },
+    classes
+  });
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
   const patternId = highlightNightKill ? 'deathPatternNight' : 'deathPattern';
@@ -158,10 +184,9 @@ export function createDeathRibbonSvg({ highlightNightKill = false } = {}) {
 }
 
 export function createDeathVoteIndicatorSvg() {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 100 100');
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.classList.add('death-vote-indicator');
+  const svg = createSvgElement({
+    classes: ['death-vote-indicator']
+  });
 
   // Create circle background
   const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
