@@ -3,6 +3,7 @@ import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { resolveAssetPath } from '../utils.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { canOpenModal } from './utils/validation.js';
 
 function getRoleFromAnySources(grimoireState, roleId) {
   if (grimoireState.allRoles && grimoireState.allRoles[roleId]) {
@@ -892,7 +893,7 @@ export function initPlayerSetup({ grimoireState }) {
 
   if (openPlayerSetupBtn && playerSetupPanel) {
     openPlayerSetupBtn.addEventListener('click', () => {
-      if (grimoireState.mode === 'player') return;
+      if (!canOpenModal({ grimoireState, requiresStorytellerMode: true })) return;
       // Model B: Ensure a clean baseline when entering player setup before game start.
       // Only reset if game has not started (avoid wiping mid-game accidentally) and players exist.
       try {
