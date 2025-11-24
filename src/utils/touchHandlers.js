@@ -146,7 +146,7 @@ export function setupTouchHandling({
         // Use a small delay to ensure long press timer is cancelled
         touchActionTimer = setTimeout(() => {
           if (!isLongPress) {
-            onTap(e);
+            onTap(e, element);
           }
           hadTouchStart = false;
         }, actionDelay);
@@ -196,7 +196,7 @@ export function setupTouchHandling({
         return;
       }
       if (onTap) {
-        onTap(event);
+        onTap(event, element);
         if (element && element.dataset) {
           element.dataset.ignoreNextSyntheticClick = 'false';
         }
@@ -268,7 +268,7 @@ export function setupTouchHandling({
       }
 
       if (onTap) {
-        onTap(e);
+        onTap(e, element);
       }
     };
 

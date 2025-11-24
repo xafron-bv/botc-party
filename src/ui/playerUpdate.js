@@ -6,7 +6,7 @@ import { showTouchAbilityPopup } from './tooltip.js';
 import { setupTouchHandling } from '../utils/touchHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { showPlayerContextMenu } from './contextMenu.js';
-import { renderRemindersForPlayer } from '../reminder.js';
+import { renderRemindersForPlayer, createReminderElement } from '../reminder.js';
 import { positionRadialStack } from './layout.js';
 import { showStorytellerMessage } from '../storytellerMessages.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
@@ -241,48 +241,32 @@ export function updatePlayerElement({
     radiusFactor,
     angleOffset = 0
   }) => {
-    const reminder = document.createElement('div');
-    reminder.className = `token-reminder${className ? ` ${className}` : ''}`;
-    if (typeof text === 'string') reminder.textContent = text;
-    if (testId) reminder.setAttribute('data-testid', testId);
-    reminder.dataset.playerIndex = playerIndex;
-    const orderIndex = nextReminderIndex++;
-    reminder.dataset.reminderIndex = String(orderIndex);
-    if (typeof radiusFactor === 'number' && Number.isFinite(radiusFactor)) {
-      reminder.dataset.reminderRadius = String(radiusFactor);
-    }
-    if (typeof angleOffset === 'number' && Number.isFinite(angleOffset)) {
-      reminder.dataset.reminderAngleOffset = String(angleOffset);
-    }
+    const reminder = createReminderElement({
+      type: 'token',
+      label: text,
+      testId,
+      className,
+      ariaLabel,
+      title,
+      onClick: onActivate ? (e) => {
+        e.stopPropagation();
+        try { e.preventDefault(); } catch (_) { }
+        onActivate(e);
+      } : undefined,
+      radiusFactor,
+      angleOffset,
+      dataset: {
+        playerIndex: String(playerIndex),
+        reminderIndex: String(nextReminderIndex++)
+      },
+      grimoireState
+    });
+
     if (onActivate) {
-      reminder.setAttribute('role', 'button');
-      reminder.setAttribute('tabindex', '0');
-      if (ariaLabel) reminder.setAttribute('aria-label', ariaLabel);
-      if (title) reminder.setAttribute('title', title);
-      const activate = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        onActivate(event);
-      };
-      reminder.addEventListener('click', activate);
-      reminder.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          activate(event);
-        }
-      });
-      reminder.addEventListener('mousedown', (event) => {
-        event.stopPropagation();
-      });
-      reminder.addEventListener('touchstart', (event) => {
-        event.stopPropagation();
-      }, { passive: true });
-      reminder.addEventListener('touchend', (event) => {
-        activate(event);
-      }, { passive: false });
-    } else {
-      reminder.setAttribute('aria-hidden', 'true');
-      if (title) reminder.setAttribute('title', title);
+      reminder.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+      reminder.addEventListener('mousedown', (e) => e.stopPropagation());
     }
+
     tokenDiv.appendChild(reminder);
     return reminder;
   };
