@@ -4,6 +4,7 @@ import { getVisibleRemindersCount, openReminderTokenModal, openTextReminderModal
 import { showPlayerContextMenu } from './contextMenu.js';
 import { positionRadialStack } from './layout.js';
 import { setupTouchHandling } from '../utils/touchHandlers.js';
+import { createSafeClickHandler } from '../utils/eventHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 
@@ -32,11 +33,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const canInteract = () => grimoireState.mode === 'player' || !grimoireState.winner;
 
   // Click handler for player token
-  tokenEl.onclick = (e) => {
-    if (touchOccurred) {
-      touchOccurred = false;
-      return;
-    }
+  tokenEl.onclick = createSafeClickHandler((e) => {
     if (!canInteract()) return;
 
     const target = e.target;
@@ -58,7 +55,16 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       if (!ensureGrimoireUnlocked({ grimoireState })) return;
       openCharacterModal({ grimoireState, playerIndex });
     }
-  };
+  }, {
+    shouldSkip: () => {
+      if (touchOccurred) {
+        touchOccurred = false;
+        return true;
+      }
+      return false;
+    },
+    stopPropagation: false
+  });
 
   // Touch handling for player token
   setupTouchHandling({
@@ -114,8 +120,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const placeholderEl = listItem.querySelector('.reminder-placeholder');
 
   if (placeholderEl) {
-    placeholderEl.onclick = (e) => {
-      e.stopPropagation();
+    placeholderEl.onclick = createSafeClickHandler((e) => {
       if (!canInteract()) return; // Gate adding reminders pre-game in storyteller mode
 
       const thisLi = listItem;
@@ -145,7 +150,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       } else {
         openReminderTokenModal({ grimoireState, playerIndex });
       }
-    };
+    });
   }
 
   // Setup expand/collapse behavior

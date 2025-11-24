@@ -3,6 +3,7 @@ import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 import { openCustomReminderEditModal } from '../reminder.js';
+import { attachTouchHandler, createSafeClickHandler } from '../utils/eventHandlers.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   if (!ensureGrimoireUnlocked({ grimoireState })) return;
@@ -43,7 +44,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   deleteBtn.id = 'reminder-menu-delete';
   deleteBtn.textContent = 'Delete Reminder';
 
-  editBtn.addEventListener('click', () => {
+  editBtn.addEventListener('click', createSafeClickHandler(() => {
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
     hideReminderContextMenu({ grimoireState });
@@ -78,9 +79,9 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
       updateGrimoire({ grimoireState });
       saveAppState({ grimoireState });
     }
-  });
+  }));
 
-  deleteBtn.addEventListener('click', () => {
+  deleteBtn.addEventListener('click', createSafeClickHandler(() => {
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
     hideReminderContextMenu({ grimoireState });
@@ -94,7 +95,7 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
 
     updateGrimoire({ grimoireState });
     saveAppState({ grimoireState });
-  });
+  }));
 
   menu.appendChild(editBtn);
   menu.appendChild(deleteBtn);
@@ -130,36 +131,7 @@ export function ensurePlayerContextMenu({ grimoireState }) {
 
   // Helper function to handle button actions only on proper tap/click
   const addButtonHandler = (button, action) => {
-    let touchMoved = false;
-    let lastTouchEnd = 0;
-
-    button.addEventListener('touchstart', (e) => {
-      touchMoved = false;
-      e.stopPropagation();
-    });
-
-    button.addEventListener('touchmove', (e) => {
-      touchMoved = true;
-      e.stopPropagation();
-    });
-
-    button.addEventListener('touchend', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (!touchMoved) {
-        lastTouchEnd = Date.now();
-        action();
-      }
-    });
-
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const timeSinceTouchEnd = Date.now() - lastTouchEnd;
-      if (timeSinceTouchEnd > 300) {
-        action();
-      }
-    });
+    attachTouchHandler(button, action);
   };
 
   addButtonHandler(addBeforeBtn, () => {
