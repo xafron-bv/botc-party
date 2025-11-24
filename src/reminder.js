@@ -7,7 +7,7 @@ import { CLICK_EXPAND_SUPPRESS_MS } from './constants.js';
 import { positionRadialStack } from './ui/layout.js';
 import { createCurvedLabelSvg } from './ui/svg.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
-import { setupTouchHandling } from './utils/touchHandlers.js';
+import { setupInteractiveElement } from './utils/interaction.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { canOpenModal } from './utils/validation.js';
 
@@ -361,7 +361,7 @@ export function createReminderElement({
   }
 
   if (onClick || onLongPress) {
-    setupTouchHandling({
+    setupInteractiveElement({
       element,
       onTap: onClick,
       onLongPress: onLongPress,

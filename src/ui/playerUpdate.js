@@ -3,7 +3,7 @@ import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg
 import { createAbilityInfoIcon } from './abilityInfoIcon.js';
 import { applyTokenArtwork } from './tokenArtwork.js';
 import { showTouchAbilityPopup } from './tooltip.js';
-import { setupTouchHandling } from '../utils/touchHandlers.js';
+import { setupInteractiveElement } from '../utils/interaction.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { showPlayerContextMenu } from './contextMenu.js';
 import { renderRemindersForPlayer, createReminderElement } from '../reminder.js';
@@ -151,10 +151,10 @@ export function updatePlayerElement({
     }
     updateGrimoireFn({ grimoireState });
   });
-  if ('ontouchstart' in window) {
-    setupTouchHandling({
-      element: ribbon,
-      onTap: (e) => {
+  setupInteractiveElement({
+    element: ribbon,
+    onTap: (e) => {
+      if ('ontouchstart' in window) {
         handlePlayerElementTouch({
           e,
           listItem: li,
@@ -162,23 +162,18 @@ export function updatePlayerElement({
           grimoireState,
           playerIndex
         });
-      },
-      onLongPress: (e, x, y) => {
-        clearTimeout(grimoireState.longPressTimer);
-        showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-      },
-      setTouchOccurred: (val) => {
-        grimoireState.touchOccurred = val;
+      } else {
+        handleRibbonToggle(e);
       }
-    });
-  }
-  try {
-    ribbon.querySelectorAll('rect, path').forEach((shape) => {
-      shape.addEventListener('click', handleRibbonToggle);
-    });
-  } catch (_) {
-    ribbon.addEventListener('click', handleRibbonToggle);
-  }
+    },
+    onLongPress: (e, x, y) => {
+      clearTimeout(grimoireState.longPressTimer);
+      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+    },
+    setTouchOccurred: (val) => {
+      grimoireState.touchOccurred = val;
+    }
+  });
   tokenDiv.appendChild(ribbon);
 
   if (player.dead) {
@@ -204,11 +199,10 @@ export function updatePlayerElement({
       }
     });
 
-    deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
-    if ('ontouchstart' in window) {
-      setupTouchHandling({
-        element: deathVoteIndicator,
-        onTap: (e) => {
+    setupInteractiveElement({
+      element: deathVoteIndicator,
+      onTap: (e) => {
+        if ('ontouchstart' in window) {
           handlePlayerElementTouch({
             e,
             listItem: li,
@@ -216,16 +210,18 @@ export function updatePlayerElement({
             grimoireState,
             playerIndex
           });
-        },
-        onLongPress: (e, x, y) => {
-          clearTimeout(grimoireState.longPressTimer);
-          showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-        },
-        setTouchOccurred: (val) => {
-          grimoireState.touchOccurred = val;
+        } else {
+          handleDeathVoteClick(e);
         }
-      });
-    }
+      },
+      onLongPress: (e, x, y) => {
+        clearTimeout(grimoireState.longPressTimer);
+        showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+      },
+      setTouchOccurred: (val) => {
+        grimoireState.touchOccurred = val;
+      }
+    });
 
     tokenDiv.appendChild(deathVoteIndicator);
   }
