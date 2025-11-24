@@ -44,3 +44,11 @@ export function normalizeKey(value) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+export function getRoleById({ grimoireState, roleId }) {
+  if (!roleId) return null;
+  const allRoles = grimoireState.allRoles || {};
+  const baseRoles = grimoireState.baseRoles || {};
+  const extraTravellerRoles = grimoireState.extraTravellerRoles || {};
+  return allRoles[roleId] || baseRoles[roleId] || extraTravellerRoles[roleId] || null;
+}
+

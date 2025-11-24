@@ -1,4 +1,4 @@
-import { getRoleById } from '../grimoire.js';
+import { getRoleById } from '../../utils.js';
 
 export function countTravelers({ grimoireState }) {
   let travelerCount = 0;
