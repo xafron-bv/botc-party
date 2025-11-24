@@ -1,5 +1,5 @@
 import { resolveAssetPath } from '../utils.js';
-import { saveAppState } from './app.js';
+import { withStateSave } from './app.js';
 import { addReminderTimestamp, generateReminderId, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
 import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
@@ -23,7 +23,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     try { reminderTokenGrid.removeEventListener('click', reminderTokenGrid._delegatedSelectionHandler, true); } catch (_) { }
     reminderTokenGrid._delegatedSelectionHandler = null;
   }
-  const delegatedSelectionHandler = (e) => {
+  const delegatedSelectionHandler = withStateSave((e) => {
     const tokenEl = e.target && (e.target.closest && e.target.closest('#reminder-token-grid .token'));
     if (!tokenEl) return;
     try { e.preventDefault(); } catch (_) { }
@@ -56,10 +56,9 @@ export async function populateReminderTokenGrid({ grimoireState }) {
         saveCurrentPhaseState(grimoireState);
       }
       updateGrimoire({ grimoireState });
-      saveAppState({ grimoireState });
     } catch (_) { /* ensure modal still closes even if add fails */ }
     try { reminderTokenModal.style.display = 'none'; } catch (_) { }
-  };
+  });
   reminderTokenGrid.addEventListener('click', delegatedSelectionHandler, true);
   reminderTokenGrid._delegatedSelectionHandler = delegatedSelectionHandler;
   try {
@@ -216,7 +215,7 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
   const newSaveBtn = saveCustomReminderBtn.cloneNode(true);
   saveCustomReminderBtn.parentNode.replaceChild(newSaveBtn, saveCustomReminderBtn);
 
-  newSaveBtn.addEventListener('click', () => {
+  newSaveBtn.addEventListener('click', withStateSave(() => {
     const newText = customReminderTextInput.textContent.trim();
     if (!newText) {
       customReminderEditModal.style.display = 'none';
@@ -252,12 +251,11 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
       }
 
       updateGrimoire({ grimoireState });
-      saveAppState({ grimoireState });
     }
     customReminderEditModal.style.display = 'none';
     grimoireState.editingCustomReminder = null;
     customReminderTextInput.removeEventListener('keydown', handleKeyDown);
-  });
+  }));
 } export function getVisibleRemindersCount({ grimoireState, playerIndex }) {
   const player = grimoireState.players[playerIndex];
   if (!player || !player.reminders) return 0;
