@@ -269,6 +269,123 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
   return count;
 }
 
+function applyFontSize(element, text) {
+  const textLength = text.length;
+  if (textLength > 40) {
+    element.style.fontSize = 'clamp(7px, calc(var(--player-token-size) * 0.06), 10px)';
+  } else if (textLength > 20) {
+    element.style.fontSize = 'clamp(8px, calc(var(--player-token-size) * 0.07), 12px)';
+  }
+}
+
+export function createReminderElement({
+  type = 'text', // 'icon', 'text', 'token'
+  label,
+  image,
+  rotation = 0,
+  className = '',
+  testId,
+  title,
+  ariaLabel,
+  onClick,
+  onLongPress,
+  dataset = {},
+  timestamp,
+  grimoireState,
+  // token specific
+  radiusFactor,
+  angleOffset,
+  // icon specific
+  isCustomIcon = false,
+  playerIndex,
+  reminderIndex
+}) {
+  let element;
+
+  if (type === 'icon') {
+    element = document.createElement('div');
+    element.className = `icon-reminder ${className}`.trim();
+    element.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+    applyTokenArtwork({
+      tokenEl: element,
+      baseImage: resolveAssetPath('assets/img/token.png'),
+      roleImage: image ? resolveAssetPath(image) : null
+    });
+
+    if (label) {
+      if (isCustomIcon) {
+        const textSpan = document.createElement('span');
+        textSpan.className = 'icon-reminder-content';
+        textSpan.textContent = label;
+        applyFontSize(textSpan, label);
+        element.appendChild(textSpan);
+      } else {
+        const svgId = `arc-${playerIndex}-${reminderIndex}`;
+        const svg = createCurvedLabelSvg(svgId, label);
+        element.appendChild(svg);
+      }
+    }
+  } else if (type === 'text') {
+    element = document.createElement('div');
+    element.className = `text-reminder ${className}`.trim();
+    element.style.transform = 'translate(-50%, -50%)';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'text-reminder-content';
+    textSpan.textContent = label || '';
+    applyFontSize(textSpan, label || '');
+    element.appendChild(textSpan);
+  } else if (type === 'token') {
+    element = document.createElement('div');
+    element.className = `token-reminder ${className}`.trim();
+    if (label) element.textContent = label;
+
+    if (radiusFactor !== undefined) dataset.reminderRadius = String(radiusFactor);
+    if (angleOffset !== undefined) dataset.reminderAngleOffset = String(angleOffset);
+  }
+
+  if (testId) element.setAttribute('data-testid', testId);
+  if (title) element.title = title;
+  if (ariaLabel) element.setAttribute('aria-label', ariaLabel);
+
+  Object.entries(dataset).forEach(([k, v]) => {
+    element.dataset[k] = v;
+  });
+
+  if (timestamp) {
+    const timestampEl = document.createElement('span');
+    timestampEl.className = 'reminder-timestamp';
+    timestampEl.textContent = timestamp;
+    element.appendChild(timestampEl);
+  }
+
+  if (onClick || onLongPress) {
+    setupTouchHandling({
+      element,
+      onTap: onClick,
+      onLongPress: onLongPress,
+      setTouchOccurred: (val) => { if (grimoireState) grimoireState.touchOccurred = val; },
+      showPressFeedback: true
+    });
+
+    element.setAttribute('role', 'button');
+    element.setAttribute('tabindex', '0');
+    element.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (onClick) onClick(e);
+      }
+    });
+  } else {
+    if (type === 'token') {
+      element.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  return element;
+}
+
 // Render all reminders for a player list item, returns count of visible reminders
 export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
   const remindersDiv = li.querySelector('.reminders');
@@ -285,172 +402,72 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
     }
     visibleRemindersCount++;
 
-    if (reminder.type === 'icon') {
-      const iconEl = document.createElement('div');
-      iconEl.className = 'icon-reminder';
-      iconEl.style.transform = `translate(-50%, -50%) rotate(${reminder.rotation || 0}deg)`;
-      applyTokenArtwork({
-        tokenEl: iconEl,
-        baseImage: resolveAssetPath('assets/img/token.png'),
-        roleImage: reminder.image ? resolveAssetPath(reminder.image) : null
-      });
-      iconEl.title = (reminder.label || '');
+    const isCustom = reminder.id === 'custom-note' || reminder.type === 'text';
+    const timestamp = (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled)
+      ? getReminderTimestamp(grimoireState, reminder.reminderId)
+      : null;
 
-      if (reminder.label) {
-        const isCustom = reminder.id === 'custom-note';
+    const onTap = (e, targetElement) => {
+      const parentLi = li;
+      const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
+      const element = targetElement || e.currentTarget;
 
-        if (isCustom) {
-          const textSpan = document.createElement('span');
-          textSpan.className = 'icon-reminder-content';
-          textSpan.textContent = reminder.label;
-          const textLength = reminder.label.length;
-          if (textLength > 40) {
-            textSpan.style.fontSize = 'clamp(7px, calc(var(--player-token-size) * 0.06), 10px)';
-          } else if (textLength > 20) {
-            textSpan.style.fontSize = 'clamp(8px, calc(var(--player-token-size) * 0.07), 12px)';
-          }
-
-          iconEl.appendChild(textSpan);
-        } else {
-          const svg = createCurvedLabelSvg(`arc-${playerIndex}-${idx}`, reminder.label);
-          iconEl.appendChild(svg);
+      if (isCollapsed) {
+        // First action: expand
+        e.stopPropagation();
+        try { e.preventDefault(); } catch (_) { }
+        parentLi.dataset.expanded = '1';
+        parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
+        positionRadialStack(parentLi, visibleRemindersCount);
+        if (element && element.dataset) {
+          element.dataset.ignoreNextSyntheticClick = 'true';
         }
-      }
-
-      const isCustomReminder = reminder.id === 'custom-note';
-
-      setupTouchHandling({
-        element: iconEl,
-        onTap: (e) => {
-          const parentLi = iconEl.closest('li');
-          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
-
-          if (isCollapsed) {
-            // First action: expand
-            e.stopPropagation();
-            try { e.preventDefault(); } catch (_) { }
-            parentLi.dataset.expanded = '1';
-            parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-            positionRadialStack(parentLi, visibleRemindersCount);
-            if (iconEl && iconEl.dataset) {
-              iconEl.dataset.ignoreNextSyntheticClick = 'true';
+      } else if (isCustom) {
+        // When expanded: open edit modal for custom reminders (after suppress window)
+        e.stopPropagation();
+        try { e.preventDefault(); } catch (_) { }
+        if (parentLi) {
+          const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
+          const suppressForTouch = !!grimoireState.touchOccurred;
+          if (suppressForTouch && Date.now() < suppressUntil) {
+            if (element && element.dataset) {
+              element.dataset.ignoreNextSyntheticClick = 'true';
             }
-          } else if (isCustomReminder) {
-            // When expanded: open edit modal for custom reminders (after suppress window)
-            e.stopPropagation();
-            try { e.preventDefault(); } catch (_) { }
-            if (parentLi) {
-              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-              const suppressForTouch = !!grimoireState.touchOccurred;
-              if (suppressForTouch && Date.now() < suppressUntil) {
-                if (iconEl && iconEl.dataset) {
-                  iconEl.dataset.ignoreNextSyntheticClick = 'true';
-                }
-                return;
-              }
-            }
-            if (iconEl && iconEl.dataset) {
-              iconEl.dataset.ignoreNextSyntheticClick = 'true';
-            }
-            openCustomReminderEditModal({
-              grimoireState,
-              playerIndex,
-              reminderIndex: idx,
-              existingText: reminder.label || ''
-            });
+            return;
           }
-        },
-        onLongPress: (e, x, y) => {
-          showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex: idx });
-        },
-        setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
-        showPressFeedback: true
-      });
-      const timestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
-      if (timestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-        const timestampEl = document.createElement('span');
-        timestampEl.className = 'reminder-timestamp';
-        timestampEl.textContent = timestamp;
-        iconEl.appendChild(timestampEl);
+        }
+        if (element && element.dataset) {
+          element.dataset.ignoreNextSyntheticClick = 'true';
+        }
+        openCustomReminderEditModal({
+          grimoireState,
+          playerIndex,
+          reminderIndex: idx,
+          existingText: reminder.label || reminder.value || ''
+        });
       }
+    };
 
-      remindersDiv.appendChild(iconEl);
-    } else {
-      const reminderEl = document.createElement('div');
-      reminderEl.className = 'text-reminder';
-      const displayText = reminder.label || reminder.value || '';
-      const textSpan = document.createElement('span');
-      textSpan.className = 'text-reminder-content';
-      textSpan.textContent = displayText;
-      const textLength = displayText.length;
-      if (textLength > 40) {
-        textSpan.style.fontSize = 'clamp(7px, calc(var(--player-token-size) * 0.06), 10px)';
-      } else if (textLength > 20) {
-        textSpan.style.fontSize = 'clamp(8px, calc(var(--player-token-size) * 0.07), 12px)';
-      }
+    const onLongPress = (e, x, y) => {
+      showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex: idx });
+    };
 
-      reminderEl.appendChild(textSpan);
+    const reminderEl = createReminderElement({
+      type: reminder.type === 'icon' ? 'icon' : 'text',
+      label: reminder.label || reminder.value || '',
+      image: reminder.image,
+      rotation: reminder.rotation,
+      isCustomIcon: isCustom,
+      timestamp,
+      grimoireState,
+      playerIndex,
+      reminderIndex: idx,
+      title: reminder.label || '',
+      onClick: onTap,
+      onLongPress: onLongPress
+    });
 
-      reminderEl.style.transform = 'translate(-50%, -50%)';
-
-      setupTouchHandling({
-        element: reminderEl,
-        onTap: (e) => {
-          const parentLi = reminderEl.closest('li');
-          const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1');
-
-          if (isCollapsed) {
-            // First action: expand
-            e.stopPropagation();
-            if (parentLi) {
-              parentLi.dataset.expanded = '1';
-              parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
-              positionRadialStack(parentLi, visibleRemindersCount);
-            }
-            if (reminderEl && reminderEl.dataset) {
-              reminderEl.dataset.ignoreNextSyntheticClick = 'true';
-            }
-          } else {
-            // When expanded: open edit modal once suppress window expires
-            e.stopPropagation();
-            try { e.preventDefault(); } catch (_) { }
-            if (parentLi) {
-              const suppressUntil = parseInt(parentLi.dataset.actionSuppressUntil || '0', 10);
-              const suppressForTouch = !!grimoireState.touchOccurred;
-              if (suppressForTouch && Date.now() < suppressUntil) {
-                if (reminderEl && reminderEl.dataset) {
-                  reminderEl.dataset.ignoreNextSyntheticClick = 'true';
-                }
-                return;
-              }
-            }
-            if (reminderEl && reminderEl.dataset) {
-              reminderEl.dataset.ignoreNextSyntheticClick = 'true';
-            }
-            openCustomReminderEditModal({
-              grimoireState,
-              playerIndex,
-              reminderIndex: idx,
-              existingText: displayText || ''
-            });
-          }
-        },
-        onLongPress: (e, x, y) => {
-          showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex: idx });
-        },
-        setTouchOccurred: (val) => { grimoireState.touchOccurred = val; },
-        showPressFeedback: true
-      });
-      const textTimestamp = getReminderTimestamp(grimoireState, reminder.reminderId);
-      if (textTimestamp && grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-        const timestampEl = document.createElement('span');
-        timestampEl.className = 'reminder-timestamp';
-        timestampEl.textContent = textTimestamp;
-        reminderEl.appendChild(timestampEl);
-      }
-
-      remindersDiv.appendChild(reminderEl);
-    }
+    remindersDiv.appendChild(reminderEl);
   });
 
   return visibleRemindersCount;
