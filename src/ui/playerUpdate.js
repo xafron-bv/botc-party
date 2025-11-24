@@ -10,13 +10,13 @@ import { renderRemindersForPlayer } from '../reminder.js';
 import { positionRadialStack } from './layout.js';
 import { showStorytellerMessage } from '../storytellerMessages.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
+import { withStateSave } from '../app.js';
 
 export function updatePlayerElement({
   li,
   playerIndex,
   grimoireState,
   updateGrimoireFn,
-  saveAppStateFn,
   saveCurrentPhaseStateFn,
   nightOrderMap = {},
   isFirstNight = false,
@@ -116,7 +116,7 @@ export function updatePlayerElement({
   );
   const ribbon = createDeathRibbonSvg({ highlightNightKill: shouldHighlightNightKill });
   ribbon.classList.add('death-ribbon');
-  const handleRibbonToggle = (e) => {
+  const handleRibbonToggle = withStateSave((e) => {
     e.stopPropagation();
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const playerSetup = grimoireState.playerSetup || {};
@@ -150,8 +150,7 @@ export function updatePlayerElement({
       saveCurrentPhaseStateFn(grimoireState);
     }
     updateGrimoireFn({ grimoireState });
-    saveAppStateFn({ grimoireState });
-  };
+  });
   if ('ontouchstart' in window) {
     setupTouchHandling({
       element: ribbon,
@@ -192,7 +191,7 @@ export function updatePlayerElement({
 
   if (player.dead && !player.deathVote) {
     const deathVoteIndicator = createDeathVoteIndicatorSvg();
-    const handleDeathVoteClick = (e) => {
+    const handleDeathVoteClick = withStateSave((e) => {
       e.stopPropagation();
       if (!ensureGrimoireUnlocked({ grimoireState })) return;
       const player = grimoireState.players[playerIndex];
@@ -202,9 +201,8 @@ export function updatePlayerElement({
           saveCurrentPhaseStateFn(grimoireState);
         }
         updateGrimoireFn({ grimoireState });
-        saveAppStateFn({ grimoireState });
       }
-    };
+    });
 
     deathVoteIndicator.addEventListener('click', handleDeathVoteClick);
     if ('ontouchstart' in window) {

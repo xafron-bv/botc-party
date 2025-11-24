@@ -1,4 +1,4 @@
-import { saveAppState } from './app.js';
+import { withStateSave } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, saveCurrentPhaseState } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
@@ -15,16 +15,15 @@ import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandler
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
-  const handlePlayerNameClick = (_e) => {
+  const handlePlayerNameClick = withStateSave((_e) => {
     if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const currentName = grimoireState.players[playerIndex].name;
     const newName = prompt('Enter player name:', currentName);
     if (newName) {
       grimoireState.players[playerIndex].name = newName;
       updateGrimoire({ grimoireState });
-      saveAppState({ grimoireState });
     }
-  };
+  });
   listItem.querySelector('.player-name').onclick = createSafeClickHandler(handlePlayerNameClick);
   if ('ontouchstart' in window) {
     attachTouchHandler(listItem.querySelector('.player-name'), (e) => {
@@ -48,21 +47,19 @@ export function applyGrimoireLockedState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-locked', !!grimoireState.grimoireLocked); } catch (_) { }
 }
 
-export function setGrimoireLocked({ grimoireState, locked }) {
+export const setGrimoireLocked = withStateSave(({ grimoireState, locked }) => {
   grimoireState.grimoireLocked = !!locked;
   applyGrimoireLockedState({ grimoireState });
-  saveAppState({ grimoireState });
-}
+});
 
 export function toggleGrimoireLocked({ grimoireState }) {
   setGrimoireLocked({ grimoireState, locked: !grimoireState.grimoireLocked });
 }
 
-export function setGrimoireHidden({ grimoireState, hidden }) {
+export const setGrimoireHidden = withStateSave(({ grimoireState, hidden }) => {
   grimoireState.grimoireHidden = !!hidden;
   applyGrimoireHiddenState({ grimoireState });
-  saveAppState({ grimoireState });
-}
+});
 
 export function toggleGrimoireHidden({ grimoireState }) {
   setGrimoireHidden({ grimoireState, hidden: !grimoireState.grimoireHidden });
@@ -83,7 +80,7 @@ function mountBluffTokensContainer({ grimoireState }) {
   }
 }
 
-export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
+export const setupGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, count }) => {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
   grimoireState.grimoireLocked = false;
@@ -120,10 +117,9 @@ export function setupGrimoire({ grimoireState, grimoireHistoryList, count }) {
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
-    saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   });
-}
+});
 
 export function updateGrimoire({ grimoireState }) {
   const abilityTooltip = document.getElementById('ability-tooltip');
@@ -145,7 +141,6 @@ export function updateGrimoire({ grimoireState }) {
       playerIndex: i,
       grimoireState,
       updateGrimoireFn: updateGrimoire,
-      saveAppStateFn: saveAppState,
       saveCurrentPhaseStateFn: saveCurrentPhaseState,
       nightOrderMap,
       isFirstNight,
@@ -157,7 +152,7 @@ export function updateGrimoire({ grimoireState }) {
   positionTokenReminders();
   updateAllBluffTokens({ grimoireState });
 }
-export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput }) {
+export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, playerCountInput }) => {
   const sel = grimoireState.playerSetup;
   if (sel && sel.selectionActive) {
     try {
@@ -171,7 +166,6 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
       const numberPickerOverlay = document.getElementById('number-picker-overlay');
       if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';
     } catch (_) { }
-    try { saveAppState({ grimoireState }); } catch (_) { }
   }
   const playerCount = parseInt(playerCountInput.value, 10);
   if (!(playerCount >= 5 && playerCount <= 20)) {
@@ -221,11 +215,10 @@ export function resetGrimoire({ grimoireState, grimoireHistoryList, playerCountI
     }
     updateDayNightUI(grimoireState);
   } catch (_) { }
-  try { saveAppState({ grimoireState }); } catch (_) { }
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
-}
+});
 
-export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
+export const rebuildPlayerCircleUiPreserveState = withStateSave(({ grimoireState }) => {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
   if (!playerCircle) return;
@@ -245,13 +238,12 @@ export function rebuildPlayerCircleUiPreserveState({ grimoireState }) {
   mountBluffTokensContainer({ grimoireState });
   repositionPlayers({ grimoireState });
   updateGrimoire({ grimoireState });
-  saveAppState({ grimoireState });
   renderSetupInfo({ grimoireState });
   requestAnimationFrame(() => {
     repositionPlayers({ grimoireState });
     updateGrimoire({ grimoireState });
   });
-}
+});
 document.addEventListener('DOMContentLoaded', () => {
   if ('ontouchstart' in window) {
     document.addEventListener('touchstart', (e) => {

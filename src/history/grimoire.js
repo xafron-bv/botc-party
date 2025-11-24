@@ -2,7 +2,7 @@ import { generateId, formatDateName } from '../../utils.js';
 import { saveHistories, history } from './index.js';
 import { updateGrimoire, setupGrimoire } from '../grimoire.js';
 import { renderSetupInfo } from '../utils/setup.js';
-import { saveAppState } from '../app.js';
+import { withStateSave } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
 import { initDayNightTracking } from '../dayNightTracking.js';
 import { processScriptData } from '../script.js';
@@ -237,7 +237,7 @@ export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
   }
 }
 
-export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList }) {
+export const restoreGrimoireFromEntry = withStateSave(async function ({ entry, grimoireState, grimoireHistoryList }) {
   if (!entry) return;
   try {
     grimoireState.isRestoringState = true;
@@ -262,7 +262,6 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
 
     updateGrimoire({ grimoireState });
     repositionPlayers({ grimoireState });
-    saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
 
     // Update End Game and setup visibility based on restored state
@@ -283,7 +282,7 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
   } finally {
     grimoireState.isRestoringState = false;
   }
-}
+});
 
 export function addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState }) {
   grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown);

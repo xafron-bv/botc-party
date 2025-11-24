@@ -1,7 +1,7 @@
 import { saveHistories, history } from './index.js';
 import { generateId } from '../../utils.js';
 import { renderSetupInfo } from '../utils/setup.js';
-import { saveAppState } from '../app.js';
+import { withStateSave } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
 
 function encodeScriptForShare(data) {
@@ -26,7 +26,7 @@ function triggerJsonDownload({ name, data }) {
   setTimeout(() => URL.revokeObjectURL(url), 250);
 }
 
-export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireState }) {
+export const handleScriptHistoryClick = withStateSave(async function ({ e, scriptHistoryList, grimoireState }) {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;
@@ -98,10 +98,9 @@ export async function handleScriptHistoryClick({ e, scriptHistoryList, grimoireS
     await processScriptData({ data: entry.data, addToHistory: false, grimoireState });
     grimoireState.scriptMetaName = entry.name || grimoireState.scriptMetaName || '';
     await displayScript({ data: grimoireState.scriptData, grimoireState });
-    saveAppState({ grimoireState });
     renderSetupInfo({ grimoireState });
   } catch (err) { console.error(err); }
-} export function handleScriptHistoryOnDown({ e }) {
+}); export function handleScriptHistoryOnDown({ e }) {
   const li = e.target.closest('li.history-item');
   if (!li) return;
   if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;

@@ -4,7 +4,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
-import { saveAppState } from './app.js';
+import { saveAppState, withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
@@ -102,7 +102,7 @@ export function hideCharacterModal({ grimoireState, clearBluffSelection = false 
   }
 }
 
-export function assignCharacter({ grimoireState, roleId }) {
+export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
 
   if (grimoireState._tempStorytellerSlotIndex !== undefined) {
     const slotIndex = grimoireState._tempStorytellerSlotIndex;
@@ -142,7 +142,6 @@ export function assignCharacter({ grimoireState, roleId }) {
     } catch (_) { }
     hideCharacterModal({ grimoireState });
     delete grimoireState._tempStorytellerSlotIndex;
-    saveAppState({ grimoireState });
     return;
   }
 
@@ -171,9 +170,8 @@ export function assignCharacter({ grimoireState, roleId }) {
     updateGrimoire({ grimoireState });
     renderSetupInfo({ grimoireState });
     hideCharacterModal({ grimoireState });
-    saveAppState({ grimoireState });
   }
-}
+});
 
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
   grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
@@ -361,11 +359,10 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
 
     includeModalTravellersCheckbox.removeEventListener('change', includeModalTravellersCheckbox._modalChangeHandler);
 
-    includeModalTravellersCheckbox._modalChangeHandler = () => {
+    includeModalTravellersCheckbox._modalChangeHandler = withStateSave(() => {
       grimoireState.includeModalTravellers = includeModalTravellersCheckbox.checked;
       populateCharacterGrid({ grimoireState });
-      saveAppState({ grimoireState });
-    };
+    });
 
     includeModalTravellersCheckbox.addEventListener('change', includeModalTravellersCheckbox._modalChangeHandler);
   }
@@ -380,13 +377,12 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   }
 }
 
-export function onIncludeTravellersChange({ grimoireState, includeTravellersCheckbox }) {
+export const onIncludeTravellersChange = withStateSave(({ grimoireState, includeTravellersCheckbox }) => {
   grimoireState.includeTravellers = !!includeTravellersCheckbox.checked;
   applyTravellerToggleAndRefresh({ grimoireState });
-  saveAppState({ grimoireState });
-}
+});
 
-export async function loadAllCharacters({ grimoireState }) {
+export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
   const loadStatus = document.getElementById('load-status');
   try {
     loadStatus.textContent = 'Loading all characters...';
@@ -432,7 +428,6 @@ export async function loadAllCharacters({ grimoireState }) {
     grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
     // Apply traveller toggle to compute allRoles and render
     applyTravellerToggleAndRefresh({ grimoireState });
-    saveAppState({ grimoireState });
 
     loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;
     loadStatus.className = 'status';
@@ -442,4 +437,4 @@ export async function loadAllCharacters({ grimoireState }) {
     loadStatus.textContent = `Failed to load all characters: ${error.message}`;
     loadStatus.className = 'error';
   }
-}
+});
