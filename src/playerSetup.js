@@ -963,8 +963,12 @@ export function initPlayerSetup({ grimoireState }) {
       return;
     }
     // Reset grimoire before starting number selection (direct function call)
-    // Do NOT reset the grimoire here anymore; just prepare selection overlays.
-    // We intentionally keep existing players, characters, reminders until an explicit reset.
+    // We reset the grimoire to ensure a clean state (clearing tokens, reminders, etc.)
+    // but we PRESERVE the bag we just built so it can be distributed.
+    const playerCountInput = document.getElementById('player-count');
+    const grimoireHistoryList = document.getElementById('grimoire-history-list');
+    resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput, preserveBag: true });
+
     if (playerSetupPanel) {
       playerSetupPanel.style.display = 'none';
       try { document.body.classList.remove('player-setup-open'); } catch (_) { }

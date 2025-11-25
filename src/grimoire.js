@@ -152,7 +152,7 @@ export function updateGrimoire({ grimoireState }) {
   positionTokenReminders();
   updateAllBluffTokens({ grimoireState });
 }
-export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, playerCountInput }) => {
+export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, playerCountInput, preserveBag = false }) => {
   const sel = grimoireState.playerSetup;
   if (sel && sel.selectionActive) {
     try {
@@ -167,7 +167,8 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
       if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';
     } catch (_) { }
   }
-  const playerCount = parseInt(playerCountInput.value, 10);
+
+  const playerCount = playerCountInput ? parseInt(playerCountInput.value, 10) : (grimoireState.players || []).length;
   if (!(playerCount >= 5 && playerCount <= 20)) {
     alert('Player count must be an integer from 5 to 20.');
     return;
@@ -185,7 +186,7 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
     if (!grimoireState.playerSetup) {
       grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
     } else {
-      grimoireState.playerSetup.bag = [];
+      if (!preserveBag) grimoireState.playerSetup.bag = [];
       grimoireState.playerSetup.assignments = [];
       grimoireState.playerSetup.revealed = false;
       delete grimoireState.playerSetup.selectionComplete;
