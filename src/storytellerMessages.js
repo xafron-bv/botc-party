@@ -1,6 +1,5 @@
 import { populateCharacterGrid } from './character.js';
-import { createCurvedLabelSvg } from './ui/svg.js';
-import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath } from '../utils.js';
 // Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
@@ -51,29 +50,14 @@ export function initStorytellerMessages({ grimoireState }) {
     tokenEl.style.borderRadius = '50%';
     tokenEl.style.backgroundColor = 'var(--token-surface-tint)';
 
-    const baseImage = resolveAssetPath('./assets/img/token.png');
-    if (roleId && grimoireState.allRoles[roleId]) {
-      const role = grimoireState.allRoles[roleId];
-      tokenEl.classList.remove('empty');
-      tokenEl.classList.add('has-character');
-      applyTokenArtwork({
-        tokenEl,
-        baseImage,
-        roleImage: resolveAssetPath(role.image || './assets/img/token.png')
-      });
-      const svg = createCurvedLabelSvg(`story-msg-slot-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
-      tokenEl.appendChild(svg);
-    } else {
-      tokenEl.classList.add('empty');
-      tokenEl.classList.remove('has-character');
-      applyTokenArtwork({
-        tokenEl,
-        baseImage,
-        roleImage: null
-      });
-      const svg = createCurvedLabelSvg('story-msg-slot-empty', 'None');
-      tokenEl.appendChild(svg);
-    }
+    const role = (roleId && grimoireState.allRoles[roleId]) ? grimoireState.allRoles[roleId] : null;
+    renderTokenElement({
+      tokenElement: tokenEl,
+      role: role,
+      baseImage: './assets/img/token.png',
+      labelIdPrefix: 'story-msg-slot',
+      dataset: { emptyLabel: 'None' }
+    });
   }
 
   function clearSlot(index) {

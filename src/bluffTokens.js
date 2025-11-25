@@ -1,10 +1,7 @@
-import { createCurvedLabelSvg } from './ui/svg.js';
-import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { withStateSave } from './app.js';
 import { setupInteractiveElement } from './utils/interaction.js';
-import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
-import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
 
@@ -28,10 +25,11 @@ export function createBluffToken({ grimoireState, index }) {
   token.className = 'bluff-token empty';
   token.dataset.bluffIndex = index;
 
-  applyTokenArtwork({
-    tokenEl: token,
+  renderTokenElement({
+    tokenElement: token,
+    role: null,
     baseImage: BLUFF_BASE_TOKEN_IMAGE,
-    roleImage: null
+    showLabel: false
   });
   token.style.position = 'relative';
   token.style.overflow = 'visible';
@@ -79,51 +77,30 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
     token.classList.add('has-character');
     token.dataset.character = character;
 
-    const characterImage = role.image ? resolveAssetPath(role.image) : null;
-    applyTokenArtwork({
-      tokenEl: token,
+    renderTokenElement({
+      tokenElement: token,
+      role: role,
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
-      roleImage: characterImage
+      labelIdPrefix: `bluff-role-arc`,
+      showAbilityIcon: true,
+      dataset: { bluffIndex: String(index) }
     });
-
-    let svg = token.querySelector('svg');
-    if (svg) {
-      svg.remove();
-    }
-    svg = createCurvedLabelSvg(`bluff-role-arc-${character}`, role.name);
-    token.appendChild(svg);
 
     const label = token.querySelector('.bluff-label');
     if (label) {
       label.style.display = 'none';
-    }
-
-    if (role.ability) {
-      const infoIcon = createAbilityInfoIcon({
-        ariaLabel: `Show ability for ${role.name}`,
-        title: `Show ability for ${role.name}`,
-        dataset: { bluffIndex: String(index) },
-        onActivate: ({ icon }) => {
-          showTouchAbilityPopup(icon, role.ability);
-        }
-      });
-      token.appendChild(infoIcon);
     }
   } else {
     token.classList.add('empty');
     token.classList.remove('has-character');
     delete token.dataset.character;
 
-    applyTokenArtwork({
-      tokenEl: token,
+    renderTokenElement({
+      tokenElement: token,
+      role: null,
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
-      roleImage: null
+      showLabel: false
     });
-
-    const svg = token.querySelector('svg');
-    if (svg) {
-      svg.remove();
-    }
 
     const label = token.querySelector('.bluff-label');
     if (label) {

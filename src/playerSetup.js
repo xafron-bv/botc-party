@@ -1,8 +1,7 @@
 import { withStateSave } from './app.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
-import { createCurvedLabelSvg } from './ui/svg.js';
+import { renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath } from '../utils.js';
-import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { canOpenModal } from './utils/validation.js';
 
 function getRoleFromAnySources(grimoireState, roleId) {
@@ -331,10 +330,11 @@ export function initPlayerSetup({ grimoireState }) {
 
         const tokenEl = document.createElement('label');
         tokenEl.className = 'token role';
-        applyTokenArtwork({
-          tokenEl,
+        renderTokenElement({
+          tokenElement: tokenEl,
+          role: role,
           baseImage: BASE_TOKEN_IMAGE,
-          roleImage: role.image ? resolveAssetPath(role.image) : null
+          labelIdPrefix: 'setup-role-arc'
         });
         tokenEl.style.position = 'relative';
         tokenEl.style.overflow = 'visible';
@@ -511,8 +511,6 @@ export function initPlayerSetup({ grimoireState }) {
         });
 
         checkbox.addEventListener('change', (e) => { e.stopPropagation(); if (isBagDisabled) { e.preventDefault(); return; } toggle(); });
-        const svg = createCurvedLabelSvg(`setup-role-arc-${role.id}`, role.name);
-        tokenEl.appendChild(svg);
         tokenEl.appendChild(checkbox);
         tokenEl.appendChild(countInput);
         if (setupWarningEl) tokenEl.appendChild(setupWarningEl);
@@ -647,22 +645,20 @@ export function initPlayerSetup({ grimoireState }) {
         if (!role) return;
 
         const tokenEl = document.createElement('div');
-        tokenEl.className = 'token traveller-token';
+        tokenEl.className = 'traveller-token token';
         tokenEl.style.width = '80px';
         tokenEl.style.height = '80px';
-        applyTokenArtwork({
-          tokenEl,
+        renderTokenElement({
+          tokenElement: tokenEl,
+          role: role,
           baseImage: BASE_TOKEN_IMAGE,
-          roleImage: role.image ? resolveAssetPath(role.image) : null
+          labelIdPrefix: 'picker-traveller'
         });
         tokenEl.style.cursor = 'pointer';
         tokenEl.style.position = 'relative';
         tokenEl.title = role.name;
         tokenEl.dataset.roleId = roleId;
         tokenEl.dataset.playerIndex = String(forPlayerIndex);
-
-        const svg = createCurvedLabelSvg(`picker-traveller-${roleId}-${Math.random().toString(36).slice(2)}`, role.name);
-        tokenEl.appendChild(svg);
 
         travellerGrid.appendChild(tokenEl);
       });
@@ -790,15 +786,14 @@ export function initPlayerSetup({ grimoireState }) {
             if (revealCharacterTokenEl) {
               revealCharacterTokenEl.innerHTML = '';
               const token = document.createElement('div');
-              token.className = 'token has-character';
-              applyTokenArtwork({
-                tokenEl: token,
+              token.className = 'token';
+              renderTokenElement({
+                tokenElement: token,
+                role: role,
                 baseImage: BASE_TOKEN_IMAGE,
-                roleImage: role.image ? resolveAssetPath(role.image) : null
+                labelIdPrefix: 'reveal-token'
               });
               token.title = role.name || '';
-              const svg = createCurvedLabelSvg(`reveal-token-${role.id}-${Math.random().toString(36).slice(2)}`, role.name || '');
-              token.appendChild(svg);
               revealCharacterTokenEl.appendChild(token);
             }
             if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
@@ -863,15 +858,14 @@ export function initPlayerSetup({ grimoireState }) {
             if (revealCharacterTokenEl) {
               revealCharacterTokenEl.innerHTML = '';
               const token = document.createElement('div');
-              token.className = 'token has-character';
-              applyTokenArtwork({
-                tokenEl: token,
+              token.className = 'token';
+              renderTokenElement({
+                tokenElement: token,
+                role: role,
                 baseImage: BASE_TOKEN_IMAGE,
-                roleImage: role.image ? resolveAssetPath(role.image) : null
+                labelIdPrefix: 'reveal-token'
               });
               token.title = role.name || '';
-              const svg = createCurvedLabelSvg(`reveal-token-${role.id}-${Math.random().toString(36).slice(2)}`, role.name || '');
-              token.appendChild(svg);
               revealCharacterTokenEl.appendChild(token);
             }
             if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';

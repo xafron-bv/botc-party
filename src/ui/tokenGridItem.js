@@ -1,6 +1,5 @@
 import { resolveAssetPath } from '../../utils.js';
-import { createCurvedLabelSvg } from './svg.js';
-import { applyTokenArtwork } from './tokenArtwork.js';
+import { renderTokenElement } from './tokenRendering.js';
 
 /**
  * Create a reusable token grid item element used by character and reminder pickers.
@@ -38,12 +37,17 @@ export function createTokenGridItem(options = {}) {
 
   const tokenEl = document.createElement('div');
   tokenEl.className = ['token', ...extraClasses].join(' ').trim();
-  applyTokenArtwork({
-    tokenEl,
+
+  renderTokenElement({
+    tokenElement: tokenEl,
+    role: image ? { image, name: label } : null,
     baseImage: resolveAssetPath(baseImage),
-    roleImage: image ? resolveAssetPath(image) : null,
+    labelIdPrefix: curvedId,
+    showLabel: !!label,
+    customLabel: label,
     activeColor: 'transparent'
   });
+
   tokenEl.style.position = 'relative';
   tokenEl.style.overflow = 'visible';
   tokenEl.style.zIndex = '1';
@@ -55,12 +59,6 @@ export function createTokenGridItem(options = {}) {
     Object.entries(data).forEach(([k, v]) => {
       if (v !== undefined && v !== null) tokenEl.dataset[k] = String(v);
     });
-  }
-
-  // Curved label overlay
-  if (label) {
-    const svg = createCurvedLabelSvg(curvedId, label);
-    tokenEl.appendChild(svg);
   }
 
   if (typeof onClick === 'function') {

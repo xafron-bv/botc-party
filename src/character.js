@@ -1,13 +1,12 @@
 import { displayScript } from './script.js';
 import { resolveAssetPath, normalizeKey } from '../utils.js';
-import { createCurvedLabelSvg } from './ui/svg.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { saveAppState, withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
-import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { renderTokenElement } from './ui/tokenRendering.js';
 import { ensureGrimoireUnlocked } from './grimoireLock.js';
 import { canOpenModal } from './utils/validation.js';
 
@@ -118,26 +117,27 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
         const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
         const existingSvg = slotEl.querySelector('svg');
         if (existingSvg) existingSvg.remove();
+
         if (role && role.image) {
           slotEl.classList.remove('empty');
           slotEl.classList.add('has-character');
-          applyTokenArtwork({
-            tokenEl: slotEl,
+          renderTokenElement({
+            tokenElement: slotEl,
+            role,
             baseImage: resolveAssetPath('./assets/img/token.png'),
-            roleImage: resolveAssetPath(role.image)
+            labelIdPrefix: `story-slot-${role.id}-${Date.now()}`
           });
-          const svg = createCurvedLabelSvg(`story-slot-${role.id}-${Date.now()}`, role.name);
-          slotEl.appendChild(svg);
         } else {
           slotEl.classList.add('empty');
           slotEl.classList.remove('has-character');
-          applyTokenArtwork({
-            tokenEl: slotEl,
+          renderTokenElement({
+            tokenElement: slotEl,
+            role: null,
             baseImage: resolveAssetPath('./assets/img/token.png'),
-            roleImage: null
+            labelIdPrefix: 'story-slot-empty',
+            showLabel: true,
+            customLabel: 'None'
           });
-          const svg = createCurvedLabelSvg('story-slot-empty', 'None');
-          slotEl.appendChild(svg);
         }
       }
     } catch (_) { }

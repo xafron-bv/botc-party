@@ -5,10 +5,9 @@ import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { CLICK_EXPAND_SUPPRESS_MS } from './constants.js';
 import { positionRadialStack } from './ui/layout.js';
-import { createCurvedLabelSvg } from './ui/svg.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
 import { setupInteractiveElement } from './utils/interaction.js';
-import { applyTokenArtwork } from './ui/tokenArtwork.js';
+import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
 
 export async function populateReminderTokenGrid({ grimoireState }) {
@@ -307,24 +306,29 @@ export function createReminderElement({
     element.className = `icon-reminder ${className}`.trim();
     element.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
 
-    applyTokenArtwork({
-      tokenEl: element,
-      baseImage: resolveAssetPath('assets/img/token.png'),
-      roleImage: image ? resolveAssetPath(image) : null
-    });
-
-    if (label) {
-      if (isCustomIcon) {
-        const textSpan = document.createElement('span');
-        textSpan.className = 'icon-reminder-content';
-        textSpan.textContent = label;
-        applyFontSize(textSpan, label);
-        element.appendChild(textSpan);
-      } else {
-        const svgId = `arc-${playerIndex}-${reminderIndex}`;
-        const svg = createCurvedLabelSvg(svgId, label);
-        element.appendChild(svg);
-      }
+    if (isCustomIcon && label) {
+      // For custom icons with text content (not curved label)
+      renderTokenElement({
+        tokenElement: element,
+        role: image ? { image, name: '' } : null,
+        baseImage: resolveAssetPath('assets/img/token.png'),
+        showLabel: false
+      });
+      const textSpan = document.createElement('span');
+      textSpan.className = 'icon-reminder-content';
+      textSpan.textContent = label;
+      applyFontSize(textSpan, label);
+      element.appendChild(textSpan);
+    } else {
+      // Standard reminder with curved label
+      renderTokenElement({
+        tokenElement: element,
+        role: image ? { image, name: label } : null,
+        baseImage: resolveAssetPath('assets/img/token.png'),
+        labelIdPrefix: `arc-${playerIndex}-${reminderIndex}`,
+        showLabel: !!label,
+        customLabel: label
+      });
     }
   } else if (type === 'text') {
     element = document.createElement('div');
