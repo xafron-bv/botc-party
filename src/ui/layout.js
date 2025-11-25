@@ -3,6 +3,7 @@
 import { minReminderSize } from '../constants.js';
 import { positionInfoIcons, positionTokenReminders } from './tooltip.js';
 import { isReminderVisible } from '../dayNightTracking.js';
+import { calculateRadialPosition } from '../utils/positioning.js';
 
 export function repositionPlayers({ grimoireState }) {
   const players = grimoireState.players;
@@ -50,11 +51,15 @@ export function repositionPlayers({ grimoireState }) {
   const listItems = circle.querySelectorAll('li');
   listItems.forEach((listItem, i) => {
     const angle = i * angleStep - Math.PI / 2;
-    const x = circleWidth / 2 + positionRadius * Math.cos(angle);
-    const y = circleHeight / 2 + positionRadius * Math.sin(angle);
+    const pos = calculateRadialPosition({
+      centerX: circleWidth / 2,
+      centerY: circleHeight / 2,
+      angle,
+      radius: positionRadius
+    });
     listItem.style.position = 'absolute';
-    listItem.style.left = `${x}px`;
-    listItem.style.top = `${y}px`;
+    listItem.style.left = pos.left;
+    listItem.style.top = pos.top;
     listItem.style.transform = 'translate(-50%, -50%)';
     listItem.dataset.angle = String(angle);
     const playerNameEl = listItem.querySelector('.player-name');
@@ -81,10 +86,13 @@ export function repositionPlayers({ grimoireState }) {
           const tokenEl = listItem.querySelector('.player-token');
           const tokenSize = tokenEl ? tokenEl.offsetWidth : (parseFloat(getComputedStyle(listItem).getPropertyValue('--player-token-size')) || 64);
           const outward = tokenSize / 2 + nameGapPx;
-          const dx = Math.cos(angle) * outward;
-          const dy = Math.sin(angle) * outward;
-          playerNameEl.style.left = `calc(50% + ${dx}px)`;
-          playerNameEl.style.top = `calc(50% + ${dy}px)`;
+          const namePos = calculateRadialPosition({
+            angle,
+            radius: outward,
+            usePercentage: true
+          });
+          playerNameEl.style.left = namePos.left;
+          playerNameEl.style.top = namePos.top;
         } catch (_e) { /* ignore positioning errors */ }
       } else {
         playerNameEl.style.setProperty('--name-rotate', '0deg');
@@ -130,9 +138,9 @@ export function positionRadialStack(li, count) {
   const tokenCenterY = tRect.top + tRect.height / 2;
   const vx = centerX - tokenCenterX;
   const vy = centerY - tokenCenterY;
+  const angle = Math.atan2(vy, vx);
   const runtimeRadius = Math.hypot(vx, vy);
-  const ux = vx / (runtimeRadius || 1);
-  const uy = vy / (runtimeRadius || 1);
+  
   const reminderDiameter = Math.max(minReminderSize, tokenEl.offsetWidth * 0.4);
   const reminderRadius = reminderDiameter / 2;
   const plusRadius = (tokenEl.offsetWidth * 0.3) / 2;
@@ -145,68 +153,54 @@ export function positionRadialStack(li, count) {
     hoverZone.className = 'reminder-hover-zone';
     li.querySelector('.reminders').appendChild(hoverZone);
   }
+
+  const centerOpts = {
+    centerX: tokenCenterX - liRect.left,
+    centerY: tokenCenterY - liRect.top,
+    angle
+  };
+
   if (isExpanded) {
     const firstReminderOffsetFromToken = tokenRadiusPx + edgeGap + reminderRadius;
     reminderEls.forEach((el, idx) => {
       const offset = firstReminderOffsetFromToken + idx * spacing;
-      const absX = tokenCenterX + ux * offset;
-      const absY = tokenCenterY + uy * offset;
-      const cx = absX - liRect.left;
-      const cy = absY - liRect.top;
-      el.style.left = `${cx}px`;
-      el.style.top = `${cy}px`;
+      const pos = calculateRadialPosition({ ...centerOpts, radius: offset });
+      el.style.left = pos.left;
+      el.style.top = pos.top;
       el.style.transform = 'translate(-50%, -50%)';
       el.style.zIndex = '5';
     });
-    const hoverZoneStart = tokenRadiusPx + edgeGap;
-    const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10);
-    const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd);
-    const hoverZoneWidth = hoverZoneEnd - hoverZoneStart;
-    const hoverZoneHeight = reminderDiameter;
-    const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
-    const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
-    const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
-    const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
-    const hx = hoverZoneCenterX - liRect.left;
-    const hy = hoverZoneCenterY - liRect.top;
-    hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
-    hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
-    hoverZone.style.width = `${hoverZoneWidth}px`;
-    hoverZone.style.height = `${hoverZoneHeight}px`;
-    hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
-    hoverZone.style.transformOrigin = 'center center';
   } else {
     const collapsedOffset = tokenRadiusPx + edgeGap + reminderRadius;
     const collapsedSpacing = reminderRadius * 0.3;
     reminderEls.forEach((el, idx) => {
       const offset = collapsedOffset + idx * collapsedSpacing;
-      const absX = tokenCenterX + ux * offset;
-      const absY = tokenCenterY + uy * offset;
-      const cx = absX - liRect.left;
-      const cy = absY - liRect.top;
-      el.style.left = `${cx}px`;
-      el.style.top = `${cy}px`;
+      const pos = calculateRadialPosition({ ...centerOpts, radius: offset });
+      el.style.left = pos.left;
+      el.style.top = pos.top;
       el.style.transform = 'translate(-50%, -50%) scale(0.8)';
       el.style.zIndex = '2';
     });
-    const hoverZoneStart = tokenRadiusPx + edgeGap;
-    const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10);
-    const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd);
-    const hoverZoneWidth = hoverZoneEnd - hoverZoneStart;
-    const hoverZoneHeight = reminderDiameter;
-    const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
-    const hoverZoneCenterX = tokenCenterX + ux * hoverZoneCenterOffset;
-    const hoverZoneCenterY = tokenCenterY + uy * hoverZoneCenterOffset;
-    const rotationAngle = Math.atan2(uy, ux) * (180 / Math.PI);
-    const hx = hoverZoneCenterX - liRect.left;
-    const hy = hoverZoneCenterY - liRect.top;
-    hoverZone.style.left = `${hx - hoverZoneWidth / 2}px`;
-    hoverZone.style.top = `${hy - hoverZoneHeight / 2}px`;
-    hoverZone.style.width = `${hoverZoneWidth}px`;
-    hoverZone.style.height = `${hoverZoneHeight}px`;
-    hoverZone.style.transform = `translate(0, 0) rotate(${rotationAngle}deg)`;
-    hoverZone.style.transformOrigin = 'center center';
   }
+
+  // Hover zone (common)
+  const hoverZoneStart = tokenRadiusPx + edgeGap;
+  const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10);
+  const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd);
+  const hoverZoneWidth = hoverZoneEnd - hoverZoneStart;
+  const hoverZoneHeight = reminderDiameter;
+  const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
+  
+  const hoverPos = calculateRadialPosition({ ...centerOpts, radius: hoverZoneCenterOffset });
+  const rotationAngle = angle * (180 / Math.PI);
+  
+  hoverZone.style.left = hoverPos.left;
+  hoverZone.style.top = hoverPos.top;
+  hoverZone.style.width = `${hoverZoneWidth}px`;
+  hoverZone.style.height = `${hoverZoneHeight}px`;
+  hoverZone.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+  hoverZone.style.transformOrigin = 'center center';
+
   const plus = li.querySelector('.reminder-placeholder');
   if (plus) {
     if (isExpanded) {
@@ -215,13 +209,9 @@ export function positionRadialStack(li, count) {
       if (count > 0) {
         offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + (count - 1) * spacing + reminderRadius + smallGap + plusRadius;
       }
-      const targetOffset = offsetFromEdge;
-      const absPX = tokenCenterX + ux * targetOffset;
-      const absPY = tokenCenterY + uy * targetOffset;
-      const px = absPX - liRect.left;
-      const py = absPY - liRect.top;
-      plus.style.left = `${px}px`;
-      plus.style.top = `${py}px`;
+      const pos = calculateRadialPosition({ ...centerOpts, radius: offsetFromEdge });
+      plus.style.left = pos.left;
+      plus.style.top = pos.top;
       plus.style.transform = 'translate(-50%, -50%)';
       plus.style.zIndex = '6';
     } else {
@@ -233,12 +223,9 @@ export function positionRadialStack(li, count) {
         const lastCenter = firstCenter + (count - 1) * collapsedSpacing;
         collapsedOffset = lastCenter + reminderRadius + smallGap + plusRadius;
       }
-      const absPX = tokenCenterX + ux * collapsedOffset;
-      const absPY = tokenCenterY + uy * collapsedOffset;
-      const px = absPX - liRect.left;
-      const py = absPY - liRect.top;
-      plus.style.left = `${px}px`;
-      plus.style.top = `${py}px`;
+      const pos = calculateRadialPosition({ ...centerOpts, radius: collapsedOffset });
+      plus.style.left = pos.left;
+      plus.style.top = pos.top;
       plus.style.transform = 'translate(-50%, -50%) scale(0.9)';
       plus.style.zIndex = '6';
     }

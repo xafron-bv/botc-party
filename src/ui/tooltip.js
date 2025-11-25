@@ -1,5 +1,7 @@
 // Tooltip and touch ability popup helpers (browser-native ES module)
 
+import { calculateRadialPosition } from '../utils/positioning.js';
+
 export function positionTooltip(targetElement, tooltip) {
   const rect = targetElement.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
@@ -93,13 +95,15 @@ export function positionInfoIcons() {
     const tokenRadius = tokenEl ? tokenEl.offsetWidth / 2 : 50;
     const infoRadius = tokenRadius * 1.2;
 
-    // Calculate position on the outer circle
-    const x = infoRadius * Math.cos(angle);
-    const y = infoRadius * Math.sin(angle);
+    const pos = calculateRadialPosition({
+      angle,
+      radius: infoRadius,
+      usePercentage: true
+    });
 
     // Position the info icon
-    icon.style.left = `calc(50% + ${x}px)`;
-    icon.style.top = `calc(50% + ${y}px)`;
+    icon.style.left = pos.left;
+    icon.style.top = pos.top;
   });
 }
 
@@ -136,11 +140,14 @@ export function positionTokenReminders() {
       const radialOffset = offsetIndex * spacing;
       const radialMagnitude = baseRadius + radialOffset;
 
-      const x = radialMagnitude * Math.cos(finalAngle);
-      const y = radialMagnitude * Math.sin(finalAngle);
+      const pos = calculateRadialPosition({
+        angle: finalAngle,
+        radius: radialMagnitude,
+        usePercentage: true
+      });
 
-      reminder.style.left = `calc(50% + ${x}px)`;
-      reminder.style.top = `calc(50% + ${y}px)`;
+      reminder.style.left = pos.left;
+      reminder.style.top = pos.top;
     });
   });
 }
