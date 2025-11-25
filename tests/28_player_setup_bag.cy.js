@@ -386,5 +386,39 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#close-number-picker').click({ force: true });
   });
 
+  it('clears dead status and reminders when starting a new selection', () => {
+    // 1. Set up some dirty state directly in grimoireState
+    cy.window().then((win) => {
+      const p1 = win.grimoireState.players[0];
+      p1.dead = true;
+      
+      const p2 = win.grimoireState.players[1];
+      p2.reminders.push({
+        text: 'Test Reminder',
+        type: 'token',
+        id: 'test-reminder-1'
+      });
+    });
 
+    // 2. Open Player Setup and Start Selection
+    cy.get('#open-player-setup').click();
+    cy.fillBag(); // Helper to fill bag for 10 players (from beforeEach)
+    cy.get('#player-setup-panel .start-selection').click();
+
+    // 3. Verify state is reset
+    cy.window().then((win) => {
+      const p1 = win.grimoireState.players[0];
+      expect(p1.dead).to.be.false;
+      
+      const p2 = win.grimoireState.players[1];
+      expect(p2.reminders).to.have.length(0);
+
+      // Verify bag is preserved (10 players)
+      expect(win.grimoireState.playerSetup.bag).to.have.length(10);
+    });
+
+    // Also verify UI elements are gone
+    cy.get('#player-circle li').eq(0).find('.player-token').should('not.have.class', 'is-dead');
+    cy.get('#player-circle li').eq(1).find('.token-reminder').should('not.exist');
+  });
 });
