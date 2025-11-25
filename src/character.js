@@ -9,6 +9,7 @@ import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { ensureGrimoireUnlocked } from './grimoireLock.js';
+import { canOpenModal } from './utils/validation.js';
 
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid');
@@ -336,16 +337,15 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
   const characterModal = document.getElementById('character-modal');
   const includeModalTravellersCheckbox = document.getElementById('include-travellers-in-modal');
 
-  if (grimoireState && grimoireState.grimoireHidden) {
+  if (!canOpenModal({
+    grimoireState,
+    requiresUnlocked: true,
+    requiresScript: true,
+    requiresNotHidden: true
+  })) {
     return;
   }
-  if (!ensureGrimoireUnlocked({ grimoireState })) {
-    return;
-  }
-  if (!grimoireState.scriptData) {
-    alert('Please load a script first.');
-    return;
-  }
+
   grimoireState.selectedPlayerIndex = playerIndex;
 
   const modalTitle = characterModal.querySelector('h3');
