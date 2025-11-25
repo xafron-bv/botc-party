@@ -11,11 +11,6 @@ describe('Reset Grimoire meta state', () => {
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
 
-    // Lock the grimoire to ensure reset clears the state
-    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire').click();
-    cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
-    cy.get('body').should('have.class', 'grimoire-locked');
-
     // Open player setup and fill bag to ensure >0 entries
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
@@ -26,6 +21,11 @@ describe('Reset Grimoire meta state', () => {
       expect(checked.length).to.be.greaterThan(0);
     });
     cy.get('#player-setup-panel .close-button, #close-player-setup').click({ multiple: true, force: true });
+
+    // Lock the grimoire to ensure reset clears the state
+    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire').click();
+    cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
+    cy.get('body').should('have.class', 'grimoire-locked');
 
     // Declare winner via button
     cy.get('#good-wins-btn').click({ force: true });

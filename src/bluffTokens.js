@@ -6,7 +6,7 @@ import { setupTouchHandling } from './utils/touchHandlers.js';
 import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { resolveAssetPath } from '../utils.js';
-import { ensureGrimoireUnlocked } from './grimoireLock.js';
+import { canOpenModal } from './utils/validation.js';
 
 const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token.png');
 
@@ -43,13 +43,15 @@ export function createBluffToken({ grimoireState, index }) {
 
   let touchOccurred = false;
 
-  const canInteract = () => grimoireState.mode === 'player' || !grimoireState.winner;
-
   token.addEventListener('click', (e) => {
     if (e.target.closest('.ability-info-icon')) {
       return;
     }
-    if (!canInteract()) {
+    if (!canOpenModal({
+      grimoireState,
+      requiresUnlocked: true,
+      requiresNoWinner: true
+    })) {
       return;
     }
     if (touchOccurred) {
@@ -57,17 +59,19 @@ export function createBluffToken({ grimoireState, index }) {
       return;
     }
     e.stopPropagation();
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     openBluffCharacterModal({ grimoireState, bluffIndex: index });
   });
 
   setupTouchHandling({
     element: token,
     onTap: () => {
-      if (!canInteract()) {
+      if (!canOpenModal({
+        grimoireState,
+        requiresUnlocked: true,
+        requiresNoWinner: true
+      })) {
         return;
       }
-      if (!ensureGrimoireUnlocked({ grimoireState })) return;
       openBluffCharacterModal({ grimoireState, bluffIndex: index });
     },
     setTouchOccurred: (value) => { touchOccurred = value; },
@@ -155,15 +159,16 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
 }
 
 export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
-  if (!ensureGrimoireUnlocked({ grimoireState })) return;
+  if (!canOpenModal({
+    grimoireState,
+    requiresUnlocked: true,
+    requiresScript: true
+  })) {
+    return;
+  }
   const characterModal = document.getElementById('character-modal');
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
   const characterSearch = document.getElementById('character-search');
-
-  if (!grimoireState.scriptData) {
-    alert('Please load a script first.');
-    return;
-  }
 
   grimoireState.selectedBluffIndex = bluffIndex;
 
@@ -211,7 +216,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
 }
 
 export const assignBluffCharacter = withStateSave(function ({ grimoireState, roleId }) {
-  if (!ensureGrimoireUnlocked({ grimoireState })) {
+  if (!canOpenModal({ grimoireState, requiresUnlocked: true })) {
     hideCharacterModal({ grimoireState, clearBluffSelection: true });
     return;
   }
