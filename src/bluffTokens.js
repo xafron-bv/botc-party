@@ -2,7 +2,7 @@ import { createCurvedLabelSvg } from './ui/svg.js';
 import { showTouchAbilityPopup } from './ui/tooltip.js';
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { withStateSave } from './app.js';
-import { setupTouchHandling } from './utils/touchHandlers.js';
+import { setupInteractiveElement } from './utils/interaction.js';
 import { createAbilityInfoIcon } from './ui/abilityInfoIcon.js';
 import { applyTokenArtwork } from './ui/tokenArtwork.js';
 import { resolveAssetPath } from '../utils.js';
@@ -41,28 +41,7 @@ export function createBluffToken({ grimoireState, index }) {
   label.textContent = `Bluff ${index + 1}`;
   token.appendChild(label);
 
-  let touchOccurred = false;
-
-  token.addEventListener('click', (e) => {
-    if (e.target.closest('.ability-info-icon')) {
-      return;
-    }
-    if (!canOpenModal({
-      grimoireState,
-      requiresUnlocked: true,
-      requiresNoWinner: true
-    })) {
-      return;
-    }
-    if (touchOccurred) {
-      touchOccurred = false;
-      return;
-    }
-    e.stopPropagation();
-    openBluffCharacterModal({ grimoireState, bluffIndex: index });
-  });
-
-  setupTouchHandling({
+  setupInteractiveElement({
     element: token,
     onTap: () => {
       if (!canOpenModal({
@@ -74,7 +53,6 @@ export function createBluffToken({ grimoireState, index }) {
       }
       openBluffCharacterModal({ grimoireState, bluffIndex: index });
     },
-    setTouchOccurred: (value) => { touchOccurred = value; },
     shouldSkip: (e) => {
       return !!e.target.closest('.ability-info-icon');
     }

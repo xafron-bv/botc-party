@@ -3,32 +3,35 @@
  */
 
 // WeakMap to store existing touch handlers for each element
-// This allows automatic cleanup when setupTouchHandling is called multiple times on the same element
+// This allows automatic cleanup when setupInteractiveElement is called multiple times on the same element
 const elementHandlers = new WeakMap();
 
 /**
- * Sets up unified mouse and touch handling with long press detection.
- * Can handle simple tap/click-only interactions or complex tap/click + long press patterns.
- * Works for both touch devices and desktop (mouse).
+ * Standardizes interactive element setup for both mouse and touch.
+ * Handles click suppression after touch, long press, and tap events.
  *
- * @param {Object} config Configuration object
- * @param {HTMLElement} config.element - The element to attach handlers to
- * @param {Function} config.onTap - Callback for tap/click actions (< longPressDelay, no movement)
- * @param {Function} [config.onLongPress] - Optional callback for long press/right-click actions (>= longPressDelay, no movement)
- * @param {Function} config.setTouchOccurred - Callback to track touch state for click prevention
- * @param {Function} [config.shouldSkip] - Optional callback to determine if interaction should be skipped
- * @param {number} [config.longPressDelay=500] - Delay in ms before long press triggers
- * @param {boolean} [config.showPressFeedback=false] - Whether to add 'press-feedback' class during long press
+ * @param {Object} config
+ * @param {HTMLElement} config.element - The element to make interactive
+ * @param {Function} config.onTap - Callback for tap/click
+ * @param {Function} [config.onLongPress] - Callback for long press/context menu
+ * @param {Function} [config.shouldSkip] - Callback to determine if interaction should be skipped
+ * @param {boolean} [config.showPressFeedback=false] - Whether to show visual feedback on press
+ * @param {number} [config.longPressDelay=500] - Delay for long press
+ * @param {boolean} [config.stopClickPropagation=true] - Whether to stop propagation of click events
+ * @param {Function} [config.setTouchOccurred] - Optional callback to track touch state
+ * @param {number} [config.actionDelay=50] - Delay before triggering tap action
+ * @returns {Function} Cleanup function to remove listeners
  */
-export function setupTouchHandling({
+export function setupInteractiveElement({
   element,
   onTap,
   onLongPress,
-  setTouchOccurred,
   shouldSkip,
+  showPressFeedback = false,
   longPressDelay = 500,
-  actionDelay = 50,
-  showPressFeedback = false
+  stopClickPropagation = true,
+  setTouchOccurred,
+  actionDelay = 50
 }) {
   const isTouchDevice = 'ontouchstart' in window;
 
@@ -196,6 +199,9 @@ export function setupTouchHandling({
         return;
       }
       if (onTap) {
+        if (stopClickPropagation && event && event.stopPropagation) {
+          event.stopPropagation();
+        }
         onTap(event, element);
         if (element && element.dataset) {
           element.dataset.ignoreNextSyntheticClick = 'false';
@@ -268,6 +274,9 @@ export function setupTouchHandling({
       }
 
       if (onTap) {
+        if (stopClickPropagation && e && e.stopPropagation) {
+          e.stopPropagation();
+        }
         onTap(e, element);
       }
     };
@@ -312,4 +321,3 @@ export function setupTouchHandling({
     };
   }
 }
-
