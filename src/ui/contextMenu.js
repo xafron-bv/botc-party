@@ -3,7 +3,7 @@ import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 import { openCustomReminderEditModal } from '../reminder.js';
-import { attachTouchHandler, createSafeClickHandler } from '../utils/eventHandlers.js';
+import { createContextMenu, positionContextMenu } from './menuFactory.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   if (!ensureGrimoireUnlocked({ grimoireState })) return;
@@ -16,88 +16,91 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   const addBeforeBtn = menu.querySelector('#player-menu-add-before');
   const addAfterBtn = menu.querySelector('#player-menu-add-after');
   const removeBtn = menu.querySelector('#player-menu-remove');
+  
   [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
     btn.disabled = false;
     btn.classList.remove('disabled');
   });
-  if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
-  if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
-  menu.style.display = 'block';
-  const margin = 6;
-  requestAnimationFrame(() => {
-    const rect = menu.getBoundingClientRect();
-    let left = x;
-    let top = y;
-    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
-    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
-  });
+  
+  if (!canAdd) { 
+    addBeforeBtn.disabled = true; 
+    addAfterBtn.disabled = true; 
+    addBeforeBtn.classList.add('disabled'); 
+    addAfterBtn.classList.add('disabled'); 
+  }
+  if (!canRemove) { 
+    removeBtn.disabled = true; 
+    removeBtn.classList.add('disabled'); 
+  }
+  
+  positionContextMenu(menu, x, y);
 } export function ensureReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;
-  const menu = document.createElement('div');
-  menu.id = 'reminder-context-menu';
-  const editBtn = document.createElement('button');
-  editBtn.id = 'reminder-menu-edit';
-  editBtn.textContent = 'Edit Reminder';
-  const deleteBtn = document.createElement('button');
-  deleteBtn.id = 'reminder-menu-delete';
-  deleteBtn.textContent = 'Delete Reminder';
 
-  editBtn.addEventListener('click', createSafeClickHandler(withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
-    const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
-    hideReminderContextMenu({ grimoireState });
-    if (playerIndex < 0 || reminderIndex < 0) return;
-    const player = grimoireState.players[playerIndex];
-    const reminders = player && player.reminders;
-    const rem = (reminders && reminders[reminderIndex]) || null;
-    if (!rem) return;
+  const buttons = [
+    {
+      id: 'reminder-menu-edit',
+      label: 'Edit Reminder',
+      onClick: withStateSave(() => {
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
+        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
+        hideReminderContextMenu({ grimoireState });
+        if (playerIndex < 0 || reminderIndex < 0) return;
+        const player = grimoireState.players[playerIndex];
+        const reminders = player && player.reminders;
+        const rem = (reminders && reminders[reminderIndex]) || null;
+        if (!rem) return;
 
-    const isCustomReminder = rem.id === 'custom-note' || rem.type === 'text';
-    const current = rem.label || rem.value || '';
+        const isCustomReminder = rem.id === 'custom-note' || rem.type === 'text';
+        const current = rem.label || rem.value || '';
 
-    if (isCustomReminder) {
-      openCustomReminderEditModal({
-        grimoireState,
-        playerIndex,
-        reminderIndex,
-        existingText: current
-      });
-      return;
+        if (isCustomReminder) {
+          openCustomReminderEditModal({
+            grimoireState,
+            playerIndex,
+            reminderIndex,
+            existingText: current
+          });
+          return;
+        }
+
+        const next = prompt('Edit reminder', current);
+        if (next !== null) {
+          if (rem.type === 'icon') {
+            rem.label = next;
+          } else {
+            // Text reminder
+            rem.value = next;
+            if (rem.label !== undefined) rem.label = next;
+          }
+          updateGrimoire({ grimoireState });
+        }
+      })
+    },
+    {
+      id: 'reminder-menu-delete',
+      label: 'Delete Reminder',
+      onClick: withStateSave(() => {
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
+        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
+        hideReminderContextMenu({ grimoireState });
+        if (playerIndex < 0 || reminderIndex < 0) return;
+        if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
+        grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
+
+        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+          saveCurrentPhaseState(grimoireState);
+        }
+
+        updateGrimoire({ grimoireState });
+      })
     }
+  ];
 
-    const next = prompt('Edit reminder', current);
-    if (next !== null) {
-      if (rem.type === 'icon') {
-        rem.label = next;
-      } else {
-        // Text reminder
-        rem.value = next;
-        if (rem.label !== undefined) rem.label = next;
-      }
-      updateGrimoire({ grimoireState });
-    }
-  })));
-
-  deleteBtn.addEventListener('click', createSafeClickHandler(withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
-    const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
-    hideReminderContextMenu({ grimoireState });
-    if (playerIndex < 0 || reminderIndex < 0) return;
-    if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
-    grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
-
-    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-      saveCurrentPhaseState(grimoireState);
-    }
-
-    updateGrimoire({ grimoireState });
-  })));
-
-  menu.appendChild(editBtn);
-  menu.appendChild(deleteBtn);
-  document.body.appendChild(menu);
+  const menu = createContextMenu({
+    id: 'reminder-context-menu',
+    buttons
+  });
 
   grimoireState.reminderContextMenu = menu;
   return menu;
@@ -115,61 +118,57 @@ export function hidePlayerContextMenu({ grimoireState }) {
 }
 export function ensurePlayerContextMenu({ grimoireState }) {
   if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
-  const menu = document.createElement('div');
-  menu.id = 'player-context-menu';
-  const addBeforeBtn = document.createElement('button');
-  addBeforeBtn.id = 'player-menu-add-before';
-  addBeforeBtn.textContent = 'Add Player Before';
-  const addAfterBtn = document.createElement('button');
-  addAfterBtn.id = 'player-menu-add-after';
-  addAfterBtn.textContent = 'Add Player After';
-  const removeBtn = document.createElement('button');
-  removeBtn.id = 'player-menu-remove';
-  removeBtn.textContent = 'Remove Player';
 
-  // Helper function to handle button actions only on proper tap/click
-  const addButtonHandler = (button, action) => {
-    attachTouchHandler(button, action);
-  };
+  const buttons = [
+    {
+      id: 'player-menu-add-before',
+      label: 'Add Player Before',
+      onClick: withStateSave(() => {
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
+        const idx = grimoireState.contextMenuTargetIndex;
+        hidePlayerContextMenu({ grimoireState });
+        if (idx < 0) return;
+        if (grimoireState.players.length >= 20) return; // clamp to max
+        const newName = `Player ${grimoireState.players.length + 1}`;
+        const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
+        grimoireState.players.splice(idx, 0, newPlayer);
+        rebuildPlayerCircleUiPreserveState({ grimoireState });
+      })
+    },
+    {
+      id: 'player-menu-add-after',
+      label: 'Add Player After',
+      onClick: withStateSave(() => {
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
+        const idx = grimoireState.contextMenuTargetIndex;
+        hidePlayerContextMenu({ grimoireState });
+        if (idx < 0) return;
+        if (grimoireState.players.length >= 20) return; // clamp to max
+        const newName = `Player ${grimoireState.players.length + 1}`;
+        const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
+        grimoireState.players.splice(idx + 1, 0, newPlayer);
+        rebuildPlayerCircleUiPreserveState({ grimoireState });
+      })
+    },
+    {
+      id: 'player-menu-remove',
+      label: 'Remove Player',
+      onClick: withStateSave(() => {
+        if (!ensureGrimoireUnlocked({ grimoireState })) return;
+        const idx = grimoireState.contextMenuTargetIndex;
+        hidePlayerContextMenu({ grimoireState });
+        if (idx < 0) return;
+        if (grimoireState.players.length <= 5) return; // keep within 5..20
+        grimoireState.players.splice(idx, 1);
+        rebuildPlayerCircleUiPreserveState({ grimoireState });
+      })
+    }
+  ];
 
-  addButtonHandler(addBeforeBtn, withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length >= 20) return; // clamp to max
-    const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
-    grimoireState.players.splice(idx, 0, newPlayer);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  }));
-
-  addButtonHandler(addAfterBtn, withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length >= 20) return; // clamp to max
-    const newName = `Player ${grimoireState.players.length + 1}`;
-    const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
-    grimoireState.players.splice(idx + 1, 0, newPlayer);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  }));
-
-  addButtonHandler(removeBtn, withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length <= 5) return; // keep within 5..20
-    grimoireState.players.splice(idx, 1);
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
-  }));
-
-  menu.appendChild(addBeforeBtn);
-  menu.appendChild(addAfterBtn);
-  menu.appendChild(removeBtn);
-  document.body.appendChild(menu);
+  const menu = createContextMenu({
+    id: 'player-context-menu',
+    buttons
+  });
 
   grimoireState.playerContextMenu = menu;
   return menu;
@@ -178,17 +177,7 @@ export function showReminderContextMenu({ grimoireState, x, y, playerIndex, remi
   if (!ensureGrimoireUnlocked({ grimoireState })) return;
   const menu = ensureReminderContextMenu({ grimoireState });
   grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
-  menu.style.display = 'block';
-  const margin = 6;
-  requestAnimationFrame(() => {
-    const rect = menu.getBoundingClientRect();
-    let left = x;
-    let top = y;
-    if (left + rect.width > window.innerWidth - margin) left = Math.max(margin, window.innerWidth - rect.width - margin);
-    if (top + rect.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - rect.height - margin);
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
-  });
+  positionContextMenu(menu, x, y);
 }
 
 export function closeMenusOnOutsideEvent(e) {
