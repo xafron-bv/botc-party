@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-11-25T18:42:21.427Z",
+  "generatedAt": "2025-11-25T18:49:59.780Z",
   "files": [
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
@@ -246,9 +246,9 @@
     "./src/ui/touchHelpers.js",
     "./src/ui/tour.js",
     "./src/utils/eventHandlers.js",
+    "./src/utils/interaction.js",
     "./src/utils/positioning.js",
     "./src/utils/setup.js",
-    "./src/utils/touchHandlers.js",
     "./src/utils/validation.js",
     "./styles.css",
     "./styles/bluff-tokens.css",

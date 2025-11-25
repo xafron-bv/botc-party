@@ -3,7 +3,7 @@ import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } fro
 import { getVisibleRemindersCount, openReminderTokenModal, openTextReminderModal } from '../reminder.js';
 import { showPlayerContextMenu } from './contextMenu.js';
 import { positionRadialStack } from './layout.js';
-import { setupTouchHandling } from '../utils/touchHandlers.js';
+import { setupInteractiveElement } from '../utils/interaction.js';
 import { createSafeClickHandler } from '../utils/eventHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
@@ -68,7 +68,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
 
   // Touch handling for player token
   if ('ontouchstart' in window) {
-    setupTouchHandling({
+    setupInteractiveElement({
       element: tokenEl,
       onTap: (e) => {
         handlePlayerElementTouch({
