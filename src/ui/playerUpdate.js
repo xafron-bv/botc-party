@@ -1,8 +1,6 @@
 import { resolveAssetPath, getRoleById } from '../../utils.js';
-import { createCurvedLabelSvg, createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './svg.js';
-import { createAbilityInfoIcon } from './abilityInfoIcon.js';
-import { applyTokenArtwork } from './tokenArtwork.js';
-import { showTouchAbilityPopup } from './tooltip.js';
+import { createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './svg.js';
+import { renderTokenElement } from './tokenRendering.js';
 import { setupInteractiveElement } from '../utils/interaction.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { showPlayerContextMenu } from './contextMenu.js';
@@ -57,50 +55,25 @@ export function updatePlayerElement({
   const shouldShowCharacter = !grimoireState.grimoireHidden || (isSelectionActive && isTraveller);
   const baseTokenImage = resolveAssetPath('assets/img/token.png');
 
-  if (shouldShowCharacter && player.character) {
-    if (role) {
-      const roleImage = role.image ? resolveAssetPath(role.image) : null;
-      applyTokenArtwork({
-        tokenEl: tokenDiv,
-        baseImage: baseTokenImage,
-        roleImage
-      });
-      tokenDiv.classList.add('has-character');
-      if (charNameDiv) charNameDiv.textContent = role.name;
-      const svg = createCurvedLabelSvg(`player-arc-${playerIndex}`, role.name);
-      tokenDiv.appendChild(svg);
-      if (role.ability && shouldShowCharacter) {
-        const infoIcon = createAbilityInfoIcon({
-          ariaLabel: `Show ability for ${role.name}`,
-          title: `Show ability for ${role.name}`,
-          dataset: { playerIndex: String(playerIndex) },
-          onActivate: ({ icon }) => {
-            showTouchAbilityPopup(icon, role.ability);
-          }
-        });
-        li.appendChild(infoIcon); // Append to li, not tokenDiv
-      }
-    } else {
-      applyTokenArtwork({
-        tokenEl: tokenDiv,
-        baseImage: baseTokenImage,
-        roleImage: null
-      });
-      tokenDiv.classList.remove('has-character');
-      if (charNameDiv) charNameDiv.textContent = '';
-      const arc = tokenDiv.querySelector('.icon-reminder-svg');
-      if (arc) arc.remove();
-    }
-  } else {
-    applyTokenArtwork({
-      tokenEl: tokenDiv,
+  if (shouldShowCharacter && player.character && role) {
+    renderTokenElement({
+      tokenElement: tokenDiv,
+      role,
       baseImage: baseTokenImage,
-      roleImage: null
+      labelIdPrefix: 'player-arc',
+      showAbilityIcon: shouldShowCharacter,
+      iconContainer: li,
+      dataset: { playerIndex: String(playerIndex) }
     });
-    tokenDiv.classList.remove('has-character');
+    if (charNameDiv) charNameDiv.textContent = role.name;
+  } else {
+    renderTokenElement({
+      tokenElement: tokenDiv,
+      role: null,
+      baseImage: baseTokenImage,
+      showLabel: false
+    });
     if (charNameDiv) charNameDiv.textContent = '';
-    const arc = tokenDiv.querySelector('.icon-reminder-svg');
-    if (arc) arc.remove();
   }
   const overlay = document.createElement('div');
   overlay.className = 'death-overlay';
