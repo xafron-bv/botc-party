@@ -3,7 +3,7 @@ import { resolveAssetPath, normalizeKey } from '../utils.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
-import { saveAppState, withStateSave } from './app.js';
+import { withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 import { renderTokenElement } from './ui/tokenRendering.js';

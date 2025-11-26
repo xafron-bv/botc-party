@@ -14,7 +14,7 @@ function encodeScriptForShare(data) {
 }
 
 function triggerJsonDownload({ name, data }) {
-  const safeName = (name || 'script').replace(/[^a-z0-9_\-]+/gi, '_');
+  const safeName = (name || 'script').replace(/[^a-z0-9_-]+/gi, '_');
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

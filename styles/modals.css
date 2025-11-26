@@ -24,6 +24,17 @@
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  animation: modalFadeIn var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Make Storyteller message overlay fully opaque and non-blurred */
@@ -61,6 +72,18 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  animation: modalContentScale var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalContentScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(var(--space-4));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-footer {

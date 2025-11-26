@@ -14,9 +14,11 @@
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.32s ease;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1800;
   overflow: hidden;
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
 }
 body.character-panel-open #character-panel { transform: translateX(0); }
 
@@ -91,9 +93,25 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 .panel-controls .night-phase-buttons { display:flex; flex-wrap:wrap; gap:10px; align-items:center; font-size:13px; }
 .panel-controls .night-phase-buttons label { margin:0; }
 
-#character-panel .panel-body { flex:1 1 auto; overflow-y:auto; padding: 4px 18px 24px 18px; }
-#character-panel #character-sheet { max-height:none; padding-right:4px; }
-#character-panel #character-sheet .role { cursor:pointer; }
+#character-panel .panel-body { 
+  flex: 1 1 auto; 
+  overflow-y: auto; 
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: var(--space-1) var(--space-4) var(--space-6) var(--space-4); 
+}
+#character-panel #character-sheet { 
+  max-height: none; 
+  padding-right: var(--space-1); 
+}
+#character-panel #character-sheet .role { 
+  cursor: pointer;
+  /* Add touch feedback */
+  transition: background-color var(--transition-fast);
+}
+#character-panel #character-sheet .role:active {
+  background-color: rgba(255, 255, 255, 0.05);
+}
 
 .script-meta {
   background: rgba(255, 255, 255, 0.04);
@@ -198,7 +216,30 @@ body.character-panel-open .character-panel-toggle { display: none; }
 /* Smaller viewports overlay adjustments */
 @media (max-width: 900px) {
   /* Make better use of horizontal space on mobile */
-  #character-panel { --character-panel-width: min(480px, 95vw); width: var(--character-panel-width); max-width: 95vw; }
+  #character-panel { 
+    --character-panel-width: min(420px, 90vw); 
+    width: var(--character-panel-width); 
+    max-width: 90vw;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.7);
+  }
+  
+  /* Add backdrop for character panel on mobile */
+  body.character-panel-open::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1799;
+    animation: fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: none;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
   /* Keep script toggle at right edge near top, but ensure sidebar toggle sits below it */
   .character-panel-toggle { top: 12px; bottom: auto; writing-mode: vertical-rl; max-width:38px; }
   /* Prevent overflow horizontally: ensure button stays inside viewport even when panel closed */

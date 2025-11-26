@@ -42,8 +42,15 @@ a.button:visited {
 
 @media (hover: none) and (pointer: coarse) {
   .button:active {
-    transform: scale(0.98);
-    transition: transform 0.1s ease;
+    transform: scale(0.97);
+    transition: transform var(--transition-fast);
+    opacity: 0.9;
+  }
+  
+  /* Improve link button active state */
+  a.button:active {
+    transform: scale(0.97);
+    opacity: 0.9;
   }
 }
 
@@ -66,6 +73,7 @@ input[type="number"] {
   min-height: var(--touch-target-md);
   touch-action: manipulation;
   -webkit-appearance: none;
+  appearance: none;
   box-sizing: border-box;
 }
 

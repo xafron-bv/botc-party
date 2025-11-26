@@ -400,27 +400,31 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .day-night-toggle {
-    bottom: 16px;
+    bottom: var(--space-4);
     right: 76px;
-    width: 52px;
-    height: 52px;
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
     font-size: 20px;
+    /* Add subtle glow for better visibility */
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .day-night-slider {
     width: calc(100vw - 180px);
     right: 138px;
-    bottom: 16px;
-    height: 52px;
-    padding: 0 16px;
+    bottom: var(--space-4);
+    height: var(--touch-target-lg);
+    padding: 0 var(--space-4);
+    border-width: 3px;
   }
 
   .display-settings-toggle {
-    bottom: 16px;
-    right: 16px;
-    width: 52px;
-    height: 52px;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
     font-size: 20px;
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .display-settings-value {
@@ -428,10 +432,11 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   }
 
   .display-settings-panel {
-    width: min(280px, calc(100vw - 30px));
-    right: 16px;
-    bottom: 78px;
-    padding: 14px;
+    width: min(300px, calc(100vw - var(--space-8)));
+    right: var(--space-4);
+    bottom: calc(var(--touch-target-lg) + var(--space-4) + var(--space-2));
+    padding: var(--space-4);
+    border-width: 3px;
   }
 
   .slider-container {

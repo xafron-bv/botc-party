@@ -1,6 +1,5 @@
 import { populateCharacterGrid } from './character.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
-import { resolveAssetPath } from '../utils.js';
 // Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
 let showOverlayHandler = null;
