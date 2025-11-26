@@ -76,7 +76,7 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   gap: var(--space-3); 
 }
 .panel-controls label { 
-  font-size: var(--font-sm); 
+  font-size: var(--font-base); 
   color: var(--color-text-primary); 
   display: flex; 
   align-items: center; 
@@ -131,13 +131,13 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 .script-meta__title {
   font-weight: var(--font-bold);
   color: var(--color-secondary);
-  font-size: var(--font-lg);
+  font-size: var(--font-2xl);
   margin-bottom: var(--space-1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .script-meta__author {
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   color: var(--color-text-secondary);
   margin-bottom: var(--space-2);
 }
@@ -145,17 +145,18 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   font-weight: var(--font-semibold);
   color: var(--color-secondary);
   margin-bottom: var(--space-1);
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
 }
 .script-meta__bootlegger-list {
   margin: 0;
   padding-left: var(--space-4);
   color: var(--color-text-primary);
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   display: grid;
   gap: var(--space-2);
+  line-height: var(--line-relaxed);
 }
-.script-meta__bootlegger-list li { line-height: 1.4; }
+.script-meta__bootlegger-list li { line-height: var(--line-relaxed); }
 
 /* Night phase toggle styling */
 .night-phase-buttons input[type="radio"] { position: absolute; left: -9999px; }
@@ -205,9 +206,9 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   z-index: 1700;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-2);
+  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-1);
   line-height: var(--line-tight);
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
   font-weight: var(--font-semibold);
   border-top-left-radius: var(--radius-md);
   border-bottom-left-radius: var(--radius-md);
@@ -215,6 +216,7 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   border-bottom-right-radius: 0;
   max-height: 70vh;
   max-width: var(--touch-target-sm);
+  min-height: var(--touch-target-sm);
   overflow: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

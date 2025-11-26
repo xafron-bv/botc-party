@@ -35,7 +35,7 @@
   --font-xl: clamp(19.1px, 2.5vmin, 22.5px);
   --font-2xl: clamp(20.3px, 2.7vmin, 24.8px);
   --font-3xl: clamp(20.3px, 3.2vmin, 27px);
-  --font-button: clamp(13px, 1.7vmin, 14px);
+  --font-button: clamp(15px, 2vmin, 16px);
   --font-textarea: clamp(30px, 4.8vmin, 40px);
   
   /* Line heights */
@@ -221,10 +221,11 @@ body.grimoire-hidden #player-circle li .player-token {
   top: var(--space-3);
   left: var(--space-3);
   z-index: 1000;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   font-size: var(--font-sm);
   width: auto !important;
-  min-height: var(--touch-target-md);
+  min-height: var(--touch-target-sm);
+  border-radius: var(--radius-md);
   text-align: left !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -248,9 +249,10 @@ body.grimoire-hidden #player-circle li .player-token {
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
-    padding: var(--space-4) var(--space-5);
-    font-size: var(--font-lg);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-md);
     width: auto !important;
+    min-height: var(--touch-target-sm);
   }
 }
 
@@ -298,7 +300,8 @@ body.grimoire-hidden #player-circle li .player-token {
 
 /* Simple single-line display */
 #setup-info {
-  font-size: clamp(12px, 1.8vmin, 18px);
+  font-size: clamp(16px, 2.6vmin, 22px);
+  line-height: var(--line-relaxed);
 }
 
 /* Role count colors - light colors for dark background */

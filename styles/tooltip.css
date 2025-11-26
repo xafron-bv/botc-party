@@ -42,7 +42,7 @@
 
 /* Character sheet ability display */
 .role .ability {
-  font-size: clamp(11px, 1.5vmin, 13px);
+  font-size: clamp(13px, 1.9vmin, 16px);
   color: #bbb;
   margin-top: 8px;
   margin-left: 44px;
