@@ -2,7 +2,7 @@
   flex: 0 0 var(--sidebar-width, 320px);
   min-width: 220px;
   max-width: 800px;
-  background: linear-gradient(135deg, #404040 0%, #525252 100%);
+  background: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
   padding: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -18,7 +18,7 @@
 #sidebar .section {
   padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
   border-bottom: 2px solid var(--color-primary);
-  background: linear-gradient(to bottom, #404040, #262626);
+  background: linear-gradient(to bottom, var(--sidebar-section-start), var(--sidebar-section-end));
   margin-bottom: var(--space-2);
   border-radius: var(--radius-lg);
 }

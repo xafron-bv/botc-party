@@ -1,0 +1,80 @@
+/* Theme System - Multiple color palettes */
+
+/* Default Theme: BOTC.games Official Colors */
+:root,
+[data-theme="botc"] {
+  --color-primary: #0d6efd;
+  --color-primary-light: #6ea8fe;
+  --color-primary-lighter: #9ec5fe;
+  --color-primary-lightest: #cfe2ff;
+  --color-primary-dark: #0a58ca;
+  --color-primary-darker: #084298;
+  
+  --color-secondary: #ffc107;
+  --color-secondary-light: #ffca2c;
+  --color-secondary-dark: #997404;
+  
+  --color-bg-dark: #141428;
+  --color-bg-darker: #1e1e32;
+  --color-bg-darkest: #28283c;
+  --color-surface: #2a2a4a;
+  --color-surface-light: #4a4a6a;
+  --color-surface-lighter: #6a6a8a;
+  --color-border: #0d6efd;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0c0;
+  
+  --token-ring-color: #ffc107;
+  --token-halo-inner: rgba(255, 193, 7, 0.6);
+  --token-halo-outer: rgba(255, 193, 7, 0.3);
+  --token-surface-tint: rgba(255, 193, 7, 0.15);
+  --token-press-outline: rgba(255, 193, 7, 0.85);
+  --token-press-outline-outer: rgba(255, 193, 7, 0.35);
+  
+  --sidebar-gradient-start: #2a2a4a;
+  --sidebar-gradient-end: #4a4a6a;
+  --sidebar-section-start: #2a2a4a;
+  --sidebar-section-end: #28283c;
+}
+
+/* Classic Theme: Original Purple & Gold */
+[data-theme="classic"] {
+  --color-primary: #792fcb;
+  --color-primary-light: #9a61da;
+  --color-primary-lighter: #ad7fe1;
+  --color-primary-lightest: #bc95e7;
+  --color-primary-dark: #500076;
+  --color-primary-darker: #3d1866;
+  
+  --color-secondary: #ffad00;
+  --color-secondary-light: #ffc240;
+  --color-secondary-dark: #bfa600;
+  
+  --color-bg-dark: #000000;
+  --color-bg-darker: #010101;
+  --color-bg-darkest: #040404;
+  --color-surface: #292929;
+  --color-surface-light: #4e4e4e;
+  --color-surface-lighter: #9c9c9c;
+  --color-border: #792fcb;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #ad7fe1;
+  
+  --token-ring-color: #f6d48f;
+  --token-halo-inner: rgba(255, 222, 158, 0.75);
+  --token-halo-outer: rgba(255, 191, 111, 0.45);
+  --token-surface-tint: rgba(255, 244, 214, 0.45);
+  --token-press-outline: rgba(255, 226, 171, 0.95);
+  --token-press-outline-outer: rgba(255, 212, 153, 0.4);
+  
+  --sidebar-gradient-start: #292929;
+  --sidebar-gradient-end: #4e4e4e;
+  --sidebar-section-start: #292929;
+  --sidebar-section-end: #040404;
+}
+
+/* Apply theme to body background */
+body {
+  background-color: var(--color-bg-darker);
+  transition: background-color 0.3s ease;
+}

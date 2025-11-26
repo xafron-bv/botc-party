@@ -24,6 +24,7 @@ import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 import { resolveAssetPath } from './utils.js';
 import { setupModalCloseHandlers } from './src/modalCloseHandlers.js';
+import { initThemeSelector } from './src/themeManager.js';
 import { setupInteractiveElement } from './src/utils/interaction.js';
 
 function normalizeUrl(url) {
@@ -1068,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initInAppTour();
     initStorytellerMessages({ grimoireState });
     setupModalCloseHandlers({ grimoireState });
+    initThemeSelector();
 
     return { grimoireState };
   };

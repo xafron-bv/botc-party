@@ -17,6 +17,16 @@
 
 <body>
   <script>
+    // Apply theme immediately to prevent flash
+    (function(){
+      try {
+        var theme = localStorage.getItem('selectedTheme') || 'botc';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch(_){ 
+        document.documentElement.setAttribute('data-theme', 'botc');
+      }
+    })();
+    // Apply character panel state
     (function(){
       try {
         if (localStorage.getItem('characterPanelOpen') === '1') {
@@ -96,6 +106,15 @@
             <option value="dark-purple">Dark Purple</option>
             <option value="wood">Wood Texture</option>
             <option value="cosmic">Cosmic Vortex</option>
+          </select>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Color Theme</h3>
+        <div>
+          <select id="theme-select">
+            <option value="botc">BOTC Official</option>
+            <option value="classic">Classic Gold</option>
           </select>
         </div>
       </div>

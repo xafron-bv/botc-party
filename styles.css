@@ -1,4 +1,5 @@
 @import url('./styles/core.css');
+@import url('./styles/themes.css');
 @import url('./styles/circle-token.css');
 @import url('./styles/reminders.css');
 @import url('./styles/sidebar.css');

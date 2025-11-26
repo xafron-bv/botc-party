@@ -8,7 +8,7 @@
   width: var(--character-panel-width);
   max-width: 90vw;
   height: 100dvh;
-  background: linear-gradient(135deg, #404040 0%, #525252 100%);
+  background: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
   border-left: 2px solid var(--color-primary);
   box-shadow: -6px 0 24px rgba(0,0,0,0.6);
   display: flex;

@@ -49,31 +49,7 @@
   --font-bold: 700;
   --font-extrabold: 800;
   
-  /* Colors - Primary (Purple - refined with better saturation balance) */
-  --color-primary: #8b5cf6;
-  --color-primary-light: #a78bfa;
-  --color-primary-lighter: #c4b5fd;
-  --color-primary-lightest: #ddd6fe;
-  --color-primary-dark: #6d28d9;
-  --color-primary-darker: #5b21b6;
-  
-  /* Colors - Secondary (Amber - warmer, more sophisticated than bright yellow) */
-  --color-secondary: #f59e0b;
-  --color-secondary-light: #fbbf24;
-  --color-secondary-dark: #d97706;
-  
-  /* Colors - Neutral (refined grays - softer on eyes, better depth) */
-  --color-bg-dark: #0a0a0a;
-  --color-bg-darker: #171717;
-  --color-bg-darkest: #262626;
-  --color-surface: #404040;
-  --color-surface-light: #525252;
-  --color-surface-lighter: #737373;
-  --color-border: #8b5cf6;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #d4d4d4;
-  
-  /* Colors - Semantic */
+  /* Colors - Semantic (consistent across themes) */
   --color-success: #10b981;
   --color-success-bg: rgba(16, 185, 129, 0.12);
   --color-success-border: #059669;
@@ -117,20 +93,14 @@
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
   --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
-  --token-ring-color: #fbbf24;
   --token-ring-width: 3px;
   --token-ring-width-sm: 2px;
   --token-ring-width-xs: 1.5px;
-  --token-halo-inner: rgba(251, 191, 36, 0.6);
-  --token-halo-outer: rgba(251, 191, 36, 0.3);
-  --token-surface-tint: rgba(251, 191, 36, 0.15);
-  --token-press-outline: rgba(251, 191, 36, 0.85);
-  --token-press-outline-outer: rgba(251, 191, 36, 0.35);
 }
 
 body {
-  background-color: #171717;
-  color: #fafafa;
+  background-color: var(--color-bg-darker);
+  color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
