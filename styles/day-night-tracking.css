@@ -1,19 +1,19 @@
 /* Day/Night Tracking Toggle Button */
 .day-night-toggle {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
   padding: 0;
   z-index: 1700;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -42,19 +42,19 @@
 
 .display-settings-toggle {
   position: fixed;
-  bottom: 20px;
+  bottom: var(--space-5);
   right: 86px;
-  width: 56px;
-  height: 56px;
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
   padding: 0;
   z-index: 1690;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -84,16 +84,16 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .display-settings-panel {
   position: fixed;
   bottom: 85px;
-  right: 20px;
-  width: min(320px, calc(100vw - 40px));
+  right: var(--space-5);
+  width: min(320px, calc(100vw - var(--space-10)));
   background: rgba(10, 10, 10, 0.95);
-  border: 2px solid #D4AF37;
-  border-radius: 16px;
-  padding: 16px;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
   z-index: 115;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-2xl);
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(var(--space-2));
   transition: opacity 0.24s ease, transform 0.24s ease;
   pointer-events: none;
   backdrop-filter: blur(4px);
@@ -106,10 +106,10 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .display-settings-panel h4 {
-  margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #F5D247;
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-light);
   text-align: center;
 }
 
@@ -117,8 +117,8 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .display-settings-row:last-of-type {
@@ -126,8 +126,8 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .display-settings-row label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
 }
 
 .slider-wrapper {
@@ -184,27 +184,27 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .display-settings-value {
   min-width: 52px;
   text-align: right;
-  font-size: 14px;
+  font-size: var(--font-base);
   font-variant-numeric: tabular-nums;
-  color: #F5D247;
+  color: var(--color-primary-light);
 }
 
 /* Day/Night History Slider Drawer */
 .day-night-slider {
   position: fixed;
-  bottom: 20px;
+  bottom: var(--space-5);
   right: 86px;
-  height: 56px;
+  height: var(--touch-target-xl);
   width: 320px;
   max-width: calc(100vw - 100px);
-  background: #1a1a1a;
-  border: 2px solid #D4AF37;
+  background: var(--color-bg-dark);
+  border: 2px solid var(--color-primary);
   border-radius: 28px;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
   z-index: 1710;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
   transform-origin: center right;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform var(--transition-slow), opacity var(--transition-slow);
   opacity: 0;
   transform: scaleX(0.1);
   pointer-events: none;
@@ -289,15 +289,15 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
-  color: white;
-  border: 2px solid #7a4ba8;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-light) 100%);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-purple-light);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }

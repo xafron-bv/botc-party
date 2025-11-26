@@ -1,4 +1,111 @@
 :root {
+  /* === BASE DESIGN TOKENS === */
+  
+  /* Spacing scale (8px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  
+  /* Border radius scale */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* Touch target sizes (iOS/Android guidelines) */
+  --touch-target-sm: 44px;
+  --touch-target-md: 48px;
+  --touch-target-lg: 52px;
+  --touch-target-xl: 56px;
+  
+  /* Font sizes (fluid typography) */
+  --font-xs: clamp(12px, 1.6vmin, 13px);
+  --font-sm: clamp(13px, 1.8vmin, 15px);
+  --font-base: clamp(14px, 2vmin, 16px);
+  --font-md: clamp(15px, 2vmin, 17px);
+  --font-lg: clamp(16px, 2.2vmin, 18px);
+  --font-xl: clamp(17px, 2.2vmin, 20px);
+  --font-2xl: clamp(18px, 2.4vmin, 22px);
+  --font-3xl: clamp(18px, 2.8vmin, 24px);
+  
+  /* Line heights */
+  --line-tight: 1.2;
+  --line-snug: 1.3;
+  --line-normal: 1.4;
+  --line-relaxed: 1.5;
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  
+  /* Colors - Primary (Gold) */
+  --color-primary: #D4AF37;
+  --color-primary-light: #F5D247;
+  --color-primary-pale: #e5d4a8;
+  --color-primary-dark: #B8941F;
+  
+  /* Colors - Purple (Buttons) */
+  --color-purple: #583286;
+  --color-purple-light: #7a4ba8;
+  --color-purple-lighter: #9a6bc8;
+  
+  /* Colors - Neutral */
+  --color-bg-dark: #1a1a1a;
+  --color-bg-darker: #141414;
+  --color-bg-darkest: #0a0a0a;
+  --color-surface: #2a2a2a;
+  --color-surface-light: #333;
+  --color-surface-lighter: #3a3a3a;
+  --color-border: #444;
+  --color-text-primary: #fff;
+  --color-text-secondary: #bbb;
+  
+  /* Colors - Semantic */
+  --color-success: #6bff8a;
+  --color-success-bg: rgba(76, 175, 80, 0.15);
+  --color-success-border: #4CAF50;
+  --color-error: #ff6b6b;
+  --color-error-bg: rgba(244, 67, 54, 0.15);
+  --color-error-border: #F44336;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-3xl: 0 12px 40px rgba(0, 0, 0, 0.8);
+  
+  /* Transitions */
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Z-index scale */
+  --z-base: 0;
+  --z-raised: 5;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1500;
+  --z-modal: 4000;
+  --z-tooltip: 5000;
+  --z-toast: 9000;
+  --z-loading: 9999;
+  
+  /* === COMPONENT-SPECIFIC TOKENS === */
+  
+  /* Token system */
   --token-size-base: clamp(64px, 14vmin, 140px);
   --bluff-token-size: var(--token-size-base);
   --player-token-scale: 1;
@@ -7,7 +114,7 @@
   --player-name-scale: 1;
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
-  --player-name-gap: calc(var(--player-name-scale) * 20px);
+  --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
   --token-ring-color: #f6d48f;
   --token-ring-width: 3px;
   --token-ring-width-sm: 2px;
@@ -137,13 +244,13 @@ body.grimoire-hidden #player-circle li .player-token {
 /* Sidebar toggle button */
 .sidebar-toggle {
   position: fixed;
-  top: 12px;
-  left: 12px;
+  top: var(--space-3);
+  left: var(--space-3);
   z-index: 1000;
-  padding: 12px 16px;
-  font-size: clamp(14px, 1.8vmin, 16px);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-sm);
   width: auto !important;
-  min-height: 48px;
+  min-height: var(--touch-target-md);
   text-align: left !important;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -155,7 +262,7 @@ body.grimoire-hidden #player-circle li .player-token {
   top: 0;
   width: 100%;
   z-index: 5;
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--space-2) 0;
 }
 
 @media (max-width: 900px) {
@@ -167,8 +274,8 @@ body.grimoire-hidden #player-circle li .player-token {
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
-    padding: 16px 20px;
-    font-size: 16px;
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-lg);
     width: auto !important;
   }
 }
@@ -181,7 +288,7 @@ body.grimoire-hidden #player-circle li .player-token {
   position: relative;
   display: grid;
   place-items: center;
-  padding: 12px;
+  padding: var(--space-3);
   box-sizing: border-box;
   overflow: auto;
 }
@@ -202,17 +309,17 @@ body.grimoire-hidden #player-circle li .player-token {
   top: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #fff;
-  padding: 12px 16px;
-  border: 2px solid #D4AF37;
-  border-radius: 10px;
+  color: var(--color-text-primary);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
   background: rgba(0, 0, 0, 0.45);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
   z-index: 0;
   pointer-events: none;
-  font-weight: bold;
+  font-weight: var(--font-bold);
   white-space: pre-line;
-  line-height: 1.4;
+  line-height: var(--line-normal);
 }
 
 /* Simple single-line display */

@@ -26,36 +26,36 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid rgba(212,175,55,0.3);
 }
 .character-panel-header h3 { 
   margin: 0; 
-  font-size: clamp(18px, 2.4vmin, 22px); 
-  font-weight: 700;
-  color: #D4AF37; 
+  font-size: var(--font-2xl); 
+  font-weight: var(--font-bold);
+  color: var(--color-primary); 
   letter-spacing: 1px; 
 }
 .panel-close { 
   background: rgba(212, 175, 55, 0.15);
   border: none; 
-  color: #D4AF37; 
+  color: var(--color-primary); 
   font-size: 28px; 
   cursor: pointer; 
   line-height: 1;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: var(--touch-target-sm);
+  height: var(--touch-target-sm);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 .panel-close:hover { 
   background: rgba(212, 175, 55, 0.25);
-  color: #fff;
+  color: var(--color-text-primary);
   transform: scale(1.05);
 }
 
@@ -66,28 +66,28 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 }
 
 .panel-controls { 
-  padding: 16px 20px 8px 20px; 
+  padding: var(--space-4) var(--space-5) var(--space-2) var(--space-5); 
   display: flex; 
   flex-direction: column; 
-  gap: 12px; 
+  gap: var(--space-3); 
 }
 .panel-controls label { 
-  font-size: clamp(14px, 1.8vmin, 15px); 
-  color: #e5d4a8; 
+  font-size: var(--font-sm); 
+  color: var(--color-primary-pale); 
   display: flex; 
   align-items: center; 
-  gap: 8px;
-  font-weight: 500;
-  line-height: 1.4;
-  min-height: 32px;
+  gap: var(--space-2);
+  font-weight: var(--font-medium);
+  line-height: var(--line-normal);
+  min-height: var(--space-8);
 }
 .panel-controls input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: var(--space-5);
+  height: var(--space-5);
   cursor: pointer;
-  accent-color: #D4AF37;
+  accent-color: var(--color-primary);
 }
-.panel-controls .night-order-controls { display:flex; flex-direction:column; gap:6px; padding:6px 0 0 0; background: transparent; border:none; }
+.panel-controls .night-order-controls { display:flex; flex-direction:column; gap:var(--space-1); padding:var(--space-1) 0 0 0; background: transparent; border:none; }
 .panel-controls .night-phase-buttons { display:flex; flex-wrap:wrap; gap:10px; align-items:center; font-size:13px; }
 .panel-controls .night-phase-buttons label { margin:0; }
 
@@ -136,16 +136,16 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 #night-phase-toggle {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(212,175,55,0.4);
-  color: #D4AF37;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: clamp(14px, 1.8vmin, 15px);
-  font-weight: 600;
+  color: var(--color-primary);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: var(--font-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   width: 100%;
   text-align: center;
-  min-height: 44px;
+  min-height: var(--touch-target-sm);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -173,25 +173,25 @@ body.character-panel-open #character-panel { transform: translateX(0); }
 /* Toggle button styling */
 .character-panel-toggle {
   position: fixed;
-  top: 12px;
+  top: var(--space-3);
   right: 0;
   z-index: 1700;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: 12px 8px 14px 8px;
-  line-height: 1.2;
-  font-size: clamp(13px, 1.8vmin, 15px);
-  font-weight: 600;
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-2);
+  line-height: var(--line-tight);
+  font-size: var(--font-sm);
+  font-weight: var(--font-semibold);
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   max-height: 70vh;
-  max-width: 44px;
+  max-width: var(--touch-target-sm);
   overflow: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+  box-shadow: -2px 0 var(--shadow-md);
 }
 body.character-panel-open .character-panel-toggle { display: none; }
 
