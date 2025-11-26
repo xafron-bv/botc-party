@@ -5,7 +5,7 @@
   margin: 0 0 var(--space-5) 0;
   padding-right: var(--touch-target-md);
   line-height: var(--line-snug);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 #end-game-modal .modal-content h3 {
@@ -21,7 +21,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.85);
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(5px);
@@ -68,8 +68,11 @@
   max-height: min(85%, 90vh);
   min-width: min(50%, 300px);
   overflow: visible;
-  border: 3px solid var(--color-primary);
-  box-shadow: var(--shadow-3xl), 0 0 30px rgba(121, 47, 203, 0.6);
+  border: 1.5px solid var(--color-border);
+  box-shadow:
+    var(--shadow-2xl),
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    0 0 22px var(--color-glow);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -90,7 +93,7 @@
 .modal-footer {
   position: sticky;
   bottom: 0;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, var(--color-surface-light) 0%, var(--color-surface) 100%);
   padding: 10px 0 0;
   margin: 10px 0 0;
   text-align: center;
@@ -106,8 +109,8 @@
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
-  background: var(--color-bg-darkest);
-  border: 2px solid var(--color-primary);
+  background: var(--color-bg-dark);
+  border: 1px solid var(--color-border);
   color: var(--color-text-primary);
   font-size: 28px;
   cursor: pointer;
@@ -125,7 +128,8 @@
 
 .modal .modal-close:hover {
   background: var(--color-primary);
-  color: var(--color-secondary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-darkest);
   transform: scale(1.05);
 }
 
@@ -146,7 +150,7 @@
   padding: var(--space-4);
   background: var(--color-bg-darkest);
   border-radius: var(--radius-lg);
-  border: 2px solid var(--color-primary);
+  border: 1.5px solid var(--color-border);
 }
 
 #character-grid .token {
@@ -325,7 +329,7 @@
   top: 2px;
   right: 2px;
   font-size: 18px;
-  color: #f6c344;
+  color: var(--color-secondary);
   display: none;
   pointer-events: none;
   text-shadow:
@@ -344,7 +348,7 @@
   font-weight: bold;
   margin-top: 12px;
   margin-bottom: 6px;
-  border-bottom: 1px solid rgba(246, 212, 143, 0.45);
+  border-bottom: 1px solid rgba(231, 182, 115, 0.35);
   padding-bottom: 4px;
 }
 
@@ -365,7 +369,7 @@
   background: var(--color-bg-darkest);
   border-radius: 10px;
   margin: 20px 0;
-  border: 2px solid var(--color-primary);
+  border: 1.5px solid var(--color-border);
 }
 
 /* Reveal button should not float above modals - follow normal stacking */
@@ -376,7 +380,7 @@
   margin: var(--space-4) 0;
   background: linear-gradient(135deg, var(--color-surface-lighter) 0%, var(--color-surface) 100%);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-primary);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-md);
   box-shadow: inset var(--shadow-sm);
@@ -391,7 +395,7 @@
   margin: var(--space-4) 0;
   background: linear-gradient(135deg, var(--color-surface-lighter) 0%, var(--color-surface) 100%);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-primary);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-md);
   box-shadow: inset var(--shadow-sm);

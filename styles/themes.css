@@ -3,76 +3,78 @@
 /* Default Theme: BOTC.games Official Colors */
 :root,
 [data-theme="blue"] {
-  --color-primary: #4da3ff;
-  --color-primary-light: #79bdff;
-  --color-primary-lighter: #a8d4ff;
-  --color-primary-lightest: #d9eaff;
-  --color-primary-dark: #2a7bd3;
-  --color-primary-darker: #1b4f8f;
+  --color-primary: #4f8bd6;
+  --color-primary-light: #73a3e0;
+  --color-primary-lighter: #a1bee9;
+  --color-primary-lightest: #d7e4f6;
+  --color-primary-dark: #3b6fae;
+  --color-primary-darker: #284f81;
   
-  --color-secondary: #ffcb6b;
-  --color-secondary-light: #ffd88f;
-  --color-secondary-dark: #d89b2a;
+  --color-secondary: #e7b673;
+  --color-secondary-light: #f2c88e;
+  --color-secondary-dark: #c48d47;
   
-  --color-bg-dark: #0c111b;
-  --color-bg-darker: #0a0e17;
-  --color-bg-darkest: #080b12;
-  --color-surface: #121a2b;
-  --color-surface-light: #1a2336;
-  --color-surface-lighter: #253149;
-  --color-border: #2f4b7c;
-  --color-text-primary: #f6f8ff;
-  --color-text-secondary: #c7d2ea;
-  --control-focus-ring: rgba(77, 163, 255, 0.35);
+  --color-bg-dark: #0f1624;
+  --color-bg-darker: #0c121d;
+  --color-bg-darkest: #0a0f18;
+  --color-surface: #161f2f;
+  --color-surface-light: #1d2738;
+  --color-surface-lighter: #27344a;
+  --color-border: #334b70;
+  --color-text-primary: #f2f5ff;
+  --color-text-secondary: #c7d4e9;
+  --control-focus-ring: rgba(79, 139, 214, 0.32);
+  --color-glow: rgba(79, 139, 214, 0.2);
   
-  --token-ring-color: #ffcb6b;
-  --token-halo-inner: rgba(255, 203, 107, 0.6);
-  --token-halo-outer: rgba(255, 203, 107, 0.3);
-  --token-surface-tint: rgba(255, 203, 107, 0.15);
-  --token-press-outline: rgba(255, 203, 107, 0.85);
-  --token-press-outline-outer: rgba(255, 203, 107, 0.35);
+  --token-ring-color: #e7b673;
+  --token-halo-inner: rgba(231, 182, 115, 0.5);
+  --token-halo-outer: rgba(231, 182, 115, 0.28);
+  --token-surface-tint: rgba(231, 182, 115, 0.18);
+  --token-press-outline: rgba(231, 182, 115, 0.75);
+  --token-press-outline-outer: rgba(231, 182, 115, 0.32);
   
-  --sidebar-gradient-start: #121a2b;
-  --sidebar-gradient-end: #1a2336;
-  --sidebar-section-start: #121a2b;
-  --sidebar-section-end: #0c111b;
+  --sidebar-gradient-start: #161f2f;
+  --sidebar-gradient-end: #1d2738;
+  --sidebar-section-start: #161f2f;
+  --sidebar-section-end: #0f1624;
 }
 
 /* Purple Theme: Vibrant Purple & Gold */
 [data-theme="purple"] {
-  --color-primary: #c45df0;
-  --color-primary-light: #d68ff6;
-  --color-primary-lighter: #e2b0fa;
-  --color-primary-lightest: #efd4fd;
-  --color-primary-dark: #8b31c8;
-  --color-primary-darker: #5e1b8f;
+  --color-primary: #9d7ad9;
+  --color-primary-light: #b39ae4;
+  --color-primary-lighter: #cfc0ee;
+  --color-primary-lightest: #e5def7;
+  --color-primary-dark: #7c5fb3;
+  --color-primary-darker: #5f458a;
   
-  --color-secondary: #ffb764;
-  --color-secondary-light: #ffd59c;
-  --color-secondary-dark: #d88a1a;
+  --color-secondary: #e3b57a;
+  --color-secondary-light: #f1cfa1;
+  --color-secondary-dark: #bf8d52;
   
-  --color-bg-dark: #0d0816;
-  --color-bg-darker: #0b0613;
-  --color-bg-darkest: #09040f;
-  --color-surface: #171228;
-  --color-surface-light: #1e1533;
-  --color-surface-lighter: #2a1f45;
-  --color-border: #c45df0;
-  --color-text-primary: #f8f2ff;
-  --color-text-secondary: #d9c9f5;
-  --control-focus-ring: rgba(196, 93, 240, 0.35);
+  --color-bg-dark: #141124;
+  --color-bg-darker: #100d1d;
+  --color-bg-darkest: #0d0b18;
+  --color-surface: #1d1932;
+  --color-surface-light: #25203f;
+  --color-surface-lighter: #2f2a4e;
+  --color-border: #6f5ca6;
+  --color-text-primary: #f7f3ff;
+  --color-text-secondary: #dcd2f2;
+  --control-focus-ring: rgba(157, 122, 217, 0.32);
+  --color-glow: rgba(157, 122, 217, 0.2);
   
-  --token-ring-color: #ffb764;
-  --token-halo-inner: rgba(255, 183, 100, 0.75);
-  --token-halo-outer: rgba(255, 183, 100, 0.45);
-  --token-surface-tint: rgba(255, 183, 100, 0.45);
-  --token-press-outline: rgba(255, 183, 100, 0.95);
-  --token-press-outline-outer: rgba(255, 183, 100, 0.4);
+  --token-ring-color: #e3b57a;
+  --token-halo-inner: rgba(227, 181, 122, 0.55);
+  --token-halo-outer: rgba(227, 181, 122, 0.3);
+  --token-surface-tint: rgba(227, 181, 122, 0.2);
+  --token-press-outline: rgba(227, 181, 122, 0.8);
+  --token-press-outline-outer: rgba(227, 181, 122, 0.36);
   
-  --sidebar-gradient-start: #171228;
-  --sidebar-gradient-end: #1e1533;
-  --sidebar-section-start: #171228;
-  --sidebar-section-end: #0d0816;
+  --sidebar-gradient-start: #1d1932;
+  --sidebar-gradient-end: #25203f;
+  --sidebar-section-start: #1d1932;
+  --sidebar-section-end: #141124;
 }
 /* Apply theme to body background */
 body {
