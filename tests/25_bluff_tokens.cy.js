@@ -288,7 +288,7 @@ describe('Bluff Tokens', () => {
     cy.get('#load-status', { timeout: 10000 }).should('contain', 'successfully');
 
     // Close sidebar to interact with bluff tokens
-    cy.get('#sidebar-close').click();
+    cy.get('#sidebar-backdrop').click({ force: true });
 
     // Verify bluff tokens still work
     cy.get('#bluff-tokens-container .bluff-token').first().click({ force: true });

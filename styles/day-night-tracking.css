@@ -31,13 +31,13 @@
 }
 
 .day-night-toggle.active {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5D247 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: #1a1a1a;
-  border-color: #D4AF37;
+  border-color: var(--color-primary);
 }
 
 .day-night-toggle.active:hover {
-  background: linear-gradient(135deg, #F5D247 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
 }
 
 .display-settings-toggle {
@@ -162,7 +162,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #D4AF37;
+  background: var(--color-primary);
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
@@ -171,7 +171,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #D4AF37;
+  background: var(--color-primary);
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -251,7 +251,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   appearance: none;
   width: 24px;
   height: 24px;
-  background: #D4AF37;
+  background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -265,7 +265,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .phase-slider::-moz-range-thumb {
   width: 24px;
   height: 24px;
-  background: #D4AF37;
+  background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -278,7 +278,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .current-phase {
-  color: #D4AF37;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: bold;
   min-width: 35px;
@@ -290,9 +290,9 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   height: 36px;
   padding: 0;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-light) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-purple-light);
+  border: 2px solid var(--color-primary-lighter);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;

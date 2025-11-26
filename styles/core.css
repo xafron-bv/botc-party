@@ -49,27 +49,27 @@
   --font-bold: 700;
   --font-extrabold: 800;
   
-  /* Colors - Primary (Gold) */
-  --color-primary: #D4AF37;
-  --color-primary-light: #F5D247;
-  --color-primary-pale: #e5d4a8;
-  --color-primary-dark: #B8941F;
+  /* Colors - Primary (Purple - botc.app theme) */
+  --color-primary: #8b5fbf;
+  --color-primary-light: #a77fd4;
+  --color-primary-lighter: #c299e8;
+  --color-primary-dark: #6b3f9f;
   
-  /* Colors - Purple (Buttons) */
-  --color-purple: #583286;
-  --color-purple-light: #7a4ba8;
-  --color-purple-lighter: #9a6bc8;
+  /* Colors - Secondary (Gold accents) */
+  --color-secondary: #D4AF37;
+  --color-secondary-light: #F5D247;
+  --color-secondary-pale: #e5d4a8;
   
-  /* Colors - Neutral */
+  /* Colors - Neutral (better contrast) */
   --color-bg-dark: #1a1a1a;
   --color-bg-darker: #141414;
   --color-bg-darkest: #0a0a0a;
-  --color-surface: #2a2a2a;
-  --color-surface-light: #333;
-  --color-surface-lighter: #3a3a3a;
-  --color-border: #444;
+  --color-surface: #353535;
+  --color-surface-light: #3f3f3f;
+  --color-surface-lighter: #4a4a4a;
+  --color-border: #8b5fbf;
   --color-text-primary: #fff;
-  --color-text-secondary: #bbb;
+  --color-text-secondary: #d0d0d0;
   
   /* Colors - Semantic */
   --color-success: #6bff8a;
