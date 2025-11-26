@@ -74,7 +74,6 @@
   --sidebar-section-start: #171228;
   --sidebar-section-end: #0d0816;
 }
-
 /* Apply theme to body background */
 body {
   background-color: var(--color-bg-darker);

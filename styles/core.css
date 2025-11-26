@@ -26,15 +26,17 @@
   --touch-target-lg: 52px;
   --touch-target-xl: 56px;
   
-  /* Font sizes (fluid typography) */
-  --font-xs: clamp(12px, 1.6vmin, 13px);
-  --font-sm: clamp(13px, 1.8vmin, 15px);
-  --font-base: clamp(14px, 2vmin, 16px);
-  --font-md: clamp(15px, 2vmin, 17px);
-  --font-lg: clamp(16px, 2.2vmin, 18px);
-  --font-xl: clamp(17px, 2.2vmin, 20px);
-  --font-2xl: clamp(18px, 2.4vmin, 22px);
-  --font-3xl: clamp(18px, 2.8vmin, 24px);
+  /* Font sizes (fluid typography) - 12.5% larger than original */
+  --font-xs: clamp(13.5px, 1.8vmin, 14.6px);
+  --font-sm: clamp(14.6px, 2vmin, 16.9px);
+  --font-base: clamp(15.8px, 2.25vmin, 18px);
+  --font-md: clamp(16.9px, 2.25vmin, 19.1px);
+  --font-lg: clamp(18px, 2.5vmin, 20.3px);
+  --font-xl: clamp(19.1px, 2.5vmin, 22.5px);
+  --font-2xl: clamp(20.3px, 2.7vmin, 24.8px);
+  --font-3xl: clamp(20.3px, 3.2vmin, 27px);
+  --font-button: clamp(13px, 1.7vmin, 14px);
+  --font-textarea: clamp(30px, 4.8vmin, 40px);
   
   /* Line heights */
   --line-tight: 1.2;

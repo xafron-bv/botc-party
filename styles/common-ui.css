@@ -6,7 +6,7 @@
   margin: var(--space-2) 0;
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: var(--font-md);
+  font-size: var(--font-button);
   font-weight: var(--font-semibold);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);

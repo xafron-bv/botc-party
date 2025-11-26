@@ -11,13 +11,14 @@ export function initThemeSelector() {
   const savedTheme = loadTheme();
   applyTheme(savedTheme);
   themeSelect.value = savedTheme;
+}
 
-  // Handle theme changes
-  themeSelect.addEventListener('change', (e) => {
-    const theme = e.target.value;
-    applyTheme(theme);
-    saveTheme(theme);
-  });
+export function handleThemeChange() {
+  const themeSelect = document.getElementById('theme-select');
+  if (!themeSelect) return;
+  const theme = themeSelect.value;
+  applyTheme(theme);
+  saveTheme(theme);
 }
 
 function applyTheme(theme) {

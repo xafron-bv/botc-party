@@ -24,7 +24,7 @@ import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 import { resolveAssetPath } from './utils.js';
 import { setupModalCloseHandlers } from './src/modalCloseHandlers.js';
-import { initThemeSelector } from './src/themeManager.js';
+import { initThemeSelector, handleThemeChange } from './src/themeManager.js';
 import { setupInteractiveElement } from './src/utils/interaction.js';
 
 function normalizeUrl(url) {
@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
     const backgroundSelect = document.getElementById('background-select');
+    const themeSelect = document.getElementById('theme-select');
     const includeTravellersCheckbox = document.getElementById('include-travellers');
     const nightOrderSortCheckbox = document.getElementById('night-order-sort');
     const nightOrderControls = document.querySelector('.night-order-controls');
@@ -298,6 +299,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (backgroundSelect) {
       backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
+    }
+
+    if (themeSelect) {
+      themeSelect.addEventListener('change', handleThemeChange);
     }
 
     try {

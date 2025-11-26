@@ -471,6 +471,7 @@
   margin-bottom: 20px;
   user-select: text;
   transition: border-color 120ms ease, box-shadow 120ms ease;
+  font-size: var(--font-textarea);
 }
 
 #storyteller-message-display .message-text[contenteditable="true"]:focus {
@@ -490,6 +491,7 @@
   margin-bottom: 20px;
   user-select: text;
   transition: border-color 120ms ease, box-shadow 120ms ease;
+  font-size: var(--font-textarea);
 }
 
 #custom-reminder-edit-modal .message-text[contenteditable="true"]:focus {
