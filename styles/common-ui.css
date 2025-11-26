@@ -1,17 +1,17 @@
 .button {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 90%);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-primary-lighter);
-  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
   margin: var(--space-2) 0;
   border-radius: var(--radius-md);
   cursor: pointer;
   font-size: var(--font-md);
-  font-weight: var(--font-bold);
-  box-shadow: var(--shadow-md);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
-  text-transform: uppercase;
-  letter-spacing: 0.75px;
+  text-transform: none;
+  letter-spacing: 0.25px;
   width: 100%;
   text-align: center;
   box-sizing: border-box;
@@ -21,7 +21,7 @@
   justify-content: center;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 a.button {
@@ -36,9 +36,9 @@ a.button:visited {
 }
 
 .button:hover {
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-lighter) 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-surface-light) 100%);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -62,32 +62,32 @@ a.button:visited {
   box-shadow: var(--shadow-sm);
 }
 
-input[type="number"] {
-  background: linear-gradient(135deg, var(--color-surface-lighter) 0%, var(--color-surface) 100%);
+input[type="number"],
+input[type="file"],
+select {
+  background: var(--color-surface);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-primary);
+  border: 1px solid var(--color-border);
   padding: var(--space-3) var(--space-3);
   border-radius: var(--radius-md);
-  max-width: 100%;
   font-size: var(--font-md);
-  box-shadow: inset var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
   min-height: var(--touch-target-md);
   touch-action: manipulation;
+  box-sizing: border-box;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background-color var(--transition-base);
+}
+
+input[type="number"] {
+  max-width: 100%;
   -webkit-appearance: none;
   appearance: none;
-  box-sizing: border-box;
 }
 
 input[type="file"] {
-  background: linear-gradient(135deg, var(--color-surface-lighter) 0%, var(--color-surface) 100%);
-  color: var(--color-text-primary);
-  border: 2px solid var(--color-primary);
-  padding: var(--space-3) var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: var(--font-md);
-  box-shadow: inset var(--shadow-sm);
-  min-height: var(--touch-target-md);
-  box-sizing: border-box;
+  cursor: pointer;
 }
 
 #background-select,
@@ -96,35 +96,41 @@ input[type="file"] {
 }
 
 select {
-  background: linear-gradient(135deg, var(--color-surface-lighter) 0%, var(--color-surface) 100%);
-  color: var(--color-text-primary);
-  border: 2px solid var(--color-primary);
-  padding: var(--space-3) var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: var(--font-md);
-  box-shadow: inset var(--shadow-sm);
-  min-height: var(--touch-target-md);
-  touch-action: manipulation;
-  box-sizing: border-box;
+  cursor: pointer;
+}
+
+input[type="number"]:focus,
+input[type="file"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  background: var(--color-surface-light);
+  box-shadow:
+    0 0 0 2px var(--control-focus-ring),
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .section {
   margin-bottom: var(--space-4);
   padding: var(--space-5);
-  background: linear-gradient(135deg, var(--color-surface-light) 0%, var(--color-surface) 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.2) 100%),
+    var(--color-surface);
   border-radius: var(--radius-lg);
-  border: 2px solid var(--color-border);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .section h3 {
   margin-top: 0;
   margin-bottom: var(--space-4);
-  color: var(--color-primary);
+  color: var(--color-text-primary);
   font-size: var(--font-xl);
-  font-weight: var(--font-bold);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  border-bottom: 2px solid var(--color-primary);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.5px;
+  text-shadow: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: var(--space-2);
 }
 
@@ -166,7 +172,7 @@ select {
 }
 
 label {
-  color: var(--color-primary);
+  color: var(--color-text-primary);
   font-weight: var(--font-semibold);
   font-size: var(--font-base);
   margin: var(--space-2) 0 var(--space-1) 0;

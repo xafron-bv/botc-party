@@ -20,10 +20,10 @@
     // Apply theme immediately to prevent flash
     (function(){
       try {
-        var theme = localStorage.getItem('selectedTheme') || 'botc';
+        var theme = localStorage.getItem('selectedTheme') || 'blue';
         document.documentElement.setAttribute('data-theme', theme);
       } catch(_){ 
-        document.documentElement.setAttribute('data-theme', 'botc');
+        document.documentElement.setAttribute('data-theme', 'blue');
       }
     })();
     // Apply character panel state
@@ -113,8 +113,8 @@
         <h3>Color Theme</h3>
         <div>
           <select id="theme-select">
-            <option value="botc">BOTC Official</option>
-            <option value="classic">Classic Gold</option>
+            <option value="blue">Blue</option>
+            <option value="purple">Purple</option>
           </select>
         </div>
       </div>

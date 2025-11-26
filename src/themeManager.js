@@ -1,6 +1,7 @@
 // Theme management
 const THEME_KEY = 'selectedTheme';
-const DEFAULT_THEME = 'botc';
+const DEFAULT_THEME = 'blue';
+const SUPPORTED_THEMES = ['blue', 'purple'];
 
 export function initThemeSelector() {
   const themeSelect = document.getElementById('theme-select');
@@ -33,7 +34,12 @@ function saveTheme(theme) {
 
 function loadTheme() {
   try {
-    return localStorage.getItem(THEME_KEY) || DEFAULT_THEME;
+    const stored = localStorage.getItem(THEME_KEY);
+    const theme = SUPPORTED_THEMES.includes(stored) ? stored : DEFAULT_THEME;
+    if (theme !== stored) {
+      saveTheme(theme);
+    }
+    return theme;
   } catch (e) {
     console.warn('Failed to load theme:', e);
     return DEFAULT_THEME;
