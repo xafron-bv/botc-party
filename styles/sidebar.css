@@ -14,6 +14,11 @@
   z-index: 2500;
 }
 
+/* Mobile floating close button */
+.sidebar-close-mobile {
+  display: none;
+}
+
 /* Sidebar sections with better spacing */
 #sidebar .section {
   padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
@@ -154,6 +159,8 @@ body.resizing {
     z-index: 2002;
     will-change: transform;
     box-shadow: 8px 0 32px rgba(0, 0, 0, 0.7);
+    /* Add padding at bottom for floating close button */
+    padding-bottom: calc(var(--touch-target-xl) + var(--space-8) + env(safe-area-inset-bottom, 0px));
   }
 
   body.sidebar-open #sidebar {
@@ -198,6 +205,59 @@ body.resizing {
 
   body.sidebar-open .sidebar-toggle,
   body.character-panel-open .sidebar-toggle { display: none; }
+
+  .sidebar-close-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-6));
+    left: calc(min(420px, 90vw) / 2);
+    transform: translateX(-50%);
+    z-index: 2004;
+    width: var(--touch-target-xl);
+    height: var(--touch-target-xl);
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #F5D247 100%);
+    color: #1a1a1a;
+    border: 3px solid var(--color-primary);
+    box-shadow: var(--shadow-3xl), 0 0 0 1px rgba(0, 0, 0, 0.2);
+    font-size: 24px;
+    padding: 0;
+    transition: all var(--transition-base);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  body.sidebar-open .sidebar-close-mobile {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    animation: slideUpFade 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body.sidebar-collapsed .sidebar-close-mobile {
+    display: none;
+  }
+
+  .sidebar-close-mobile:active {
+    transform: translateX(-50%) scale(0.95);
+    background: linear-gradient(135deg, #F5D247 0%, var(--color-primary) 100%);
+  }
+
+  @keyframes slideUpFade {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(var(--space-8));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
 }
 
 /* History lists in sidebar */

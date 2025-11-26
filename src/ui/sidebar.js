@@ -1,5 +1,6 @@
 // Sidebar behaviors: resizer and toggle (browser-native ES module)
 import { prefersOverlaySidebar, isTouchDevice } from '../constants.js';
+import { setupInteractiveElement } from '../utils/interaction.js';
 
 export function initSidebarResize(sidebarResizer, sidebarEl) {
   if (!sidebarResizer || !sidebarEl) return;
@@ -70,7 +71,7 @@ export function initSidebarResize(sidebarResizer, sidebarEl) {
 
 export function initSidebarToggle({
   sidebarToggleBtn,
-  sidebarCloseBtn,
+  sidebarCloseMobileBtn,
   sidebarBackdrop,
   sidebarEl,
   sidebarResizer,
@@ -119,9 +120,29 @@ export function initSidebarToggle({
   const stored = localStorage.getItem(COLLAPSE_KEY);
   const startCollapsed = stored === '1' || prefersOverlaySidebar.matches;
   applyCollapsed(startCollapsed);
-  sidebarToggleBtn.addEventListener('click', () => applyCollapsed(false));
-  if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', () => applyCollapsed(true));
-  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', () => applyCollapsed(true));
+
+  // Use setupInteractiveElement for consistent touch/click handling
+  setupInteractiveElement({
+    element: sidebarToggleBtn,
+    onTap: () => applyCollapsed(false),
+    stopClickPropagation: true
+  });
+
+  if (sidebarCloseMobileBtn) {
+    setupInteractiveElement({
+      element: sidebarCloseMobileBtn,
+      onTap: () => applyCollapsed(true),
+      stopClickPropagation: true
+    });
+  }
+
+  if (sidebarBackdrop) {
+    setupInteractiveElement({
+      element: sidebarBackdrop,
+      onTap: () => applyCollapsed(true),
+      stopClickPropagation: false
+    });
+  }
   prefersOverlaySidebar.addEventListener('change', () => {
     const collapsed = document.body.classList.contains('sidebar-collapsed');
     applyCollapsed(collapsed);

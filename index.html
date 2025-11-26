@@ -35,7 +35,9 @@
   </div>
   <div id="app">
     <div id="sidebar">
-      <button class="button sidebar-close" id="sidebar-close" aria-label="Close sidebar">Close Sidebar</button>
+      <button class="button sidebar-close-mobile" id="sidebar-close-mobile" aria-label="Close sidebar">
+        <i class="fas fa-times"></i>
+      </button>
       <div class="section">
         <h3>Game Setup</h3>
         <div>
@@ -189,6 +191,9 @@
           <h3>Script</h3>
           <button id="character-panel-close" class="panel-close" aria-label="Close character panel">&times;</button>
         </div>
+        <button class="button character-panel-close-mobile" id="character-panel-close-mobile" aria-label="Close panel">
+          <i class="fas fa-times"></i>
+        </button>
         <div class="panel-controls">
           <label><input type="checkbox" id="include-travellers" data-testid="include-travellers-checkbox"> Include Travellers</label>
           <div class="night-order-controls">
