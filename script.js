@@ -1013,6 +1013,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
+      const characterPanelCloseBtnNew = document.getElementById('character-panel-close-btn');
+      if (characterPanelCloseBtnNew) {
+        setupInteractiveElement({
+          element: characterPanelCloseBtnNew,
+          onTap: () => applyState(false),
+          stopClickPropagation: true
+        });
+      }
+
       document.addEventListener('click', (e) => {
         if (!document.body.classList.contains('character-panel-open')) return;
         const target = e.target;

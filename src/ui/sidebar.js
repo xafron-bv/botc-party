@@ -81,6 +81,17 @@ export function initSidebarToggle({
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';
+
+  // Setup sidebar close button
+  const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+  if (sidebarCloseBtn) {
+    setupInteractiveElement({
+      element: sidebarCloseBtn,
+      onTap: () => applyCollapsed(true),
+      stopClickPropagation: true
+    });
+  }
+
   const ensureMutualExclusivity = () => {
     // If both somehow open, prefer character panel OR enforce collapse of the other.
     const panelOpen = document.body.classList.contains('character-panel-open');

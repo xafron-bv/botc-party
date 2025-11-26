@@ -14,6 +14,40 @@
   z-index: 2500;
 }
 
+/* Sidebar close button matching modal style */
+.sidebar-close-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--color-bg-darkest);
+  border: 2px solid var(--color-primary);
+  color: var(--color-text-primary);
+  font-size: 28px;
+  cursor: pointer;
+  width: var(--touch-target-sm);
+  height: var(--touch-target-sm);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 10;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  transform: scale(1.05);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sidebar-close-btn:active {
+    transform: scale(0.95);
+  }
+}
+
 /* Sidebar sections with better spacing */
 #sidebar .section {
   padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
