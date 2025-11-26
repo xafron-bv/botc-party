@@ -53,7 +53,7 @@ export function initStorytellerMessages({ grimoireState }) {
     const role = (roleId && grimoireState.allRoles[roleId]) ? grimoireState.allRoles[roleId] : null;
     renderTokenElement({
       tokenElement: tokenEl,
-      role: role,
+      role,
       baseImage: './assets/img/token.png',
       labelIdPrefix: 'story-msg-slot',
       dataset: { emptyLabel: 'None' }

@@ -391,7 +391,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.window().then((win) => {
       const p1 = win.grimoireState.players[0];
       p1.dead = true;
-      
+
       const p2 = win.grimoireState.players[1];
       p2.reminders.push({
         text: 'Test Reminder',
@@ -409,7 +409,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.window().then((win) => {
       const p1 = win.grimoireState.players[0];
       expect(p1.dead).to.be.false;
-      
+
       const p2 = win.grimoireState.players[1];
       expect(p2.reminders).to.have.length(0);
 

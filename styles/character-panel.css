@@ -26,15 +26,67 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(212,175,55,0.25);
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(212,175,55,0.3);
 }
-.character-panel-header h3 { margin: 0; font-size: clamp(16px,2vmin,20px); color: #D4AF37; letter-spacing:1px; }
-.panel-close { background: transparent; border: none; color: #fff; font-size: 26px; cursor:pointer; line-height:1; }
-.panel-close:hover { color: #D4AF37; }
+.character-panel-header h3 { 
+  margin: 0; 
+  font-size: clamp(18px, 2.4vmin, 22px); 
+  font-weight: 700;
+  color: #D4AF37; 
+  letter-spacing: 1px; 
+}
+.panel-close { 
+  background: rgba(212, 175, 55, 0.15);
+  border: none; 
+  color: #D4AF37; 
+  font-size: 28px; 
+  cursor: pointer; 
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.panel-close:hover { 
+  background: rgba(212, 175, 55, 0.25);
+  color: #fff;
+  transform: scale(1.05);
+}
 
-.panel-controls { padding: 12px 18px 4px 18px; display:flex; flex-direction:column; gap:10px; }
-.panel-controls label { font-size: 14px; color:#bbb; display:flex; align-items:center; gap:6px; }
+@media (hover: none) and (pointer: coarse) {
+  .panel-close:active {
+    transform: scale(0.95);
+  }
+}
+
+.panel-controls { 
+  padding: 16px 20px 8px 20px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+.panel-controls label { 
+  font-size: clamp(14px, 1.8vmin, 15px); 
+  color: #e5d4a8; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+  font-weight: 500;
+  line-height: 1.4;
+  min-height: 32px;
+}
+.panel-controls input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #D4AF37;
+}
 .panel-controls .night-order-controls { display:flex; flex-direction:column; gap:6px; padding:6px 0 0 0; background: transparent; border:none; }
 .panel-controls .night-phase-buttons { display:flex; flex-wrap:wrap; gap:10px; align-items:center; font-size:13px; }
 .panel-controls .night-phase-buttons label { margin:0; }
@@ -85,16 +137,25 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(212,175,55,0.4);
   color: #D4AF37;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: clamp(14px, 1.8vmin, 15px);
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: all 0.2s ease;
   width: 100%;
   text-align: center;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-#night-phase-toggle:hover { background: rgba(255,255,255,0.12); }
-#night-phase-toggle:active { background: rgba(255,255,255,0.18); }
+#night-phase-toggle:hover { 
+  background: rgba(255,255,255,0.12); 
+}
+#night-phase-toggle:active { 
+  background: rgba(255,255,255,0.18); 
+  transform: scale(0.98);
+}
 
 /* Visually hidden but accessible */
 .sr-only {
@@ -117,17 +178,20 @@ body.character-panel-open #character-panel { transform: translateX(0); }
   z-index: 1700;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: 8px 6px 10px 6px;
-  line-height: 1.1;
-  font-size: 13px;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+  padding: 12px 8px 14px 8px;
+  line-height: 1.2;
+  font-size: clamp(13px, 1.8vmin, 15px);
+  font-weight: 600;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   max-height: 70vh;
-  max-width: 38px;
+  max-width: 44px;
   overflow: hidden;
-  /* Static position; simply hide when panel is open */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
 }
 body.character-panel-open .character-panel-toggle { display: none; }
 

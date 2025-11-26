@@ -79,9 +79,9 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
 
     renderTokenElement({
       tokenElement: token,
-      role: role,
+      role,
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
-      labelIdPrefix: `bluff-role-arc`,
+      labelIdPrefix: 'bluff-role-arc',
       showAbilityIcon: true,
       dataset: { bluffIndex: String(index) }
     });
@@ -170,7 +170,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   }
 }
 
-export const assignBluffCharacter = withStateSave(function ({ grimoireState, roleId }) {
+export const assignBluffCharacter = withStateSave(({ grimoireState, roleId }) => {
   if (!canOpenModal({ grimoireState, requiresUnlocked: true })) {
     hideCharacterModal({ grimoireState, clearBluffSelection: true });
     return;

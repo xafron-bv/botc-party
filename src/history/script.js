@@ -26,7 +26,7 @@ function triggerJsonDownload({ name, data }) {
   setTimeout(() => URL.revokeObjectURL(url), 250);
 }
 
-export const handleScriptHistoryClick = withStateSave(async function ({ e, scriptHistoryList, grimoireState }) {
+export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryList, grimoireState }) => {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;

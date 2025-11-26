@@ -22,10 +22,13 @@
 body {
   background-color: #1a1a1a;
   color: #fff;
-  font-family: 'Verdana', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 #app {
@@ -137,12 +140,13 @@ body.grimoire-hidden #player-circle li .player-token {
   top: 12px;
   left: 12px;
   z-index: 1000;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 12px 16px;
+  font-size: clamp(14px, 1.8vmin, 16px);
   width: auto !important;
-  /* Override the 100% width from .button class */
+  min-height: 48px;
   text-align: left !important;
-  /* Override center alignment from .button class */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Close button inside sidebar header */
@@ -163,10 +167,9 @@ body.grimoire-hidden #player-circle li .player-token {
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
-    padding: 14px 16px;
+    padding: 16px 20px;
     font-size: 16px;
     width: auto !important;
-    /* Maintain auto width in touch mode */
   }
 }
 
