@@ -71,7 +71,6 @@ export function initSidebarResize(sidebarResizer, sidebarEl) {
 
 export function initSidebarToggle({
   sidebarToggleBtn,
-  sidebarCloseMobileBtn,
   sidebarBackdrop,
   sidebarEl,
   sidebarResizer,
@@ -127,14 +126,6 @@ export function initSidebarToggle({
     onTap: () => applyCollapsed(false),
     stopClickPropagation: true
   });
-
-  if (sidebarCloseMobileBtn) {
-    setupInteractiveElement({
-      element: sidebarCloseMobileBtn,
-      onTap: () => applyCollapsed(true),
-      stopClickPropagation: true
-    });
-  }
 
   if (sidebarBackdrop) {
     setupInteractiveElement({

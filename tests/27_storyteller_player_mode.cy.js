@@ -111,7 +111,7 @@ describe('Storyteller / Player Mode', () => {
     cy.get('#character-modal').should('be.visible');
     cy.get('#character-search').clear().type('librarian');
     cy.get('#character-grid .token[title="Washerwoman"]').should('have.length', 0);
-    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').click('topLeft', { force: true });
     cy.get('#character-modal').should('not.be.visible');
 
     cy.get('#player-circle li').first().find('.player-token').click({ force: true });

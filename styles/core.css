@@ -49,43 +49,45 @@
   --font-bold: 700;
   --font-extrabold: 800;
   
-  /* Colors - Primary (Purple - botc.app theme) */
-  --color-primary: #8b5fbf;
-  --color-primary-light: #a77fd4;
-  --color-primary-lighter: #c299e8;
-  --color-primary-dark: #6b3f9f;
+  /* Colors - Primary (Purple - refined with better saturation balance) */
+  --color-primary: #8b5cf6;
+  --color-primary-light: #a78bfa;
+  --color-primary-lighter: #c4b5fd;
+  --color-primary-lightest: #ddd6fe;
+  --color-primary-dark: #6d28d9;
+  --color-primary-darker: #5b21b6;
   
-  /* Colors - Secondary (Gold accents) */
-  --color-secondary: #D4AF37;
-  --color-secondary-light: #F5D247;
-  --color-secondary-pale: #e5d4a8;
+  /* Colors - Secondary (Amber - warmer, more sophisticated than bright yellow) */
+  --color-secondary: #f59e0b;
+  --color-secondary-light: #fbbf24;
+  --color-secondary-dark: #d97706;
   
-  /* Colors - Neutral (better contrast) */
-  --color-bg-dark: #1a1a1a;
-  --color-bg-darker: #141414;
-  --color-bg-darkest: #0a0a0a;
-  --color-surface: #353535;
-  --color-surface-light: #3f3f3f;
-  --color-surface-lighter: #4a4a4a;
-  --color-border: #8b5fbf;
-  --color-text-primary: #fff;
-  --color-text-secondary: #d0d0d0;
+  /* Colors - Neutral (refined grays - softer on eyes, better depth) */
+  --color-bg-dark: #0a0a0a;
+  --color-bg-darker: #171717;
+  --color-bg-darkest: #262626;
+  --color-surface: #404040;
+  --color-surface-light: #525252;
+  --color-surface-lighter: #737373;
+  --color-border: #8b5cf6;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #d4d4d4;
   
   /* Colors - Semantic */
-  --color-success: #6bff8a;
-  --color-success-bg: rgba(76, 175, 80, 0.15);
-  --color-success-border: #4CAF50;
-  --color-error: #ff6b6b;
-  --color-error-bg: rgba(244, 67, 54, 0.15);
-  --color-error-border: #F44336;
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-border: #059669;
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.12);
+  --color-error-border: #dc2626;
   
-  /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-2xl: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-3xl: 0 12px 40px rgba(0, 0, 0, 0.8);
+  /* Shadows (softer, more natural) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-3xl: 0 12px 32px rgba(0, 0, 0, 0.5);
   
   /* Transitions */
   --transition-fast: 0.1s ease;
@@ -115,20 +117,20 @@
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
   --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
-  --token-ring-color: #f6d48f;
+  --token-ring-color: #fbbf24;
   --token-ring-width: 3px;
   --token-ring-width-sm: 2px;
   --token-ring-width-xs: 1.5px;
-  --token-halo-inner: rgba(255, 222, 158, 0.75);
-  --token-halo-outer: rgba(255, 191, 111, 0.45);
-  --token-surface-tint: rgba(255, 244, 214, 0.45);
-  --token-press-outline: rgba(255, 226, 171, 0.95);
-  --token-press-outline-outer: rgba(255, 212, 153, 0.4);
+  --token-halo-inner: rgba(251, 191, 36, 0.6);
+  --token-halo-outer: rgba(251, 191, 36, 0.3);
+  --token-surface-tint: rgba(251, 191, 36, 0.15);
+  --token-press-outline: rgba(251, 191, 36, 0.85);
+  --token-press-outline-outer: rgba(251, 191, 36, 0.35);
 }
 
 body {
-  background-color: #1a1a1a;
-  color: #fff;
+  background-color: #171717;
+  color: #fafafa;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);

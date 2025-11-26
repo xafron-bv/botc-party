@@ -230,7 +230,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reminderTokenModal = document.getElementById('reminder-token-modal');
     const reminderTokenSearch = document.getElementById('reminder-token-search');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-    const sidebarCloseMobileBtn = document.getElementById('sidebar-close-mobile');
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
     const characterPanel = document.getElementById('character-panel');
     const characterPanelToggleBtn = document.getElementById('character-panel-toggle');
@@ -962,7 +961,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initSidebarToggle({
       sidebarToggleBtn,
-      sidebarCloseMobileBtn,
       sidebarBackdrop,
       sidebarEl,
       sidebarResizer,
