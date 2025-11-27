@@ -264,7 +264,7 @@ export async function loadScriptFromFile({ path, grimoireState }) {
   }
 }
 
-export const processScriptData = withStateSave(async function ({ data, addToHistory = false, grimoireState }) {
+export const processScriptData = withStateSave(async ({ data, addToHistory = false, grimoireState }) => {
   const scriptHistoryList = document.getElementById('script-history-list');
   console.log('Processing script data:', data);
   grimoireState.scriptData = data;

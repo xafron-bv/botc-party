@@ -332,7 +332,7 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.className = 'token role';
         renderTokenElement({
           tokenElement: tokenEl,
-          role: role,
+          role,
           baseImage: BASE_TOKEN_IMAGE,
           labelIdPrefix: 'setup-role-arc'
         });
@@ -650,7 +650,7 @@ export function initPlayerSetup({ grimoireState }) {
         tokenEl.style.height = '80px';
         renderTokenElement({
           tokenElement: tokenEl,
-          role: role,
+          role,
           baseImage: BASE_TOKEN_IMAGE,
           labelIdPrefix: 'picker-traveller'
         });
@@ -789,7 +789,7 @@ export function initPlayerSetup({ grimoireState }) {
               token.className = 'token';
               renderTokenElement({
                 tokenElement: token,
-                role: role,
+                role,
                 baseImage: BASE_TOKEN_IMAGE,
                 labelIdPrefix: 'reveal-token'
               });
@@ -861,7 +861,7 @@ export function initPlayerSetup({ grimoireState }) {
               token.className = 'token';
               renderTokenElement({
                 tokenElement: token,
-                role: role,
+                role,
                 baseImage: BASE_TOKEN_IMAGE,
                 labelIdPrefix: 'reveal-token'
               });

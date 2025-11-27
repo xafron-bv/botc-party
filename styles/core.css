@@ -1,4 +1,91 @@
 :root {
+  /* === BASE DESIGN TOKENS === */
+  
+  /* Spacing scale (8px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  
+  /* Border radius scale */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* Touch target sizes (iOS/Android guidelines) */
+  --touch-target-sm: 44px;
+  --touch-target-md: 48px;
+  --touch-target-lg: 52px;
+  --touch-target-xl: 56px;
+  
+  /* Font sizes (fluid typography) - 12.5% larger than original */
+  --font-xs: clamp(13.5px, 1.8vmin, 14.6px);
+  --font-sm: clamp(14.6px, 2vmin, 16.9px);
+  --font-base: clamp(15.8px, 2.25vmin, 18px);
+  --font-md: clamp(16.9px, 2.25vmin, 19.1px);
+  --font-lg: clamp(18px, 2.5vmin, 20.3px);
+  --font-xl: clamp(19.1px, 2.5vmin, 22.5px);
+  --font-2xl: clamp(20.3px, 2.7vmin, 24.8px);
+  --font-3xl: clamp(20.3px, 3.2vmin, 27px);
+  --font-button: clamp(15px, 2vmin, 16px);
+  --font-textarea: clamp(30px, 4.8vmin, 40px);
+  
+  /* Line heights */
+  --line-tight: 1.2;
+  --line-snug: 1.3;
+  --line-normal: 1.4;
+  --line-relaxed: 1.5;
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  
+  /* Colors - Semantic (consistent across themes) */
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-success-border: #059669;
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.12);
+  --color-error-border: #dc2626;
+  
+  /* Shadows (softer, more natural) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-3xl: 0 12px 32px rgba(0, 0, 0, 0.5);
+  
+  /* Transitions */
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Z-index scale */
+  --z-base: 0;
+  --z-raised: 5;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1500;
+  --z-modal: 4000;
+  --z-tooltip: 5000;
+  --z-toast: 9000;
+  --z-loading: 9999;
+  
+  /* === COMPONENT-SPECIFIC TOKENS === */
+  
+  /* Token system */
   --token-size-base: clamp(64px, 14vmin, 140px);
   --bluff-token-size: var(--token-size-base);
   --player-token-scale: 1;
@@ -7,25 +94,22 @@
   --player-name-scale: 1;
   --circle-scale: 1;
   --min-reminder-size: clamp(28px, 4vmin, 48px);
-  --player-name-gap: calc(var(--player-name-scale) * 20px);
-  --token-ring-color: #f6d48f;
+  --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
   --token-ring-width: 3px;
   --token-ring-width-sm: 2px;
   --token-ring-width-xs: 1.5px;
-  --token-halo-inner: rgba(255, 222, 158, 0.75);
-  --token-halo-outer: rgba(255, 191, 111, 0.45);
-  --token-surface-tint: rgba(255, 244, 214, 0.45);
-  --token-press-outline: rgba(255, 226, 171, 0.95);
-  --token-press-outline-outer: rgba(255, 212, 153, 0.4);
 }
 
 body {
-  background-color: #1a1a1a;
-  color: #fff;
-  font-family: 'Verdana', sans-serif;
+  background-color: var(--color-bg-darker);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 #app {
@@ -134,15 +218,17 @@ body.grimoire-hidden #player-circle li .player-token {
 /* Sidebar toggle button */
 .sidebar-toggle {
   position: fixed;
-  top: 12px;
-  left: 12px;
+  top: var(--space-3);
+  left: var(--space-3);
   z-index: 1000;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-sm);
   width: auto !important;
-  /* Override the 100% width from .button class */
+  min-height: var(--touch-target-sm);
+  border-radius: var(--radius-md);
   text-align: left !important;
-  /* Override center alignment from .button class */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Close button inside sidebar header */
@@ -151,7 +237,7 @@ body.grimoire-hidden #player-circle li .player-token {
   top: 0;
   width: 100%;
   z-index: 5;
-  margin: 0 0 10px 0;
+  margin: 0 0 var(--space-2) 0;
 }
 
 @media (max-width: 900px) {
@@ -163,10 +249,10 @@ body.grimoire-hidden #player-circle li .player-token {
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
-    padding: 14px 16px;
-    font-size: 16px;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-md);
     width: auto !important;
-    /* Maintain auto width in touch mode */
+    min-height: var(--touch-target-sm);
   }
 }
 
@@ -178,7 +264,7 @@ body.grimoire-hidden #player-circle li .player-token {
   position: relative;
   display: grid;
   place-items: center;
-  padding: 12px;
+  padding: var(--space-3);
   box-sizing: border-box;
   overflow: auto;
 }
@@ -199,22 +285,23 @@ body.grimoire-hidden #player-circle li .player-token {
   top: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #fff;
-  padding: 12px 16px;
-  border: 2px solid #D4AF37;
-  border-radius: 10px;
+  color: var(--color-text-primary);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
   background: rgba(0, 0, 0, 0.45);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
   z-index: 0;
   pointer-events: none;
-  font-weight: bold;
+  font-weight: var(--font-bold);
   white-space: pre-line;
-  line-height: 1.4;
+  line-height: var(--line-normal);
 }
 
 /* Simple single-line display */
 #setup-info {
-  font-size: clamp(12px, 1.8vmin, 18px);
+  font-size: clamp(16px, 2.6vmin, 22px);
+  line-height: var(--line-relaxed);
 }
 
 /* Role count colors - light colors for dark background */

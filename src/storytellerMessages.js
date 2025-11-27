@@ -1,6 +1,5 @@
 import { populateCharacterGrid } from './character.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
-import { resolveAssetPath } from '../utils.js';
 // Note: Do not auto-hide/show grimoire from this module; the sidebar button controls it explicitly.
 
 let showOverlayHandler = null;
@@ -53,7 +52,7 @@ export function initStorytellerMessages({ grimoireState }) {
     const role = (roleId && grimoireState.allRoles[roleId]) ? grimoireState.allRoles[roleId] : null;
     renderTokenElement({
       tokenElement: tokenEl,
-      role: role,
+      role,
       baseImage: './assets/img/token.png',
       labelIdPrefix: 'story-msg-slot',
       dataset: { emptyLabel: 'None' }

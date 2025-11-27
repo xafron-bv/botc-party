@@ -1,57 +1,75 @@
 /* Day/Night Tracking Toggle Button */
 .day-night-toggle {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
   padding: 0;
-  z-index: 1700; /* Sits beneath sidebar and script panel overlays */
-  border-radius: 50%;
+  z-index: 1700;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  font-size: 22px;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .day-night-toggle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .day-night-toggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
 }
 
 .day-night-toggle.active {
-  background: linear-gradient(135deg, #D4AF37 0%, #F5D247 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: #1a1a1a;
-  border-color: #D4AF37;
+  border-color: var(--color-primary);
 }
 
 .day-night-toggle.active:hover {
-  background: linear-gradient(135deg, #F5D247 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
 }
 
 .display-settings-toggle {
   position: fixed;
-  bottom: 20px;
-  right: 80px;
-  width: 50px;
-  height: 50px;
+  bottom: var(--space-5);
+  right: 86px;
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
   padding: 0;
-  z-index: 1690; /* Keep beneath script panel */
-  border-radius: 50%;
+  z-index: 1690;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  font-size: 22px;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .display-settings-toggle:hover,
 .display-settings-toggle.active {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .display-settings-toggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
 }
 
 .display-settings-toggle.single-toggle {
@@ -66,16 +84,16 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .display-settings-panel {
   position: fixed;
   bottom: 85px;
-  right: 20px;
-  width: min(320px, calc(100vw - 40px));
+  right: var(--space-5);
+  width: min(320px, calc(100vw - var(--space-10)));
   background: rgba(10, 10, 10, 0.95);
-  border: 2px solid #D4AF37;
-  border-radius: 16px;
-  padding: 16px;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
   z-index: 115;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-2xl);
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(var(--space-2));
   transition: opacity 0.24s ease, transform 0.24s ease;
   pointer-events: none;
   backdrop-filter: blur(4px);
@@ -88,10 +106,10 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .display-settings-panel h4 {
-  margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #F5D247;
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary-light);
   text-align: center;
 }
 
@@ -99,8 +117,8 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .display-settings-row:last-of-type {
@@ -108,8 +126,8 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .display-settings-row label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
 }
 
 .slider-wrapper {
@@ -144,7 +162,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #D4AF37;
+  background: var(--color-primary);
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
@@ -153,7 +171,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #D4AF37;
+  background: var(--color-primary);
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -166,32 +184,27 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .display-settings-value {
   min-width: 52px;
   text-align: right;
-  font-size: 14px;
+  font-size: var(--font-base);
   font-variant-numeric: tabular-nums;
-  color: #F5D247;
+  color: var(--color-primary-light);
 }
 
 /* Day/Night History Slider Drawer */
 .day-night-slider {
   position: fixed;
-  bottom: 20px;
-  /* Same as toggle button */
-  right: 75px;
-  /* Small gap from toggle button */
-  height: 50px;
-  /* Same height as toggle button */
+  bottom: var(--space-5);
+  right: 86px;
+  height: var(--touch-target-xl);
   width: 320px;
   max-width: calc(100vw - 100px);
-  background: #1a1a1a;
-  border: 2px solid #D4AF37;
-  border-radius: 25px;
-  /* Full rounded corners */
-  padding: 0 20px;
-  z-index: 1710; /* Above floating toggles but still below script/sidebar overlays */
-  /* Slightly below toggle button */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background: var(--color-bg-dark);
+  border: 2px solid var(--color-primary);
+  border-radius: 28px;
+  padding: 0 var(--space-5);
+  z-index: 1710;
+  box-shadow: var(--shadow-xl);
   transform-origin: center right;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform var(--transition-slow), opacity var(--transition-slow);
   opacity: 0;
   transform: scaleX(0.1);
   pointer-events: none;
@@ -238,7 +251,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   appearance: none;
   width: 24px;
   height: 24px;
-  background: #D4AF37;
+  background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -252,7 +265,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .phase-slider::-moz-range-thumb {
   width: 24px;
   height: 24px;
-  background: #D4AF37;
+  background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -265,7 +278,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .current-phase {
-  color: #D4AF37;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: bold;
   min-width: 35px;
@@ -273,24 +286,33 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 }
 
 .add-phase-button {
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #583286 0%, #7a4ba8 100%);
-  color: white;
-  border: 2px solid #7a4ba8;
-  font-size: 18px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-primary-lighter);
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .add-phase-button:hover {
   background: linear-gradient(135deg, #7a4ba8 0%, #9a6bc8 100%);
-  transform: scale(1.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .add-phase-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
 }
 
 /* Reminder Timestamps */
@@ -378,27 +400,31 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .day-night-toggle {
-    bottom: 15px;
-    right: 70px;
-    width: 45px;
-    height: 45px;
-    font-size: 18px;
+    bottom: var(--space-4);
+    right: 76px;
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
+    font-size: 20px;
+    /* Add subtle glow for better visibility */
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .day-night-slider {
-    width: calc(100vw - 165px);
-    right: 125px;
-    bottom: 15px;
-    height: 45px;
-    padding: 0 15px;
+    width: calc(100vw - 180px);
+    right: 138px;
+    bottom: var(--space-4);
+    height: var(--touch-target-lg);
+    padding: 0 var(--space-4);
+    border-width: 3px;
   }
 
   .display-settings-toggle {
-    bottom: 15px;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    font-size: 18px;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
+    font-size: 20px;
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .display-settings-value {
@@ -406,23 +432,24 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   }
 
   .display-settings-panel {
-    width: min(280px, calc(100vw - 30px));
-    right: 15px;
-    bottom: 70px;
-    padding: 12px;
+    width: min(300px, calc(100vw - var(--space-8)));
+    right: var(--space-4);
+    bottom: calc(var(--touch-target-lg) + var(--space-4) + var(--space-2));
+    padding: var(--space-4);
+    border-width: 3px;
   }
 
   .slider-container {
-    gap: 15px;
+    gap: 12px;
   }
 
   .current-phase {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .add-phase-button {
-    width: 35px;
-    height: 35px;
-    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
   }
 }

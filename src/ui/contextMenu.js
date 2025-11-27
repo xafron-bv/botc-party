@@ -16,23 +16,23 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
   const addBeforeBtn = menu.querySelector('#player-menu-add-before');
   const addAfterBtn = menu.querySelector('#player-menu-add-after');
   const removeBtn = menu.querySelector('#player-menu-remove');
-  
+
   [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
     btn.disabled = false;
     btn.classList.remove('disabled');
   });
-  
-  if (!canAdd) { 
-    addBeforeBtn.disabled = true; 
-    addAfterBtn.disabled = true; 
-    addBeforeBtn.classList.add('disabled'); 
-    addAfterBtn.classList.add('disabled'); 
+
+  if (!canAdd) {
+    addBeforeBtn.disabled = true;
+    addAfterBtn.disabled = true;
+    addBeforeBtn.classList.add('disabled');
+    addAfterBtn.classList.add('disabled');
   }
-  if (!canRemove) { 
-    removeBtn.disabled = true; 
-    removeBtn.classList.add('disabled'); 
+  if (!canRemove) {
+    removeBtn.disabled = true;
+    removeBtn.classList.add('disabled');
   }
-  
+
   positionContextMenu(menu, x, y);
 } export function ensureReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;

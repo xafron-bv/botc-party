@@ -103,7 +103,8 @@
 }
 
 #character-sheet .role .name {
-  font-size: clamp(13px, 1.6vmin, 16px);
+  font-size: clamp(16px, 2.2vmin, 19px);
+  line-height: var(--line-relaxed);
   color: #e0e0e0;
   flex: 1;
 }
@@ -148,7 +149,8 @@
 .role .name {
   color: #fff;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: var(--line-relaxed);
 }
 
 .team-townsfolk {

@@ -368,7 +368,7 @@ export function createReminderElement({
     setupInteractiveElement({
       element,
       onTap: onClick,
-      onLongPress: onLongPress,
+      onLongPress,
       setTouchOccurred: (val) => { if (grimoireState) grimoireState.touchOccurred = val; },
       showPressFeedback: true
     });
@@ -468,7 +468,7 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       reminderIndex: idx,
       title: reminder.label || '',
       onClick: onTap,
-      onLongPress: onLongPress
+      onLongPress
     });
 
     remindersDiv.appendChild(reminderEl);

@@ -1,0 +1,83 @@
+/* Theme System - Multiple color palettes */
+
+/* Default Theme: BOTC.games Official Colors */
+:root,
+[data-theme="blue"] {
+  --color-primary: #4f8bd6;
+  --color-primary-light: #73a3e0;
+  --color-primary-lighter: #a1bee9;
+  --color-primary-lightest: #d7e4f6;
+  --color-primary-dark: #3b6fae;
+  --color-primary-darker: #284f81;
+  
+  --color-secondary: #e7b673;
+  --color-secondary-light: #f2c88e;
+  --color-secondary-dark: #c48d47;
+  
+  --color-bg-dark: #0f1624;
+  --color-bg-darker: #0c121d;
+  --color-bg-darkest: #0a0f18;
+  --color-surface: #161f2f;
+  --color-surface-light: #1d2738;
+  --color-surface-lighter: #27344a;
+  --color-border: #334b70;
+  --color-text-primary: #f2f5ff;
+  --color-text-secondary: #c7d4e9;
+  --control-focus-ring: rgba(79, 139, 214, 0.32);
+  --color-glow: rgba(79, 139, 214, 0.2);
+  
+  --token-ring-color: #e7b673;
+  --token-halo-inner: rgba(231, 182, 115, 0.5);
+  --token-halo-outer: rgba(231, 182, 115, 0.28);
+  --token-surface-tint: rgba(231, 182, 115, 0.18);
+  --token-press-outline: rgba(231, 182, 115, 0.75);
+  --token-press-outline-outer: rgba(231, 182, 115, 0.32);
+  
+  --sidebar-gradient-start: #161f2f;
+  --sidebar-gradient-end: #1d2738;
+  --sidebar-section-start: #161f2f;
+  --sidebar-section-end: #0f1624;
+}
+
+/* Purple Theme: Vibrant Purple & Gold */
+[data-theme="purple"] {
+  --color-primary: #9d7ad9;
+  --color-primary-light: #b39ae4;
+  --color-primary-lighter: #cfc0ee;
+  --color-primary-lightest: #e5def7;
+  --color-primary-dark: #7c5fb3;
+  --color-primary-darker: #5f458a;
+  
+  --color-secondary: #e3b57a;
+  --color-secondary-light: #f1cfa1;
+  --color-secondary-dark: #bf8d52;
+  
+  --color-bg-dark: #141124;
+  --color-bg-darker: #100d1d;
+  --color-bg-darkest: #0d0b18;
+  --color-surface: #1d1932;
+  --color-surface-light: #25203f;
+  --color-surface-lighter: #2f2a4e;
+  --color-border: #6f5ca6;
+  --color-text-primary: #f7f3ff;
+  --color-text-secondary: #dcd2f2;
+  --control-focus-ring: rgba(157, 122, 217, 0.32);
+  --color-glow: rgba(157, 122, 217, 0.2);
+  
+  --token-ring-color: #e3b57a;
+  --token-halo-inner: rgba(227, 181, 122, 0.55);
+  --token-halo-outer: rgba(227, 181, 122, 0.3);
+  --token-surface-tint: rgba(227, 181, 122, 0.2);
+  --token-press-outline: rgba(227, 181, 122, 0.8);
+  --token-press-outline-outer: rgba(227, 181, 122, 0.36);
+  
+  --sidebar-gradient-start: #1d1932;
+  --sidebar-gradient-end: #25203f;
+  --sidebar-section-start: #1d1932;
+  --sidebar-section-end: #141124;
+}
+/* Apply theme to body background */
+body {
+  background-color: var(--color-bg-darker);
+  transition: background-color 0.3s ease;
+}

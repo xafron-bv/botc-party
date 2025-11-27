@@ -140,7 +140,7 @@ export function positionRadialStack(li, count) {
   const vy = centerY - tokenCenterY;
   const angle = Math.atan2(vy, vx);
   const runtimeRadius = Math.hypot(vx, vy);
-  
+
   const reminderDiameter = Math.max(minReminderSize, tokenEl.offsetWidth * 0.4);
   const reminderRadius = reminderDiameter / 2;
   const plusRadius = (tokenEl.offsetWidth * 0.3) / 2;
@@ -190,10 +190,10 @@ export function positionRadialStack(li, count) {
   const hoverZoneWidth = hoverZoneEnd - hoverZoneStart;
   const hoverZoneHeight = reminderDiameter;
   const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2;
-  
+
   const hoverPos = calculateRadialPosition({ ...centerOpts, radius: hoverZoneCenterOffset });
   const rotationAngle = angle * (180 / Math.PI);
-  
+
   hoverZone.style.left = hoverPos.left;
   hoverZone.style.top = hoverPos.top;
   hoverZone.style.width = `${hoverZoneWidth}px`;

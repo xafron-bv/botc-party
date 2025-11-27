@@ -22,8 +22,12 @@ describe('Sidebar & State', () => {
         cy.get('#character-panel-toggle').click();
       }
     });
-    // Initially on desktop, sidebar may be open; collapse it via Close button
-    cy.get('#sidebar-close').click();
+    // Initially on desktop, sidebar may be open; collapse it via backdrop click
+    cy.get('body').then(($body) => {
+      if (!$body.hasClass('sidebar-collapsed')) {
+        cy.get('#sidebar-backdrop').click({ force: true });
+      }
+    });
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
     // Reload and verify it stays collapsed (localStorage persistence)
@@ -117,7 +121,11 @@ describe('Sidebar & State', () => {
   it('character panel outside click restores sidebar toggle visibility (mobile scenario)', () => {
     cy.viewport(480, 800);
     // Ensure sidebar starts collapsed so toggle logic is deterministic after closing the panel
-    cy.get('#sidebar-close').click();
+    cy.get('body').then(($body) => {
+      if (!$body.hasClass('sidebar-collapsed')) {
+        cy.get('#sidebar-backdrop').click({ force: true });
+      }
+    });
     cy.get('body').should('have.class', 'sidebar-collapsed');
     // Explicitly open character panel (mutually exclusive with sidebar)
     cy.get('#character-panel-toggle').click();

@@ -10,25 +10,25 @@ export function applyGrimoireBackground(value) {
   if (!value || value === 'none') value = 'dark';
 
   switch (value) {
-  case 'dark':
-    centerEl.classList.add('bg-dark');
-    break;
-  case 'red-gradient':
-    centerEl.classList.add('bg-red-gradient');
-    break;
-  case 'dark-purple':
-    centerEl.classList.add('bg-dark-purple');
-    break;
-  case 'wood':
-    centerEl.classList.add('bg-wood');
-    break;
-  case 'cosmic':
-    centerEl.classList.add('bg-cosmic');
-    break;
-  default:
-    // Fallback: treat as color hex code or CSS color
-    centerEl.style.backgroundImage = 'none';
-    centerEl.style.backgroundColor = value;
+    case 'dark':
+      centerEl.classList.add('bg-dark');
+      break;
+    case 'red-gradient':
+      centerEl.classList.add('bg-red-gradient');
+      break;
+    case 'dark-purple':
+      centerEl.classList.add('bg-dark-purple');
+      break;
+    case 'wood':
+      centerEl.classList.add('bg-wood');
+      break;
+    case 'cosmic':
+      centerEl.classList.add('bg-cosmic');
+      break;
+    default:
+      // Fallback: treat as color hex code or CSS color
+      centerEl.style.backgroundImage = 'none';
+      centerEl.style.backgroundColor = value;
   }
 } export function initGrimoireBackground() {
   const centerEl = document.getElementById('center');

@@ -24,6 +24,8 @@ import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui
 import { loadPlayerSetupTable, renderSetupInfo } from './src/utils/setup.js';
 import { resolveAssetPath } from './utils.js';
 import { setupModalCloseHandlers } from './src/modalCloseHandlers.js';
+import { initThemeSelector, handleThemeChange } from './src/themeManager.js';
+import { setupInteractiveElement } from './src/utils/interaction.js';
 
 function normalizeUrl(url) {
   if (!url) return null;
@@ -114,7 +116,7 @@ async function waitForImageUrls(urls, timeoutMs = 15000) {
   const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
   if (uniqueUrls.length === 0) return;
 
-  try { window.__criticalImageCount = uniqueUrls.length; } catch (_) {}
+  try { window.__criticalImageCount = uniqueUrls.length; } catch (_) { }
 
   const loadPromises = uniqueUrls.map((url) => new Promise((resolve) => {
     try {
@@ -131,7 +133,7 @@ async function waitForImageUrls(urls, timeoutMs = 15000) {
 
   const timeoutPromise = new Promise((resolve) => setTimeout(resolve, timeoutMs));
   await Promise.race([Promise.all(loadPromises), timeoutPromise]);
-  try { window.__criticalImagesLoaded = true; } catch (_) {}
+  try { window.__criticalImagesLoaded = true; } catch (_) { }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -186,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const windowLoadPromise = waitForFullLoad();
 
   const bootstrap = async () => {
-  // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
+    // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
     try {
       const el = document.getElementById('app-version-value');
       if (el) {
@@ -229,15 +231,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reminderTokenModal = document.getElementById('reminder-token-modal');
     const reminderTokenSearch = document.getElementById('reminder-token-search');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-    const sidebarCloseBtn = document.getElementById('sidebar-close');
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
     const characterPanel = document.getElementById('character-panel');
     const characterPanelToggleBtn = document.getElementById('character-panel-toggle');
     const characterPanelCloseBtn = document.getElementById('character-panel-close');
+    const characterPanelCloseMobileBtn = document.getElementById('character-panel-close-mobile');
     const scriptHistoryList = document.getElementById('script-history-list');
     const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
     const backgroundSelect = document.getElementById('background-select');
+    const themeSelect = document.getElementById('theme-select');
     const includeTravellersCheckbox = document.getElementById('include-travellers');
     const nightOrderSortCheckbox = document.getElementById('night-order-sort');
     const nightOrderControls = document.querySelector('.night-order-controls');
@@ -296,6 +299,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (backgroundSelect) {
       backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);
+    }
+
+    if (themeSelect) {
+      themeSelect.addEventListener('change', handleThemeChange);
     }
 
     try {
@@ -811,7 +818,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const { playerIndex, reminderIndex } = grimoireState.editingReminder;
       if (text) {
         if (reminderIndex > -1) {
-        // Update existing reminder - preserve label if it exists
+          // Update existing reminder - preserve label if it exists
           grimoireState.players[playerIndex].reminders[reminderIndex].value = text;
           if (grimoireState.players[playerIndex].reminders[reminderIndex].label !== undefined) {
             grimoireState.players[playerIndex].reminders[reminderIndex].label = text;
@@ -960,7 +967,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initSidebarToggle({
       sidebarToggleBtn,
-      sidebarCloseBtn,
       sidebarBackdrop,
       sidebarEl,
       sidebarResizer,
@@ -986,11 +992,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       let startOpen = false;
       try { startOpen = localStorage.getItem(PANEL_KEY) === '1'; } catch (_) { }
       applyState(startOpen);
-      characterPanelToggleBtn.addEventListener('click', () => {
-        const open = !document.body.classList.contains('character-panel-open');
-        applyState(open);
+
+      setupInteractiveElement({
+        element: characterPanelToggleBtn,
+        onTap: () => {
+          const open = !document.body.classList.contains('character-panel-open');
+          applyState(open);
+        },
+        stopClickPropagation: true
       });
-      if (characterPanelCloseBtn) characterPanelCloseBtn.addEventListener('click', () => applyState(false));
+
+      if (characterPanelCloseBtn) {
+        setupInteractiveElement({
+          element: characterPanelCloseBtn,
+          onTap: () => applyState(false),
+          stopClickPropagation: true
+        });
+      }
+
+      if (characterPanelCloseMobileBtn) {
+        setupInteractiveElement({
+          element: characterPanelCloseMobileBtn,
+          onTap: () => applyState(false),
+          stopClickPropagation: true
+        });
+      }
+
+      const characterPanelCloseBtnNew = document.getElementById('character-panel-close-btn');
+      if (characterPanelCloseBtnNew) {
+        setupInteractiveElement({
+          element: characterPanelCloseBtnNew,
+          onTap: () => applyState(false),
+          stopClickPropagation: true
+        });
+      }
+
       document.addEventListener('click', (e) => {
         if (!document.body.classList.contains('character-panel-open')) return;
         const target = e.target;
@@ -1047,6 +1083,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initInAppTour();
     initStorytellerMessages({ grimoireState });
     setupModalCloseHandlers({ grimoireState });
+    initThemeSelector();
 
     return { grimoireState };
   };

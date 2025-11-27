@@ -1,13 +1,6 @@
 // Modal close button handlers
-import { hideCharacterModal } from './character.js';
 
 export function setupModalCloseHandlers({ grimoireState }) {
-  // Character modal
-  const closeCharacterModalX = document.getElementById('close-character-modal-x');
-  if (closeCharacterModalX) {
-    closeCharacterModalX.addEventListener('click', () => hideCharacterModal({ grimoireState, clearBluffSelection: true }));
-  }
-
   // Text reminder modal
   const closeTextReminderX = document.getElementById('close-text-reminder-x');
   const textReminderModal = document.getElementById('text-reminder-modal');

@@ -23,7 +23,7 @@ describe('Grimoire visibility & locking controls', () => {
     // Switch to player mode to expose hide/show button
     cy.get('#mode-player').click({ force: true });
     cy.startGame();
-    cy.get('#sidebar-close').click({ force: true });
+    cy.get('#sidebar-backdrop').click({ force: true });
     cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
 
     // Verify baseline visible elements

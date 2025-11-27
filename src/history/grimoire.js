@@ -237,7 +237,7 @@ export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
   }
 }
 
-export const restoreGrimoireFromEntry = withStateSave(async function ({ entry, grimoireState, grimoireHistoryList }) {
+export const restoreGrimoireFromEntry = withStateSave(async ({ entry, grimoireState, grimoireHistoryList }) => {
   if (!entry) return;
   try {
     grimoireState.isRestoringState = true;

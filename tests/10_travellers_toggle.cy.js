@@ -25,7 +25,7 @@ describe('Travellers Toggle', () => {
     cy.get('#include-travellers-in-modal').should('exist').and('not.be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').should('not.exist');
-    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').click('topLeft', { force: true });
     cy.get('#character-modal').should('not.be.visible');
   });
 
@@ -42,7 +42,7 @@ describe('Travellers Toggle', () => {
     cy.get('#include-travellers-in-modal').should('not.be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').should('not.exist');
-    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').click('topLeft', { force: true });
   });
 
   it('modal checkbox shows Travellers in character grid when enabled; persists across modal opens', () => {
@@ -54,7 +54,7 @@ describe('Travellers Toggle', () => {
     cy.get('#include-travellers-in-modal').check({ force: true }).should('be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').first().should('exist');
-    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').click('topLeft', { force: true });
 
     // Reopen modal and verify checkbox state persists
     cy.get('#player-circle li .player-token').eq(1).click({ force: true });
@@ -62,7 +62,7 @@ describe('Travellers Toggle', () => {
     cy.get('#include-travellers-in-modal').should('be.checked');
     cy.get('#character-search').clear().type('Beggar');
     cy.get('#character-grid .token[title="Beggar"]').first().should('exist');
-    cy.get('#close-character-modal-x').click({ force: true });
+    cy.get('#character-modal').click('topLeft', { force: true });
   });
 
   it('sidebar checkbox state persists across reload', () => {
