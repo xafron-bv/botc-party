@@ -4,12 +4,16 @@ describe('Center click opens sidebar when collapsed before game starts', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) {} });
+    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
   });
 
   it('center clicks never auto-open the sidebar', () => {
-    // Ensure sidebar is collapsed: click Close Sidebar button
-    cy.get('#sidebar-close').click();
+    // Ensure sidebar is collapsed: click backdrop or use toggle
+    cy.get('body').then(($body) => {
+      if (!$body.hasClass('sidebar-collapsed')) {
+        cy.get('#sidebar-backdrop').click({ force: true });
+      }
+    });
     cy.get('body').should('have.class', 'sidebar-collapsed');
 
     // With players present, clicking center should NOT open the sidebar

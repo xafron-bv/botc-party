@@ -30,7 +30,7 @@ specs.forEach(({ name, viewport }) => {
       // Ensure sidebar is closed to avoid coverage by sidebar elements
       cy.get('body').then(($b) => {
         if (!$b.hasClass('sidebar-collapsed')) {
-          cy.get('#sidebar-close').click({ force: true });
+          cy.get('#sidebar-backdrop').click({ force: true });
         }
       });
       cy.get('#player-circle li .player-token').first().click({ force: true });

@@ -4,25 +4,43 @@
   }
 
   #character-grid {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 18px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: var(--space-5) var(--space-3);
   }
 
   .modal-content {
-    padding: 20px;
-    max-width: 92%;
+    padding: clamp(var(--space-4), 4vmin, var(--space-6));
+    max-width: 94%;
     max-height: 92%;
-    min-width: 75%;
+    min-width: min(75%, 280px);
+    border-radius: var(--radius-lg);
   }
 
   #reminder-token-grid {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: var(--space-3);
   }
   
   /* Ensure death vote indicator scales properly on small screens */
   .player-token .death-vote-indicator {
     width: calc(var(--player-token-size) * 0.22);
     height: calc(var(--player-token-size) * 0.22);
+  }
+
+  /* Improve button sizing on mobile */
+  .button {
+    font-size: var(--font-lg);
+    padding: var(--space-4) var(--space-6);
+    min-height: var(--touch-target-lg);
+  }
+
+  /* Improve input sizing on mobile */
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: var(--font-lg);
+    min-height: var(--touch-target-lg);
   }
 }

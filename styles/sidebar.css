@@ -2,20 +2,59 @@
   flex: 0 0 var(--sidebar-width, 320px);
   min-width: 220px;
   max-width: 800px;
-  background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
+  background: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
   padding: 0;
   overflow-y: auto;
-  border-right: 2px solid #D4AF37;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  border-right: 2px solid var(--color-primary);
   box-shadow: 6px 0 24px rgba(0, 0, 0, 0.6);
   transition: flex 0.3s ease, width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s ease;
   position: relative;
   z-index: 2500;
 }
 
+/* Sidebar close button matching modal style */
+.sidebar-close-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--color-bg-darkest);
+  border: 2px solid var(--color-primary);
+  color: var(--color-text-primary);
+  font-size: 28px;
+  cursor: pointer;
+  width: var(--touch-target-sm);
+  height: var(--touch-target-sm);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 10;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  transform: scale(1.05);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sidebar-close-btn:active {
+    transform: scale(0.95);
+  }
+}
+
 /* Sidebar sections with better spacing */
 #sidebar .section {
   padding: clamp(14px, 2.4vmin, 20px) clamp(16px, 2.8vmin, 24px);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: 2px solid var(--color-primary);
+  background: linear-gradient(to bottom, var(--sidebar-section-start), var(--sidebar-section-end));
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-lg);
 }
 
 #sidebar .section:last-child {
@@ -24,21 +63,24 @@
 
 /* Section headers */
 #sidebar h3 {
-  margin: 0 0 16px 0;
-  font-size: clamp(16px, 2vmin, 20px);
-  font-weight: 600;
-  color: #D4AF37;
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
+  line-height: var(--line-snug);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* Form controls styling */
 #sidebar label {
   display: block;
-  font-size: 14px;
-  color: #bbb;
-  margin-bottom: 8px;
-  font-weight: 500;
+  font-size: var(--font-sm);
+  color: var(--color-primary-pale);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-semibold);
+  line-height: var(--line-normal);
 }
 
 #sidebar input[type="number"],
@@ -46,14 +88,16 @@
 #sidebar input[type="url"],
 #sidebar textarea {
   width: 100%;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  padding: var(--space-3) var(--space-3);
+  background: var(--color-bg-darkest);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-md);
+  transition: all var(--transition-slow);
   box-sizing: border-box;
+  min-height: var(--touch-target-md);
+  line-height: var(--line-relaxed);
 }
 
 #sidebar input[type="number"]:focus,
@@ -61,7 +105,7 @@
 #sidebar input[type="url"]:focus,
 #sidebar textarea:focus {
   outline: none;
-  border-color: #D4AF37;
+  border-color: var(--color-primary);
   background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
@@ -70,18 +114,18 @@
 .script-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 /* Status message */
 #load-status {
-  font-size: 13px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin-top: 12px;
+  font-size: var(--font-xs);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-3);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
   display: block;
 }
 
@@ -141,11 +185,15 @@ body.resizing {
     bottom: 0;
     height: 100dvh;
     /* Use most of the horizontal space on mobile while keeping a margin */
-    width: min(480px, 95vw);
-    max-width: 95vw;
+    width: min(420px, 90vw);
+    max-width: 90vw;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 2002;
+    will-change: transform;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.7);
+    /* Add padding at bottom for floating close button */
+    padding-bottom: calc(var(--touch-target-xl) + var(--space-8) + env(safe-area-inset-bottom, 0px));
   }
 
   body.sidebar-open #sidebar {
@@ -158,23 +206,30 @@ body.resizing {
 
   .sidebar-toggle {
     position: fixed;
-    top: 12px;
-    left: 12px;
+    top: var(--space-3);
+    left: var(--space-3);
     z-index: 2001;
     display: inline-block;
+    /* Add shadow for better visibility */
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     z-index: 2000;
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-backdrop-filter: blur(4px);
+    touch-action: none;
   }
 
   body.sidebar-open .sidebar-backdrop {
-    display: block;
+    opacity: 1;
+    visibility: visible;
   }
 
   body.sidebar-collapsed #sidebar {

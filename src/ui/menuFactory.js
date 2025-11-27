@@ -21,7 +21,7 @@ export function createContextMenu({ id, buttons }) {
     if (config.className) {
       btn.className = config.className;
     }
-    
+
     attachTouchHandler(btn, config.onClick);
     menu.appendChild(btn);
   });
@@ -39,20 +39,20 @@ export function createContextMenu({ id, buttons }) {
 export function positionContextMenu(menu, x, y) {
   menu.style.display = 'block';
   const margin = 6;
-  
+
   requestAnimationFrame(() => {
     const rect = menu.getBoundingClientRect();
     let left = x;
     let top = y;
-    
+
     if (left + rect.width > window.innerWidth - margin) {
       left = Math.max(margin, window.innerWidth - rect.width - margin);
     }
-    
+
     if (top + rect.height > window.innerHeight - margin) {
       top = Math.max(margin, window.innerHeight - rect.height - margin);
     }
-    
+
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
   });

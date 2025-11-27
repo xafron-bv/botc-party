@@ -60,7 +60,13 @@ export default [
         getBoundingClientRect: 'readonly',
         getComputedStyle: 'readonly',
         // Service worker
-        self: 'readonly'
+        self: 'readonly',
+        // Base64 encoding/decoding
+        btoa: 'readonly',
+        atob: 'readonly',
+        // Text encoding/decoding
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly'
       }
     },
     rules: {

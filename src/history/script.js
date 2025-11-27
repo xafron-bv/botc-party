@@ -14,7 +14,7 @@ function encodeScriptForShare(data) {
 }
 
 function triggerJsonDownload({ name, data }) {
-  const safeName = (name || 'script').replace(/[^a-z0-9_\-]+/gi, '_');
+  const safeName = (name || 'script').replace(/[^a-z0-9_-]+/gi, '_');
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -26,7 +26,7 @@ function triggerJsonDownload({ name, data }) {
   setTimeout(() => URL.revokeObjectURL(url), 250);
 }
 
-export const handleScriptHistoryClick = withStateSave(async function ({ e, scriptHistoryList, grimoireState }) {
+export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryList, grimoireState }) => {
   const li = e.target.closest('li');
   if (!li) return;
   const id = li.dataset.id;

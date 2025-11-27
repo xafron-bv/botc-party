@@ -347,7 +347,7 @@
   position: absolute;
   /* left/top set dynamically next to the last reminder */
   transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #f9dcaa 0%, #d0a253 100%);
+  background: linear-gradient(135deg, var(--color-primary-lighter) 0%, var(--color-primary) 100%);
   color: white;
   width: calc(var(--player-token-size) * 0.3);
   height: calc(var(--player-token-size) * 0.3);
@@ -359,7 +359,7 @@
   font-size: clamp(12px, 2vmin, 18px);
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  border: 2px solid #d0a253;
+  border: 2px solid var(--color-primary);
   transition: all 0.3s ease;
   z-index: 6;
   /* above hover zone and reminders to ensure clickability */
