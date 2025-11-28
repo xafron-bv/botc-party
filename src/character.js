@@ -333,6 +333,7 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
 
 export function openCharacterModal({ grimoireState, playerIndex }) {
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
+  const characterModalTitlePrefix = document.getElementById('character-modal-title-prefix');
   const characterSearch = document.getElementById('character-search');
   const characterModal = document.getElementById('character-modal');
   const includeModalTravellersCheckbox = document.getElementById('include-travellers-in-modal');
@@ -348,9 +349,10 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
 
   grimoireState.selectedPlayerIndex = playerIndex;
 
-  const modalTitle = characterModal.querySelector('h3');
-  if (modalTitle && characterModalPlayerName) {
-    modalTitle.textContent = 'Select Character for ';
+  if (characterModalTitlePrefix) {
+    characterModalTitlePrefix.textContent = 'Select Character for';
+  }
+  if (characterModalPlayerName) {
     characterModalPlayerName.textContent = grimoireState.players[playerIndex].name;
   }
 
