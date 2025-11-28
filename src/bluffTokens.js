@@ -123,6 +123,7 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   }
   const characterModal = document.getElementById('character-modal');
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
+  const characterModalTitlePrefix = document.getElementById('character-modal-title-prefix');
   const characterSearch = document.getElementById('character-search');
 
   grimoireState.selectedBluffIndex = bluffIndex;
@@ -132,9 +133,8 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
     grimoireState.hideInPlayForBluffs = true;
   }
 
-  const modalTitle = characterModal.querySelector('h3');
-  if (modalTitle) {
-    modalTitle.textContent = `Select Bluff ${bluffIndex + 1}`;
+  if (characterModalTitlePrefix) {
+    characterModalTitlePrefix.textContent = `Select Bluff ${bluffIndex + 1}`;
   }
   if (characterModalPlayerName) {
     characterModalPlayerName.textContent = '';
