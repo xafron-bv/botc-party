@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-11-27T10:21:58.913Z",
+  "generatedAt": "2025-11-28T23:38:18.139Z",
   "files": [
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
@@ -67,6 +67,7 @@
     "./build/img/icons/loric/gardener.webp",
     "./build/img/icons/loric/stormcatcher.webp",
     "./build/img/icons/loric/tor.webp",
+    "./build/img/icons/loric/zenomancer.webp",
     "./build/img/icons/minion/assassin.webp",
     "./build/img/icons/minion/baron.webp",
     "./build/img/icons/minion/boffin.webp",
