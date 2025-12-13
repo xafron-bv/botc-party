@@ -679,7 +679,8 @@ export function initPlayerSetup({ grimoireState }) {
         if (nextIdx === null) {
           confirmPlayerRevealBtn.textContent = 'Close and give to the Storyteller';
         } else {
-          confirmPlayerRevealBtn.textContent = `Close and hand to Player ${nextIdx + 1}`;
+          const nextPlayerName = (grimoireState.players[nextIdx] && grimoireState.players[nextIdx].name) || `Player ${nextIdx + 1}`;
+          confirmPlayerRevealBtn.textContent = `Close and hand to ${nextPlayerName}`;
         }
       }
 
