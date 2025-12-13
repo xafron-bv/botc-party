@@ -3,7 +3,7 @@ import { history, saveHistories } from './index.js';
 /**
  * Export the full history to a JSON file
  */
-export function exportHistory() {
+export function exportUserData() {
   const exportData = {
     version: 1,
     exportDate: new Date().toISOString(),
@@ -19,7 +19,7 @@ export function exportHistory() {
   const a = document.createElement('a');
   a.href = url;
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-  a.download = `botc-history-${date}.json`;
+  a.download = `botc-user-data-${date}.json`;
 
   // Trigger download
   document.body.appendChild(a);
@@ -35,7 +35,7 @@ export function exportHistory() {
     const scriptCount = exportData.scriptHistory.length;
     const grimoireCount = exportData.grimoireHistory.length;
 
-    let message = 'History exported successfully! ';
+    let message = 'User data exported successfully! ';
     const parts = [];
     if (scriptCount > 0) {
       parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`);
@@ -47,7 +47,7 @@ export function exportHistory() {
     if (parts.length > 0) {
       message += `Exported ${parts.join(' and ')}.`;
     } else {
-      message += 'Exported empty history.';
+      message += 'Exported empty user data.';
     }
 
     importStatus.textContent = message;
@@ -71,19 +71,19 @@ export function exportHistory() {
 }
 
 /**
- * Import history from a JSON file
+ * Import user data from a JSON file
  * @param {File} file - The file to import
  * @returns {Promise<void>}
  */
-export async function importHistory(file) {
+export async function importUserData(file) {
   try {
     const text = await file.text();
     const data = JSON.parse(text);
 
-    // Check if this is a script file instead of a history file
+    // Check if this is a script file instead of a user data file
     if (Array.isArray(data)) {
       // This is likely a script file (array of characters)
-      console.error('Script file detected in history import');
+      console.error('Script file detected in user data import');
       alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
       return;
     }
@@ -95,14 +95,14 @@ export async function importHistory(file) {
 
     // Check for script-like object structures
     if (!('version' in data) && !('scriptHistory' in data) && !('grimoireHistory' in data)) {
-      // This doesn't look like a history file
-      console.error('Non-history file detected in history import');
+      // This doesn't look like a user data file
+      console.error('Non-user data file detected in user data import');
       alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
       return;
     }
 
     if (!data.scriptHistory || !data.grimoireHistory || !Array.isArray(data.scriptHistory) || !Array.isArray(data.grimoireHistory)) {
-      throw new Error('Invalid history format: missing or invalid scriptHistory/grimoireHistory arrays');
+      throw new Error('Invalid user data format: missing or invalid scriptHistory/grimoireHistory arrays');
     }
 
     // Helper function to check if two history entries are identical
@@ -137,7 +137,7 @@ export async function importHistory(file) {
       );
 
       if (isDuplicate) {
-        // Skip this entry entirely - it's already in history
+        // Skip this entry entirely - it's already in user data
         continue;
       }
 
@@ -164,7 +164,7 @@ export async function importHistory(file) {
       );
 
       if (isDuplicate) {
-        // Skip this entry entirely - it's already in history
+        // Skip this entry entirely - it's already in user data
         continue;
       }
 
@@ -207,7 +207,7 @@ export async function importHistory(file) {
       const scriptCount = processedScriptHistory.length;
       const grimoireCount = processedGrimoireHistory.length;
 
-      let message = 'History imported successfully! ';
+      let message = 'User data imported successfully! ';
       if (scriptCount > 0 || grimoireCount > 0) {
         const parts = [];
         if (scriptCount > 0) {
@@ -232,8 +232,8 @@ export async function importHistory(file) {
     }
 
   } catch (error) {
-    console.error('Error importing history:', error);
-    alert(`Error importing history: ${error.message}`);
+    console.error('Error importing user data:', error);
+    alert(`Error importing user data: ${error.message}`);
     throw error;
   }
 }
@@ -242,12 +242,12 @@ export async function importHistory(file) {
  * Initialize export/import functionality
  */
 export function initExportImport() {
-  const exportBtn = document.getElementById('export-history-btn');
-  const importBtn = document.getElementById('import-history-btn');
-  const importFileInput = document.getElementById('import-history-file');
+  const exportBtn = document.getElementById('export-data-btn');
+  const importBtn = document.getElementById('import-data-btn');
+  const importFileInput = document.getElementById('import-data-file');
 
   if (exportBtn) {
-    exportBtn.addEventListener('click', exportHistory);
+    exportBtn.addEventListener('click', exportUserData);
   }
 
   if (importBtn && importFileInput) {
@@ -266,7 +266,7 @@ export function initExportImport() {
         }
 
         try {
-          await importHistory(file);
+          await importUserData(file);
           // Clear the input so the same file can be selected again
           importFileInput.value = '';
         } catch (_error) {
