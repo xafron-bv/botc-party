@@ -87,6 +87,35 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 1).trigger('input');
       cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-sun');
     });
+
+    it('should keep add-phase button usable on small screens', () => {
+      cy.get('body').then(($b) => {
+        if (!$b.hasClass('sidebar-collapsed')) {
+          cy.get('#sidebar-close-btn').click({ force: true });
+        }
+      });
+
+      cy.viewport(320, 700);
+
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'D2');
+
+      cy.get('[data-testid="add-phase-button"]').then(($btn) => {
+        const rect = $btn[0].getBoundingClientRect();
+        expect(rect.width).to.be.gte(34);
+        expect(rect.height).to.be.gte(34);
+      });
+
+      cy.window().then((win) => {
+        cy.get('[data-testid="add-phase-button"]').then(($btn) => {
+          const rect = $btn[0].getBoundingClientRect();
+          expect(rect.right).to.be.lte(win.innerWidth - 2);
+          expect(rect.left).to.be.gte(0);
+        });
+      });
+    });
   });
 
   describe('Reminder Timestamps', () => {

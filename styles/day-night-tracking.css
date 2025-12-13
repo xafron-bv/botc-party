@@ -221,7 +221,6 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .slider-container {
   display: flex;
   align-items: center;
-  gap: 15px;
   width: 100%;
   height: 100%;
 }
@@ -237,6 +236,7 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 
 .phase-slider {
   flex: 1;
+  min-width: 0;
   -webkit-appearance: none;
   appearance: none;
   height: 8px;
@@ -288,6 +288,8 @@ body.character-panel-open .display-settings-toggle.single-toggle {
 .add-phase-button {
   width: 36px;
   height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   padding: 0;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
@@ -296,6 +298,9 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
   transition: all var(--transition-base);
   box-shadow: var(--shadow-md);
   touch-action: manipulation;
@@ -439,10 +444,6 @@ body.character-panel-open .display-settings-toggle.single-toggle {
     border-width: 3px;
   }
 
-  .slider-container {
-    gap: 12px;
-  }
-
   .current-phase {
     font-size: 15px;
   }
@@ -450,6 +451,18 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   .add-phase-button {
     width: 38px;
     height: 38px;
+    min-width: 38px;
+    min-height: 38px;
     font-size: 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .day-night-slider {
+    padding: 0 var(--space-3);
+  }
+
+  .current-phase {
+    min-width: 30px;
   }
 }
