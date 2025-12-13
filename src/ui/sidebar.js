@@ -81,6 +81,15 @@ export function initSidebarToggle({
 }) {
   if (!sidebarToggleBtn || !sidebarEl) return;
   const COLLAPSE_KEY = 'sidebarCollapsed';
+  const setSidebarToggleLabel = (label) => {
+    if (!sidebarToggleBtn) return;
+    try {
+      sidebarToggleBtn.setAttribute('aria-label', label);
+      sidebarToggleBtn.title = label;
+      const labelEl = sidebarToggleBtn.querySelector('.sidebar-toggle__label');
+      if (labelEl) labelEl.textContent = label;
+    } catch (_) { }
+  };
 
   // Setup sidebar close button
   const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
@@ -112,7 +121,7 @@ export function initSidebarToggle({
     const useOverlay = prefersOverlaySidebar.matches;
     document.body.classList.toggle('sidebar-open', !collapsed && useOverlay);
     if (sidebarBackdrop) sidebarBackdrop.style.display = (!collapsed && useOverlay) ? 'block' : 'none';
-    sidebarToggleBtn.textContent = 'Open Sidebar';
+    setSidebarToggleLabel('Open Sidebar');
     // Show toggle whenever sidebar is collapsed. Desktop: always visible even if character panel open.
     // Mobile hiding when character panel open handled purely in CSS media query.
     sidebarToggleBtn.style.display = collapsed ? 'inline-block' : 'none';
@@ -165,4 +174,3 @@ export function initSidebarToggle({
   // Expose helper globally so panel code can request exclusivity after it opens
   try { window.ensureSidebarPanelExclusivity = ensureMutualExclusivity; } catch (_) { }
 }
-

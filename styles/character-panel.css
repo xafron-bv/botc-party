@@ -311,13 +311,10 @@ body.character-panel-open .character-panel-toggle { display: none; }
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  /* Keep script toggle at right edge near top, but ensure sidebar toggle sits below it */
+  /* Keep script toggle at right edge near top */
   .character-panel-toggle { top: 12px; bottom: auto; writing-mode: vertical-rl; max-width:38px; }
   /* Prevent overflow horizontally: ensure button stays inside viewport even when panel closed */
   .character-panel-toggle { right: 0; }
-  #sidebar-toggle.sidebar-toggle { margin-top: 12px; }
-  /* Hide sidebar toggle when script panel is open to avoid overlap */
-  body.character-panel-open #sidebar-toggle.sidebar-toggle { display: none; }
   /* If both are closed and viewport extremely narrow (<340px), reduce toggle font and padding */
   @media (max-width: 340px) {
     .character-panel-toggle { font-size:11px; padding:6px 4px 8px 4px; }
