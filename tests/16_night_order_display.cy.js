@@ -67,7 +67,9 @@ describe('Night Order Display', () => {
 
       // Imp has no first night order (firstNight: 0)
       // Debug: Check if Imp actually got assigned
-      cy.get('.player-token').eq(0).should('have.attr', 'style').and('include', 'imp');
+      cy.get('.player-token').eq(0).find('> .token-role-art')
+        .should('have.css', 'background-image')
+        .and('include', 'imp');
       cy.get('.player-token').eq(0).within(() => {
         cy.get('[data-testid="night-order-number"]').should('not.exist');
       });

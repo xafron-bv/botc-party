@@ -212,6 +212,11 @@ body.grimoire-hidden #player-circle li .player-token {
   background-image: url('/assets/img/token.png') !important;
 }
 
+/* Hide role artwork layer when grimoire is hidden */
+body.grimoire-hidden #player-circle li .player-token > .token-role-art {
+  display: none !important;
+}
+
 /* Remove pre-game overlay; keep day/night toggle interactive at all times */
 #day-night-toggle { pointer-events: auto; opacity: 1; cursor: pointer; }
 
