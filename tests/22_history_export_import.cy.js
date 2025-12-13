@@ -1,42 +1,45 @@
 // Cypress E2E tests - History Export/Import
 
-describe('History Export/Import', () => {
+describe('User Data Export/Import', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
   it('should show export and import buttons in the UI', () => {
-    // Scroll to the History Management section
-    cy.contains('h3', 'History Management').scrollIntoView();
+    // Scroll to the User Data Management section
+    cy.contains('h3', 'Export your data').scrollIntoView();
 
     // Export button should exist
-    cy.get('#export-history-btn').should('exist').and('be.visible');
-    cy.get('#export-history-btn').should('contain', 'Export History');
+    cy.get('#export-data-btn').should('exist').and('be.visible');
+    cy.get('#export-data-btn').should('contain', 'Export');
+    cy.get('#export-type-select').should('exist').and('be.visible');
+    cy.get('#export-type-select').should('have.value', 'current-game');
 
     // Import button should exist
-    cy.get('#import-history-btn').should('exist').and('be.visible');
-    cy.get('#import-history-btn').should('contain', 'Import History');
+    cy.get('#import-data-btn').should('exist').and('be.visible');
+    cy.get('#import-data-btn').should('contain', 'Import');
 
     // File input for import should exist but be hidden
-    cy.get('#import-history-file').should('exist');
+    cy.get('#import-data-file').should('exist');
   });
 
   it('should export empty history when no entries exist', () => {
+    cy.get('#export-type-select').select('full-data');
     // Click export button
-    cy.get('#export-history-btn').click();
+    cy.get('#export-data-btn').click();
 
     // Check for success message
     cy.get('#import-status').should('have.class', 'status');
-    cy.get('#import-status').should('contain', 'History exported successfully');
-    cy.get('#import-status').should('contain', 'empty history');
+    cy.get('#import-status').should('contain', 'User data exported successfully');
+    cy.get('#import-status').should('contain', 'empty user data');
 
     // Verify download was triggered with correct content
     cy.window().then((win) => {
       expect(win.lastDownloadedFile).to.exist;
-      expect(win.lastDownloadedFile.filename).to.match(/botc-history-\d{4}-\d{2}-\d{2}\.json/);
+      expect(win.lastDownloadedFile.filename).to.match(/botc-user-data-\d{4}-\d{2}-\d{2}\.json/);
 
       const content = JSON.parse(win.lastDownloadedFile.content);
       expect(content).to.deep.equal({
@@ -76,8 +79,9 @@ describe('History Export/Import', () => {
     });
     cy.reload();
 
+    cy.get('#export-type-select').select('full-data');
     // Click export button
-    cy.get('#export-history-btn').click();
+    cy.get('#export-data-btn').click();
 
     // Verify download content
     cy.window().then((win) => {
@@ -117,7 +121,7 @@ describe('History Export/Import', () => {
     };
 
     // Mock file upload
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'test-history.json',
       mimeType: 'application/json'
@@ -125,7 +129,7 @@ describe('History Export/Import', () => {
 
     // Check for success message
     cy.get('#import-status').should('have.class', 'status');
-    cy.get('#import-status').should('contain', 'History imported successfully');
+    cy.get('#import-status').should('contain', 'User data imported successfully');
 
     // Verify history was imported
     cy.contains('#script-history-list .history-item .history-name', 'Imported Script').should('exist');
@@ -163,7 +167,7 @@ describe('History Export/Import', () => {
       grimoireHistory: []
     };
 
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'merge-test.json',
       mimeType: 'application/json'
@@ -205,7 +209,7 @@ describe('History Export/Import', () => {
       grimoireHistory: []
     };
 
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'duplicate-test.json',
       mimeType: 'application/json'
@@ -225,7 +229,7 @@ describe('History Export/Import', () => {
 
   it('should show error message for invalid JSON file', () => {
     // Upload invalid JSON
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from('{ invalid json }'),
       fileName: 'invalid.json',
       mimeType: 'application/json'
@@ -243,7 +247,7 @@ describe('History Export/Import', () => {
       someOtherField: 'not the right format'
     };
 
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(invalidData)),
       fileName: 'wrong-format.json',
       mimeType: 'application/json'
@@ -291,13 +295,14 @@ describe('History Export/Import', () => {
     cy.get('#grimoire-history-list .history-item').should('have.length', 1);
 
     // Export and then reimport the same data
-    cy.get('#export-history-btn').click();
+    cy.get('#export-type-select').select('full-data');
+    cy.get('#export-data-btn').click();
 
     cy.window().then((win) => {
       const exportedData = win.lastDownloadedFile.content;
 
       // Import the exported data back
-      cy.get('#import-history-file').selectFile({
+      cy.get('#import-data-file').selectFile({
         contents: Cypress.Buffer.from(exportedData),
         fileName: 'reimport-test.json',
         mimeType: 'application/json'
@@ -352,7 +357,7 @@ describe('History Export/Import', () => {
       ]
     };
 
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(importData)),
       fileName: 'count-test.json',
       mimeType: 'application/json'
@@ -370,15 +375,15 @@ describe('History Export/Import', () => {
     cy.window().then((win) => {
       // Override createElement to intercept download
       const originalCreateElement = win.document.createElement;
-      win.document.createElement = function(tagName) {
+      win.document.createElement = function (tagName) {
         const element = originalCreateElement.call(this, tagName);
         if (tagName === 'a') {
           const originalClick = element.click;
-          element.click = function() {
+          element.click = function () {
             if (element.download && element.href.startsWith('blob:')) {
               downloadTriggered = true;
               // Extract filename
-              expect(element.download).to.match(/botc-history-\d{4}-\d{2}-\d{2}\.json/);
+              expect(element.download).to.match(/botc-user-data-\d{4}-\d{2}-\d{2}\.json/);
             }
             originalClick.call(this);
           };
@@ -387,7 +392,8 @@ describe('History Export/Import', () => {
       };
     });
 
-    cy.get('#export-history-btn').click();
+    cy.get('#export-type-select').select('full-data');
+    cy.get('#export-data-btn').click();
 
     cy.window().then(() => {
       expect(downloadTriggered).to.be.true;

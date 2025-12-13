@@ -34,11 +34,6 @@ export function createBluffToken({ grimoireState, index }) {
   token.style.position = 'relative';
   token.style.overflow = 'visible';
 
-  const label = document.createElement('div');
-  label.className = 'bluff-label';
-  label.textContent = `Bluff ${index + 1}`;
-  token.appendChild(label);
-
   setupInteractiveElement({
     element: token,
     onTap: () => {
@@ -85,11 +80,6 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
       showAbilityIcon: true,
       dataset: { bluffIndex: String(index) }
     });
-
-    const label = token.querySelector('.bluff-label');
-    if (label) {
-      label.style.display = 'none';
-    }
   } else {
     token.classList.add('empty');
     token.classList.remove('has-character');
@@ -101,11 +91,6 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
       baseImage: BLUFF_BASE_TOKEN_IMAGE,
       showLabel: false
     });
-
-    const label = token.querySelector('.bluff-label');
-    if (label) {
-      label.style.display = 'block';
-    }
   }
 
   if (updateAttention) {
