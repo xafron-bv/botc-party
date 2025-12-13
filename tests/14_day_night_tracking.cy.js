@@ -16,7 +16,6 @@ describe('Day/Night Tracking Feature', () => {
 
       // Grimoire should look normal when toggle is off
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'display', 'none');
-      cy.get('.reminder-timestamp').should('not.exist');
     });
 
     it('should enable/disable day/night tracking when clicked', () => {
@@ -142,65 +141,6 @@ describe('Day/Night Tracking Feature', () => {
           expect(rect.left).to.be.gte(0);
         });
       });
-    });
-  });
-
-  describe('Reminder Timestamps', () => {
-    beforeEach(() => {
-      // Enable day/night tracking
-      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
-
-      // Assign a character to first player
-      cy.get('.player-token').first().click({ force: true });
-      cy.get('#character-grid .token').should('be.visible');
-      cy.get('#character-grid .token').first().click();
-
-      // Wait for character to be assigned
-      cy.get('li').first().find('.player-token').should('have.attr', 'style').and('include', 'background-image');
-    });
-
-    it('should add timestamps to reminder tokens when tracking is enabled', () => {
-      // Add a reminder in N1 (Alt+click for text reminder)
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
-      cy.get('#text-reminder-modal').should('be.visible');
-      cy.get('#reminder-text-input').type('Test reminder N1');
-      cy.get('[data-testid="save-text-reminder"]').click();
-
-      // Reminder should show N1 timestamp
-      cy.get('li').first().find('.text-reminder').should('contain', 'N1');
-
-      // Move to D1
-      cy.get('[data-testid="add-phase-button"]').click();
-
-      // Add another reminder in D1
-      cy.get('li').eq(1).find('.reminder-placeholder').click({ altKey: true });
-      cy.get('#text-reminder-modal').should('be.visible');
-      cy.get('#reminder-text-input').type('Test reminder D1');
-      cy.get('[data-testid="save-text-reminder"]').click();
-
-      // New reminder should show D1 timestamp
-      cy.get('li').eq(1).find('.text-reminder').should('contain', 'D1');
-
-      // First reminder should still show N1
-      cy.get('li').first().find('.text-reminder').should('contain', 'N1');
-    });
-
-    it('should not show timestamps when tracking is disabled', () => {
-      // Add a reminder
-      cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
-      cy.get('#text-reminder-modal').should('be.visible');
-      cy.get('#reminder-text-input').type('Test reminder');
-      cy.get('[data-testid="save-text-reminder"]').click();
-
-      // Reminder should show timestamp
-      cy.get('li').first().find('.text-reminder').should('contain', 'N1');
-
-      // Disable tracking
-      cy.get('[data-testid="day-night-toggle"]').click({ force: true });
-
-      // Reminder should not show timestamp
-      cy.get('li').first().find('.text-reminder').should('not.contain', 'N1');
-      cy.get('.reminder-timestamp').should('not.exist');
     });
   });
 
@@ -422,8 +362,16 @@ describe('Day/Night Tracking Feature', () => {
       // Current phase should be N2
       cy.get('[data-testid="current-phase"]').should('contain', 'N2');
 
-      // Reminder timestamps should be preserved
-      cy.get('.text-reminder').should('contain', 'N2');
+      cy.get('.text-reminder').should('contain', 'Persistent reminder');
+
+      // Filtering should still work after reload
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 1).trigger('input');
+      cy.get('[data-testid="current-phase"]').should('contain', 'D1');
+      cy.get('.text-reminder').should('not.exist');
+
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 2).trigger('input');
+      cy.get('[data-testid="current-phase"]').should('contain', 'N2');
+      cy.get('.text-reminder').should('contain', 'Persistent reminder');
     });
   });
 });

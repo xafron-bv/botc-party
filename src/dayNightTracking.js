@@ -181,11 +181,6 @@ export function addReminderTimestamp(grimoireState, reminderId) {
   }
 }
 
-export function getReminderTimestamp(grimoireState, reminderId) {
-  if (!grimoireState.dayNightTracking.enabled) return null;
-  return grimoireState.dayNightTracking.reminderTimestamps[reminderId] || null;
-}
-
 export function isReminderVisible(grimoireState, reminderId) {
   if (!grimoireState.dayNightTracking.enabled) return true;
 
