@@ -14,17 +14,20 @@ describe('User Data Export/Import', () => {
 
     // Export button should exist
     cy.get('#export-data-btn').should('exist').and('be.visible');
-    cy.get('#export-data-btn').should('contain', 'Export Data');
+    cy.get('#export-data-btn').should('contain', 'Export');
+    cy.get('#export-type-select').should('exist').and('be.visible');
+    cy.get('#export-type-select').should('have.value', 'current-game');
 
     // Import button should exist
     cy.get('#import-data-btn').should('exist').and('be.visible');
-    cy.get('#import-data-btn').should('contain', 'Import Data');
+    cy.get('#import-data-btn').should('contain', 'Import');
 
     // File input for import should exist but be hidden
     cy.get('#import-data-file').should('exist');
   });
 
   it('should export empty history when no entries exist', () => {
+    cy.get('#export-type-select').select('full-data');
     // Click export button
     cy.get('#export-data-btn').click();
 
@@ -76,6 +79,7 @@ describe('User Data Export/Import', () => {
     });
     cy.reload();
 
+    cy.get('#export-type-select').select('full-data');
     // Click export button
     cy.get('#export-data-btn').click();
 
@@ -291,6 +295,7 @@ describe('User Data Export/Import', () => {
     cy.get('#grimoire-history-list .history-item').should('have.length', 1);
 
     // Export and then reimport the same data
+    cy.get('#export-type-select').select('full-data');
     cy.get('#export-data-btn').click();
 
     cy.window().then((win) => {
@@ -387,6 +392,7 @@ describe('User Data Export/Import', () => {
       };
     });
 
+    cy.get('#export-type-select').select('full-data');
     cy.get('#export-data-btn').click();
 
     cy.window().then(() => {

@@ -1,4 +1,21 @@
 import { history, saveHistories } from './index.js';
+import { renderGrimoireHistory } from './grimoire.js';
+import { renderScriptHistory } from './script.js';
+import { exportCurrentGame, importCurrentGame } from '../currentGame/exportImport.js';
+
+function isUserDataExport(data) {
+  return !!(data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    (Array.isArray(data.scriptHistory) || Array.isArray(data.grimoireHistory)));
+}
+
+function isCurrentGameExport(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  if (data.kind === 'botc-current-game') return true;
+  if (data.gameState && typeof data.gameState === 'object') return true;
+  return Array.isArray(data.scriptData) && Array.isArray(data.players);
+}
 
 /**
  * Export the full history to a JSON file
@@ -188,9 +205,6 @@ export async function importUserData(file) {
     saveHistories();
 
     // Re-render history lists
-    const { renderScriptHistory } = await import('./script.js');
-    const { renderGrimoireHistory } = await import('./grimoire.js');
-
     const scriptHistoryList = document.getElementById('script-history-list');
     const grimoireHistoryList = document.getElementById('grimoire-history-list');
 
@@ -241,13 +255,25 @@ export async function importUserData(file) {
 /**
  * Initialize export/import functionality
  */
-export function initExportImport() {
+export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
   const exportBtn = document.getElementById('export-data-btn');
+  const exportTypeSelect = document.getElementById('export-type-select');
   const importBtn = document.getElementById('import-data-btn');
   const importFileInput = document.getElementById('import-data-file');
 
   if (exportBtn) {
-    exportBtn.addEventListener('click', exportUserData);
+    exportBtn.addEventListener('click', () => {
+      const exportType = exportTypeSelect ? String(exportTypeSelect.value || 'full-data') : 'full-data';
+      if (exportType === 'current-game') {
+        if (!grimoireState) {
+          alert('Unable to export current game: missing game state.');
+          return;
+        }
+        exportCurrentGame({ grimoireState });
+        return;
+      }
+      exportUserData();
+    });
   }
 
   if (importBtn && importFileInput) {
@@ -266,7 +292,28 @@ export function initExportImport() {
         }
 
         try {
-          await importUserData(file);
+          const raw = await file.text();
+          let parsed;
+          try {
+            parsed = JSON.parse(raw);
+          } catch (error) {
+            alert('Error importing file: invalid JSON.');
+            throw error;
+          }
+
+          if (Array.isArray(parsed)) {
+            alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
+          } else if (isUserDataExport(parsed)) {
+            await importUserData(file);
+          } else if (isCurrentGameExport(parsed)) {
+            if (!grimoireState) {
+              alert('Unable to import current game: missing game state.');
+            } else {
+              await importCurrentGame({ file, grimoireState, grimoireHistoryList });
+            }
+          } else {
+            alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
+          }
           // Clear the input so the same file can be selected again
           importFileInput.value = '';
         } catch (_error) {

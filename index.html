@@ -125,9 +125,15 @@
       </div>
       <div class="section">
         <h3>Export your data</h3>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button class="button" id="export-data-btn">Export Data</button>
-          <button class="button" id="import-data-btn">Import Data</button>
+        <div class="data-transfer">
+          <div class="data-transfer__export">
+            <button class="button" id="export-data-btn">Export</button>
+            <select id="export-type-select" class="data-transfer__select" aria-label="Export type">
+              <option value="current-game" selected>Current game</option>
+              <option value="full-data">Full data</option>
+            </select>
+          </div>
+          <button class="button data-transfer__import" id="import-data-btn">Import</button>
           <input type="file" id="import-data-file" accept=".json" style="display: none;">
         </div>
         <div id="import-status" aria-live="polite"></div>

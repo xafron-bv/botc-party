@@ -1054,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderScriptHistory({ scriptHistoryList });
     renderGrimoireHistory({ grimoireHistoryList });
 
-    initExportImport();
+    initExportImport({ grimoireState, grimoireHistoryList });
 
     initDayNightTracking(grimoireState);
 
