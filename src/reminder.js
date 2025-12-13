@@ -1,6 +1,6 @@
 import { resolveAssetPath } from '../utils.js';
 import { withStateSave } from './app.js';
-import { addReminderTimestamp, generateReminderId, getReminderTimestamp, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
+import { addReminderTimestamp, generateReminderId, isReminderVisible, saveCurrentPhaseState } from './dayNightTracking.js';
 import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { CLICK_EXPAND_SUPPRESS_MS } from './constants.js';
@@ -289,7 +289,6 @@ export function createReminderElement({
   onClick,
   onLongPress,
   dataset = {},
-  timestamp,
   grimoireState,
   // token specific
   radiusFactor,
@@ -357,13 +356,6 @@ export function createReminderElement({
     element.dataset[k] = v;
   });
 
-  if (timestamp) {
-    const timestampEl = document.createElement('span');
-    timestampEl.className = 'reminder-timestamp';
-    timestampEl.textContent = timestamp;
-    element.appendChild(timestampEl);
-  }
-
   if (onClick || onLongPress) {
     setupInteractiveElement({
       element,
@@ -407,9 +399,6 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
     visibleRemindersCount++;
 
     const isCustom = reminder.id === 'custom-note' || reminder.type === 'text';
-    const timestamp = (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled)
-      ? getReminderTimestamp(grimoireState, reminder.reminderId)
-      : null;
 
     const onTap = (e, targetElement) => {
       const parentLi = li;
@@ -462,7 +451,6 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
       image: reminder.image,
       rotation: reminder.rotation,
       isCustomIcon: isCustom,
-      timestamp,
       grimoireState,
       playerIndex,
       reminderIndex: idx,
