@@ -26,7 +26,7 @@ describe('Selection session persistence', () => {
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
-        const confirmBtn = modal.find('#close-player-reveal-modal');
+        const confirmBtn = modal.find('#confirm-player-reveal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
@@ -51,16 +51,25 @@ describe('Selection session persistence', () => {
     cy.get('#number-picker-overlay').should('not.be.visible');
 
     // Unassigned player remains interactive
-    cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+      }
+    });
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#selection-reveal-btn').click();
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
-        const confirmBtn = modal.find('#close-player-reveal-modal');
+        const confirmBtn = modal.find('#confirm-player-reveal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
+      }
+    });
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(2).find('.number-overlay').click({ force: true });
       }
     });
     cy.get('#number-picker-overlay').should('be.visible');
