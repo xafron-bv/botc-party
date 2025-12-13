@@ -274,7 +274,7 @@ describe('Bluff Tokens', () => {
     cy.get('#character-grid .token').first().click();
 
     // Verify both assignments are independent
-    cy.get('#player-circle li').first().find('.player-token')
+    cy.get('#player-circle li').first().find('.player-token > .token-role-art')
       .should('have.css', 'background-image')
       .and('include', 'washerwoman');
 

@@ -10,6 +10,33 @@ import { showStorytellerMessage } from '../storytellerMessages.js';
 import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 import { withStateSave } from '../app.js';
 
+function getAlignmentOverrideFilter({ role, player }) {
+  if (!role || !player) return null;
+  const reminders = Array.isArray(player.reminders) ? player.reminders : [];
+  let override = null;
+  for (const reminder of reminders) {
+    if (!reminder || reminder.type !== 'icon') continue;
+    if (reminder.id === 'evil-evil') { override = 'evil'; break; }
+    if (reminder.id === 'good-good') override = 'good';
+  }
+  if (!override) return null;
+
+  const baseAlignment = (role.team === 'minion' || role.team === 'demon') ? 'evil'
+    : (role.team === 'townsfolk' || role.team === 'outsider') ? 'good'
+      : null;
+  if (!baseAlignment || baseAlignment === override) return null;
+
+  // Blue->Red (good art -> evil): hue +120deg. Red->Blue (evil art -> good): hue -120deg.
+  if (baseAlignment === 'good' && override === 'evil') {
+    // Darken slightly to avoid "pink" reds on light-blue source art.
+    return 'hue-rotate(120deg) saturate(1.25) brightness(0.88) contrast(1.12)';
+  }
+  if (baseAlignment === 'evil' && override === 'good') {
+    return 'hue-rotate(-120deg) saturate(1.15) brightness(0.95) contrast(1.08)';
+  }
+  return null;
+}
+
 export function updatePlayerElement({
   li,
   playerIndex,
@@ -56,6 +83,12 @@ export function updatePlayerElement({
   const baseTokenImage = resolveAssetPath('assets/img/token.png');
 
   if (shouldShowCharacter && player.character && role) {
+    const filter = getAlignmentOverrideFilter({ role, player });
+    try {
+      if (filter) tokenDiv.style.setProperty('--role-art-filter', filter);
+      else tokenDiv.style.removeProperty('--role-art-filter');
+    } catch (_) { }
+
     renderTokenElement({
       tokenElement: tokenDiv,
       role,
@@ -67,6 +100,7 @@ export function updatePlayerElement({
     });
     if (charNameDiv) charNameDiv.textContent = role.name;
   } else {
+    try { tokenDiv.style.removeProperty('--role-art-filter'); } catch (_) { }
     renderTokenElement({
       tokenElement: tokenDiv,
       role: null,
