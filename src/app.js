@@ -19,13 +19,17 @@ export function withStateSave(fn) {
       grimoireState = window.grimoireState;
     }
 
+    // Avoid persisting intermediate state while restoring from storage, which would
+    // overwrite the saved snapshot with partially rebuilt data.
+    const shouldSave = grimoireState && !grimoireState.isRestoringState;
+
     if (result instanceof Promise) {
       return result.then((res) => {
-        if (grimoireState) saveAppState({ grimoireState });
+        if (shouldSave) saveAppState({ grimoireState });
         return res;
       });
     } else {
-      if (grimoireState) saveAppState({ grimoireState });
+      if (shouldSave) saveAppState({ grimoireState });
       return result;
     }
   };
