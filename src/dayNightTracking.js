@@ -63,12 +63,12 @@ function setupDayNightEventListeners(grimoireState) {
 
   if (addPhaseBtn) {
     addPhaseBtn.addEventListener('click', () => {
-      addNextPhase(grimoireState);
+      advanceOrAddPhase(grimoireState);
     });
   }
 }
 
-const addNextPhase = withStateSave((grimoireState) => {
+function addNextPhaseInternal(grimoireState) {
   saveCurrentPhaseState(grimoireState);
 
   const phases = grimoireState.dayNightTracking.phases;
@@ -90,6 +90,27 @@ const addNextPhase = withStateSave((grimoireState) => {
 
   updateDayNightUI(grimoireState);
   updateGrimoire({ grimoireState });
+}
+
+const advanceOrAddPhase = withStateSave((grimoireState) => {
+  if (!grimoireState.dayNightTracking.enabled) return;
+
+  const { phases } = grimoireState.dayNightTracking;
+  const lastIndex = phases.length - 1;
+
+  if (grimoireState.dayNightTracking.currentPhaseIndex < lastIndex) {
+    saveCurrentPhaseState(grimoireState);
+
+    grimoireState.dayNightTracking.currentPhaseIndex += 1;
+    const newPhase = phases[grimoireState.dayNightTracking.currentPhaseIndex];
+    restorePhaseState(grimoireState, newPhase);
+
+    updateDayNightUI(grimoireState);
+    updateGrimoire({ grimoireState });
+    return;
+  }
+
+  addNextPhaseInternal(grimoireState);
 });
 
 export function updateDayNightUI(grimoireState) {

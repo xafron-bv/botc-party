@@ -88,6 +88,33 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="day-night-toggle"] i').should('have.class', 'fa-sun');
     });
 
+    it('should advance existing phases before adding new ones', () => {
+      // Build up to D2
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'D2');
+
+      // Go back to D1
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 1).trigger('input');
+      cy.get('[data-testid="current-phase"]').should('contain', 'D1');
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').should('have.attr', 'max', '3');
+
+      // + should advance within existing phases (D1 -> N2 -> D2) without adding new phases
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'N2');
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').should('have.attr', 'max', '3');
+
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'D2');
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').should('have.attr', 'max', '3');
+
+      // Now at the end; + should add the next phase
+      cy.get('[data-testid="add-phase-button"]').click();
+      cy.get('[data-testid="current-phase"]').should('contain', 'N3');
+      cy.get('[data-testid="day-night-slider"] input[type="range"]').should('have.attr', 'max', '4');
+    });
+
     it('should keep add-phase button usable on small screens', () => {
       cy.get('body').then(($b) => {
         if (!$b.hasClass('sidebar-collapsed')) {
