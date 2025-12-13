@@ -2,12 +2,15 @@
 
 const completeNumberSelection = (playerCount) => {
   for (let i = 0; i < playerCount; i += 1) {
-    cy.get('#player-circle li .number-overlay').eq(i).click();
-    cy.get('#number-picker-grid button.button.number:not(.disabled)').first().click();
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#reveal-name-input').clear().type(`P${i + 1}`);
-    cy.get('#close-player-reveal-modal').click();
+    cy.get('#confirm-player-reveal').click();
     cy.get('#player-reveal-modal').should('not.be.visible');
+    if (i < playerCount - 1) {
+      cy.get('#number-picker-overlay').should('be.visible');
+    }
   }
 };
 
@@ -27,8 +30,9 @@ describe('Player setup completion overlay', () => {
     // Fill the bag to match player count
     cy.fillBag();
     // Start number selection
-    cy.get('.start-selection').click();
-    cy.get('body').should('have.class', 'selection-active');
+    cy.get('.start-selection').click({ force: true });
+    cy.get('body', { timeout: 10000 }).should('have.class', 'selection-active');
+    cy.get('#number-picker-overlay', { timeout: 10000 }).should('be.visible');
   });
 
   it('restores overlay with handoff message and disables setup button after final reveal, then reset re-enables it', () => {

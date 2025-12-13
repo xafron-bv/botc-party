@@ -32,7 +32,7 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.get('#player-circle li').eq(2).find('.player-token').should('not.have.class', 'next-player');
   });
 
-  it('moves highlight clockwise after a player picks a number', () => {
+  it('moves highlight clockwise after a player draws a character', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
     cy.fillBag();
@@ -41,10 +41,8 @@ describe('Next Player Highlight During Number Selection', () => {
     // First player should be highlighted
     cy.get('#player-circle li').eq(0).find('.player-token').should('have.class', 'next-player');
 
-    // Player 0 picks a number
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('#selection-reveal-btn').click();
 
     // Close reveal modal
     cy.get('body').then($body => {
@@ -58,7 +56,7 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.get('#player-circle li').eq(1).find('.player-token').should('have.class', 'next-player');
   });
 
-  it('continues highlighting clockwise as players pick numbers in sequence', () => {
+  it('continues highlighting clockwise as players draw in sequence', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
     cy.fillBag();
@@ -69,10 +67,13 @@ describe('Next Player Highlight During Number Selection', () => {
       // Current player should be highlighted
       cy.get('#player-circle li').eq(i).find('.player-token').should('have.class', 'next-player');
 
-      // Pick a number
-      cy.get('#player-circle li').eq(i).find('.number-overlay').click();
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
       cy.get('#number-picker-overlay').should('be.visible');
-      cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
+      cy.get('#selection-reveal-btn').click();
 
       // Close reveal modal
       cy.get('body').then($body => {
@@ -89,17 +90,21 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.get('#player-circle li').eq(3).find('.player-token').should('have.class', 'next-player');
   });
 
-  it('clears highlight when all players have picked numbers', () => {
+  it('clears highlight when all players have drawn', () => {
     // Setup and start selection
     cy.get('#open-player-setup').click();
     cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
-    // All 7 players pick numbers
+    // All 7 players draw
     for (let i = 0; i < 7; i++) {
-      cy.get('#player-circle li').eq(i).find('.number-overlay').click();
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
       cy.get('#number-picker-overlay').should('be.visible');
-      cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
+      cy.get('#selection-reveal-btn').click();
 
       cy.get('body').then($body => {
         if ($body.find('#player-reveal-modal:visible').length) {
@@ -138,8 +143,11 @@ describe('Next Player Highlight During Number Selection', () => {
     // Player 0 should be highlighted first
     cy.get('#player-circle li').eq(0).find('.player-token').should('have.class', 'next-player');
 
-    // Assign player 0 as traveller
-    cy.get('#player-circle li').eq(0).click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+      }
+    });
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .traveller-token').first().click();
     cy.get('body').then($body => {
@@ -165,9 +173,9 @@ describe('Next Player Highlight During Number Selection', () => {
     // Player 0 is highlighted initially
     cy.get('#player-circle li').eq(0).find('.player-token').should('have.class', 'next-player');
 
-    // Player 0 picks number 1
-    cy.get('#player-circle li').eq(0).click();
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    // Player 0 draws
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
@@ -177,9 +185,17 @@ describe('Next Player Highlight During Number Selection', () => {
     // Player 1 should be highlighted
     cy.get('#player-circle li').eq(1).find('.player-token').should('have.class', 'next-player');
 
-    // Click player 3 (out of order)
-    cy.get('#player-circle li').eq(3).click();
-    cy.get('#number-picker-overlay .number').contains('2').click();
+    // Close the prompted picker, then click player 3 (out of order)
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#close-number-picker').click({ force: true });
+    cy.get('#player-circle li').eq(3).find('.number-overlay').click({ force: true });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
@@ -200,24 +216,33 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
-    // Pick numbers for players 0-5 quickly by clicking them out of visual order
-    const pickSequence = [0, 1, 2, 3, 4, 5];
-    pickSequence.forEach((playerIdx, numberIdx) => {
-      cy.get('#player-circle li').eq(playerIdx).click();
-      cy.get('#number-picker-overlay .number').contains(String(numberIdx + 1)).click();
+    // Draw for players 0-5
+    for (let i = 0; i < 6; i++) {
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
+      cy.get('#number-picker-overlay').should('be.visible');
+      cy.get('#selection-reveal-btn').click();
       cy.get('body').then($body => {
         if ($body.find('#player-reveal-modal:visible').length) {
           cy.get('#close-player-reveal-modal').click();
         }
       });
-    });
+    }
 
     // Now player 6 (last) should be highlighted
     cy.get('#player-circle li').eq(6).find('.player-token').should('have.class', 'next-player');
 
-    // Player 6 picks last number
-    cy.get('#player-circle li').eq(6).click();
-    cy.get('#number-picker-overlay .number').contains('7').click();
+    // Player 6 draws last
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(6).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
@@ -234,17 +259,27 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
 
-    // Player 0 and 1 pick numbers
-    cy.get('#player-circle li').eq(0).click();
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    // Player 0 and 1 draw
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
       }
     });
 
-    cy.get('#player-circle li').eq(1).click();
-    cy.get('#number-picker-overlay .number').contains('2').click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
@@ -310,9 +345,14 @@ describe('Next Player Highlight During Number Selection', () => {
 
     cy.get('#player-setup-panel .start-selection').click();
 
-    // Assign traveller to player 1
-    cy.get('#player-circle li').eq(0).click();
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    // Assign non-traveller to player 0
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
@@ -323,7 +363,12 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.get('#player-circle li').eq(1).find('.player-token').should('have.class', 'next-player');
 
     // Assign traveller to player 1
-    cy.get('#player-circle li').eq(1).click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .traveller-token').first().click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
@@ -334,16 +379,26 @@ describe('Next Player Highlight During Number Selection', () => {
     // Player 2 should be highlighted (skipping traveller at 1)
     cy.get('#player-circle li').eq(2).find('.player-token').should('have.class', 'next-player');
 
-    // Assign another traveller to player 3
-    cy.get('#player-circle li').eq(2).click();
-    cy.get('#number-picker-overlay .number').contains('2').click();
+    // Assign non-traveller to player 2
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(2).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
       }
     });
 
-    cy.get('#player-circle li').eq(3).click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(3).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .traveller-token').first().click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
