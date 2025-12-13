@@ -101,13 +101,7 @@ describe('Traveller Bag Selection', () => {
 
     // Start selection
     cy.get('#player-setup-panel .start-selection').click({ force: true });
-
-    // Click on a player to open number picker
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
     cy.get('#number-picker-overlay').should('be.visible');
-
-    // Should show "Select a Traveller:" section
-    cy.get('#number-picker-grid').should('contain', 'Select a Traveller:');
 
     // Should show Gunslinger token
     cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').should('exist');
@@ -137,9 +131,6 @@ describe('Traveller Bag Selection', () => {
 
     // Start selection
     cy.get('#player-setup-panel .start-selection').click({ force: true });
-
-    // Click on player 1 to open number picker
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
 
     // Click Gunslinger token
@@ -152,12 +143,17 @@ describe('Traveller Bag Selection', () => {
     // Confirm
     cy.get('#close-player-reveal-modal').click();
     cy.get('#player-reveal-modal').should('not.be.visible');
+    cy.get('#number-picker-overlay').should('not.be.visible');
 
     // Player overlay should show 'T' for traveller
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
 
     // Traveller should be removed from subsequent number pickers
-    cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').should('not.exist');
   });
@@ -188,15 +184,19 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel .start-selection').click({ force: true });
 
     // Assign traveller to player 1
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-grid .traveller-token[title="Gunslinger"]').click();
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#close-player-reveal-modal').click();
 
     // Assign regular character to player 2
-    cy.get('#player-circle li').eq(1).find('.number-overlay').click();
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-grid .button.number').contains('1').click();
+    cy.get('#selection-reveal-btn').click();
     cy.get('#player-reveal-modal').should('be.visible');
     cy.get('#close-player-reveal-modal').click();
 
@@ -206,7 +206,7 @@ describe('Traveller Bag Selection', () => {
 
     // - Regular character assignment (player 2) should NOT show character name (hidden until game starts)
     cy.get('#player-circle li').eq(1).find('.character-name').should('have.text', '');
-    cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', '1');
+    cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', '✓');
 
     // - Other unassigned players should show question marks and no character names
     cy.get('#player-circle li').eq(2).find('.number-overlay').should('contain', '?');
@@ -246,7 +246,7 @@ describe('Traveller Bag Selection', () => {
     cy.get('#player-setup-panel .start-selection').click({ force: true });
 
     // Assign traveller to player 1
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    cy.get('#number-picker-overlay').should('be.visible');
     cy.get('@travellerTitle').then((title) => {
       cy.get('#number-picker-grid .traveller-token').filter((_, el) => el.getAttribute('title') === title).first().click();
     });
@@ -259,6 +259,15 @@ describe('Traveller Bag Selection', () => {
         cy.window().its('grimoireState.players[0].character').should('equal', roleId);
       }
     });
+
+    // Close the next player's prompt so we can test reopening behavior
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#close-number-picker').click({ force: true });
 
     // Attempting to reopen for the same player should do nothing
     cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });

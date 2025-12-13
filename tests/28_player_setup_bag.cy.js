@@ -108,24 +108,22 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-counts [data-team="townsfolk"] .team-count-value').should('contain', '4/5');
   });
 
-  it('supports number picking without revealing assignments prematurely', () => {
+  it('supports drawing without revealing assignments prematurely', () => {
     // Open and fill the bag via helper
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
-    // Enter selection flow and click overlay to open number picker
+    // Enter selection flow
     cy.get('#player-setup-panel .start-selection').click();
-    // Overlay should show a '?' before selection and be clickable
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('contain', '?').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    // Choose number 1 -> reveal modal may appear (optional UI); if present, confirm it
-    cy.get('#number-picker-overlay .number').contains('1').click();
+
+    // Reveal character (no number selection)
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {
-        // Optional reveal modal path
         const nameInput = modal.find('#reveal-name-input');
         if (nameInput.length) {
           cy.wrap(nameInput).clear().type('Alice');
@@ -134,18 +132,13 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
         }
-      } else {
-        // If no modal, still set a name directly on player token for parity
-        cy.get('#player-circle li').eq(0).find('.player-name').invoke('text').then(t => {
-          if (!/Alice/.test(t)) {
-            // rename via prompt simulation not available; skip
-          }
-        });
       }
     });
+    // Reveal picker closes automatically so sidebar is available
+    cy.get('#number-picker-overlay').should('not.be.visible');
     cy.get('#player-setup-panel').should('not.be.visible');
-    // Overlay shows "1" on first player's token and is disabled, name updated
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1').and('have.class', 'disabled');
+    // Overlay shows "✓" on first player's token and is disabled, name updated
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓').and('have.class', 'disabled');
     cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'Alice');
     // Reset grimoire during selection should cancel and remove overlays
     cy.get('#sidebar-toggle').should('be.visible').click();
@@ -161,23 +154,25 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#open-player-setup').click();
     cy.fillBag();
     cy.get('#player-setup-panel .start-selection').click();
-    // Assign all players sequentially by clicking overlays and choosing numbers 1..N
-    cy.get('#player-circle li').should('have.length', 10).then(() => {
-      for (let i = 0; i < 10; i++) {
-        cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();
-        cy.get('#number-picker-overlay').should('be.visible');
-        cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
-        cy.get('body').then($body => {
-          const modal = $body.find('#player-reveal-modal');
-          if (modal.length && modal.is(':visible')) {
-            const confirmBtn = modal.find('#close-player-reveal-modal');
-            if (confirmBtn.length) {
-              cy.wrap(confirmBtn).click();
-            }
+    // Assign all players sequentially via the reveal button
+    for (let i = 0; i < 10; i++) {
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
+      cy.get('#number-picker-overlay').should('be.visible');
+      cy.get('#selection-reveal-btn').click();
+      cy.get('body').then($body => {
+        const modal = $body.find('#player-reveal-modal');
+        if (modal.length && modal.is(':visible')) {
+          const confirmBtn = modal.find('#close-player-reveal-modal');
+          if (confirmBtn.length) {
+            cy.wrap(confirmBtn).click();
           }
-        });
-      }
-    });
+        }
+      });
+    }
 
     // Sidebar is collapsed after selection; reopen it to access the reveal button
     cy.get('#sidebar-toggle').click({ force: true });
@@ -200,8 +195,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('body').should('not.have.class', 'grimoire-hidden');
     cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire');
-    // Number picker should open after clicking the overlay on a player
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
+    // Selection prompt opens immediately for the first player
     cy.get('#number-picker-overlay').should('be.visible');
   });
 
@@ -284,10 +278,9 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Death ribbon should NOT be visible during selection
     cy.get('#player-circle li .player-token .death-ribbon').first().should('not.be.visible');
 
-    // Assign a number to first player
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('be.visible').and('contain', '?').click();
+    // Assign a character to first player
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('#selection-reveal-btn').click();
 
     // Close reveal modal if it appears
     cy.get('body').then($body => {
@@ -300,8 +293,11 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
       }
     });
 
-    // Number overlay should now show "1"
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1').and('have.class', 'disabled');
+    // Picker closes after reveal
+    cy.get('#number-picker-overlay').should('not.be.visible');
+
+    // Number overlay should now show "✓"
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓').and('have.class', 'disabled');
 
     // Death ribbon should STILL not be visible during selection (even with number assigned)
     cy.get('#player-circle li .player-token .death-ribbon').first().should('not.be.visible');
@@ -321,21 +317,21 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     cy.get('#player-setup-panel .start-selection').click();
 
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       if ($body.find('#player-reveal-modal:visible').length) {
         cy.get('#close-player-reveal-modal').click();
       }
     });
 
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓');
     cy.get('#number-picker-overlay').should('not.be.visible');
 
     cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓');
   });
 
   it('prevents reassigning traveller to a number during number selection', () => {
@@ -364,7 +360,6 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-panel .start-selection').click();
 
     // Assign traveller to first player
-    cy.get('#player-circle li').eq(0).click();
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#number-picker-overlay .traveller-token').first().click();
     cy.get('body').then($body => {
@@ -374,16 +369,20 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     });
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', 'T');
 
+    // Next player's prompt should not include the traveller token once assigned
+    cy.get('body').then(($body) => {
+      if (!$body.find('#number-picker-overlay:visible').length) {
+        cy.get('#player-circle li').eq(1).find('.number-overlay').click({ force: true });
+      }
+    });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#number-picker-overlay .traveller-token').should('have.length', 0);
+    cy.get('#close-number-picker').click({ force: true });
+
     // Attempting to click again should not reopen the picker
     cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
     cy.window().its('grimoireState.players[0].character').should('not.be.null');
-
-    // The traveller should not appear for other players once assigned
-    cy.get('#player-circle li').eq(1).click();
-    cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-overlay .traveller-token').should('have.length', 0);
-    cy.get('#close-number-picker').click({ force: true });
   });
 
   it('clears dead status and reminders when starting a new selection', () => {

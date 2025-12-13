@@ -32,8 +32,12 @@ export function initPlayerSetup({ grimoireState }) {
   const numberPickerOverlay = document.getElementById('number-picker-overlay');
   const numberPickerGrid = document.getElementById('number-picker-grid');
   const closeNumberPickerBtn = document.getElementById('close-number-picker');
+  const selectionPickerTitle = document.getElementById('selection-picker-title');
+  const selectionPickerInstructions = document.getElementById('selection-picker-instructions');
+  const selectionRevealBtn = document.getElementById('selection-reveal-btn');
   const playerRevealModal = document.getElementById('player-reveal-modal');
   const closePlayerRevealModalBtn = document.getElementById('close-player-reveal-modal');
+  const confirmPlayerRevealBtn = document.getElementById('confirm-player-reveal');
   const revealCharacterTokenEl = document.getElementById('reveal-character-token');
   const revealAbilityEl = document.getElementById('reveal-ability');
   const revealNameInput = document.getElementById('reveal-name-input');
@@ -50,6 +54,7 @@ export function initPlayerSetup({ grimoireState }) {
   });
   let revealCurrentPlayerIndex = null;
   let isNumberGridHandlerAttached = false;
+  let isRevealButtonHandlerAttached = false;
 
   // Helper function to clear next-player highlighting
   function clearNextPlayerHighlight() {
@@ -611,43 +616,106 @@ export function initPlayerSetup({ grimoireState }) {
     updateBagWarning();
   });
 
+  const markSelectionCompleteIfDone = () => {
+    try {
+      const sel = grimoireState.playerSetup || {};
+      const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
+      const allAssigned = (grimoireState.players || []).every((p, idx) => {
+        const role = p && p.character ? getRoleFromAnySources(grimoireState, p.character) : null;
+        const isTraveller = role && role.team === 'traveller';
+        if (isTraveller) return true;
+        return assignments[idx] !== null && assignments[idx] !== undefined;
+      });
+
+      if (!allAssigned) return false;
+
+      sel.selectionActive = false;
+      sel.selectionComplete = true;
+      try { document.body.classList.remove('selection-active'); } catch (_) { }
+      clearNextPlayerHighlight();
+      const openSetupBtn = document.getElementById('open-player-setup');
+      if (openSetupBtn) {
+        openSetupBtn.disabled = true;
+        openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
+      }
+      const revealBtn = document.getElementById('reveal-selected-characters');
+      if (revealBtn) {
+        revealBtn.style.display = sel.revealed ? 'none' : '';
+        revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
+      }
+      try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const openRevealModalForRole = ({ forIdx, role }) => {
+    try {
+      if (!playerRevealModal || !role) return;
+      revealCurrentPlayerIndex = forIdx;
+      if (revealCharacterTokenEl) {
+        revealCharacterTokenEl.innerHTML = '';
+        const token = document.createElement('div');
+        token.className = 'token';
+        renderTokenElement({
+          tokenElement: token,
+          role,
+          baseImage: BASE_TOKEN_IMAGE,
+          labelIdPrefix: 'reveal-token'
+        });
+        token.title = role.name || '';
+        revealCharacterTokenEl.appendChild(token);
+      }
+      if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
+      const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
+      if (revealNameInput) {
+        revealNameInput.value = currentName;
+        try { revealNameInput.focus(); } catch (_) { }
+      }
+      // Configure close button handoff text
+      if (confirmPlayerRevealBtn) {
+        const nextIdx = findNextUnassignedPlayer(forIdx);
+        if (nextIdx === null) {
+          confirmPlayerRevealBtn.textContent = 'Close and give to the Storyteller';
+        } else {
+          confirmPlayerRevealBtn.textContent = `Close and hand to Player ${nextIdx + 1}`;
+        }
+      }
+
+      playerRevealModal.style.display = 'flex';
+    } catch (_) { }
+  };
+
   function openNumberPicker(forPlayerIndex) {
     if (!numberPickerOverlay || !numberPickerGrid) return;
     const assignments = Array.isArray(grimoireState.playerSetup.assignments) ? grimoireState.playerSetup.assignments : [];
     const existingPlayer = Array.isArray(grimoireState.players) ? grimoireState.players[forPlayerIndex] : null;
     const hasNumberAssignment = assignments[forPlayerIndex] !== null && assignments[forPlayerIndex] !== undefined;
-    const hasTraveller = !!(existingPlayer && existingPlayer.character);
-    if (hasNumberAssignment || hasTraveller) return;
+    const hasCharacter = !!(existingPlayer && existingPlayer.character);
+    if (hasNumberAssignment || hasCharacter) return;
+
+    const playerName = (existingPlayer && existingPlayer.name) ? existingPlayer.name : `Player ${forPlayerIndex + 1}`;
+    if (selectionPickerTitle) selectionPickerTitle.textContent = `${playerName}: Reveal your character`;
+    if (selectionPickerInstructions) selectionPickerInstructions.textContent = `If you're not ${playerName}, do not tap Reveal.`;
+
     numberPickerGrid.innerHTML = '';
 
     // Add traveller tokens first if any are in the traveller bag
     const travellerBag = grimoireState.playerSetup.travellerBag || [];
     if (travellerBag.length > 0) {
-      const travellerSection = document.createElement('div');
-      travellerSection.style.gridColumn = '1 / -1';
-      travellerSection.style.marginBottom = '12px';
-
       const travellerLabel = document.createElement('div');
-      travellerLabel.textContent = 'Select a Traveller:';
-      travellerLabel.style.fontWeight = 'bold';
-      travellerLabel.style.marginBottom = '8px';
-      travellerLabel.style.textAlign = 'center';
-      travellerSection.appendChild(travellerLabel);
+      travellerLabel.className = 'selection-section-title';
+      travellerLabel.textContent = 'Or choose a Traveller:';
 
       const travellerGrid = document.createElement('div');
-      travellerGrid.style.display = 'grid';
-      travellerGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(80px, 1fr))';
-      travellerGrid.style.gap = '8px';
-      travellerGrid.style.justifyItems = 'center';
-
+      travellerGrid.className = 'traveller-picker-grid';
       travellerBag.forEach((roleId) => {
         const role = getRoleFromAnySources(grimoireState, roleId);
         if (!role) return;
 
         const tokenEl = document.createElement('div');
         tokenEl.className = 'traveller-token token';
-        tokenEl.style.width = '80px';
-        tokenEl.style.height = '80px';
         renderTokenElement({
           tokenElement: tokenEl,
           role,
@@ -662,40 +730,27 @@ export function initPlayerSetup({ grimoireState }) {
 
         travellerGrid.appendChild(tokenEl);
       });
-
-      travellerSection.appendChild(travellerGrid);
-      numberPickerGrid.appendChild(travellerSection);
-
-      // Add separator
-      const separator = document.createElement('div');
-      separator.style.gridColumn = '1 / -1';
-      separator.style.borderTop = '1px solid rgba(255,255,255,0.2)';
-      separator.style.margin = '12px 0';
-      numberPickerGrid.appendChild(separator);
-
-      const numberLabel = document.createElement('div');
-      numberLabel.textContent = 'Or select a number:';
-      numberLabel.style.gridColumn = '1 / -1';
-      numberLabel.style.fontWeight = 'bold';
-      numberLabel.style.marginBottom = '8px';
-      numberLabel.style.textAlign = 'center';
-      numberPickerGrid.appendChild(numberLabel);
+      numberPickerGrid.appendChild(travellerLabel);
+      numberPickerGrid.appendChild(travellerGrid);
     }
 
-    const n = getEffectivePlayerCount();
-    // With simplified approach, bag itself is shuffled at selection start; numbers map 1..n to indices 0..n-1 directly.
-    for (let i = 1; i <= n; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'button number';
-      btn.textContent = String(i);
-      // Map visible number i to bag index i-1 directly
-      const bagIndex = i - 1;
-      const alreadyUsed = (grimoireState.playerSetup.assignments || []).includes(bagIndex);
-      if (alreadyUsed) btn.classList.add('disabled');
-      btn.disabled = alreadyUsed;
-      btn.dataset.bagIndex = String(bagIndex);
-      btn.dataset.playerIndex = String(forPlayerIndex);
-      numberPickerGrid.appendChild(btn);
+    // Configure reveal button state based on remaining non-traveller characters in bag.
+    const bag = grimoireState.playerSetup.bag || [];
+    const used = new Set((assignments || []).filter(a => a !== null && a !== undefined));
+    const remainingBagCount = Math.max(0, bag.length - used.size);
+    const canRevealFromBag = remainingBagCount > 0;
+    if (selectionRevealBtn) {
+      selectionRevealBtn.dataset.playerIndex = String(forPlayerIndex);
+      if (canRevealFromBag) {
+        selectionRevealBtn.disabled = false;
+        selectionRevealBtn.textContent = 'Reveal my character';
+      } else {
+        selectionRevealBtn.disabled = true;
+        selectionRevealBtn.textContent = travellerBag.length > 0 ? 'Choose a Traveller below' : 'No characters left';
+        if (selectionPickerInstructions && travellerBag.length > 0) {
+          selectionPickerInstructions.textContent = `Only ${playerName} should continue. Choose a Traveller below.`;
+        }
+      }
     }
     numberPickerOverlay.style.display = 'flex';
     // Ensure overlay visually covers the app
@@ -704,36 +759,6 @@ export function initPlayerSetup({ grimoireState }) {
     if (!isNumberGridHandlerAttached) {
       isNumberGridHandlerAttached = true;
       numberPickerGrid.addEventListener('click', withStateSave((e) => {
-        const maybeCompleteSelection = () => {
-          try {
-            const sel = grimoireState.playerSetup || {};
-            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
-            const allAssigned = (grimoireState.players || []).every((p, idx) => {
-              const role = p && p.character ? getRoleFromAnySources(grimoireState, p.character) : null;
-              const isTraveller = role && role.team === 'traveller';
-              if (isTraveller) return true;
-              return assignments[idx] !== null && assignments[idx] !== undefined;
-            });
-            if (allAssigned) {
-              sel.selectionActive = false;
-              sel.selectionComplete = true;
-              try { document.body.classList.remove('selection-active'); } catch (_) { }
-              clearNextPlayerHighlight();
-              const openSetupBtn = document.getElementById('open-player-setup');
-              if (openSetupBtn) {
-                openSetupBtn.disabled = true;
-                openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
-              }
-              const revealBtn = document.getElementById('reveal-selected-characters');
-              if (revealBtn) {
-                revealBtn.style.display = sel.revealed ? 'none' : '';
-                revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
-              }
-              try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
-            }
-          } catch (_) { }
-        };
-
         // Check if clicked on a traveller token
         const travellerToken = e.target && e.target.closest && e.target.closest('.traveller-token');
         if (travellerToken) {
@@ -781,54 +806,45 @@ export function initPlayerSetup({ grimoireState }) {
           numberPickerOverlay.style.display = 'none';
 
           const role = getRoleFromAnySources(grimoireState, roleId);
-          if (playerRevealModal && role) {
-            revealCurrentPlayerIndex = forIdx;
-            if (revealCharacterTokenEl) {
-              revealCharacterTokenEl.innerHTML = '';
-              const token = document.createElement('div');
-              token.className = 'token';
-              renderTokenElement({
-                tokenElement: token,
-                role,
-                baseImage: BASE_TOKEN_IMAGE,
-                labelIdPrefix: 'reveal-token'
-              });
-              token.title = role.name || '';
-              revealCharacterTokenEl.appendChild(token);
-            }
-            if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
-            const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
-            if (revealNameInput) {
-              revealNameInput.value = currentName;
-              try { revealNameInput.focus(); } catch (_) { }
-            }
-            playerRevealModal.style.display = 'flex';
-          }
-          maybeCompleteSelection();
+          openRevealModalForRole({ forIdx, role });
+          markSelectionCompleteIfDone();
+
+        }
+      }));
+    }
+
+    if (selectionRevealBtn && !isRevealButtonHandlerAttached) {
+      isRevealButtonHandlerAttached = true;
+      selectionRevealBtn.addEventListener('click', withStateSave(() => {
+        const forIdxStr = selectionRevealBtn.dataset.playerIndex;
+        const forIdx = forIdxStr ? parseInt(forIdxStr, 10) : NaN;
+        if (!Number.isInteger(forIdx)) return;
+
+        const assignments = Array.isArray(grimoireState.playerSetup.assignments) ? grimoireState.playerSetup.assignments : [];
+        const hasNumberAssignment = assignments[forIdx] !== null && assignments[forIdx] !== undefined;
+        const existingPlayer = Array.isArray(grimoireState.players) ? grimoireState.players[forIdx] : null;
+        const hasCharacter = !!(existingPlayer && existingPlayer.character);
+        if (hasNumberAssignment || hasCharacter) return;
+
+        const bag = grimoireState.playerSetup.bag || [];
+        const used = new Set((grimoireState.playerSetup.assignments || []).filter(a => a !== null && a !== undefined));
+        const available = [];
+        for (let i = 0; i < bag.length; i++) {
+          if (!used.has(i)) available.push(i);
+        }
+        if (available.length === 0) {
+          numberPickerOverlay.style.display = 'none';
+          markSelectionCompleteIfDone();
           return;
         }
 
-        // Original number button handling
-        const target = e.target && (e.target.closest && e.target.closest('button.number'));
-        if (!target) return;
-        if (target.disabled || target.classList.contains('disabled')) return;
-        const bagIndexStr = target.getAttribute('data-bag-index');
-        const forIdxStr = target.getAttribute('data-player-index');
-        const bagIndex = bagIndexStr ? parseInt(bagIndexStr, 10) : NaN;
-        const forIdx = forIdxStr ? parseInt(forIdxStr, 10) : NaN;
-        if (!Number.isInteger(bagIndex) || !Number.isInteger(forIdx)) return;
-        if (bagIndex < 0 || bagIndex >= (grimoireState.playerSetup.bag || []).length) return;
-
+        const bagIndex = available[Math.floor(Math.random() * available.length)];
         grimoireState.playerSetup.assignments[forIdx] = bagIndex;
-        const bag = grimoireState.playerSetup.bag || [];
+
         const roleId = bag[bagIndex];
         const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
 
-        // Disable picked number button
-        target.classList.add('disabled');
-        target.disabled = true;
-
-        // Update player's overlay
+        // Update player's overlay to show "drawn"
         const playerCircle = document.getElementById('player-circle');
         const li = playerCircle && playerCircle.children && playerCircle.children[forIdx];
         if (li) {
@@ -838,12 +854,11 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.className = 'number-overlay';
             li.appendChild(overlay);
           }
-          // Show the number but keep the assignment hidden
-          overlay.textContent = String(bagIndex + 1);
+          overlay.textContent = '✓';
           overlay.classList.add('disabled');
           overlay.classList.add('number-picked');
           overlay.classList.remove('traveller-assigned');
-          overlay.setAttribute('data-number', String(bagIndex + 1));
+          overlay.removeAttribute('data-number');
           overlay.onclick = null;
         }
 
@@ -852,32 +867,8 @@ export function initPlayerSetup({ grimoireState }) {
 
         // Close picker, open reveal
         numberPickerOverlay.style.display = 'none';
-        try {
-          if (playerRevealModal && role) {
-            revealCurrentPlayerIndex = forIdx;
-            if (revealCharacterTokenEl) {
-              revealCharacterTokenEl.innerHTML = '';
-              const token = document.createElement('div');
-              token.className = 'token';
-              renderTokenElement({
-                tokenElement: token,
-                role,
-                baseImage: BASE_TOKEN_IMAGE,
-                labelIdPrefix: 'reveal-token'
-              });
-              token.title = role.name || '';
-              revealCharacterTokenEl.appendChild(token);
-            }
-            if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
-            const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
-            if (revealNameInput) {
-              revealNameInput.value = currentName;
-              try { revealNameInput.focus(); } catch (_) { }
-            }
-            playerRevealModal.style.display = 'flex';
-          }
-        } catch (_) { }
-        maybeCompleteSelection();
+        openRevealModalForRole({ forIdx, role });
+        markSelectionCompleteIfDone();
       }));
     }
   }
@@ -987,7 +978,7 @@ export function initPlayerSetup({ grimoireState }) {
     grimoireState.playerSetup._reopenOnPickerClose = false;
     grimoireState.playerSetup.selectionActive = true;
     grimoireState.playerSetup.selectionComplete = false;
-    // Simplified: directly shuffle the bag so numbers 1..N correspond to shuffled characters
+    // Shuffle the bag so character draws are random
     try {
       const list = grimoireState.playerSetup.bag || [];
       for (let i = list.length - 1; i > 0; i--) {
@@ -997,7 +988,7 @@ export function initPlayerSetup({ grimoireState }) {
     } catch (_) { }
     // Reflect selection active on body for CSS (hide overlay & enable interaction)
     try { document.body.classList.add('selection-active'); } catch (_) { }
-    // Always reset previously selected numbers for a new selection session (local to selection flow)
+    // Always reset previously selected draws for a new selection session (local to selection flow)
     if (!grimoireState.playerSetup) grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
     grimoireState.playerSetup.assignments = new Array(grimoireState.players.length).fill(null);
     grimoireState.playerSetup.revealed = false;
@@ -1021,8 +1012,10 @@ export function initPlayerSetup({ grimoireState }) {
 
         if (isTraveller) {
           // Travellers don't participate in number selection
-          overlay.textContent = '';
+          overlay.textContent = 'T';
           overlay.classList.add('disabled');
+          overlay.classList.add('traveller-assigned');
+          overlay.classList.remove('number-picked');
           overlay.onclick = null;
         } else {
           const assigned = Array.isArray(grimoireState.playerSetup.assignments) && grimoireState.playerSetup.assignments[idx] !== null && grimoireState.playerSetup.assignments[idx] !== undefined;
@@ -1031,7 +1024,9 @@ export function initPlayerSetup({ grimoireState }) {
             overlay.classList.remove('disabled');
             overlay.onclick = () => openNumberPicker(idx);
           } else {
+            overlay.textContent = '✓';
             overlay.classList.add('disabled');
+            overlay.classList.add('number-picked');
             overlay.onclick = null;
           }
         }
@@ -1041,6 +1036,10 @@ export function initPlayerSetup({ grimoireState }) {
     // Highlight the first unassigned player to start the selection flow
     // Start from player -1 so findNextUnassignedPlayer finds player 0 (or next available)
     highlightNextPlayer(-1);
+    const firstIdx = findNextUnassignedPlayer(-1);
+    if (firstIdx !== null) {
+      openNumberPicker(firstIdx);
+    }
 
     try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
   }));
@@ -1097,87 +1096,35 @@ export function initPlayerSetup({ grimoireState }) {
     }
   }
 
-  if (closePlayerRevealModalBtn && playerRevealModal) {
-    closePlayerRevealModalBtn.addEventListener('click', () => {
-      playerRevealModal.style.display = 'none';
-      revealCurrentPlayerIndex = null;
+  const closePlayerRevealAndAdvance = withStateSave(() => {
+    if (!playerRevealModal) return;
+    playerRevealModal.style.display = 'none';
+    revealCurrentPlayerIndex = null;
 
-      // After closing a reveal, if all numbers assigned, end selection and show storyteller handoff overlay
-      try {
-        const sel = grimoireState.playerSetup || {};
-        if (sel.selectionActive) {
-          const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
-          const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
-          if (allAssigned) {
-            sel.selectionActive = false;
-            // Mark selection complete so other UI logic (e.g., updateButtonStates) keeps setup button disabled until reset
-            sel.selectionComplete = true;
-            // Clear next-player highlighting since selection is complete
-            clearNextPlayerHighlight();
-            try { document.body.classList.remove('selection-active'); } catch (_) { }
-            // Disable Start Player Setup button until a reset occurs
-            try {
-              const openSetupBtn = document.getElementById('open-player-setup');
-              if (openSetupBtn) {
-                openSetupBtn.disabled = true;
-                openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
-              }
-            } catch (_) { }
-            try {
-              const revealBtn = document.getElementById('reveal-selected-characters');
-              if (revealBtn) {
-                revealBtn.style.display = sel.revealed ? 'none' : '';
-                revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
-              }
-            } catch (_) { }
-            try {
-              if (window.updateButtonStates) window.updateButtonStates();
-            } catch (_) { }
-            try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
-          }
-        }
-      } catch (_) { }
-    });
-  }
+    // Ensure selection completion state is consistent (supports travellers)
+    markSelectionCompleteIfDone();
+    try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
+  });
 
-  if (playerRevealModal) {
-    playerRevealModal.addEventListener('click', (e) => {
-      if (e.target === playerRevealModal) {
-        playerRevealModal.style.display = 'none';
-        revealCurrentPlayerIndex = null;
+  const confirmPlayerRevealAndAdvance = withStateSave(() => {
+    if (!playerRevealModal) return;
+    const currentIdx = revealCurrentPlayerIndex;
+    const nextIdx = Number.isInteger(currentIdx) ? findNextUnassignedPlayer(currentIdx) : null;
+    playerRevealModal.style.display = 'none';
+    revealCurrentPlayerIndex = null;
 
-        // Check if all players assigned after closing
-        try {
-          const sel = grimoireState.playerSetup || {};
-          if (sel.selectionActive) {
-            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
-            const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
-            if (allAssigned) {
-              clearNextPlayerHighlight();
-            }
-          }
-        } catch (_) { }
-        return;
-      }
-      const content = playerRevealModal.querySelector('.modal-content');
-      if (content && !content.contains(e.target)) {
-        playerRevealModal.style.display = 'none';
-        revealCurrentPlayerIndex = null;
+    // Ensure selection completion state is consistent (supports travellers)
+    markSelectionCompleteIfDone();
+    try { if (window.updatePreGameOverlayMessage) window.updatePreGameOverlayMessage(); } catch (_) { }
 
-        // Check if all players assigned after closing
-        try {
-          const sel = grimoireState.playerSetup || {};
-          if (sel.selectionActive) {
-            const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
-            const allAssigned = assignments.length === grimoireState.players.length && assignments.every(a => a !== null && a !== undefined);
-            if (allAssigned) {
-              clearNextPlayerHighlight();
-            }
-          }
-        } catch (_) { }
-      }
-    });
-  }
+    // Immediately prompt the next player instead of bouncing back to the grimoire
+    if (nextIdx !== null) {
+      openNumberPicker(nextIdx);
+    }
+  });
+
+  if (closePlayerRevealModalBtn) closePlayerRevealModalBtn.addEventListener('click', closePlayerRevealAndAdvance);
+  if (confirmPlayerRevealBtn) confirmPlayerRevealBtn.addEventListener('click', confirmPlayerRevealAndAdvance);
 }
 
 // Restore an in-progress number selection session after a page reload.
@@ -1221,11 +1168,11 @@ export function restoreSelectionSession({ grimoireState }) {
       } else {
         const assigned = assignments[idx] !== null && assignments[idx] !== undefined;
         if (assigned) {
-          overlay.textContent = String(assignments[idx] + 1); // visible numbering
+          overlay.textContent = '✓';
           overlay.classList.add('disabled');
           overlay.classList.add('number-picked');
           overlay.classList.remove('traveller-assigned');
-          overlay.setAttribute('data-number', String(assignments[idx] + 1));
+          overlay.removeAttribute('data-number');
           overlay.onclick = null;
         } else {
           overlay.textContent = '?';

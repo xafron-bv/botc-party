@@ -22,9 +22,13 @@ describe('Reset after winner does not prompt', () => {
     cy.get('#player-setup-panel .start-selection').click({ force: true });
     cy.get('body').should('have.class', 'selection-active');
     for (let i = 0; i < 5; i++) {
-      cy.get('#player-circle li').eq(i).find('.number-overlay').should('contain', '?').click();
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
       cy.get('#number-picker-overlay').should('be.visible');
-      cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
+      cy.get('#selection-reveal-btn').click();
       // Handle optional reveal confirmation modal if appears
       cy.get('body').then($body => {
         const modal = $body.find('#player-reveal-modal');
