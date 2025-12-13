@@ -131,8 +131,9 @@ self.addEventListener('fetch', event => {
     caches.match(event.request, { ignoreSearch: true })
       .then(response => {
         if (response) {
-          // Update cache in background if it's a JSON file
-          if (pathname.endsWith('.json')) {
+          // Update cache in background for frequently-changing assets.
+          // This keeps the PWA from getting "stuck" on old JS/CSS while still serving cache-first.
+          if (pathname.endsWith('.json') || pathname.endsWith('.js') || pathname.endsWith('.css')) {
             fetch(event.request)
               .then(freshResponse => {
                 if (freshResponse.ok) {
