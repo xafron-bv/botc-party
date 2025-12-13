@@ -155,8 +155,10 @@
     <div id="sidebar-resizer" aria-label="Resize sidebar" role="separator"></div>
 
     <div id="grimoire">
-      <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Toggle sidebar" aria-pressed="false">Close
-        Sidebar</button>
+      <button id="sidebar-toggle" class="button sidebar-toggle" aria-label="Open Sidebar" aria-pressed="false" title="Open Sidebar">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+        <span class="sr-only sidebar-toggle__label">Open Sidebar</span>
+      </button>
   <button id="character-panel-toggle" class="button character-panel-toggle" aria-label="Toggle script panel" aria-pressed="false" data-testid="character-panel-toggle">Script</button>
       <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle"
         aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">

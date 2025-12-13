@@ -14,6 +14,25 @@
   z-index: 2500;
 }
 
+/* Sidebar toggle FAB (overrides .button baseline) */
+.button.sidebar-toggle {
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
+  min-height: 0;
+  padding: 0;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.button.sidebar-toggle i {
+  pointer-events: none;
+}
+
 /* Sidebar close button matching modal style */
 .sidebar-close-btn {
   position: absolute;
@@ -209,7 +228,7 @@ body.resizing {
     top: var(--space-3);
     left: var(--space-3);
     z-index: 2001;
-    display: inline-block;
+    display: inline-flex;
     /* Add shadow for better visibility */
     box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }

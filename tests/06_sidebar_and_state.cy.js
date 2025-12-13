@@ -37,7 +37,7 @@ describe('Sidebar & State', () => {
     cy.get('#character-panel').should('have.attr', 'aria-hidden', 'true');
     cy.get('#sidebar-toggle').should(($btn) => {
       const style = getComputedStyle($btn[0]);
-      expect(style.display === 'inline-block' || style.display === 'block').to.be.true;
+      expect(['inline-block', 'block', 'flex', 'inline-flex'].includes(style.display)).to.be.true;
       expect(style.visibility).to.not.equal('hidden');
     }).click();
     cy.get('body').should('not.have.class', 'sidebar-collapsed');
@@ -141,7 +141,7 @@ describe('Sidebar & State', () => {
     // Toggle visible again because sidebar still collapsed
     cy.get('#sidebar-toggle').should(($btn) => {
       const style = getComputedStyle($btn[0]);
-      expect(['inline-block', 'block']).to.include(style.display);
+      expect(['inline-block', 'block', 'flex', 'inline-flex']).to.include(style.display);
       expect(style.visibility).to.not.equal('hidden');
     }).click();
     cy.get('body').should('not.have.class', 'sidebar-collapsed');

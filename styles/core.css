@@ -221,12 +221,16 @@ body.grimoire-hidden #player-circle li .player-token {
   top: var(--space-3);
   left: var(--space-3);
   z-index: 1000;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-sm);
-  width: auto !important;
-  min-height: var(--touch-target-sm);
-  border-radius: var(--radius-md);
-  text-align: left !important;
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
+  padding: 0;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  min-height: 0;
+  text-align: center;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -249,10 +253,11 @@ body.grimoire-hidden #player-circle li .player-token {
 
 @media (hover: none) and (pointer: coarse) {
   .sidebar-toggle {
-    padding: var(--space-3) var(--space-4);
-    font-size: var(--font-md);
-    width: auto !important;
-    min-height: var(--touch-target-sm);
+    width: var(--touch-target-xl);
+    height: var(--touch-target-xl);
+    font-size: 22px;
+    padding: 0;
+    min-height: 0;
   }
 }
 
