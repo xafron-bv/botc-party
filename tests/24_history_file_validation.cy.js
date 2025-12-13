@@ -4,7 +4,7 @@ describe('History File Validation', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
@@ -129,7 +129,7 @@ describe('Script File in History Import Validation', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) {}
+      try { win.localStorage.clear(); } catch (_) { }
     });
   });
 
@@ -148,7 +148,7 @@ describe('Script File in History Import Validation', () => {
     });
 
     // Try to import it as history
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(scriptFile)),
       fileName: 'my-script.json',
       mimeType: 'application/json'
@@ -203,7 +203,7 @@ describe('Script File in History Import Validation', () => {
         });
       }
 
-      cy.get('#import-history-file').selectFile({
+      cy.get('#import-data-file').selectFile({
         contents: Cypress.Buffer.from(JSON.stringify(format.data)),
         fileName: `test-${index}.json`,
         mimeType: 'application/json'
@@ -238,7 +238,7 @@ describe('Script File in History Import Validation', () => {
     };
 
     // Import it
-    cy.get('#import-history-file').selectFile({
+    cy.get('#import-data-file').selectFile({
       contents: Cypress.Buffer.from(JSON.stringify(historyFile)),
       fileName: 'valid-history.json',
       mimeType: 'application/json'

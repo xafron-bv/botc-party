@@ -16,6 +16,7 @@
 @import url('./styles/night-order.css');
 @import url('./styles/day-night-tracking.css');
 @import url('./styles/bluff-tokens.css');
+@import url('./styles/print.css');
 
 .loading-overlay {
   position: fixed;

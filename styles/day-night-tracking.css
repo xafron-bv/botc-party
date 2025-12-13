@@ -81,6 +81,45 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   right: calc(20px + clamp(300px, 30vw, 560px));
 }
 
+.export-print-toggle {
+  position: fixed;
+  bottom: var(--space-5);
+  right: 152px;
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
+  padding: 0;
+  z-index: 1685;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.export-print-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .export-print-toggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+.display-settings-toggle.single-toggle + .export-print-toggle {
+  right: 86px;
+}
+
+body.character-panel-open .export-print-toggle {
+  right: calc(86px + clamp(300px, 30vw, 560px));
+}
+
 .display-settings-panel {
   position: fixed;
   bottom: 85px;
@@ -400,12 +439,21 @@ body.character-panel-open .display-settings-toggle.single-toggle {
   }
 
   .day-night-slider {
-    width: calc(100vw - 180px);
-    right: 138px;
+    width: calc(100vw - 240px);
+    right: 198px;
     bottom: var(--space-4);
     height: var(--touch-target-lg);
     padding: 0 var(--space-4);
     border-width: 3px;
+  }
+
+  .export-print-toggle {
+    bottom: var(--space-4);
+    right: 136px;
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
+    font-size: 20px;
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
   .display-settings-toggle {
@@ -415,6 +463,11 @@ body.character-panel-open .display-settings-toggle.single-toggle {
     height: var(--touch-target-lg);
     font-size: 20px;
     box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* In player mode, day/night toggle is hidden and display toggle moves to the far right */
+  .display-settings-toggle.single-toggle + .export-print-toggle {
+    right: 76px;
   }
 
   .display-settings-value {
