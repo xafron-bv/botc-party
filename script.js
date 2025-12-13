@@ -26,6 +26,7 @@ import { resolveAssetPath } from './utils.js';
 import { setupModalCloseHandlers } from './src/modalCloseHandlers.js';
 import { initThemeSelector, handleThemeChange } from './src/themeManager.js';
 import { setupInteractiveElement } from './src/utils/interaction.js';
+import { initGrimoirePrintExport } from './src/export/grimoirePrint.js';
 
 function normalizeUrl(url) {
   if (!url) return null;
@@ -296,6 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initGrimoireBackground();
     initDisplaySettings({ grimoireState });
+    initGrimoirePrintExport();
 
     if (backgroundSelect) {
       backgroundSelect.addEventListener('change', handleGrimoireBackgroundChange);

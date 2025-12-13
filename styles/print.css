@@ -1,0 +1,66 @@
+@media print {
+  @page {
+    margin: 0;
+    /* Many browsers ignore this, but it's a helpful hint. */
+    size: landscape;
+  }
+
+  /* Keep the existing layout, but remove chrome and fit to page */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide all chrome/UI */
+  #app-loading,
+  #sidebar,
+  #sidebar-resizer,
+  #sidebar-toggle,
+  #character-panel-toggle,
+  #day-night-toggle,
+  #display-settings-toggle,
+  #export-grimoire-print,
+  #display-settings-panel,
+  #day-night-slider,
+  #character-panel,
+  #sidebar-backdrop,
+  .loading-overlay,
+  .modal,
+  #ability-tooltip,
+  #touch-ability-popup {
+    display: none !important;
+  }
+
+  /* Also hide sidebar-only / meta UI inside the grimoire */
+  #setup-info {
+    display: none !important;
+  }
+
+  /* Fill the page with the grimoire area */
+  #app,
+  #grimoire,
+  #center {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure the player circle uses the full printable area for positioning */
+  #player-circle-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Avoid page breaks through the circle */
+  #player-circle-wrapper,
+  #player-circle,
+  #bluff-tokens-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -162,14 +162,17 @@
         aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
         <i class="fas fa-moon"></i>
       </button>
-      <button id="display-settings-toggle" data-testid="display-settings-toggle" class="button display-settings-toggle"
-        aria-label="Adjust display settings" aria-pressed="false" title="Adjust display settings">
-        <i class="fas fa-sliders-h"></i>
-      </button>
-      <div id="display-settings-panel" data-testid="display-settings-panel" class="display-settings-panel" aria-hidden="true">
-        <h4>Display Settings</h4>
-        <div class="display-settings-row">
-          <label for="player-name-size-slider">Player name</label>
+	      <button id="display-settings-toggle" data-testid="display-settings-toggle" class="button display-settings-toggle"
+	        aria-label="Adjust display settings" aria-pressed="false" title="Adjust display settings">
+	        <i class="fas fa-sliders-h"></i>
+	      </button>
+	      <button id="export-grimoire-print" class="button export-print-toggle" aria-label="Print grimoire (save as PDF)" title="Print grimoire (save as PDF)">
+	        <i class="fas fa-print"></i>
+	      </button>
+	      <div id="display-settings-panel" data-testid="display-settings-panel" class="display-settings-panel" aria-hidden="true">
+	        <h4>Display Settings</h4>
+	        <div class="display-settings-row">
+	          <label for="player-name-size-slider">Player name</label>
           <div class="slider-wrapper">
             <input type="range" id="player-name-size-slider" data-testid="player-name-slider" min="60" max="120" step="5" value="100">
             <span class="slider-marker" data-settings-marker="player-name" aria-hidden="true"></span>
