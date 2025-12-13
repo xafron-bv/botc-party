@@ -21,14 +21,8 @@ describe('Selection session persistence', () => {
     cy.get('body').should('have.class', 'selection-active');
     cy.get('#player-circle li .number-overlay', { timeout: 8000 }).should('have.length', 5);
 
-    // Assign a number prior to reload
-    cy.get('#player-circle li').eq(0).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().then(($btn) => {
-      const label = ($btn.text() || '').trim();
-      cy.wrap(label).as('reservedNumber');
-      cy.wrap($btn).click();
-    });
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
@@ -38,10 +32,11 @@ describe('Selection session persistence', () => {
         }
       }
     });
+    // Close next prompt so we can reload without an overlay up
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#close-number-picker').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
-    cy.get('#player-circle li').eq(0).find('.number-overlay')
-      .invoke('text')
-      .should('match', /^[0-9]+$/);
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓');
 
     // Reload mid-selection
     cy.reload();
@@ -51,20 +46,14 @@ describe('Selection session persistence', () => {
 
     // Assigned player retains number and cannot reopen picker to change selection
     cy.get('#player-circle li').eq(0).find('.number-overlay')
-      .invoke('text')
-      .should('match', /^[0-9]+$/);
+      .should('contain', '✓');
     cy.get('#player-circle li').eq(0).find('.number-overlay').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
 
     // Unassigned player remains interactive
     cy.get('#player-circle li').eq(1).find('.number-overlay').click();
     cy.get('#number-picker-overlay').should('be.visible');
-    cy.get('@reservedNumber').then((reserved) => {
-      if (reserved) {
-        cy.get('#number-picker-grid .button.number').contains(reserved).should('have.class', 'disabled');
-      }
-    });
-    cy.get('#number-picker-grid .button.number').filter(':not(.disabled)').first().click();
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then(($body) => {
       const modal = $body.find('#player-reveal-modal:visible');
       if (modal.length) {
@@ -74,9 +63,9 @@ describe('Selection session persistence', () => {
         }
       }
     });
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#close-number-picker').click({ force: true });
     cy.get('#number-picker-overlay').should('not.be.visible');
-    cy.get('#player-circle li').eq(1).find('.number-overlay')
-      .invoke('text')
-      .should('match', /^[0-9]+$/);
+    cy.get('#player-circle li').eq(1).find('.number-overlay').should('contain', '✓');
   });
 });

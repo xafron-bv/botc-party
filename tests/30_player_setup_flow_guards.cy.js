@@ -72,9 +72,9 @@ describe('Player Setup - Guards and Resets', () => {
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
-    // Pick a number for Player 1
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '?').click();
-    cy.get('#number-picker-overlay .number').contains('1').click();
+    // Player 1 draws a character
+    cy.get('#number-picker-overlay').should('be.visible');
+    cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {
@@ -84,7 +84,9 @@ describe('Player Setup - Guards and Resets', () => {
         }
       }
     });
-    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '1');
+    // Picker is closed after reveal so reopen sidebar directly
+    cy.get('#number-picker-overlay').should('not.be.visible');
+    cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓');
     // Re-open sidebar if needed, then player setup and start selection again
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#open-player-setup').click();
@@ -101,22 +103,25 @@ describe('Player Setup - Guards and Resets', () => {
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
     cy.get('#player-setup-panel .start-selection').click();
-    // Assign all players 1..N
-    cy.get('#player-circle li').should('have.length', 5).then(() => {
-      for (let i = 0; i < 5; i++) {
-        cy.get('#player-circle li').eq(i).find('.number-overlay').click();
-        cy.get('#number-picker-overlay .number').contains(String(i + 1)).click();
-        cy.get('body').then($body => {
-          const modal = $body.find('#player-reveal-modal');
-          if (modal.length && modal.is(':visible')) {
-            const confirmBtn = modal.find('#close-player-reveal-modal');
-            if (confirmBtn.length) {
-              cy.wrap(confirmBtn).click();
-            }
+    // Assign all players
+    for (let i = 0; i < 5; i++) {
+      cy.get('body').then(($body) => {
+        if (!$body.find('#number-picker-overlay:visible').length) {
+          cy.get('#player-circle li').eq(i).find('.number-overlay').click({ force: true });
+        }
+      });
+      cy.get('#number-picker-overlay').should('be.visible');
+      cy.get('#selection-reveal-btn').click();
+      cy.get('body').then($body => {
+        const modal = $body.find('#player-reveal-modal');
+        if (modal.length && modal.is(':visible')) {
+          const confirmBtn = modal.find('#close-player-reveal-modal');
+          if (confirmBtn.length) {
+            cy.wrap(confirmBtn).click();
           }
-        });
-      }
-    });
+        }
+      });
+    }
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#reveal-selected-characters').should('be.visible').click();
     // End current game declaring a winner (winner gating engages)

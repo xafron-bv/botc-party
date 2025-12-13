@@ -229,6 +229,42 @@
   pointer-events: none;
 }
 
+.selection-picker-instructions {
+  margin: 2px 0 12px 0;
+  opacity: 0.9;
+  text-align: center;
+  font-size: 14px;
+}
+
+#selection-reveal-btn {
+  width: 100%;
+  min-height: 56px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border-radius: 22px;
+  margin-bottom: 12px;
+}
+
+.selection-picker-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selection-picker-grid .selection-section-title {
+  font-weight: 700;
+  text-align: center;
+  opacity: 0.92;
+}
+
+.selection-picker-grid .traveller-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  justify-items: center;
+}
+
 @media (max-width: 600px) {
   .token {
     width: 60px;
