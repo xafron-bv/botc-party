@@ -16,7 +16,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     cy.get('#character-grid .token').first().click();
 
     // Verify character was assigned
-    cy.get('#player-circle li').first().find('.player-token')
+    cy.get('#player-circle li').first().find('.player-token > .token-role-art')
       .should('have.css', 'background-image')
       .and('include', 'washerwoman');
 
@@ -37,7 +37,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     cy.get('#character-grid .token').first().click();
 
     // Verify second player character was assigned
-    cy.get('#player-circle li').eq(1).find('.player-token')
+    cy.get('#player-circle li').eq(1).find('.player-token > .token-role-art')
       .should('have.css', 'background-image')
       .and('include', 'virgin');
   });
@@ -56,7 +56,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     cy.get('#character-grid .token').first().click();
 
     // Verify character was assigned
-    cy.get('#player-circle li').first().find('.player-token')
+    cy.get('#player-circle li').first().find('.player-token > .token-role-art')
       .should('have.css', 'background-image')
       .and('include', 'washerwoman');
   });
@@ -77,7 +77,7 @@ describe('Bluff Token Player Interaction Bug', () => {
     cy.get('#character-grid .token').first().click();
 
     // Verify character was assigned
-    cy.get('#player-circle li').first().find('.player-token')
+    cy.get('#player-circle li').first().find('.player-token > .token-role-art')
       .should('have.css', 'background-image')
       .and('include', 'washerwoman');
   });
