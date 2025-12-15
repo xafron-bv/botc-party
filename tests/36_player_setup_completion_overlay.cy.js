@@ -1,6 +1,6 @@
 // Cypress E2E test - Player setup completion overlay & button disabling
 
-const completeNumberSelection = (playerCount) => {
+const completeTokenSelection = (playerCount) => {
   for (let i = 0; i < playerCount; i += 1) {
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#selection-reveal-btn').click();
@@ -28,14 +28,14 @@ describe('Player setup completion overlay', () => {
     cy.get('#open-player-setup').click();
     // Fill the bag to match player count
     cy.fillBag();
-    // Start number selection
+    // Start token selection
     cy.get('.start-selection').click({ force: true });
     cy.get('body', { timeout: 10000 }).should('have.class', 'selection-active');
     cy.get('#number-picker-overlay', { timeout: 10000 }).should('be.visible');
   });
 
   it('restores overlay with handoff message and disables setup button after final reveal, then reset re-enables it', () => {
-    completeNumberSelection(5);
+    completeTokenSelection(5);
 
     // After last reveal: selection-active removed, setup button disabled, reveal button shown
     cy.get('body').should('not.have.class', 'selection-active');
@@ -50,8 +50,8 @@ describe('Player setup completion overlay', () => {
     cy.get('#reveal-selected-characters').should('not.be.visible');
   });
 
-  it('prevents death ribbon toggles until the game starts after number selection completes', () => {
-    completeNumberSelection(5);
+  it('prevents death ribbon toggles until the game starts after token selection completes', () => {
+    completeTokenSelection(5);
 
     cy.get('body').should('not.have.class', 'selection-active');
 

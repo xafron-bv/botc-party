@@ -949,7 +949,7 @@ export function initPlayerSetup({ grimoireState }) {
       }
       return;
     }
-    // Reset grimoire before starting number selection (direct function call)
+    // Reset grimoire before starting token selection (direct function call)
     // We reset the grimoire to ensure a clean state (clearing tokens, reminders, etc.)
     // but we PRESERVE the bag we just built so it can be distributed.
     const playerCountInput = document.getElementById('player-count');
@@ -1007,7 +1007,7 @@ export function initPlayerSetup({ grimoireState }) {
         }
 
         if (isTraveller) {
-          // Travellers don't participate in number selection
+          // Travellers don't participate in token selection
           overlay.textContent = 'T';
           overlay.classList.add('disabled');
           overlay.classList.add('traveller-assigned');
@@ -1102,7 +1102,7 @@ export function initPlayerSetup({ grimoireState }) {
   if (confirmPlayerRevealBtn) confirmPlayerRevealBtn.addEventListener('click', confirmPlayerRevealAndAdvance);
 }
 
-// Restore an in-progress number selection session after a page reload.
+// Restore an in-progress token selection session after a page reload.
 // Re-applies body classes, hides grimoire, and reconstructs number overlays
 // based on persisted playerSetup.assignments when selectionActive is true.
 export function restoreSelectionSession({ grimoireState }) {
@@ -1133,7 +1133,7 @@ export function restoreSelectionSession({ grimoireState }) {
       }
 
       if (isTraveller) {
-        // Travellers don't participate in number selection
+        // Travellers don't participate in token selection
         overlay.textContent = 'T';
         overlay.classList.add('disabled');
         overlay.classList.add('traveller-assigned');

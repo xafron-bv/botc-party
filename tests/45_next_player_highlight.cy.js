@@ -1,4 +1,4 @@
-describe('Next Player Highlight During Number Selection', () => {
+describe('Next Player Highlight During Token Selection', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
@@ -13,7 +13,7 @@ describe('Next Player Highlight During Number Selection', () => {
     cy.get('#player-circle li').should('have.length', 7);
   });
 
-  it('highlights the first player when starting number selection', () => {
+  it('highlights the first player when starting token selection', () => {
     // Open Player Setup panel and fill bag
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
