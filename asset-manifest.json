@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-12-15T17:31:26.213Z",
+  "generatedAt": "2025-12-15T19:56:33.873Z",
   "files": [
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
@@ -8,6 +8,7 @@
     "./assets/fontawesome/webfonts/fa-solid-900.woff2",
     "./assets/icons/android-chrome-192x192.png",
     "./assets/icons/android-chrome-512x512.png",
+    "./assets/icons/ghost-unfilled.svg",
     "./assets/img/bg-cosmic.png",
     "./assets/img/bg-wood.png",
     "./assets/img/token.png",
