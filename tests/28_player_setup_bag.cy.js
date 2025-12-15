@@ -124,10 +124,6 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {
-        const nameInput = modal.find('#reveal-name-input');
-        if (nameInput.length) {
-          cy.wrap(nameInput).clear().type('Alice');
-        }
         const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
@@ -137,9 +133,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Reveal picker closes automatically so sidebar is available
     cy.get('#number-picker-overlay').should('not.be.visible');
     cy.get('#player-setup-panel').should('not.be.visible');
-    // Overlay shows "✓" on first player's token and is disabled, name updated
+    // Overlay shows "✓" on first player's token and is disabled
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓').and('have.class', 'disabled');
-    cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'Alice');
     // Reset grimoire during selection should cancel and remove overlays
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#reset-grimoire').click();

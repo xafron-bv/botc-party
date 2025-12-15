@@ -347,12 +347,11 @@
 	      <button class="modal-close" id="close-player-reveal-modal" aria-label="Close player reveal"><i class="fas fa-times"></i></button>
 	      <h3>Your Character</h3>
       <div id="reveal-character-token" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
-      <div id="reveal-ability" style="opacity: 0.9;"></div>
-      <div style="margin-top: 12px; text-align: center;">
-        <label for="reveal-name-input">Your name:</label>
-        <input type="text" id="reveal-name-input" placeholder="Enter your name">
-      </div>
-      <div style="margin-top: 14px; display:flex; justify-content:center;">
+      <div class="reveal-handoff-actions">
+        <div id="reveal-handoff" class="reveal-handoff" aria-live="polite">
+          <div id="reveal-handoff-label" class="reveal-handoff-label">Hand to</div>
+          <div id="reveal-handoff-name" class="reveal-handoff-name"></div>
+        </div>
         <button class="button" id="confirm-player-reveal">Close</button>
       </div>
     </div>

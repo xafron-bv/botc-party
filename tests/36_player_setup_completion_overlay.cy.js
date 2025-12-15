@@ -5,7 +5,6 @@ const completeNumberSelection = (playerCount) => {
     cy.get('#number-picker-overlay').should('be.visible');
     cy.get('#selection-reveal-btn').click();
     cy.get('#player-reveal-modal').should('be.visible');
-    cy.get('#reveal-name-input').clear().type(`P${i + 1}`);
     cy.get('#confirm-player-reveal').click();
     cy.get('#player-reveal-modal').should('not.be.visible');
     if (i < playerCount - 1) {
