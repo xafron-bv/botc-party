@@ -119,15 +119,11 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('#number-picker-overlay').should('be.visible');
 
-    // Reveal character (no number selection)
+    // Reveal character (no token selection)
     cy.get('#selection-reveal-btn').click();
     cy.get('body').then($body => {
       const modal = $body.find('#player-reveal-modal');
       if (modal.length && modal.is(':visible')) {
-        const nameInput = modal.find('#reveal-name-input');
-        if (nameInput.length) {
-          cy.wrap(nameInput).clear().type('Alice');
-        }
         const confirmBtn = modal.find('#close-player-reveal-modal');
         if (confirmBtn.length) {
           cy.wrap(confirmBtn).click();
@@ -137,9 +133,8 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Reveal picker closes automatically so sidebar is available
     cy.get('#number-picker-overlay').should('not.be.visible');
     cy.get('#player-setup-panel').should('not.be.visible');
-    // Overlay shows "✓" on first player's token and is disabled, name updated
+    // Overlay shows "✓" on first player's token and is disabled
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓').and('have.class', 'disabled');
-    cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'Alice');
     // Reset grimoire during selection should cancel and remove overlays
     cy.get('#sidebar-toggle').should('be.visible').click();
     cy.get('#reset-grimoire').click();
@@ -238,7 +233,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     cy.get('#bag-count-warning').should('not.be.visible');
 
-    // Start number selection
+    // Start token selection
     cy.get('#player-setup-panel .start-selection').click();
     cy.get('#player-setup-panel').should('not.be.visible');
 
@@ -246,7 +241,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#setup-info').should('contain', '3/1/1/1/1');
   });
 
-  it('hides death ribbon and death vote indicator during number selection', () => {
+  it('hides death ribbon and death vote indicator during token selection', () => {
     // Mark a player as dead to ensure death ribbon exists
     cy.get('#player-circle li .player-token .death-ribbon').first().should('be.visible');
 
@@ -259,7 +254,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     // Death vote indicator should be visible
     cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('be.visible');
 
-    // Reset and start number selection
+    // Reset and start token selection
     cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 10);
 
@@ -269,7 +264,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');
 
-    // Start number selection
+    // Start token selection
     cy.get('#player-setup-panel .start-selection').click();
 
     // Body should have selection-active class
@@ -334,7 +329,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li').eq(0).find('.number-overlay').should('contain', '✓');
   });
 
-  it('prevents reassigning traveller to a number during number selection', () => {
+  it('prevents reassigning traveller to a number during token selection', () => {
     // Use existing 10 player setup
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
