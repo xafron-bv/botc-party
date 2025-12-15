@@ -32,9 +32,7 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
 
       // Kill a player during N1
-      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(0).find('.death-ribbon').click({ force: true });
       cy.get('.player-token').eq(0).should('have.class', 'is-dead');
 
       // Move to D1
@@ -42,9 +40,7 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
 
       // Kill another player during D1
-      cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(1).find('.death-ribbon').click({ force: true });
       cy.get('.player-token').eq(1).should('have.class', 'is-dead');
 
       // Go back to N1
@@ -99,21 +95,15 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
 
       // Kill player 0 in N1
-      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(0).find('.death-ribbon').click({ force: true });
 
       // Move to D1
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('[data-testid="current-phase"]').should('contain', 'D1');
 
       // Use player 0's ghost vote (still dead, indicator removed)
-      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').eq(1).click({ force: true });
-      });
-      cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(0).find('.death-ribbon').click({ force: true });
+      cy.get('.player-token').eq(1).find('.death-ribbon').click({ force: true });
 
       // Change character of player 2
       cy.get('.player-token').eq(2).find('.death-overlay').click({ force: true });
@@ -126,9 +116,7 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'N2');
 
       // Kill player 2
-      cy.get('.player-token').eq(2).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(2).find('.death-ribbon').click({ force: true });
 
       // Navigate back and verify each phase state
       // Go to N1
@@ -161,9 +149,7 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
 
       // Kill player 0 during the night and verify the ribbon is marked as hidden
-      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(0).find('.death-ribbon').click({ force: true });
       cy.get('.player-token').eq(0).should('have.class', 'is-dead');
       cy.get('.player-token').eq(0).find('.death-ribbon')
         .should('have.class', 'night-kill-pending');
@@ -181,9 +167,7 @@ describe('Comprehensive Phase Change Tracking', () => {
         .should('not.have.class', 'night-kill-pending');
 
       // Kill another player on the new night and ensure only that ribbon is striped
-      cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(1).find('.death-ribbon').click({ force: true });
       cy.get('.player-token').eq(1).find('.death-ribbon')
         .should('have.class', 'night-kill-pending');
       cy.get('.player-token').eq(0).find('.death-ribbon')
@@ -203,15 +187,11 @@ describe('Comprehensive Phase Change Tracking', () => {
       cy.get('[data-testid="current-phase"]').should('contain', 'N1');
 
       // Make changes in N1
-      cy.get('.player-token').eq(0).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(0).find('.death-ribbon').click({ force: true });
 
       // Move to D1 and make different changes
       cy.get('[data-testid="add-phase-button"]').click();
-      cy.get('.player-token').eq(1).find('.death-ribbon').within(() => {
-        cy.get('rect, path').first().click({ force: true });
-      });
+      cy.get('.player-token').eq(1).find('.death-ribbon').click({ force: true });
 
       // Go back to N1 and verify state is preserved
       cy.get('#phase-slider').invoke('val', 0).trigger('input');

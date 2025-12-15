@@ -1,5 +1,5 @@
 import { resolveAssetPath, getRoleById } from '../../utils.js';
-import { createDeathRibbonSvg, createDeathVoteIndicatorSvg } from './svg.js';
+import { createDeathRibbonSvg } from './svg.js';
 import { renderTokenElement } from './tokenRendering.js';
 import { setupInteractiveElement } from '../utils/interaction.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
@@ -121,7 +121,11 @@ export function updatePlayerElement({
     currentPhase &&
     player.nightKilledPhase === currentPhase
   );
-  const ribbon = createDeathRibbonSvg({ highlightNightKill: shouldHighlightNightKill });
+  const ribbon = createDeathRibbonSvg({
+    highlightNightKill: shouldHighlightNightKill,
+    dead: !!player.dead,
+    voteUsed: !!(player.dead && player.deathVote)
+  });
   ribbon.classList.add('death-ribbon');
   const handleRibbonToggle = withStateSave((e) => {
     e.stopPropagation();
@@ -187,50 +191,6 @@ export function updatePlayerElement({
     tokenDiv.classList.add('is-dead');
   } else {
     tokenDiv.classList.remove('is-dead');
-  }
-  const existingDeathVote = tokenDiv.querySelector('.death-vote-indicator');
-  if (existingDeathVote) existingDeathVote.remove();
-
-  if (player.dead && !player.deathVote) {
-    const deathVoteIndicator = createDeathVoteIndicatorSvg();
-    const handleDeathVoteClick = withStateSave((e) => {
-      e.stopPropagation();
-      if (!ensureGrimoireUnlocked({ grimoireState })) return;
-      const player = grimoireState.players[playerIndex];
-      if (player.dead && !player.deathVote) {
-        grimoireState.players[playerIndex].deathVote = true;
-        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-          saveCurrentPhaseStateFn(grimoireState);
-        }
-        updateGrimoireFn({ grimoireState });
-      }
-    });
-
-    setupInteractiveElement({
-      element: deathVoteIndicator,
-      onTap: (e) => {
-        if ('ontouchstart' in window) {
-          handlePlayerElementTouch({
-            e,
-            listItem: li,
-            actionCallback: handleDeathVoteClick,
-            grimoireState,
-            playerIndex
-          });
-        } else {
-          handleDeathVoteClick(e);
-        }
-      },
-      onLongPress: (e, x, y) => {
-        clearTimeout(grimoireState.longPressTimer);
-        showPlayerContextMenu({ grimoireState, x, y, playerIndex });
-      },
-      setTouchOccurred: (val) => {
-        grimoireState.touchOccurred = val;
-      }
-    });
-
-    tokenDiv.appendChild(deathVoteIndicator);
   }
   tokenDiv.querySelectorAll('.token-reminder').forEach((node) => node.remove());
   let nextReminderIndex = 0;

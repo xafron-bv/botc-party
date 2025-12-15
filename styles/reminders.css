@@ -151,16 +151,16 @@
 .player-token .death-ribbon {
   position: absolute;
   left: 50%;
-  top: -6%;
-  transform: translateX(-50%);
-  width: clamp(54%, 63%, 72%);
+  top: 27%;
+  transform: translate(-50%, -50%);
+  width: clamp(58%, 68%, 78%);
   height: auto;
   opacity: 0.18;
   /* visible but subtle by default */
   transition: opacity .15s ease;
-  pointer-events: none;
-  /* delegate events to painted SVG shapes inside */
+  pointer-events: auto;
   z-index: 6;
+  color: #fff;
 }
 
 .player-token:hover .death-overlay {
@@ -202,11 +202,18 @@
   transition: opacity 0.2s, transform 0.2s;
   z-index: 15;
   pointer-events: auto;
+  color: #fff;
 }
 
 .player-token .death-vote-indicator:hover {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1.1);
+}
+
+.player-token .death-vote-indicator.is-used {
+  opacity: 0.45;
+  transform: translate(-50%, -50%);
+  cursor: default;
 }
 
 .icon-reminder-svg {

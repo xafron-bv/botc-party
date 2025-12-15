@@ -36,24 +36,18 @@ describe('Death & Reminders', () => {
 
   it('toggles death ribbon through 3-phase cycle (dead -> vote used -> resurrect)', () => {
     // Phase 1: Alive -> Dead
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
-    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('exist');
+    cy.get('#player-circle li .player-token').first().find('.death-ribbon [data-part="mouth-fill"]').should('exist');
 
     // Phase 2: Use ghost vote (indicator removed but still dead)
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').eq(1).click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
-    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('not.exist');
+    cy.get('#player-circle li .player-token').first().find('.death-ribbon [data-part="mouth-fill"]').should('not.exist');
 
     // Phase 3: Resurrect (stub confirm dialog to auto-confirm)
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(true).as('confirmStub'); });
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').eq(2).click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('@confirmStub').should('have.been.called');
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
@@ -256,7 +250,7 @@ describe('Death & Reminders', () => {
     cy.get('#player-context-menu').should('be.visible');
 
     // Simulate the synthetic click Mobile Safari emits after touchend
-    cy.get('#player-circle li .death-ribbon').first().find('rect, path').first()
+    cy.get('#player-circle li .death-ribbon').first()
       .trigger('click', { force: true });
 
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
