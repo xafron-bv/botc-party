@@ -247,12 +247,12 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
 
     // Mark first player as dead
     cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
+      cy.root().click({ force: true });
     });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
-    // Death vote indicator should be visible
-    cy.get('#player-circle li .player-token').first().find('.death-vote-indicator').should('be.visible');
+    // Ghost vote should be available (filled)
+    cy.get('#player-circle li .player-token').first().find('.death-ribbon [data-part="mouth-fill"]').should('exist');
 
     // Reset and start token selection
     cy.get('#reset-grimoire').click();
@@ -298,9 +298,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     cy.get('#player-circle li .player-token .death-ribbon').first().should('not.be.visible');
 
     // Try to click the death ribbon (force: true to bypass visibility) - should not mark as dead
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('not.have.class', 'is-dead');
   });
 
