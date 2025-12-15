@@ -680,7 +680,7 @@ export function initPlayerSetup({ grimoireState }) {
           confirmPlayerRevealBtn.textContent = 'Close and give to the Storyteller';
         } else {
           const nextPlayerName = (grimoireState.players[nextIdx] && grimoireState.players[nextIdx].name) || `Player ${nextIdx + 1}`;
-          confirmPlayerRevealBtn.textContent = `Close and hand to ${nextPlayerName}`;
+          confirmPlayerRevealBtn.textContent = `Close then hand to ${nextPlayerName}`;
         }
       }
 
@@ -697,7 +697,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (hasNumberAssignment || hasCharacter) return;
 
     const playerName = (existingPlayer && existingPlayer.name) ? existingPlayer.name : `Player ${forPlayerIndex + 1}`;
-    if (selectionPickerTitle) selectionPickerTitle.textContent = `${playerName}: Reveal your character`;
+    if (selectionPickerTitle) selectionPickerTitle.textContent = playerName
     if (selectionPickerInstructions) selectionPickerInstructions.textContent = `If you're not ${playerName}, do not tap Reveal.`;
 
     numberPickerGrid.innerHTML = '';
@@ -744,7 +744,7 @@ export function initPlayerSetup({ grimoireState }) {
       selectionRevealBtn.dataset.playerIndex = String(forPlayerIndex);
       if (canRevealFromBag) {
         selectionRevealBtn.disabled = false;
-        selectionRevealBtn.textContent = 'Reveal my character';
+        selectionRevealBtn.textContent = 'Reveal';
       } else {
         selectionRevealBtn.disabled = true;
         selectionRevealBtn.textContent = travellerBag.length > 0 ? 'Choose a Traveller below' : 'No characters left';
