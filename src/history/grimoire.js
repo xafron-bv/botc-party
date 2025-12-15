@@ -183,8 +183,8 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
     scriptData: entry.scriptData
   };
 
-  // If a game is currently started, confirm before loading another history (will replace current game)
-  if (grimoireState.gameStarted) {
+  // If a game is currently started (and not ended with a winner), confirm before loading another history
+  if (grimoireState.gameStarted && !grimoireState.winner) {
     const ok = window.confirm('A game is in progress. Loading history will reset the current game. Continue?');
     if (!ok) return;
   }

@@ -34,9 +34,16 @@ describe('Winner state persisted in history', () => {
     // Load most recent (index 0)
     cy.get('#grimoire-history-list li').eq(0).click();
     cy.get('#winner-message').should('contain.text', 'Good has won');
-    // Load previous (index 1)
+
+    // Stub confirm to ensure it's NOT called when loading another ended game
+    cy.window().then((win) => { cy.stub(win, 'confirm').as('confirmStub'); });
+
+    // Load previous (index 1) - should NOT prompt since current game is already ended
     cy.get('#grimoire-history-list li').eq(1).click();
     cy.get('#winner-message').should('contain.text', 'Evil has won');
+
+    // Verify confirm was NOT called
+    cy.get('@confirmStub').should('have.callCount', 0);
   });
 });
 
