@@ -122,7 +122,8 @@ describe('Scripts', () => {
     cy.request('/styles/print.css')
       .its('body')
       .should((body) => {
-        expect(body).to.match(/\.ability-info-icon\s*\{[^}]*display\s*:\s*none\s*!important/i);
+        // Check that .ability-info-icon is in the selector list that has display: none !important
+        expect(body).to.match(/\.ability-info-icon[^}]*display\s*:\s*none\s*!important/i);
       });
   });
 });
