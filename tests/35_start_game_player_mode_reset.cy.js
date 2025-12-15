@@ -18,9 +18,7 @@ describe('Game state reset vs preserve by mode changes', () => {
     cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
 
     // Mark dead via ribbon
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
     // Switch to player mode and end with winner
@@ -45,9 +43,7 @@ describe('Game state reset vs preserve by mode changes', () => {
     cy.get('#character-search').type('Chef');
     cy.get('#character-grid .token[title="Chef"]').first().click();
     cy.get('#player-circle li .player-token').first().should('have.class', 'has-character');
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
     // End game
     cy.get('#end-game').click({ force: true });

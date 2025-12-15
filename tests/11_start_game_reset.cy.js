@@ -34,9 +34,7 @@ describe('Reset Grimoire preserves names but clears assignments/reminders/death'
     cy.get('#player-circle li').first().find('.icon-reminder, .text-reminder').should('have.length.greaterThan', 0);
 
     // Mark dead via ribbon
-    cy.get('#player-circle li .player-token .death-ribbon').first().within(() => {
-      cy.get('rect, path').first().click({ force: true });
-    });
+    cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
     // Click Reset Grimoire again with same count; expect reset but name preserved
