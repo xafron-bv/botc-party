@@ -32,7 +32,8 @@
   .loading-overlay,
   .modal,
   #ability-tooltip,
-  #touch-ability-popup {
+  #touch-ability-popup,
+  .ability-info-icon {
     display: none !important;
   }
 
