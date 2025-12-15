@@ -36,11 +36,6 @@
     display: none !important;
   }
 
-  /* Also hide sidebar-only / meta UI inside the grimoire */
-  #setup-info {
-    display: none !important;
-  }
-
   /* Fill the page with the grimoire area */
   #app,
   #grimoire,
