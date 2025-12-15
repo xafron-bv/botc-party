@@ -39,8 +39,8 @@ export function initPlayerSetup({ grimoireState }) {
   const closePlayerRevealModalBtn = document.getElementById('close-player-reveal-modal');
   const confirmPlayerRevealBtn = document.getElementById('confirm-player-reveal');
   const revealCharacterTokenEl = document.getElementById('reveal-character-token');
-  const revealAbilityEl = document.getElementById('reveal-ability');
-  const revealNameInput = document.getElementById('reveal-name-input');
+  const revealHandoffLabelEl = document.getElementById('reveal-handoff-label');
+  const revealHandoffNameEl = document.getElementById('reveal-handoff-name');
   const includeTravellersCheckbox = document.getElementById('include-travellers-in-bag');
   const playerSetupCountsContainer = document.getElementById('player-setup-counts');
   const teamCountElements = {};
@@ -667,21 +667,17 @@ export function initPlayerSetup({ grimoireState }) {
         token.title = role.name || '';
         revealCharacterTokenEl.appendChild(token);
       }
-      if (revealAbilityEl) revealAbilityEl.textContent = role.ability || '';
-      const currentName = (grimoireState.players[forIdx] && grimoireState.players[forIdx].name) || `Player ${forIdx + 1}`;
-      if (revealNameInput) {
-        revealNameInput.value = currentName;
-        try { revealNameInput.focus(); } catch (_) { }
-      }
-      // Configure close button handoff text
-      if (confirmPlayerRevealBtn) {
-        const nextIdx = findNextUnassignedPlayer(forIdx);
-        if (nextIdx === null) {
-          confirmPlayerRevealBtn.textContent = 'Close and give to the Storyteller';
-        } else {
-          confirmPlayerRevealBtn.textContent = `Close and hand to Player ${nextIdx + 1}`;
-        }
-      }
+      // Configure close button + separate handoff element.
+      // (Some button styles override nested <strong>; this keeps the name reliably prominent.)
+      const nextIdx = findNextUnassignedPlayer(forIdx);
+      const handoffLabel = nextIdx === null ? 'Give to' : 'Hand to';
+      const handoffName = nextIdx === null
+        ? 'Storyteller'
+        : ((grimoireState.players[nextIdx] && grimoireState.players[nextIdx].name) || `Player ${nextIdx + 1}`);
+
+      if (confirmPlayerRevealBtn) confirmPlayerRevealBtn.textContent = 'Close';
+      if (revealHandoffLabelEl) revealHandoffLabelEl.textContent = handoffLabel;
+      if (revealHandoffNameEl) revealHandoffNameEl.textContent = handoffName;
 
       playerRevealModal.style.display = 'flex';
     } catch (_) { }
@@ -696,7 +692,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (hasNumberAssignment || hasCharacter) return;
 
     const playerName = (existingPlayer && existingPlayer.name) ? existingPlayer.name : `Player ${forPlayerIndex + 1}`;
-    if (selectionPickerTitle) selectionPickerTitle.textContent = `${playerName}: Reveal your character`;
+    if (selectionPickerTitle) selectionPickerTitle.textContent = playerName;
     if (selectionPickerInstructions) selectionPickerInstructions.textContent = `If you're not ${playerName}, do not tap Reveal.`;
 
     numberPickerGrid.innerHTML = '';
@@ -743,7 +739,7 @@ export function initPlayerSetup({ grimoireState }) {
       selectionRevealBtn.dataset.playerIndex = String(forPlayerIndex);
       if (canRevealFromBag) {
         selectionRevealBtn.disabled = false;
-        selectionRevealBtn.textContent = 'Reveal my character';
+        selectionRevealBtn.textContent = 'Reveal';
       } else {
         selectionRevealBtn.disabled = true;
         selectionRevealBtn.textContent = travellerBag.length > 0 ? 'Choose a Traveller below' : 'No characters left';
@@ -953,7 +949,7 @@ export function initPlayerSetup({ grimoireState }) {
       }
       return;
     }
-    // Reset grimoire before starting number selection (direct function call)
+    // Reset grimoire before starting token selection (direct function call)
     // We reset the grimoire to ensure a clean state (clearing tokens, reminders, etc.)
     // but we PRESERVE the bag we just built so it can be distributed.
     const playerCountInput = document.getElementById('player-count');
@@ -1011,7 +1007,7 @@ export function initPlayerSetup({ grimoireState }) {
         }
 
         if (isTraveller) {
-          // Travellers don't participate in number selection
+          // Travellers don't participate in token selection
           overlay.textContent = 'T';
           overlay.classList.add('disabled');
           overlay.classList.add('traveller-assigned');
@@ -1073,28 +1069,7 @@ export function initPlayerSetup({ grimoireState }) {
     });
   }
 
-  // Reveal modal behavior - only handle X button close, name update is automatic
-  if (playerRevealModal) {
-    // Name input auto-save on input change
-    if (revealNameInput) {
-      revealNameInput.addEventListener('input', withStateSave(() => {
-        try {
-          if (revealCurrentPlayerIndex !== null && grimoireState.players && grimoireState.players[revealCurrentPlayerIndex]) {
-            const inputName = (revealNameInput.value || '').trim();
-            if (inputName) {
-              grimoireState.players[revealCurrentPlayerIndex].name = inputName;
-              const playerCircle = document.getElementById('player-circle');
-              const li = playerCircle && playerCircle.children && playerCircle.children[revealCurrentPlayerIndex];
-              if (li) {
-                const nameEl = li.querySelector('.player-name');
-                if (nameEl) nameEl.textContent = inputName;
-              }
-            }
-          }
-        } catch (_) { }
-      }));
-    }
-  }
+  // Reveal modal behavior - only handle close button
 
   const closePlayerRevealAndAdvance = withStateSave(() => {
     if (!playerRevealModal) return;
@@ -1127,7 +1102,7 @@ export function initPlayerSetup({ grimoireState }) {
   if (confirmPlayerRevealBtn) confirmPlayerRevealBtn.addEventListener('click', confirmPlayerRevealAndAdvance);
 }
 
-// Restore an in-progress number selection session after a page reload.
+// Restore an in-progress token selection session after a page reload.
 // Re-applies body classes, hides grimoire, and reconstructs number overlays
 // based on persisted playerSetup.assignments when selectionActive is true.
 export function restoreSelectionSession({ grimoireState }) {
@@ -1158,7 +1133,7 @@ export function restoreSelectionSession({ grimoireState }) {
       }
 
       if (isTraveller) {
-        // Travellers don't participate in number selection
+        // Travellers don't participate in token selection
         overlay.textContent = 'T';
         overlay.classList.add('disabled');
         overlay.classList.add('traveller-assigned');

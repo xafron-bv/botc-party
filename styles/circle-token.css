@@ -53,8 +53,8 @@
   z-index: 12;
 }
 
-/* Temporary number badge shown during number selection */
-/* Half-opaque number selection overlay */
+/* Temporary number badge shown during token selection */
+/* Half-opaque token selection overlay */
 .number-overlay {
   position: absolute;
   inset: 0;

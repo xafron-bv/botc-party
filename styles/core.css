@@ -198,7 +198,7 @@ body.grimoire-hidden #bluff-tokens-container {
   display: none !important;
 }
 
-/* During number selection, hide reminders, bluffs, and death UI like hidden mode */
+/* During token selection, hide reminders, bluffs, and death UI like hidden mode */
 body.selection-active #player-circle li .reminders,
 body.selection-active #player-circle li .reminder-placeholder,
 body.selection-active #bluff-tokens-container,

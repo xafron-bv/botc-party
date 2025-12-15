@@ -12,7 +12,7 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#player-circle li').should('have.length', 5);
   });
 
-  it('blocks Start Number Selection unless bag size equals player count', () => {
+  it('blocks Start Token Selection unless bag size equals player count', () => {
     cy.get('#open-player-setup').click();
     cy.get('#player-setup-panel').should('be.visible');
     // Fill then uncheck one to make count mismatch
@@ -67,7 +67,7 @@ describe('Player Setup - Guards and Resets', () => {
       .should('match', /Warning: Expected Townsfolk \d+, Outsiders \d+, Minions \d+, Demons \d+ for \d+ non-traveller players?\./);
   });
 
-  it('resets previously selected numbers when Start Number Selection is clicked again', () => {
+  it('resets previously selected numbers when Start Token Selection is clicked again', () => {
     cy.get('#open-player-setup').click();
     cy.fillBag();
     cy.get('#bag-count-warning').should('not.be.visible');

@@ -1,6 +1,6 @@
 // Cypress E2E test - Bag shuffle (numbers map directly 1..N to shuffled bag indices)
 
-describe('Number selection bag shuffle', () => {
+describe('Token selection bag shuffle', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1200, 900);

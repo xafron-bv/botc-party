@@ -1078,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // If a game was in progress, ensure End button visibility matches
       const endBtn = document.getElementById('end-game');
       if (endBtn) endBtn.style.display = grimoireState.winner ? 'none' : '';
-      // Restore any in-progress number selection session (pre-game privacy flow)
+      // Restore any in-progress token selection session (pre-game privacy flow)
       try { restoreSelectionSession({ grimoireState }); } catch (_) { }
     } catch (_) { }
 

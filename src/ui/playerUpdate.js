@@ -130,7 +130,7 @@ export function updatePlayerElement({
     const selectionActive = !!playerSetup.selectionActive;
     const selectionComplete = !!playerSetup.selectionComplete;
     const gameStarted = !!grimoireState.gameStarted;
-    // Prevent death ribbon interaction during or immediately after number selection
+    // Prevent death ribbon interaction during or immediately after token selection
     if (selectionActive || (selectionComplete && !gameStarted)) {
       return;
     }

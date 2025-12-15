@@ -1,4 +1,4 @@
-// Ensures number selection session (selectionActive) persists across page reload
+// Ensures token selection session (selectionActive) persists across page reload
 
 describe('Selection session persistence', () => {
   beforeEach(() => {
