@@ -109,4 +109,12 @@ describe('Scripts', () => {
     cy.contains('#character-sheet .script-meta__author', 'Link').should('be.visible');
     cy.contains('#character-sheet .role .name', 'Chef').should('be.visible');
   });
+
+  it('keeps game info visible in the print stylesheet', () => {
+    cy.request('/styles/print.css')
+      .its('body')
+      .should((body) => {
+        expect(body).not.to.match(/#setup-info\s*\{[^}]*display\s*:\s*none/i);
+      });
+  });
 });
