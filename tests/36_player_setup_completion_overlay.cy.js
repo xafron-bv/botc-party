@@ -57,14 +57,14 @@ describe('Player setup completion overlay', () => {
 
     cy.get('#player-circle li .player-token').first().as('firstToken');
     cy.get('@firstToken').should('not.have.class', 'is-dead');
-    cy.get('@firstToken').find('.death-vote-indicator').should('not.exist');
+    cy.get('@firstToken').find('.death-ribbon [data-part="mouth-fill"]').should('not.exist');
 
     cy.get('#player-circle li .player-token .death-ribbon').first().should('be.visible').within(() => {
-      cy.get('rect, path').first().click({ force: true });
+      cy.root().click({ force: true });
     });
 
     cy.get('@firstToken').should('not.have.class', 'is-dead');
-    cy.get('@firstToken').find('.death-vote-indicator').should('not.exist');
+    cy.get('@firstToken').find('.death-ribbon [data-part="mouth-fill"]').should('not.exist');
 
     // Reset state so subsequent specs are not affected by selectionComplete handoff
     cy.window().then((win) => {
