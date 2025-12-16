@@ -33,7 +33,8 @@
   .modal,
   #ability-tooltip,
   #touch-ability-popup,
-  .ability-info-icon {
+  .ability-info-icon,
+  .reminder-placeholder {
     display: none !important;
   }
 
