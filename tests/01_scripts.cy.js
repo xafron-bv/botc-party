@@ -128,4 +128,15 @@ describe('Scripts', () => {
         expect(body).to.match(/@media\s+print\s*\{[\s\S]*\.ability-info-icon[\s\S]*display\s*:\s*none\s*!important/i);
       });
   });
+
+  it('hides reminder placeholder in the print stylesheet', () => {
+    cy.request('/styles/print.css')
+      .its('body')
+      .should((body) => {
+        // Check that .reminder-placeholder is present in the print stylesheet
+        // It's part of a comma-separated selector list with display: none !important
+        expect(body).to.include('.reminder-placeholder');
+        expect(body).to.match(/@media\s+print\s*\{[\s\S]*\.reminder-placeholder[\s\S]*display\s*:\s*none\s*!important/i);
+      });
+  });
 });
