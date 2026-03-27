@@ -62,6 +62,12 @@ export async function displayScript({ data, grimoireState }) {
     console.warn('Failed to load jinx data:', e);
   }
 
+  // Filter roles for display: the sidebar toggle only affects what's shown in the script panel.
+  // allRoles always contains all travellers so grimoire lookups work regardless.
+  const displayRoles = grimoireState.includeTravellers
+    ? grimoireState.allRoles || {}
+    : Object.fromEntries(Object.entries(grimoireState.allRoles || {}).filter(([, role]) => role.team !== 'traveller'));
+
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
     const nightOrderCharacterIds = (grimoireState.nightOrderData && grimoireState.nightOrderData[nightOrderKey]) || [];
@@ -73,7 +79,7 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     const rolesToRender = [];
-    Object.values(grimoireState.allRoles || {}).forEach(role => {
+    Object.values(displayRoles).forEach(role => {
       if (!role || !role.id || role.id === '_meta') return;
       const orderFromData = officialOrderMap.get(role.id);
       if (orderFromData !== undefined) {
@@ -108,10 +114,10 @@ export async function displayScript({ data, grimoireState }) {
       characterSheet.appendChild(roleEl);
     });
 
-    displayJinxes({ jinxData, grimoireState, characterSheet });
+    displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
   } else {
     const teamGroups = {};
-    Object.values(grimoireState.allRoles).forEach(role => {
+    Object.values(displayRoles).forEach(role => {
       if (!teamGroups[role.team]) {
         teamGroups[role.team] = [];
       }
@@ -145,7 +151,7 @@ export async function displayScript({ data, grimoireState }) {
         }
 
         if (team === 'demon') {
-          displayJinxes({ jinxData, grimoireState, characterSheet });
+          displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
         }
       });
     } else {
@@ -500,9 +506,10 @@ export async function loadScriptFile({ event, grimoireState }) {
   reader.readAsText(file);
 }
 
-function displayJinxes({ jinxData, grimoireState, characterSheet }) {
+function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }) {
+  const roles = displayRoles || grimoireState.allRoles;
   const scriptCharacterIds = new Set();
-  Object.values(grimoireState.allRoles).forEach(role => {
+  Object.values(roles).forEach(role => {
     scriptCharacterIds.add(role.id);
   });
 

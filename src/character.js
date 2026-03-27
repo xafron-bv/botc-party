@@ -169,13 +169,13 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
 });
 
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
-  grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
-  if (grimoireState.scriptTravellerRoles) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...grimoireState.scriptTravellerRoles };
-  }
-  if (grimoireState.includeTravellers) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
-  }
+  // allRoles always includes all available roles so grimoire lookups always work.
+  // The sidebar "Include Travellers" toggle only controls script display visibility.
+  grimoireState.allRoles = {
+    ...(grimoireState.baseRoles || {}),
+    ...(grimoireState.scriptTravellerRoles || {}),
+    ...(grimoireState.extraTravellerRoles || {})
+  };
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
 }
 
