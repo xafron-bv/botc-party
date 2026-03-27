@@ -2,30 +2,6 @@
 
 import { calculateRadialPosition } from '../utils/positioning.js';
 
-export function positionTooltip(targetElement, tooltip) {
-  const rect = targetElement.getBoundingClientRect();
-  const tooltipRect = tooltip.getBoundingClientRect();
-
-  // Position above the element by default
-  let top = rect.top - tooltipRect.height - 10;
-  let left = rect.left + (rect.width - tooltipRect.width) / 2;
-
-  // Adjust if tooltip would go off screen
-  if (top < 10) {
-    // Position below instead
-    top = rect.bottom + 10;
-  }
-
-  if (left < 10) {
-    left = 10;
-  } else if (left + tooltipRect.width > window.innerWidth - 10) {
-    left = window.innerWidth - tooltipRect.width - 10;
-  }
-
-  tooltip.style.top = `${top}px`;
-  tooltip.style.left = `${left}px`;
-}
-
 export function showTouchAbilityPopup(targetElement, ability) {
   const popup = document.getElementById('touch-ability-popup');
   if (!popup) return;
@@ -152,6 +128,3 @@ export function positionTokenReminders() {
   });
 }
 
-export function positionNightOrderNumbers() {
-  positionTokenReminders();
-}

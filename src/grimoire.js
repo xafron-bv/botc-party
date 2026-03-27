@@ -66,7 +66,6 @@ export function toggleGrimoireHidden({ grimoireState }) {
   setGrimoireHidden({ grimoireState, hidden: !grimoireState.grimoireHidden });
 }
 
-export function hideGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: true }); }
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
 
 function mountBluffTokensContainer({ grimoireState }) {

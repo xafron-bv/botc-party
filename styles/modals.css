@@ -90,21 +90,6 @@
   }
 }
 
-.modal-footer {
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(135deg, var(--color-surface-light) 0%, var(--color-surface) 100%);
-  padding: 10px 0 0;
-  margin: 10px 0 0;
-  text-align: center;
-}
-
-.modal-footer .button {
-  width: auto;
-  min-width: 100px;
-  padding: 10px 20px;
-}
-
 .modal .modal-close {
   position: absolute;
   top: var(--space-3);
