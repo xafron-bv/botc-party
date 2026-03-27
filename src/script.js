@@ -1,4 +1,4 @@
-import { processScriptCharacters, applyTravellerToggleAndRefresh } from './character.js';
+import { processScriptCharacters, applyTravellerToggleAndRefresh, rebuildAllRoles } from './character.js';
 import { resolveAssetPath, isExcludedScriptName } from '../utils.js';
 import { withStateSave } from './app.js';
 import { renderSetupInfo } from './utils/setup.js';
@@ -8,6 +8,16 @@ export async function displayScript({ data, grimoireState }) {
   const characterSheet = document.getElementById('character-sheet');
   console.log('Displaying script with', data.length, 'characters');
   characterSheet.innerHTML = '';
+
+  // Compute display roles for the character sheet independently of allRoles.
+  // The script sidebar toggle only affects this view, not the grimoire or game state.
+  let displayRoles = { ...(grimoireState.baseRoles || {}) };
+  if (grimoireState.scriptTravellerRoles) {
+    displayRoles = { ...displayRoles, ...grimoireState.scriptTravellerRoles };
+  }
+  if (grimoireState.includeTravellers) {
+    displayRoles = { ...displayRoles, ...(grimoireState.extraTravellerRoles || {}) };
+  }
 
   const metaEntry = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
   const scriptTitle = metaEntry?.name || grimoireState.scriptMetaName || '';
@@ -73,7 +83,7 @@ export async function displayScript({ data, grimoireState }) {
     });
 
     const rolesToRender = [];
-    Object.values(grimoireState.allRoles || {}).forEach(role => {
+    Object.values(displayRoles || {}).forEach(role => {
       if (!role || !role.id || role.id === '_meta') return;
       const orderFromData = officialOrderMap.get(role.id);
       if (orderFromData !== undefined) {
@@ -108,10 +118,10 @@ export async function displayScript({ data, grimoireState }) {
       characterSheet.appendChild(roleEl);
     });
 
-    displayJinxes({ jinxData, grimoireState, characterSheet });
+    displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
   } else {
     const teamGroups = {};
-    Object.values(grimoireState.allRoles).forEach(role => {
+    Object.values(displayRoles).forEach(role => {
       if (!teamGroups[role.team]) {
         teamGroups[role.team] = [];
       }
@@ -145,7 +155,7 @@ export async function displayScript({ data, grimoireState }) {
         }
 
         if (team === 'demon') {
-          displayJinxes({ jinxData, grimoireState, characterSheet });
+          displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
         }
       });
     } else {
@@ -284,6 +294,7 @@ export const processScriptData = withStateSave(async ({ data, addToHistory = fal
   console.log('Processing script with', data.length, 'characters');
   await processScriptCharacters({ characterIds: data, grimoireState });
 
+  rebuildAllRoles({ grimoireState });
   console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
   applyTravellerToggleAndRefresh({ grimoireState });
   renderSetupInfo({ grimoireState });
@@ -500,9 +511,10 @@ export async function loadScriptFile({ event, grimoireState }) {
   reader.readAsText(file);
 }
 
-function displayJinxes({ jinxData, grimoireState, characterSheet }) {
+function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }) {
+  const rolesToUse = displayRoles || grimoireState.allRoles;
   const scriptCharacterIds = new Set();
-  Object.values(grimoireState.allRoles).forEach(role => {
+  Object.values(rolesToUse).forEach(role => {
     scriptCharacterIds.add(role.id);
   });
 
@@ -532,8 +544,8 @@ function displayJinxes({ jinxData, grimoireState, characterSheet }) {
       const jinxEl = document.createElement('div');
       jinxEl.className = 'jinx-entry';
 
-      const char1Role = grimoireState.allRoles[jinx.char1];
-      const char2Role = grimoireState.allRoles[jinx.char2];
+      const char1Role = rolesToUse[jinx.char1];
+      const char2Role = rolesToUse[jinx.char2];
 
       jinxEl.innerHTML = `
         <div class="jinx-characters">

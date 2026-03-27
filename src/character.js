@@ -161,6 +161,7 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
       return;
     }
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
+    rebuildAllRoles({ grimoireState });
     grimoireState.gameStarted = true;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
 
@@ -174,14 +175,22 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
   }
 });
 
-export function applyTravellerToggleAndRefresh({ grimoireState }) {
+export function rebuildAllRoles({ grimoireState }) {
   grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
-  if (grimoireState.scriptTravellerRoles) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...grimoireState.scriptTravellerRoles };
+  // Only include travelers that are actually assigned to players
+  if (Array.isArray(grimoireState.players)) {
+    for (const player of grimoireState.players) {
+      if (!player?.character) continue;
+      const role = (grimoireState.scriptTravellerRoles && grimoireState.scriptTravellerRoles[player.character])
+        || (grimoireState.extraTravellerRoles && grimoireState.extraTravellerRoles[player.character]);
+      if (role && role.team === 'traveller') {
+        grimoireState.allRoles[role.id] = role;
+      }
+    }
   }
-  if (grimoireState.includeTravellers) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
-  }
+}
+
+export function applyTravellerToggleAndRefresh({ grimoireState }) {
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
 }
 
@@ -424,11 +433,11 @@ export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
       });
     }
 
-    console.log(`Loaded ${Object.keys(grimoireState.allRoles).length} characters from all teams`);
-
     // Create a pseudo-script data array with all character IDs
     grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
-    // Apply traveller toggle to compute allRoles and render
+    rebuildAllRoles({ grimoireState });
+    console.log(`Loaded ${Object.keys(grimoireState.allRoles).length} characters from all teams`);
+    // Render the character sheet display
     applyTravellerToggleAndRefresh({ grimoireState });
 
     loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;

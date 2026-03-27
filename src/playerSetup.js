@@ -1,4 +1,5 @@
 import { withStateSave } from './app.js';
+import { rebuildAllRoles } from './character.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath } from '../utils.js';
@@ -767,6 +768,7 @@ export function initPlayerSetup({ grimoireState }) {
           // Assign traveller to player
           if (grimoireState.players && grimoireState.players[forIdx]) {
             grimoireState.players[forIdx].character = roleId;
+            rebuildAllRoles({ grimoireState });
           }
 
           // Remove traveller from bag so it can't be assigned again

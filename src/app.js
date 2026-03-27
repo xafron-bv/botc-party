@@ -1,4 +1,5 @@
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from './constants.js';
+import { rebuildAllRoles } from './character.js';
 import { setupGrimoire, updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { repositionPlayers } from './ui/layout.js';
@@ -70,6 +71,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     if (saved && Array.isArray(saved.players) && saved.players.length) {
       setupGrimoire({ grimoireState, grimoireHistoryList, count: saved.players.length });
       grimoireState.players = saved.players;
+      rebuildAllRoles({ grimoireState });
       updateGrimoire({ grimoireState });
       repositionPlayers({ grimoireState });
       renderSetupInfo({ grimoireState });
