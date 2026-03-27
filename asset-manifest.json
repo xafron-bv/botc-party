@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-12-17T07:44:48.392Z",
+  "generatedAt": "2026-03-27T18:33:02.353Z",
   "files": [
     "./asset-manifest.json",
     "./assets/fontawesome/css/all.min.css",
@@ -238,7 +238,6 @@
     "./src/ui/background.js",
     "./src/ui/contextMenu.js",
     "./src/ui/displaySettings.js",
-    "./src/ui/guides.js",
     "./src/ui/layout.js",
     "./src/ui/menuFactory.js",
     "./src/ui/playerCircle.js",
