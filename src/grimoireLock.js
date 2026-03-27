@@ -1,4 +1,4 @@
-export function isGrimoireLocked(grimoireState) {
+function isGrimoireLocked(grimoireState) {
   return !!(grimoireState && grimoireState.grimoireLocked);
 }
 

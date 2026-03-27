@@ -60,16 +60,8 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
 
   const character = grimoireState.bluffs?.[index];
 
-  const existingInfoIcon = token.querySelector('.ability-info-icon');
-  if (existingInfoIcon) {
-    existingInfoIcon.remove();
-  }
-
   if (character && grimoireState.allRoles[character]) {
     const role = grimoireState.allRoles[character];
-
-    token.classList.remove('empty');
-    token.classList.add('has-character');
     token.dataset.character = character;
 
     renderTokenElement({
@@ -81,8 +73,6 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
       dataset: { bluffIndex: String(index) }
     });
   } else {
-    token.classList.add('empty');
-    token.classList.remove('has-character');
     delete token.dataset.character;
 
     renderTokenElement({

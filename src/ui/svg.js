@@ -1,6 +1,6 @@
 // SVG helpers for curved text labels and death ribbon (browser-native ES module)
 
-export function createSvgElement({
+function createSvgElement({
   viewBox = '0 0 100 100',
   preserveAspectRatio = 'xMidYMid meet',
   classes = [],

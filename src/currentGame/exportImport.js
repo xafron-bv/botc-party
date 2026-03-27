@@ -208,28 +208,4 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
   setStatus({ message: 'Game imported successfully!' });
 }
 
-export function initCurrentGameExportImport({ grimoireState, grimoireHistoryList }) {
-  const exportBtn = document.getElementById('export-game-btn');
-  const importBtn = document.getElementById('import-game-btn');
-  const importFileInput = document.getElementById('import-game-file');
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => exportCurrentGame({ grimoireState }));
-  }
-
-  if (importBtn && importFileInput) {
-    importBtn.addEventListener('click', () => importFileInput.click());
-    importFileInput.addEventListener('change', async (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      try {
-        await importCurrentGame({ file: f, grimoireState, grimoireHistoryList });
-      } catch (error) {
-        console.error('Error importing game:', error);
-      } finally {
-        try { importFileInput.value = ''; } catch (_) { }
-      }
-    });
-  }
-}
 

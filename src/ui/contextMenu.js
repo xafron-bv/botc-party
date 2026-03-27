@@ -1,3 +1,4 @@
+import { createEmptyPlayer } from '../../utils.js';
 import { withStateSave } from '../app.js';
 import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
@@ -119,36 +120,26 @@ export function hidePlayerContextMenu({ grimoireState }) {
 export function ensurePlayerContextMenu({ grimoireState }) {
   if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
 
+  const addPlayerAt = (offset) => withStateSave(() => {
+    if (!ensureGrimoireUnlocked({ grimoireState })) return;
+    const idx = grimoireState.contextMenuTargetIndex;
+    hidePlayerContextMenu({ grimoireState });
+    if (idx < 0) return;
+    if (grimoireState.players.length >= 20) return;
+    grimoireState.players.splice(idx + offset, 0, createEmptyPlayer(`Player ${grimoireState.players.length + 1}`));
+    rebuildPlayerCircleUiPreserveState({ grimoireState });
+  });
+
   const buttons = [
     {
       id: 'player-menu-add-before',
       label: 'Add Player Before',
-      onClick: withStateSave(() => {
-        if (!ensureGrimoireUnlocked({ grimoireState })) return;
-        const idx = grimoireState.contextMenuTargetIndex;
-        hidePlayerContextMenu({ grimoireState });
-        if (idx < 0) return;
-        if (grimoireState.players.length >= 20) return; // clamp to max
-        const newName = `Player ${grimoireState.players.length + 1}`;
-        const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
-        grimoireState.players.splice(idx, 0, newPlayer);
-        rebuildPlayerCircleUiPreserveState({ grimoireState });
-      })
+      onClick: addPlayerAt(0)
     },
     {
       id: 'player-menu-add-after',
       label: 'Add Player After',
-      onClick: withStateSave(() => {
-        if (!ensureGrimoireUnlocked({ grimoireState })) return;
-        const idx = grimoireState.contextMenuTargetIndex;
-        hidePlayerContextMenu({ grimoireState });
-        if (idx < 0) return;
-        if (grimoireState.players.length >= 20) return; // clamp to max
-        const newName = `Player ${grimoireState.players.length + 1}`;
-        const newPlayer = { name: newName, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
-        grimoireState.players.splice(idx + 1, 0, newPlayer);
-        rebuildPlayerCircleUiPreserveState({ grimoireState });
-      })
+      onClick: addPlayerAt(1)
     },
     {
       id: 'player-menu-remove',

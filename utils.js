@@ -48,7 +48,12 @@ export function getRoleById({ grimoireState, roleId }) {
   if (!roleId) return null;
   const allRoles = grimoireState.allRoles || {};
   const baseRoles = grimoireState.baseRoles || {};
+  const scriptTravellerRoles = grimoireState.scriptTravellerRoles || {};
   const extraTravellerRoles = grimoireState.extraTravellerRoles || {};
-  return allRoles[roleId] || baseRoles[roleId] || extraTravellerRoles[roleId] || null;
+  return allRoles[roleId] || baseRoles[roleId] || scriptTravellerRoles[roleId] || extraTravellerRoles[roleId] || null;
+}
+
+export function createEmptyPlayer(name = '') {
+  return { name, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
 }
 

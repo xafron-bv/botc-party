@@ -115,12 +115,8 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
       if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
         const slotEl = slotsEl.children[slotIndex];
         const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
-        const existingSvg = slotEl.querySelector('svg');
-        if (existingSvg) existingSvg.remove();
 
         if (role && role.image) {
-          slotEl.classList.remove('empty');
-          slotEl.classList.add('has-character');
           renderTokenElement({
             tokenElement: slotEl,
             role,
@@ -128,8 +124,6 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
             labelIdPrefix: `story-slot-${role.id}-${Date.now()}`
           });
         } else {
-          slotEl.classList.add('empty');
-          slotEl.classList.remove('has-character');
           renderTokenElement({
             tokenElement: slotEl,
             role: null,
@@ -175,13 +169,13 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
 });
 
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
-  grimoireState.allRoles = { ...(grimoireState.baseRoles || {}) };
-  if (grimoireState.scriptTravellerRoles) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...grimoireState.scriptTravellerRoles };
-  }
-  if (grimoireState.includeTravellers) {
-    grimoireState.allRoles = { ...grimoireState.allRoles, ...(grimoireState.extraTravellerRoles || {}) };
-  }
+  // allRoles always includes all available roles so grimoire lookups always work.
+  // The sidebar "Include Travellers" toggle only controls script display visibility.
+  grimoireState.allRoles = {
+    ...(grimoireState.baseRoles || {}),
+    ...(grimoireState.scriptTravellerRoles || {}),
+    ...(grimoireState.extraTravellerRoles || {})
+  };
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
 }
 

@@ -1,3 +1,4 @@
+import { createEmptyPlayer } from '../utils.js';
 import { withStateSave } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, saveCurrentPhaseState } from './dayNightTracking.js';
@@ -65,7 +66,6 @@ export function toggleGrimoireHidden({ grimoireState }) {
   setGrimoireHidden({ grimoireState, hidden: !grimoireState.grimoireHidden });
 }
 
-export function hideGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: true }); }
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
 
 function mountBluffTokensContainer({ grimoireState }) {
@@ -92,14 +92,7 @@ export const setupGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
   } catch (_) { }
   console.log('Setting up grimoire with', count, 'players');
   playerCircle.innerHTML = '';
-  grimoireState.players = Array.from({ length: count }, (_, i) => ({
-    name: `Player ${i + 1}`,
-    character: null,
-    reminders: [],
-    dead: false,
-    deathVote: false,
-    nightKilledPhase: null
-  }));
+  grimoireState.players = Array.from({ length: count }, (_, i) => createEmptyPlayer(`Player ${i + 1}`));
   if (playerCountInput) {
     try { playerCountInput.value = String(grimoireState.players.length); } catch (_) { }
   }
@@ -197,7 +190,7 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
   const newPlayers = Array.from({ length: playerCount }, (_, i) => {
     const existing = existingPlayers[i];
     const name = existing && existing.name ? existing.name : `Player ${i + 1}`;
-    return { name, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null };
+    return createEmptyPlayer(name);
   });
   grimoireState.players = newPlayers;
   grimoireState.grimoireLocked = false;

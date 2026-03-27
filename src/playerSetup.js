@@ -1,24 +1,8 @@
 import { withStateSave } from './app.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
-import { resolveAssetPath } from '../utils.js';
+import { resolveAssetPath, getRoleById } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
-
-function getRoleFromAnySources(grimoireState, roleId) {
-  if (grimoireState.allRoles && grimoireState.allRoles[roleId]) {
-    return grimoireState.allRoles[roleId];
-  }
-  if (grimoireState.baseRoles && grimoireState.baseRoles[roleId]) {
-    return grimoireState.baseRoles[roleId];
-  }
-  if (grimoireState.scriptTravellerRoles && grimoireState.scriptTravellerRoles[roleId]) {
-    return grimoireState.scriptTravellerRoles[roleId];
-  }
-  if (grimoireState.extraTravellerRoles && grimoireState.extraTravellerRoles[roleId]) {
-    return grimoireState.extraTravellerRoles[roleId];
-  }
-  return null;
-}
 
 export function initPlayerSetup({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup');
@@ -85,7 +69,7 @@ export function initPlayerSetup({ grimoireState }) {
       if (assignments[idx] !== null && assignments[idx] !== undefined) continue;
 
       // Skip if traveller
-      const role = player?.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+      const role = player?.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
       if (role && role.team === 'traveller') continue;
 
       // Found next unassigned non-traveller player
@@ -143,7 +127,7 @@ export function initPlayerSetup({ grimoireState }) {
     let travellerCount = 0;
     grimoireState.players.forEach((player) => {
       if (!player || !player.character) return;
-      const role = getRoleFromAnySources(grimoireState, player.character);
+      const role = getRoleById({ grimoireState, roleId: player.character });
       if (role && role.team === 'traveller') travellerCount++;
     });
     return travellerCount;
@@ -203,7 +187,7 @@ export function initPlayerSetup({ grimoireState }) {
     const row = (grimoireState.playerSetupTable || []).find(r => Number(r.players) === Number(effectivePlayers));
     const teams = { townsfolk: 0, outsiders: 0, minions: 0, demons: 0 };
     (grimoireState.playerSetup.bag || []).forEach(roleId => {
-      const role = getRoleFromAnySources(grimoireState, roleId);
+      const role = getRoleById({ grimoireState, roleId });
       if (!role) return;
       if (role.team === 'townsfolk') teams.townsfolk++;
       else if (role.team === 'outsider') teams.outsiders++;
@@ -621,7 +605,7 @@ export function initPlayerSetup({ grimoireState }) {
       const sel = grimoireState.playerSetup || {};
       const assignments = Array.isArray(sel.assignments) ? sel.assignments : [];
       const allAssigned = (grimoireState.players || []).every((p, idx) => {
-        const role = p && p.character ? getRoleFromAnySources(grimoireState, p.character) : null;
+        const role = p && p.character ? getRoleById({ grimoireState, roleId: p.character }) : null;
         const isTraveller = role && role.team === 'traveller';
         if (isTraveller) return true;
         return assignments[idx] !== null && assignments[idx] !== undefined;
@@ -707,7 +691,7 @@ export function initPlayerSetup({ grimoireState }) {
       const travellerGrid = document.createElement('div');
       travellerGrid.className = 'traveller-picker-grid';
       travellerBag.forEach((roleId) => {
-        const role = getRoleFromAnySources(grimoireState, roleId);
+        const role = getRoleById({ grimoireState, roleId });
         if (!role) return;
 
         const tokenEl = document.createElement('div');
@@ -801,7 +785,7 @@ export function initPlayerSetup({ grimoireState }) {
           // Close picker, open reveal
           numberPickerOverlay.style.display = 'none';
 
-          const role = getRoleFromAnySources(grimoireState, roleId);
+          const role = getRoleById({ grimoireState, roleId });
           openRevealModalForRole({ forIdx, role });
           markSelectionCompleteIfDone();
 
@@ -838,7 +822,7 @@ export function initPlayerSetup({ grimoireState }) {
         grimoireState.playerSetup.assignments[forIdx] = bagIndex;
 
         const roleId = bag[bagIndex];
-        const role = roleId ? getRoleFromAnySources(grimoireState, roleId) : null;
+        const role = roleId ? getRoleById({ grimoireState, roleId }) : null;
 
         // Update player's overlay to show "drawn"
         const playerCircle = document.getElementById('player-circle');
@@ -996,7 +980,7 @@ export function initPlayerSetup({ grimoireState }) {
     if (playerCircle) {
       Array.from(playerCircle.children).forEach((li, idx) => {
         const player = grimoireState.players[idx];
-        const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+        const role = player && player.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
         const isTraveller = role && role.team === 'traveller';
 
         let overlay = li.querySelector('.number-overlay');
@@ -1122,7 +1106,7 @@ export function restoreSelectionSession({ grimoireState }) {
     if (!playerCircle) return;
     Array.from(playerCircle.children).forEach((li, idx) => {
       const player = grimoireState.players[idx];
-      const role = player && player.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+      const role = player && player.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
       const isTraveller = role && role.team === 'traveller';
 
       let overlay = li.querySelector('.number-overlay');
@@ -1179,7 +1163,7 @@ export function restoreSelectionSession({ grimoireState }) {
         if (assignments[idx] !== null && assignments[idx] !== undefined) continue;
 
         // Skip if traveller
-        const role = player?.character ? getRoleFromAnySources(grimoireState, player.character) : null;
+        const role = player?.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
         if (role && role.team === 'traveller') continue;
 
         return idx;
