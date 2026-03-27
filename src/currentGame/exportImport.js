@@ -66,6 +66,10 @@ function applyModeUi({ grimoireState }) {
   const revealToggleBtn = document.getElementById('reveal-assignments');
   const grimoireLockToggleBtn = document.getElementById('grimoire-lock-toggle');
 
+  const modeToggle = document.getElementById('mode-toggle');
+  const unlocked = localStorage.getItem('botcStorytellerUnlocked') === '1';
+  if (modeToggle) modeToggle.style.display = unlocked ? 'flex' : 'none';
+
   if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
   if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
 

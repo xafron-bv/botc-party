@@ -82,7 +82,8 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
       grimoireState.bluffs = saved.bluffs;
     }
     if (saved && saved.mode) {
-      grimoireState.mode = saved.mode === 'player' ? 'player' : 'storyteller';
+      const unlocked = localStorage.getItem('botcStorytellerUnlocked') === '1';
+      grimoireState.mode = (saved.mode === 'storyteller' && unlocked) ? 'storyteller' : 'player';
     } else {
       grimoireState.mode = 'player';
     }

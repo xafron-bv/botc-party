@@ -1,7 +1,7 @@
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { hideCharacterModal, loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY, STORYTELLER_UNLOCKED_KEY } from './src/constants.js';
 import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
 import { applyGrimoireHiddenState, applyGrimoireLockedState, resetGrimoire, showGrimoire, toggleGrimoireHidden, toggleGrimoireLocked, updateGrimoire } from './src/grimoire.js';
 import { ensureGrimoireUnlocked } from './src/grimoireLock.js';
@@ -307,9 +307,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       themeSelect.addEventListener('change', handleThemeChange);
     }
 
+    // Storyteller cheat code: click version 10 times to unlock
+    let storytellerUnlocked = false;
+    try {
+      storytellerUnlocked = localStorage.getItem(STORYTELLER_UNLOCKED_KEY) === '1';
+    } catch (_) { }
+
+    const modeToggle = document.getElementById('mode-toggle');
+
+    function showModeToggle() {
+      if (modeToggle) modeToggle.style.display = 'flex';
+    }
+
+    if (storytellerUnlocked) {
+      showModeToggle();
+    }
+
+    {
+      const versionTarget = document.getElementById('version-cheat-target');
+      if (versionTarget) {
+        let clickCount = 0;
+        let lastClickTime = 0;
+        versionTarget.addEventListener('click', () => {
+          if (storytellerUnlocked) return;
+          const now = Date.now();
+          if (now - lastClickTime > 2000) clickCount = 0;
+          lastClickTime = now;
+          clickCount++;
+          if (clickCount >= 10) {
+            storytellerUnlocked = true;
+            try { localStorage.setItem(STORYTELLER_UNLOCKED_KEY, '1'); } catch (_) { }
+            showModeToggle();
+          }
+        });
+      }
+    }
+
     try {
       const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
-      grimoireState.mode = storedMode === 'storyteller' ? 'storyteller' : 'player';
+      grimoireState.mode = (storedMode === 'storyteller' && storytellerUnlocked) ? 'storyteller' : 'player';
     } catch (_) {
       grimoireState.mode = 'player';
     }
