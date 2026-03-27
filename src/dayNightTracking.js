@@ -233,7 +233,7 @@ export function shouldShowNightOrder(grimoireState) {
   return currentPhase && currentPhase.startsWith('N');
 }
 
-export function createPhaseSnapshot(grimoireState) {
+function createPhaseSnapshot(grimoireState) {
   return {
     players: JSON.parse(JSON.stringify(grimoireState.players))
   };
@@ -252,7 +252,7 @@ export function saveCurrentPhaseState(grimoireState) {
   grimoireState.dayNightTracking.phaseSnapshots[currentPhase] = createPhaseSnapshot(grimoireState);
 }
 
-export function restorePhaseState(grimoireState, phase) {
+function restorePhaseState(grimoireState, phase) {
   if (!grimoireState.dayNightTracking.enabled) return;
 
   if (!grimoireState.dayNightTracking.phaseSnapshots) {
