@@ -1,7 +1,7 @@
 import './pwa.js';
 import { loadAppState, saveAppState } from './src/app.js';
 import { hideCharacterModal, loadAllCharacters, onIncludeTravellersChange, populateCharacterGrid } from './src/character.js';
-import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY } from './src/constants.js';
+import { INCLUDE_TRAVELLERS_KEY, isTouchDevice, MODE_STORAGE_KEY, ST_UNLOCK_KEY, ST_SECRET_PASSWORD } from './src/constants.js';
 import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
 import { applyGrimoireHiddenState, applyGrimoireLockedState, resetGrimoire, showGrimoire, toggleGrimoireHidden, toggleGrimoireLocked, updateGrimoire } from './src/grimoire.js';
 import { ensureGrimoireUnlocked } from './src/grimoireLock.js';
@@ -307,9 +307,33 @@ document.addEventListener('DOMContentLoaded', async () => {
       themeSelect.addEventListener('change', handleThemeChange);
     }
 
+    // Storyteller secret password: check query string and persist unlock
+    let storytellerUnlocked = false;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('stpass') === ST_SECRET_PASSWORD) {
+        localStorage.setItem(ST_UNLOCK_KEY, '1');
+        storytellerUnlocked = true;
+        // Clean the password from the URL without reloading
+        params.delete('stpass');
+        const cleanUrl = params.toString()
+          ? `${window.location.pathname}?${params.toString()}${window.location.hash}`
+          : `${window.location.pathname}${window.location.hash}`;
+        window.history.replaceState({}, '', cleanUrl);
+      } else {
+        storytellerUnlocked = localStorage.getItem(ST_UNLOCK_KEY) === '1';
+      }
+    } catch (_) {
+      storytellerUnlocked = false;
+    }
+
     try {
       const storedMode = localStorage.getItem(MODE_STORAGE_KEY);
-      grimoireState.mode = storedMode === 'storyteller' ? 'storyteller' : 'player';
+      if (storytellerUnlocked) {
+        grimoireState.mode = storedMode === 'storyteller' ? 'storyteller' : 'player';
+      } else {
+        grimoireState.mode = 'player';
+      }
     } catch (_) {
       grimoireState.mode = 'player';
     }
@@ -396,6 +420,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleGrimoireLocked({ grimoireState });
         updateGrimoireControlButtons();
       });
+    }
+
+    // Hide mode toggle entirely if storyteller is not unlocked
+    const modeToggleContainer = document.getElementById('mode-toggle');
+    if (modeToggleContainer && !storytellerUnlocked) {
+      modeToggleContainer.style.display = 'none';
     }
 
     if (modeStorytellerRadio && modePlayerRadio) {
