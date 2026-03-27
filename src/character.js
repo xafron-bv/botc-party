@@ -115,12 +115,8 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
       if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
         const slotEl = slotsEl.children[slotIndex];
         const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
-        const existingSvg = slotEl.querySelector('svg');
-        if (existingSvg) existingSvg.remove();
 
         if (role && role.image) {
-          slotEl.classList.remove('empty');
-          slotEl.classList.add('has-character');
           renderTokenElement({
             tokenElement: slotEl,
             role,
@@ -128,8 +124,6 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
             labelIdPrefix: `story-slot-${role.id}-${Date.now()}`
           });
         } else {
-          slotEl.classList.add('empty');
-          slotEl.classList.remove('has-character');
           renderTokenElement({
             tokenElement: slotEl,
             role: null,
