@@ -63,10 +63,13 @@ export async function displayScript({ data, grimoireState }) {
   }
 
   // Filter roles for display: the sidebar toggle only affects what's shown in the script panel.
-  // allRoles always contains all travellers so grimoire lookups work regardless.
+  // Script travellers always appear; extra travellers only appear when the toggle is on.
+  const scriptTravellerIds = grimoireState.scriptTravellerRoles || {};
   const displayRoles = grimoireState.includeTravellers
     ? grimoireState.allRoles || {}
-    : Object.fromEntries(Object.entries(grimoireState.allRoles || {}).filter(([, role]) => role.team !== 'traveller'));
+    : Object.fromEntries(Object.entries(grimoireState.allRoles || {}).filter(([id, role]) =>
+      role.team !== 'traveller' || id in scriptTravellerIds
+    ));
 
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
