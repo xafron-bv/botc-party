@@ -18,11 +18,6 @@
   ],
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a1a1a",
-  "theme_color": "#583286",
-  "orientation": "landscape",
   "scope": "./",
-  "lang": "en-GB",
-  "categories": ["games", "entertainment"],
-  "prefer_related_applications": false
+  "categories": ["games", "entertainment"]
 }
