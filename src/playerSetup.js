@@ -3,6 +3,7 @@ import { resetGrimoire, updateGrimoire } from './grimoire.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath, getRoleById } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
+import { rebuildAllRoles } from './character.js';
 
 export function initPlayerSetup({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup');
@@ -751,6 +752,7 @@ export function initPlayerSetup({ grimoireState }) {
           // Assign traveller to player
           if (grimoireState.players && grimoireState.players[forIdx]) {
             grimoireState.players[forIdx].character = roleId;
+            rebuildAllRoles({ grimoireState });
           }
 
           // Remove traveller from bag so it can't be assigned again

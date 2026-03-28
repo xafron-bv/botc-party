@@ -4,6 +4,7 @@ import { renderSetupInfo } from './utils/setup.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 import { updateDayNightUI } from './dayNightTracking.js';
+import { rebuildAllRoles } from './character.js';
 
 export function withStateSave(fn) {
   return function (...args) {
@@ -70,6 +71,7 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     if (saved && Array.isArray(saved.players) && saved.players.length) {
       setupGrimoire({ grimoireState, grimoireHistoryList, count: saved.players.length });
       grimoireState.players = saved.players;
+      rebuildAllRoles({ grimoireState });
       updateGrimoire({ grimoireState });
       repositionPlayers({ grimoireState });
       renderSetupInfo({ grimoireState });

@@ -157,6 +157,7 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     grimoireState.gameStarted = true;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
+    rebuildAllRoles({ grimoireState });
 
     if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
       saveCurrentPhaseState(grimoireState);
@@ -168,14 +169,22 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
   }
 });
 
+export function rebuildAllRoles({ grimoireState }) {
+  const roles = { ...(grimoireState.baseRoles || {}) };
+  // Add travellers that are actually assigned to players
+  (grimoireState.players || []).forEach(player => {
+    const id = player?.character;
+    if (!id) return;
+    const role = grimoireState.extraTravellerRoles?.[id]
+      || grimoireState.scriptTravellerRoles?.[id];
+    if (role && role.team === 'traveller') {
+      roles[id] = role;
+    }
+  });
+  grimoireState.allRoles = roles;
+}
+
 export function applyTravellerToggleAndRefresh({ grimoireState }) {
-  // allRoles always includes all available roles so grimoire lookups always work.
-  // The sidebar "Include Travellers" toggle only controls script display visibility.
-  grimoireState.allRoles = {
-    ...(grimoireState.baseRoles || {}),
-    ...(grimoireState.scriptTravellerRoles || {}),
-    ...(grimoireState.extraTravellerRoles || {})
-  };
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
 }
 
@@ -422,7 +431,8 @@ export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
 
     // Create a pseudo-script data array with all character IDs
     grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds];
-    // Apply traveller toggle to compute allRoles and render
+    // Compute allRoles from baseRoles + assigned travellers, then render
+    rebuildAllRoles({ grimoireState });
     applyTravellerToggleAndRefresh({ grimoireState });
 
     loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;
