@@ -189,15 +189,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const windowLoadPromise = waitForFullLoad();
 
   const bootstrap = async () => {
-    // Populate version from service-worker.js CACHE_NAME pattern (v<number>)
+    // Display version from version.json
     try {
       const el = document.getElementById('app-version-value');
       if (el) {
-        fetch('./service-worker.js')
-          .then(r => r.text())
-          .then(text => {
-            const m = text.match(/CACHE_NAME\s*=\s*['"]botc-party-grimoire-v(\d+)['"]/);
-            if (m) el.textContent = m[1]; else el.textContent = '?';
+        fetch('./version.json', { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data && data.uiVersion) el.textContent = data.uiVersion; else el.textContent = '?';
           })
           .catch(() => { el.textContent = '?'; });
       }
