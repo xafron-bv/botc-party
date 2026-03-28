@@ -34,7 +34,8 @@
   backdrop-filter: blur(4px);
 }
 
-.loading-overlay.hidden {
+.loading-overlay.hidden,
+.loading-overlay--hidden {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

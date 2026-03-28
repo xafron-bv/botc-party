@@ -1,27 +1,89 @@
 // Service Worker registration and update handling (browser-native ES module)
 
-// Disable service worker during Cypress tests to avoid caching issues
-if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+const runningInCypress = Boolean(window.Cypress);
+const allowServiceWorker =
+  !runningInCypress || window.__allowServiceWorkerInTests === true;
+
+const reloadPage = () => {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('loading-overlay--hidden');
+  }
+  if (typeof window.__swReload === 'function') {
+    window.__swReload();
+    return;
+  }
+  window.location.reload();
+};
+
+const VERSION_JSON_URL = './version.json';
+const SERVICE_WORKER_BASE_URL = './service-worker.js';
+const SERVICE_WORKER_VERSIONED_PREFIX = './service-worker.js?v=';
+
+async function buildServiceWorkerUrl() {
+  try {
+    const res = await fetch(VERSION_JSON_URL, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`version.json fetch failed: ${res.status}`);
+    }
+    const data = await res.json();
+    const { uiVersion } = data || {};
+    if (Number.isFinite(uiVersion) && uiVersion > 0) {
+      return `${SERVICE_WORKER_VERSIONED_PREFIX}${uiVersion}`;
+    }
+  } catch (err) {
+    console.warn('Falling back to base service worker URL (no cache-bust)', err);
+  }
+  return SERVICE_WORKER_BASE_URL;
+}
+
+/** Fetch the current version.json (cache-busted) and return its fields. */
+async function fetchVersionInfo() {
+  try {
+    const res = await fetch(VERSION_JSON_URL, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+// -- Version checking (independent of SW lifecycle) --
+let loadedUiVersion = null;
+
+/**
+ * Check version.json for changes since this page loaded.
+ * Returns true if any version (ui) changed.
+ */
+async function checkForVersionChanges() {
+  const newVersion = await fetchVersionInfo();
+  if (!newVersion) return false;
+
+  const uiChanged = loadedUiVersion !== null && newVersion.uiVersion !== loadedUiVersion;
+
+  return uiChanged;
+}
+
+// Disable service worker during Cypress tests unless explicitly allowed
+if (runningInCypress && !allowServiceWorker && 'serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     registrations.forEach((registration) => registration.unregister());
   });
-} else if (!window.Cypress && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+} else if ('serviceWorker' in navigator && allowServiceWorker) {
+  window.addEventListener('load', async () => {
+    const serviceWorkerUrl = await buildServiceWorkerUrl();
+
+    // Capture the versions that this page was built against
+    const currentVersion = await fetchVersionInfo();
+    if (currentVersion) {
+      loadedUiVersion = currentVersion.uiVersion;
+    }
+
     navigator.serviceWorker
-      .register('./service-worker.js')
+      .register(serviceWorkerUrl)
       .then((registration) => {
         console.log('Service worker registered successfully:', registration);
-
-        // Suppress update prompt only on first standalone launch (A2HS first open)
-        const isStandalone =
-          (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-          window.navigator.standalone === true;
-        const FIRST_LAUNCH_KEY = 'pwa_first_standalone_launch_done';
-        let suppressUpdatePrompt = false;
-        if (isStandalone && !localStorage.getItem(FIRST_LAUNCH_KEY)) {
-          suppressUpdatePrompt = true;
-          localStorage.setItem(FIRST_LAUNCH_KEY, '1');
-        }
+        console.log('Registering service worker with cache-busting uiVersion query:', serviceWorkerUrl);
 
         // Check for updates on page load
         registration.update();
@@ -29,6 +91,7 @@ if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.ge
         // Check for updates periodically (every 5 minutes)
         setInterval(() => {
           registration.update();
+          checkForVersionChanges();
         }, 5 * 60 * 1000);
 
         // Handle service worker updates
@@ -38,16 +101,8 @@ if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.ge
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed') {
-              // Only prompt if there's an existing controller (i.e., this is an update, not first install)
               if (navigator.serviceWorker.controller) {
                 console.log('New service worker installed (update available)');
-                if (!suppressUpdatePrompt) {
-                  if (confirm('A new version is available! Reload to update?')) {
-                    window.location.reload();
-                  }
-                } else {
-                  console.log('Suppressing update prompt on first standalone launch');
-                }
               } else {
                 console.log('Service worker installed for the first time');
               }
@@ -63,28 +118,43 @@ if (window.Cypress && 'serviceWorker' in navigator && navigator.serviceWorker.ge
             } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
               navigator.serviceWorker.controller.postMessage({ type: 'PREFETCH_ALL' });
             }
-            try { window.__prefetchRequested = true; } catch (_) {}
-          } catch (_) { /* best effort */ }
+            try { window.__prefetchRequested = true; } catch { }
+          } catch { /* best effort */ }
         };
 
-        // When SW is ready, ask it to prefetch all assets
         navigator.serviceWorker.ready.then(() => triggerPrefetch());
-        // Also attempt immediately in case it's already active
         triggerPrefetch();
-
-        // Rely on the service worker to handle bulk prefetching in the background
-        // so the main thread remains responsive during first paint.
       })
       .catch((error) => {
         console.error('Service worker registration failed:', error);
       });
   });
 
-  // Handle controller change (when skipWaiting is called). We no longer auto-reload; instead
-  // record the event so the app can decide when to refresh (avoids surprise reloads mid-session).
+  // When the controller changes (new SW activated via skipWaiting), mark
+  // a pending UI reload and check for breaking changes.
+  // Skip the first controllerchange (fresh install claiming the page).
+  let hadController = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     try {
       window.__swControllerChanged = true;
-    } catch (_) { /* best effort */ }
+      if (hadController) {
+        window.__swUpdateAvailable = true;
+      }
+      hadController = true;
+    } catch { /* best effort */ }
+    checkForVersionChanges();
+  });
+
+  // When the user returns to the page, reload if the version changed or
+  // a new SW was activated while away.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkForVersionChanges().then((uiChanged) => {
+        if (uiChanged || window.__swUpdateAvailable) {
+          window.__swUpdateAvailable = false;
+          reloadPage();
+        }
+      });
+    }
   });
 }

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/android-chrome-192x192.png">
+  <link rel="apple-touch-icon" href="assets/icons/android-chrome-192x192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#583286">
@@ -37,6 +38,14 @@
       } catch(_){ /* ignore */ }
     })();
   </script>
+  <!-- Loading overlay shown during SW-triggered reloads -->
+  <div id="loading-overlay" class="loading-overlay loading-overlay--hidden">
+    <div class="loading-overlay__content">
+      <span class="loading-overlay__spinner" aria-hidden="true"></span>
+      <p>Updating&hellip;</p>
+    </div>
+  </div>
+
   <div id="app-loading" class="loading-overlay" role="status" aria-live="polite">
     <div class="loading-overlay__content">
       <span class="loading-overlay__spinner" aria-hidden="true"></span>

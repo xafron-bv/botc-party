@@ -1,281 +1,1287 @@
 {
-  "generatedAt": "2026-03-27T18:33:02.353Z",
+  "generatedAt": "2026-03-28T09:00:07.683Z",
+  "core": [
+    {
+      "path": "./index.html",
+      "hash": "4c647c9a6c57"
+    },
+    {
+      "path": "./manifest.json",
+      "hash": "7986d17f0fdd"
+    },
+    {
+      "path": "./pwa.js",
+      "hash": "459c60493af9"
+    },
+    {
+      "path": "./src/app.js",
+      "hash": "ab8318697801"
+    },
+    {
+      "path": "./src/bluffTokens.js",
+      "hash": "3bd5e9c09f9a"
+    },
+    {
+      "path": "./src/character.js",
+      "hash": "0ff9a8a901ac"
+    },
+    {
+      "path": "./src/constants.js",
+      "hash": "652f3300bcf9"
+    },
+    {
+      "path": "./src/currentGame/exportImport.js",
+      "hash": "63e1684fd38b"
+    },
+    {
+      "path": "./src/dayNightTracking.js",
+      "hash": "116b822e647a"
+    },
+    {
+      "path": "./src/export/grimoirePrint.js",
+      "hash": "1eb5c581cf30"
+    },
+    {
+      "path": "./src/grimoire.js",
+      "hash": "6790510a863a"
+    },
+    {
+      "path": "./src/grimoireLock.js",
+      "hash": "07cde7fdaa0c"
+    },
+    {
+      "path": "./src/history/exportImport.js",
+      "hash": "f726503af826"
+    },
+    {
+      "path": "./src/history/grimoire.js",
+      "hash": "0d218b01154e"
+    },
+    {
+      "path": "./src/history/index.js",
+      "hash": "0c780f128c6d"
+    },
+    {
+      "path": "./src/history/script.js",
+      "hash": "a0f07f4ea0d1"
+    },
+    {
+      "path": "./src/modalCloseHandlers.js",
+      "hash": "3d03ddf5a0db"
+    },
+    {
+      "path": "./src/playerSetup.js",
+      "hash": "79ce16206997"
+    },
+    {
+      "path": "./src/reminder.js",
+      "hash": "cf811836fc9d"
+    },
+    {
+      "path": "./src/script.js",
+      "hash": "d014b01c746d"
+    },
+    {
+      "path": "./src/storytellerMessages.js",
+      "hash": "fe25178ba1b1"
+    },
+    {
+      "path": "./src/themeManager.js",
+      "hash": "ba2e4e54570c"
+    },
+    {
+      "path": "./src/ui/abilityInfoIcon.js",
+      "hash": "ec2a689d165c"
+    },
+    {
+      "path": "./src/ui/background.js",
+      "hash": "6018963c3143"
+    },
+    {
+      "path": "./src/ui/contextMenu.js",
+      "hash": "cc4826df5ea8"
+    },
+    {
+      "path": "./src/ui/displaySettings.js",
+      "hash": "547130f1ca30"
+    },
+    {
+      "path": "./src/ui/layout.js",
+      "hash": "5640eded9617"
+    },
+    {
+      "path": "./src/ui/menuFactory.js",
+      "hash": "fb8357aad100"
+    },
+    {
+      "path": "./src/ui/playerCircle.js",
+      "hash": "168471435c9e"
+    },
+    {
+      "path": "./src/ui/playerUpdate.js",
+      "hash": "c759466b4a3a"
+    },
+    {
+      "path": "./src/ui/sidebar.js",
+      "hash": "998617c73cf9"
+    },
+    {
+      "path": "./src/ui/svg.js",
+      "hash": "1dfeb5f11ce2"
+    },
+    {
+      "path": "./src/ui/tokenArtwork.js",
+      "hash": "273e801f9c5e"
+    },
+    {
+      "path": "./src/ui/tokenGridItem.js",
+      "hash": "21f95455a100"
+    },
+    {
+      "path": "./src/ui/tokenRendering.js",
+      "hash": "ac08d719d200"
+    },
+    {
+      "path": "./src/ui/tooltip.js",
+      "hash": "0ef89c572531"
+    },
+    {
+      "path": "./src/ui/touchHelpers.js",
+      "hash": "c2f195eae344"
+    },
+    {
+      "path": "./src/ui/tour.js",
+      "hash": "729c51fb80b4"
+    },
+    {
+      "path": "./src/utils/eventHandlers.js",
+      "hash": "2dec617fbedd"
+    },
+    {
+      "path": "./src/utils/interaction.js",
+      "hash": "e729d9c2559b"
+    },
+    {
+      "path": "./src/utils/positioning.js",
+      "hash": "385367a9db67"
+    },
+    {
+      "path": "./src/utils/setup.js",
+      "hash": "0d911876e1e1"
+    },
+    {
+      "path": "./src/utils/validation.js",
+      "hash": "15e36120fd45"
+    },
+    {
+      "path": "./styles.css",
+      "hash": "9605aabd54c3"
+    }
+  ],
   "files": [
-    "./asset-manifest.json",
-    "./assets/fontawesome/css/all.min.css",
-    "./assets/fontawesome/webfonts/fa-brands-400.woff2",
-    "./assets/fontawesome/webfonts/fa-regular-400.woff2",
-    "./assets/fontawesome/webfonts/fa-solid-900.woff2",
-    "./assets/icons/android-chrome-192x192.png",
-    "./assets/icons/android-chrome-512x512.png",
-    "./assets/icons/ghost-unfilled.svg",
-    "./assets/img/bg-cosmic.png",
-    "./assets/img/bg-wood.png",
-    "./assets/img/token.png",
-    "./assets/reminders/bureaucrat-C7wkPXRS.webp",
-    "./assets/reminders/butler_g-Cr36DpeC.webp",
-    "./assets/reminders/custom-CLofFTEi.webp",
-    "./assets/reminders/drunk_g--QNmv0ZY.webp",
-    "./assets/reminders/evil-CDY3e2Qm.webp",
-    "./assets/reminders/fortuneteller_g-lQQzYvkg.webp",
-    "./assets/reminders/good-D9wGdnv9.webp",
-    "./assets/reminders/imp_e-DNpveOPY.webp",
-    "./assets/reminders/investigator_g-DWSOiA6Q.webp",
-    "./assets/reminders/librarian_g-Bvwb7yEa.webp",
-    "./assets/reminders/poisoner_e-Usf7TcoY.webp",
-    "./assets/reminders/scarletwoman_e-BP5Fv_Ne.webp",
-    "./assets/reminders/slayer_g-BO_75tK_.webp",
-    "./assets/reminders/thief-DWMyBS_x.webp",
-    "./assets/reminders/undertaker_g-sXYI7VS3.webp",
-    "./assets/reminders/virgin_g-DfRSMLSj.webp",
-    "./assets/reminders/washerwoman_g-CVnYjPdR.webp",
-    "./build/img/icons/demon/alhadikhia.webp",
-    "./build/img/icons/demon/fanggu.webp",
-    "./build/img/icons/demon/imp.webp",
-    "./build/img/icons/demon/kazali.webp",
-    "./build/img/icons/demon/legion.webp",
-    "./build/img/icons/demon/leviathan.webp",
-    "./build/img/icons/demon/lilmonsta.webp",
-    "./build/img/icons/demon/lleech.webp",
-    "./build/img/icons/demon/lordoftyphon.webp",
-    "./build/img/icons/demon/nodashii.webp",
-    "./build/img/icons/demon/ojo.webp",
-    "./build/img/icons/demon/po.webp",
-    "./build/img/icons/demon/pukka.webp",
-    "./build/img/icons/demon/riot.webp",
-    "./build/img/icons/demon/shabaloth.webp",
-    "./build/img/icons/demon/vigormortis.webp",
-    "./build/img/icons/demon/vortox.webp",
-    "./build/img/icons/demon/wraith.webp",
-    "./build/img/icons/demon/yaggababble.webp",
-    "./build/img/icons/demon/zombuul.webp",
-    "./build/img/icons/fabled/angel.webp",
-    "./build/img/icons/fabled/buddhist.webp",
-    "./build/img/icons/fabled/deusexfiasco.webp",
-    "./build/img/icons/fabled/djinn.webp",
-    "./build/img/icons/fabled/doomsayer.webp",
-    "./build/img/icons/fabled/duchess.webp",
-    "./build/img/icons/fabled/ferryman.webp",
-    "./build/img/icons/fabled/fibbin.webp",
-    "./build/img/icons/fabled/fiddler.webp",
-    "./build/img/icons/fabled/hellslibrarian.webp",
-    "./build/img/icons/fabled/revolutionary.webp",
-    "./build/img/icons/fabled/sentinel.webp",
-    "./build/img/icons/fabled/spiritofivory.webp",
-    "./build/img/icons/fabled/toymaker.webp",
-    "./build/img/icons/loric/bigwig.webp",
-    "./build/img/icons/loric/bootlegger.webp",
-    "./build/img/icons/loric/gardener.webp",
-    "./build/img/icons/loric/stormcatcher.webp",
-    "./build/img/icons/loric/tor.webp",
-    "./build/img/icons/loric/zenomancer.webp",
-    "./build/img/icons/minion/assassin.webp",
-    "./build/img/icons/minion/baron.webp",
-    "./build/img/icons/minion/boffin.webp",
-    "./build/img/icons/minion/boomdandy.webp",
-    "./build/img/icons/minion/cerenovus.webp",
-    "./build/img/icons/minion/devilsadvocate.webp",
-    "./build/img/icons/minion/eviltwin.webp",
-    "./build/img/icons/minion/fearmonger.webp",
-    "./build/img/icons/minion/goblin.webp",
-    "./build/img/icons/minion/godfather.webp",
-    "./build/img/icons/minion/harpy.webp",
-    "./build/img/icons/minion/marionette.webp",
-    "./build/img/icons/minion/mastermind.webp",
-    "./build/img/icons/minion/mezepheles.webp",
-    "./build/img/icons/minion/organgrinder.webp",
-    "./build/img/icons/minion/pithag.webp",
-    "./build/img/icons/minion/poisoner.webp",
-    "./build/img/icons/minion/psychopath.webp",
-    "./build/img/icons/minion/scarletwoman.webp",
-    "./build/img/icons/minion/spy.webp",
-    "./build/img/icons/minion/summoner.webp",
-    "./build/img/icons/minion/vizier.webp",
-    "./build/img/icons/minion/widow.webp",
-    "./build/img/icons/minion/witch.webp",
-    "./build/img/icons/minion/wizard.webp",
-    "./build/img/icons/minion/wraith.webp",
-    "./build/img/icons/minion/xaan.webp",
-    "./build/img/icons/outsider/barber.webp",
-    "./build/img/icons/outsider/butler.webp",
-    "./build/img/icons/outsider/damsel.webp",
-    "./build/img/icons/outsider/drunk.webp",
-    "./build/img/icons/outsider/golem.webp",
-    "./build/img/icons/outsider/goon.webp",
-    "./build/img/icons/outsider/hatter.webp",
-    "./build/img/icons/outsider/heretic.webp",
-    "./build/img/icons/outsider/hermit.webp",
-    "./build/img/icons/outsider/klutz.webp",
-    "./build/img/icons/outsider/lunatic.webp",
-    "./build/img/icons/outsider/moonchild.webp",
-    "./build/img/icons/outsider/mutant.webp",
-    "./build/img/icons/outsider/ogre.webp",
-    "./build/img/icons/outsider/plaguedoctor.webp",
-    "./build/img/icons/outsider/politician.webp",
-    "./build/img/icons/outsider/puzzlemaster.webp",
-    "./build/img/icons/outsider/recluse.webp",
-    "./build/img/icons/outsider/saint.webp",
-    "./build/img/icons/outsider/snitch.webp",
-    "./build/img/icons/outsider/sweetheart.webp",
-    "./build/img/icons/outsider/tinker.webp",
-    "./build/img/icons/outsider/zealot.webp",
-    "./build/img/icons/townsfolk/acrobat.webp",
-    "./build/img/icons/townsfolk/alchemist.webp",
-    "./build/img/icons/townsfolk/alsaahir.webp",
-    "./build/img/icons/townsfolk/amnesiac.webp",
-    "./build/img/icons/townsfolk/artist.webp",
-    "./build/img/icons/townsfolk/atheist.webp",
-    "./build/img/icons/townsfolk/balloonist.webp",
-    "./build/img/icons/townsfolk/banshee.webp",
-    "./build/img/icons/townsfolk/bountyhunter.webp",
-    "./build/img/icons/townsfolk/cannibal.webp",
-    "./build/img/icons/townsfolk/chambermaid.webp",
-    "./build/img/icons/townsfolk/chef.webp",
-    "./build/img/icons/townsfolk/choirboy.webp",
-    "./build/img/icons/townsfolk/clockmaker.webp",
-    "./build/img/icons/townsfolk/courtier.webp",
-    "./build/img/icons/townsfolk/cultleader.webp",
-    "./build/img/icons/townsfolk/dreamer.webp",
-    "./build/img/icons/townsfolk/empath.webp",
-    "./build/img/icons/townsfolk/engineer.webp",
-    "./build/img/icons/townsfolk/exorcist.webp",
-    "./build/img/icons/townsfolk/farmer.webp",
-    "./build/img/icons/townsfolk/fisherman.webp",
-    "./build/img/icons/townsfolk/flowergirl.webp",
-    "./build/img/icons/townsfolk/fool.webp",
-    "./build/img/icons/townsfolk/fortuneteller.webp",
-    "./build/img/icons/townsfolk/gambler.webp",
-    "./build/img/icons/townsfolk/general.webp",
-    "./build/img/icons/townsfolk/gossip.webp",
-    "./build/img/icons/townsfolk/grandmother.webp",
-    "./build/img/icons/townsfolk/highpriestess.webp",
-    "./build/img/icons/townsfolk/huntsman.webp",
-    "./build/img/icons/townsfolk/innkeeper.webp",
-    "./build/img/icons/townsfolk/investigator.webp",
-    "./build/img/icons/townsfolk/juggler.webp",
-    "./build/img/icons/townsfolk/king.webp",
-    "./build/img/icons/townsfolk/knight.webp",
-    "./build/img/icons/townsfolk/librarian.webp",
-    "./build/img/icons/townsfolk/lycanthrope.webp",
-    "./build/img/icons/townsfolk/magician.webp",
-    "./build/img/icons/townsfolk/mathematician.webp",
-    "./build/img/icons/townsfolk/mayor.webp",
-    "./build/img/icons/townsfolk/minstrel.webp",
-    "./build/img/icons/townsfolk/monk.webp",
-    "./build/img/icons/townsfolk/nightwatchman.webp",
-    "./build/img/icons/townsfolk/noble.webp",
-    "./build/img/icons/townsfolk/oracle.webp",
-    "./build/img/icons/townsfolk/pacifist.webp",
-    "./build/img/icons/townsfolk/philosopher.webp",
-    "./build/img/icons/townsfolk/pixie.webp",
-    "./build/img/icons/townsfolk/poppygrower.webp",
-    "./build/img/icons/townsfolk/preacher.webp",
-    "./build/img/icons/townsfolk/princess.webp",
-    "./build/img/icons/townsfolk/professor.webp",
-    "./build/img/icons/townsfolk/ravenkeeper.webp",
-    "./build/img/icons/townsfolk/sage.webp",
-    "./build/img/icons/townsfolk/sailor.webp",
-    "./build/img/icons/townsfolk/savant.webp",
-    "./build/img/icons/townsfolk/seamstress.webp",
-    "./build/img/icons/townsfolk/shugenja.webp",
-    "./build/img/icons/townsfolk/slayer.webp",
-    "./build/img/icons/townsfolk/snakecharmer.webp",
-    "./build/img/icons/townsfolk/soldier.webp",
-    "./build/img/icons/townsfolk/steward.webp",
-    "./build/img/icons/townsfolk/tealady.webp",
-    "./build/img/icons/townsfolk/towncrier.webp",
-    "./build/img/icons/townsfolk/undertaker.webp",
-    "./build/img/icons/townsfolk/villageidiot.webp",
-    "./build/img/icons/townsfolk/virgin.webp",
-    "./build/img/icons/townsfolk/washerwoman.webp",
-    "./build/img/icons/traveller/apprentice.webp",
-    "./build/img/icons/traveller/barista.webp",
-    "./build/img/icons/traveller/beggar.webp",
-    "./build/img/icons/traveller/bishop.webp",
-    "./build/img/icons/traveller/bonecollector.webp",
-    "./build/img/icons/traveller/bureaucrat.webp",
-    "./build/img/icons/traveller/butcher.webp",
-    "./build/img/icons/traveller/cacklejack.webp",
-    "./build/img/icons/traveller/deviant.webp",
-    "./build/img/icons/traveller/gangster.webp",
-    "./build/img/icons/traveller/gnome.webp",
-    "./build/img/icons/traveller/gunslinger.webp",
-    "./build/img/icons/traveller/harlot.webp",
-    "./build/img/icons/traveller/judge.webp",
-    "./build/img/icons/traveller/matron.webp",
-    "./build/img/icons/traveller/scapegoat.webp",
-    "./build/img/icons/traveller/thief.webp",
-    "./build/img/icons/traveller/voudon.webp",
-    "./data.json",
-    "./high-seas-of-mutiny.json",
-    "./index.html",
-    "./manifest.json",
-    "./player-setup.json",
-    "./pwa.js",
-    "./script-schema.json",
-    "./script.js",
-    "./service-worker.js",
-    "./src/app.js",
-    "./src/bluffTokens.js",
-    "./src/character.js",
-    "./src/constants.js",
-    "./src/currentGame/exportImport.js",
-    "./src/dayNightTracking.js",
-    "./src/export/grimoirePrint.js",
-    "./src/grimoire.js",
-    "./src/grimoireLock.js",
-    "./src/history/exportImport.js",
-    "./src/history/grimoire.js",
-    "./src/history/index.js",
-    "./src/history/script.js",
-    "./src/modalCloseHandlers.js",
-    "./src/playerSetup.js",
-    "./src/reminder.js",
-    "./src/script.js",
-    "./src/storytellerMessages.js",
-    "./src/themeManager.js",
-    "./src/ui/abilityInfoIcon.js",
-    "./src/ui/background.js",
-    "./src/ui/contextMenu.js",
-    "./src/ui/displaySettings.js",
-    "./src/ui/layout.js",
-    "./src/ui/menuFactory.js",
-    "./src/ui/playerCircle.js",
-    "./src/ui/playerUpdate.js",
-    "./src/ui/sidebar.js",
-    "./src/ui/svg.js",
-    "./src/ui/tokenArtwork.js",
-    "./src/ui/tokenGridItem.js",
-    "./src/ui/tokenRendering.js",
-    "./src/ui/tooltip.js",
-    "./src/ui/touchHelpers.js",
-    "./src/ui/tour.js",
-    "./src/utils/eventHandlers.js",
-    "./src/utils/interaction.js",
-    "./src/utils/positioning.js",
-    "./src/utils/setup.js",
-    "./src/utils/validation.js",
-    "./styles.css",
-    "./styles/bluff-tokens.css",
-    "./styles/character-panel.css",
-    "./styles/character-sheet.css",
-    "./styles/circle-token.css",
-    "./styles/common-ui.css",
-    "./styles/core.css",
-    "./styles/day-night-tracking.css",
-    "./styles/menus.css",
-    "./styles/modals.css",
-    "./styles/night-order.css",
-    "./styles/print.css",
-    "./styles/reminders.css",
-    "./styles/responsive.css",
-    "./styles/sidebar.css",
-    "./styles/themes.css",
-    "./styles/tooltip.css",
-    "./styles/touch.css",
-    "./styles/tour.css",
-    "./styles/utilities.css",
-    "./terms.html",
-    "./utils.js"
+    {
+      "path": "./asset-manifest.json",
+      "hash": "56b8741a6a1f"
+    },
+    {
+      "path": "./assets/fontawesome/css/all.min.css",
+      "hash": "1edb1725a9ea"
+    },
+    {
+      "path": "./assets/fontawesome/webfonts/fa-brands-400.woff2",
+      "hash": "748332090c4b"
+    },
+    {
+      "path": "./assets/fontawesome/webfonts/fa-regular-400.woff2",
+      "hash": "8e7e5ea1b15f"
+    },
+    {
+      "path": "./assets/fontawesome/webfonts/fa-solid-900.woff2",
+      "hash": "7152a6933ee3"
+    },
+    {
+      "path": "./assets/icons/android-chrome-192x192.png",
+      "hash": "961339e0824b"
+    },
+    {
+      "path": "./assets/icons/android-chrome-512x512.png",
+      "hash": "03796c6b6526"
+    },
+    {
+      "path": "./assets/icons/ghost-unfilled.svg",
+      "hash": "96022da66661"
+    },
+    {
+      "path": "./assets/img/bg-cosmic.png",
+      "hash": "43f1a181534c"
+    },
+    {
+      "path": "./assets/img/bg-wood.png",
+      "hash": "32aae05fd680"
+    },
+    {
+      "path": "./assets/img/token.png",
+      "hash": "08075d7fa869"
+    },
+    {
+      "path": "./assets/reminders/bureaucrat-C7wkPXRS.webp",
+      "hash": "91110cd2325f"
+    },
+    {
+      "path": "./assets/reminders/butler_g-Cr36DpeC.webp",
+      "hash": "cd4b45201e3b"
+    },
+    {
+      "path": "./assets/reminders/custom-CLofFTEi.webp",
+      "hash": "3da3d67a4bb5"
+    },
+    {
+      "path": "./assets/reminders/drunk_g--QNmv0ZY.webp",
+      "hash": "8bb4b878da92"
+    },
+    {
+      "path": "./assets/reminders/evil-CDY3e2Qm.webp",
+      "hash": "a72e10ed2824"
+    },
+    {
+      "path": "./assets/reminders/fortuneteller_g-lQQzYvkg.webp",
+      "hash": "249b45e3191a"
+    },
+    {
+      "path": "./assets/reminders/good-D9wGdnv9.webp",
+      "hash": "8cd74ccf2200"
+    },
+    {
+      "path": "./assets/reminders/imp_e-DNpveOPY.webp",
+      "hash": "9ac8a8a7c40f"
+    },
+    {
+      "path": "./assets/reminders/investigator_g-DWSOiA6Q.webp",
+      "hash": "bab77bf0be54"
+    },
+    {
+      "path": "./assets/reminders/librarian_g-Bvwb7yEa.webp",
+      "hash": "d7bab4aae6a5"
+    },
+    {
+      "path": "./assets/reminders/poisoner_e-Usf7TcoY.webp",
+      "hash": "466d3b13d124"
+    },
+    {
+      "path": "./assets/reminders/scarletwoman_e-BP5Fv_Ne.webp",
+      "hash": "f076b9ad88b3"
+    },
+    {
+      "path": "./assets/reminders/slayer_g-BO_75tK_.webp",
+      "hash": "63564b2365e2"
+    },
+    {
+      "path": "./assets/reminders/thief-DWMyBS_x.webp",
+      "hash": "9a847ec72afc"
+    },
+    {
+      "path": "./assets/reminders/undertaker_g-sXYI7VS3.webp",
+      "hash": "8f97ae58054e"
+    },
+    {
+      "path": "./assets/reminders/virgin_g-DfRSMLSj.webp",
+      "hash": "f2bb072f1092"
+    },
+    {
+      "path": "./assets/reminders/washerwoman_g-CVnYjPdR.webp",
+      "hash": "d569850ceb9a"
+    },
+    {
+      "path": "./build/img/icons/demon/alhadikhia.webp",
+      "hash": "9937c56becc8"
+    },
+    {
+      "path": "./build/img/icons/demon/fanggu.webp",
+      "hash": "01e7986ef033"
+    },
+    {
+      "path": "./build/img/icons/demon/imp.webp",
+      "hash": "bd437ecf4df1"
+    },
+    {
+      "path": "./build/img/icons/demon/kazali.webp",
+      "hash": "5ee2bd6551b5"
+    },
+    {
+      "path": "./build/img/icons/demon/legion.webp",
+      "hash": "838ab3b335bc"
+    },
+    {
+      "path": "./build/img/icons/demon/leviathan.webp",
+      "hash": "48168d247897"
+    },
+    {
+      "path": "./build/img/icons/demon/lilmonsta.webp",
+      "hash": "9d5be4c50b77"
+    },
+    {
+      "path": "./build/img/icons/demon/lleech.webp",
+      "hash": "c2f565bd9e57"
+    },
+    {
+      "path": "./build/img/icons/demon/lordoftyphon.webp",
+      "hash": "29a0bf99b0e9"
+    },
+    {
+      "path": "./build/img/icons/demon/nodashii.webp",
+      "hash": "877533a2bf7f"
+    },
+    {
+      "path": "./build/img/icons/demon/ojo.webp",
+      "hash": "9450c1702ef2"
+    },
+    {
+      "path": "./build/img/icons/demon/po.webp",
+      "hash": "792288fc2385"
+    },
+    {
+      "path": "./build/img/icons/demon/pukka.webp",
+      "hash": "24ffe33982bc"
+    },
+    {
+      "path": "./build/img/icons/demon/riot.webp",
+      "hash": "fb100b5e772c"
+    },
+    {
+      "path": "./build/img/icons/demon/shabaloth.webp",
+      "hash": "c51076210b0b"
+    },
+    {
+      "path": "./build/img/icons/demon/vigormortis.webp",
+      "hash": "ff400e788251"
+    },
+    {
+      "path": "./build/img/icons/demon/vortox.webp",
+      "hash": "d3c0dbd71005"
+    },
+    {
+      "path": "./build/img/icons/demon/wraith.webp",
+      "hash": "86bafe7b524e"
+    },
+    {
+      "path": "./build/img/icons/demon/yaggababble.webp",
+      "hash": "ff0d1d802494"
+    },
+    {
+      "path": "./build/img/icons/demon/zombuul.webp",
+      "hash": "376b61f10416"
+    },
+    {
+      "path": "./build/img/icons/fabled/angel.webp",
+      "hash": "084d8d3ce4f1"
+    },
+    {
+      "path": "./build/img/icons/fabled/buddhist.webp",
+      "hash": "4758a589114b"
+    },
+    {
+      "path": "./build/img/icons/fabled/deusexfiasco.webp",
+      "hash": "7078b86ead35"
+    },
+    {
+      "path": "./build/img/icons/fabled/djinn.webp",
+      "hash": "0a18d566e03c"
+    },
+    {
+      "path": "./build/img/icons/fabled/doomsayer.webp",
+      "hash": "c806cb712ce6"
+    },
+    {
+      "path": "./build/img/icons/fabled/duchess.webp",
+      "hash": "3cc4ef78e7a5"
+    },
+    {
+      "path": "./build/img/icons/fabled/ferryman.webp",
+      "hash": "713ff992da29"
+    },
+    {
+      "path": "./build/img/icons/fabled/fibbin.webp",
+      "hash": "cd9382f8a220"
+    },
+    {
+      "path": "./build/img/icons/fabled/fiddler.webp",
+      "hash": "5c35aed1e6b2"
+    },
+    {
+      "path": "./build/img/icons/fabled/hellslibrarian.webp",
+      "hash": "b0e38dfe4606"
+    },
+    {
+      "path": "./build/img/icons/fabled/revolutionary.webp",
+      "hash": "86feeabe9b91"
+    },
+    {
+      "path": "./build/img/icons/fabled/sentinel.webp",
+      "hash": "2b6a231c677f"
+    },
+    {
+      "path": "./build/img/icons/fabled/spiritofivory.webp",
+      "hash": "914352a58f04"
+    },
+    {
+      "path": "./build/img/icons/fabled/toymaker.webp",
+      "hash": "47de9cfff477"
+    },
+    {
+      "path": "./build/img/icons/loric/bigwig.webp",
+      "hash": "fed9e7f138b8"
+    },
+    {
+      "path": "./build/img/icons/loric/bootlegger.webp",
+      "hash": "1d3c9b0a025d"
+    },
+    {
+      "path": "./build/img/icons/loric/gardener.webp",
+      "hash": "37cd44bf3b04"
+    },
+    {
+      "path": "./build/img/icons/loric/stormcatcher.webp",
+      "hash": "56d9ba88dad7"
+    },
+    {
+      "path": "./build/img/icons/loric/tor.webp",
+      "hash": "f2159e1e6b4e"
+    },
+    {
+      "path": "./build/img/icons/loric/zenomancer.webp",
+      "hash": "88bf34e2bc72"
+    },
+    {
+      "path": "./build/img/icons/minion/assassin.webp",
+      "hash": "474f725ceab4"
+    },
+    {
+      "path": "./build/img/icons/minion/baron.webp",
+      "hash": "4e6ee40344bc"
+    },
+    {
+      "path": "./build/img/icons/minion/boffin.webp",
+      "hash": "f3ef5ff51855"
+    },
+    {
+      "path": "./build/img/icons/minion/boomdandy.webp",
+      "hash": "3ddf83c3f4e2"
+    },
+    {
+      "path": "./build/img/icons/minion/cerenovus.webp",
+      "hash": "181c5d911e84"
+    },
+    {
+      "path": "./build/img/icons/minion/devilsadvocate.webp",
+      "hash": "0d7510ae25cc"
+    },
+    {
+      "path": "./build/img/icons/minion/eviltwin.webp",
+      "hash": "6be5b1f480ad"
+    },
+    {
+      "path": "./build/img/icons/minion/fearmonger.webp",
+      "hash": "db436f47b328"
+    },
+    {
+      "path": "./build/img/icons/minion/goblin.webp",
+      "hash": "102a8d39e3fc"
+    },
+    {
+      "path": "./build/img/icons/minion/godfather.webp",
+      "hash": "f4622d7893dc"
+    },
+    {
+      "path": "./build/img/icons/minion/harpy.webp",
+      "hash": "b45189c691bf"
+    },
+    {
+      "path": "./build/img/icons/minion/marionette.webp",
+      "hash": "6968190aba08"
+    },
+    {
+      "path": "./build/img/icons/minion/mastermind.webp",
+      "hash": "61725c33c5d1"
+    },
+    {
+      "path": "./build/img/icons/minion/mezepheles.webp",
+      "hash": "8b59a1a3aea2"
+    },
+    {
+      "path": "./build/img/icons/minion/organgrinder.webp",
+      "hash": "cdfcb6ddd7b5"
+    },
+    {
+      "path": "./build/img/icons/minion/pithag.webp",
+      "hash": "455945234eb5"
+    },
+    {
+      "path": "./build/img/icons/minion/poisoner.webp",
+      "hash": "c9103720f9f2"
+    },
+    {
+      "path": "./build/img/icons/minion/psychopath.webp",
+      "hash": "c0e2dd533820"
+    },
+    {
+      "path": "./build/img/icons/minion/scarletwoman.webp",
+      "hash": "7bd1687a54d2"
+    },
+    {
+      "path": "./build/img/icons/minion/spy.webp",
+      "hash": "86a659cc5155"
+    },
+    {
+      "path": "./build/img/icons/minion/summoner.webp",
+      "hash": "b594c0781c3d"
+    },
+    {
+      "path": "./build/img/icons/minion/vizier.webp",
+      "hash": "ba321a7d7859"
+    },
+    {
+      "path": "./build/img/icons/minion/widow.webp",
+      "hash": "f4f247e7324d"
+    },
+    {
+      "path": "./build/img/icons/minion/witch.webp",
+      "hash": "7fc6764033c2"
+    },
+    {
+      "path": "./build/img/icons/minion/wizard.webp",
+      "hash": "d24810a3f06a"
+    },
+    {
+      "path": "./build/img/icons/minion/wraith.webp",
+      "hash": "86bafe7b524e"
+    },
+    {
+      "path": "./build/img/icons/minion/xaan.webp",
+      "hash": "b3e797b4b0e1"
+    },
+    {
+      "path": "./build/img/icons/outsider/barber.webp",
+      "hash": "9ea79f53450a"
+    },
+    {
+      "path": "./build/img/icons/outsider/butler.webp",
+      "hash": "377865875ae5"
+    },
+    {
+      "path": "./build/img/icons/outsider/damsel.webp",
+      "hash": "cbfd8937ec08"
+    },
+    {
+      "path": "./build/img/icons/outsider/drunk.webp",
+      "hash": "16926cc3cdb0"
+    },
+    {
+      "path": "./build/img/icons/outsider/golem.webp",
+      "hash": "894d8fc44e36"
+    },
+    {
+      "path": "./build/img/icons/outsider/goon.webp",
+      "hash": "9bcdcc64b3da"
+    },
+    {
+      "path": "./build/img/icons/outsider/hatter.webp",
+      "hash": "d1ac5f199ec2"
+    },
+    {
+      "path": "./build/img/icons/outsider/heretic.webp",
+      "hash": "3e07c3bd993f"
+    },
+    {
+      "path": "./build/img/icons/outsider/hermit.webp",
+      "hash": "1e9ced8ecc80"
+    },
+    {
+      "path": "./build/img/icons/outsider/klutz.webp",
+      "hash": "a7370f705909"
+    },
+    {
+      "path": "./build/img/icons/outsider/lunatic.webp",
+      "hash": "eb5f85ed85f9"
+    },
+    {
+      "path": "./build/img/icons/outsider/moonchild.webp",
+      "hash": "e1f2ba42b87e"
+    },
+    {
+      "path": "./build/img/icons/outsider/mutant.webp",
+      "hash": "42c41b3bebbe"
+    },
+    {
+      "path": "./build/img/icons/outsider/ogre.webp",
+      "hash": "de582d4ffd98"
+    },
+    {
+      "path": "./build/img/icons/outsider/plaguedoctor.webp",
+      "hash": "346ad6e44520"
+    },
+    {
+      "path": "./build/img/icons/outsider/politician.webp",
+      "hash": "6ea8acc0686f"
+    },
+    {
+      "path": "./build/img/icons/outsider/puzzlemaster.webp",
+      "hash": "ecc00262d341"
+    },
+    {
+      "path": "./build/img/icons/outsider/recluse.webp",
+      "hash": "884d2a0acebf"
+    },
+    {
+      "path": "./build/img/icons/outsider/saint.webp",
+      "hash": "25bad03bff8a"
+    },
+    {
+      "path": "./build/img/icons/outsider/snitch.webp",
+      "hash": "7b789843c095"
+    },
+    {
+      "path": "./build/img/icons/outsider/sweetheart.webp",
+      "hash": "5498ef305ebf"
+    },
+    {
+      "path": "./build/img/icons/outsider/tinker.webp",
+      "hash": "c6b3228ef74e"
+    },
+    {
+      "path": "./build/img/icons/outsider/zealot.webp",
+      "hash": "9ef019c7fe9a"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/acrobat.webp",
+      "hash": "f7b473a2c0e5"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/alchemist.webp",
+      "hash": "89cdf83401b0"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/alsaahir.webp",
+      "hash": "62b7288b3d6c"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/amnesiac.webp",
+      "hash": "f514d1d66802"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/artist.webp",
+      "hash": "69159cd4b3f1"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/atheist.webp",
+      "hash": "4e477cf11e4b"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/balloonist.webp",
+      "hash": "30b406b4945f"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/banshee.webp",
+      "hash": "d727f4ef5b34"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/bountyhunter.webp",
+      "hash": "d4a3d53b9840"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/cannibal.webp",
+      "hash": "81a62a91c0e9"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/chambermaid.webp",
+      "hash": "dde378d22934"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/chef.webp",
+      "hash": "5e4ef59a1afa"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/choirboy.webp",
+      "hash": "a6c37af9f585"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/clockmaker.webp",
+      "hash": "ed10e85f5f2e"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/courtier.webp",
+      "hash": "8fd811ab23d0"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/cultleader.webp",
+      "hash": "989b493e023c"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/dreamer.webp",
+      "hash": "5c9499c79761"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/empath.webp",
+      "hash": "5263d2002a4c"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/engineer.webp",
+      "hash": "5c0cfd9bc48e"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/exorcist.webp",
+      "hash": "97c7ca0abd8c"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/farmer.webp",
+      "hash": "db7c5bb7bcfa"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/fisherman.webp",
+      "hash": "60f5e8a30059"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/flowergirl.webp",
+      "hash": "f91e0adbe6e8"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/fool.webp",
+      "hash": "1a0200758df9"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/fortuneteller.webp",
+      "hash": "055235bd050a"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/gambler.webp",
+      "hash": "fab19e1dda22"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/general.webp",
+      "hash": "c2b933bd7c97"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/gossip.webp",
+      "hash": "f5f350d054e0"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/grandmother.webp",
+      "hash": "a47c06d03a98"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/highpriestess.webp",
+      "hash": "4a663e06e53a"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/huntsman.webp",
+      "hash": "c45da71c23d1"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/innkeeper.webp",
+      "hash": "db7375361421"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/investigator.webp",
+      "hash": "7f3abe8a517d"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/juggler.webp",
+      "hash": "ff79815d7daa"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/king.webp",
+      "hash": "e703917c2dc4"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/knight.webp",
+      "hash": "0ceaf9810e36"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/librarian.webp",
+      "hash": "94b654846460"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/lycanthrope.webp",
+      "hash": "b047db067e36"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/magician.webp",
+      "hash": "589947194276"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/mathematician.webp",
+      "hash": "b9836816a5fa"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/mayor.webp",
+      "hash": "e971f6e7d043"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/minstrel.webp",
+      "hash": "235249581088"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/monk.webp",
+      "hash": "7184c40591c2"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/nightwatchman.webp",
+      "hash": "ae85dfe99ae0"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/noble.webp",
+      "hash": "ebc94aadd598"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/oracle.webp",
+      "hash": "3560c4048510"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/pacifist.webp",
+      "hash": "8c55a1100726"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/philosopher.webp",
+      "hash": "d29cf0919f6d"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/pixie.webp",
+      "hash": "d29101b89ae2"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/poppygrower.webp",
+      "hash": "5775875a8051"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/preacher.webp",
+      "hash": "4c8b945107bf"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/princess.webp",
+      "hash": "cc19f8e2e0ed"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/professor.webp",
+      "hash": "bfce726053f8"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/ravenkeeper.webp",
+      "hash": "94288e44cb31"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/sage.webp",
+      "hash": "1782dc0165ba"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/sailor.webp",
+      "hash": "12368497d0a3"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/savant.webp",
+      "hash": "a4c7b06dfc2a"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/seamstress.webp",
+      "hash": "4f964782ea0b"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/shugenja.webp",
+      "hash": "e3fb9fb30cf7"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/slayer.webp",
+      "hash": "4c629b1dd17e"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/snakecharmer.webp",
+      "hash": "0d64b3beff27"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/soldier.webp",
+      "hash": "150657381212"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/steward.webp",
+      "hash": "b45228874119"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/tealady.webp",
+      "hash": "0a4b00fb1574"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/towncrier.webp",
+      "hash": "1a09f92f0600"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/undertaker.webp",
+      "hash": "6e2d8316369c"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/villageidiot.webp",
+      "hash": "6b53f4232ff1"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/virgin.webp",
+      "hash": "db4cf7d7715b"
+    },
+    {
+      "path": "./build/img/icons/townsfolk/washerwoman.webp",
+      "hash": "3e3d3739fa12"
+    },
+    {
+      "path": "./build/img/icons/traveller/apprentice.webp",
+      "hash": "e4c1425052f4"
+    },
+    {
+      "path": "./build/img/icons/traveller/barista.webp",
+      "hash": "fef7b5b86948"
+    },
+    {
+      "path": "./build/img/icons/traveller/beggar.webp",
+      "hash": "cec26c57c6bc"
+    },
+    {
+      "path": "./build/img/icons/traveller/bishop.webp",
+      "hash": "e3592d756167"
+    },
+    {
+      "path": "./build/img/icons/traveller/bonecollector.webp",
+      "hash": "58df975ec473"
+    },
+    {
+      "path": "./build/img/icons/traveller/bureaucrat.webp",
+      "hash": "0e60f310bed0"
+    },
+    {
+      "path": "./build/img/icons/traveller/butcher.webp",
+      "hash": "aa2a93fc8cc5"
+    },
+    {
+      "path": "./build/img/icons/traveller/cacklejack.webp",
+      "hash": "38c4458bf933"
+    },
+    {
+      "path": "./build/img/icons/traveller/deviant.webp",
+      "hash": "c384fc3e67cf"
+    },
+    {
+      "path": "./build/img/icons/traveller/gangster.webp",
+      "hash": "9d201d9590e9"
+    },
+    {
+      "path": "./build/img/icons/traveller/gnome.webp",
+      "hash": "1f2d86f54d41"
+    },
+    {
+      "path": "./build/img/icons/traveller/gunslinger.webp",
+      "hash": "5441fc2ba797"
+    },
+    {
+      "path": "./build/img/icons/traveller/harlot.webp",
+      "hash": "8a31216487fa"
+    },
+    {
+      "path": "./build/img/icons/traveller/judge.webp",
+      "hash": "38f6d3828b36"
+    },
+    {
+      "path": "./build/img/icons/traveller/matron.webp",
+      "hash": "e0dc416c5fd5"
+    },
+    {
+      "path": "./build/img/icons/traveller/scapegoat.webp",
+      "hash": "00cabb8a3142"
+    },
+    {
+      "path": "./build/img/icons/traveller/thief.webp",
+      "hash": "0886dd355894"
+    },
+    {
+      "path": "./build/img/icons/traveller/voudon.webp",
+      "hash": "02d4dda2112f"
+    },
+    {
+      "path": "./data.json",
+      "hash": "fc304efc207f"
+    },
+    {
+      "path": "./high-seas-of-mutiny.json",
+      "hash": "cae2a556b4ad"
+    },
+    {
+      "path": "./index.html",
+      "hash": "4c647c9a6c57"
+    },
+    {
+      "path": "./manifest.json",
+      "hash": "7986d17f0fdd"
+    },
+    {
+      "path": "./player-setup.json",
+      "hash": "1a82462b7402"
+    },
+    {
+      "path": "./pwa.js",
+      "hash": "459c60493af9"
+    },
+    {
+      "path": "./script-schema.json",
+      "hash": "6af7ff851af6"
+    },
+    {
+      "path": "./script.js",
+      "hash": "9be13c5865c3"
+    },
+    {
+      "path": "./service-worker.js",
+      "hash": "a5de6bf30206"
+    },
+    {
+      "path": "./src/app.js",
+      "hash": "ab8318697801"
+    },
+    {
+      "path": "./src/bluffTokens.js",
+      "hash": "3bd5e9c09f9a"
+    },
+    {
+      "path": "./src/character.js",
+      "hash": "0ff9a8a901ac"
+    },
+    {
+      "path": "./src/constants.js",
+      "hash": "652f3300bcf9"
+    },
+    {
+      "path": "./src/currentGame/exportImport.js",
+      "hash": "63e1684fd38b"
+    },
+    {
+      "path": "./src/dayNightTracking.js",
+      "hash": "116b822e647a"
+    },
+    {
+      "path": "./src/export/grimoirePrint.js",
+      "hash": "1eb5c581cf30"
+    },
+    {
+      "path": "./src/grimoire.js",
+      "hash": "6790510a863a"
+    },
+    {
+      "path": "./src/grimoireLock.js",
+      "hash": "07cde7fdaa0c"
+    },
+    {
+      "path": "./src/history/exportImport.js",
+      "hash": "f726503af826"
+    },
+    {
+      "path": "./src/history/grimoire.js",
+      "hash": "0d218b01154e"
+    },
+    {
+      "path": "./src/history/index.js",
+      "hash": "0c780f128c6d"
+    },
+    {
+      "path": "./src/history/script.js",
+      "hash": "a0f07f4ea0d1"
+    },
+    {
+      "path": "./src/modalCloseHandlers.js",
+      "hash": "3d03ddf5a0db"
+    },
+    {
+      "path": "./src/playerSetup.js",
+      "hash": "79ce16206997"
+    },
+    {
+      "path": "./src/reminder.js",
+      "hash": "cf811836fc9d"
+    },
+    {
+      "path": "./src/script.js",
+      "hash": "d014b01c746d"
+    },
+    {
+      "path": "./src/storytellerMessages.js",
+      "hash": "fe25178ba1b1"
+    },
+    {
+      "path": "./src/themeManager.js",
+      "hash": "ba2e4e54570c"
+    },
+    {
+      "path": "./src/ui/abilityInfoIcon.js",
+      "hash": "ec2a689d165c"
+    },
+    {
+      "path": "./src/ui/background.js",
+      "hash": "6018963c3143"
+    },
+    {
+      "path": "./src/ui/contextMenu.js",
+      "hash": "cc4826df5ea8"
+    },
+    {
+      "path": "./src/ui/displaySettings.js",
+      "hash": "547130f1ca30"
+    },
+    {
+      "path": "./src/ui/layout.js",
+      "hash": "5640eded9617"
+    },
+    {
+      "path": "./src/ui/menuFactory.js",
+      "hash": "fb8357aad100"
+    },
+    {
+      "path": "./src/ui/playerCircle.js",
+      "hash": "168471435c9e"
+    },
+    {
+      "path": "./src/ui/playerUpdate.js",
+      "hash": "c759466b4a3a"
+    },
+    {
+      "path": "./src/ui/sidebar.js",
+      "hash": "998617c73cf9"
+    },
+    {
+      "path": "./src/ui/svg.js",
+      "hash": "1dfeb5f11ce2"
+    },
+    {
+      "path": "./src/ui/tokenArtwork.js",
+      "hash": "273e801f9c5e"
+    },
+    {
+      "path": "./src/ui/tokenGridItem.js",
+      "hash": "21f95455a100"
+    },
+    {
+      "path": "./src/ui/tokenRendering.js",
+      "hash": "ac08d719d200"
+    },
+    {
+      "path": "./src/ui/tooltip.js",
+      "hash": "0ef89c572531"
+    },
+    {
+      "path": "./src/ui/touchHelpers.js",
+      "hash": "c2f195eae344"
+    },
+    {
+      "path": "./src/ui/tour.js",
+      "hash": "729c51fb80b4"
+    },
+    {
+      "path": "./src/utils/eventHandlers.js",
+      "hash": "2dec617fbedd"
+    },
+    {
+      "path": "./src/utils/interaction.js",
+      "hash": "e729d9c2559b"
+    },
+    {
+      "path": "./src/utils/positioning.js",
+      "hash": "385367a9db67"
+    },
+    {
+      "path": "./src/utils/setup.js",
+      "hash": "0d911876e1e1"
+    },
+    {
+      "path": "./src/utils/validation.js",
+      "hash": "15e36120fd45"
+    },
+    {
+      "path": "./styles.css",
+      "hash": "9605aabd54c3"
+    },
+    {
+      "path": "./styles/bluff-tokens.css",
+      "hash": "f82eaa1bae10"
+    },
+    {
+      "path": "./styles/character-panel.css",
+      "hash": "5731caa0cc33"
+    },
+    {
+      "path": "./styles/character-sheet.css",
+      "hash": "17dfe9d25d90"
+    },
+    {
+      "path": "./styles/circle-token.css",
+      "hash": "02a240c06e9d"
+    },
+    {
+      "path": "./styles/common-ui.css",
+      "hash": "ceb1e339af87"
+    },
+    {
+      "path": "./styles/core.css",
+      "hash": "0af4bfe068f7"
+    },
+    {
+      "path": "./styles/day-night-tracking.css",
+      "hash": "57711f13c83a"
+    },
+    {
+      "path": "./styles/menus.css",
+      "hash": "13d52a813a24"
+    },
+    {
+      "path": "./styles/modals.css",
+      "hash": "7b0d81c425ce"
+    },
+    {
+      "path": "./styles/night-order.css",
+      "hash": "138ee4505a59"
+    },
+    {
+      "path": "./styles/print.css",
+      "hash": "29102e0cf9a7"
+    },
+    {
+      "path": "./styles/reminders.css",
+      "hash": "2ce60ac7fd86"
+    },
+    {
+      "path": "./styles/responsive.css",
+      "hash": "301e6e54e8f7"
+    },
+    {
+      "path": "./styles/sidebar.css",
+      "hash": "72f737f10758"
+    },
+    {
+      "path": "./styles/themes.css",
+      "hash": "a787c8fc72d3"
+    },
+    {
+      "path": "./styles/tooltip.css",
+      "hash": "783e72defc0a"
+    },
+    {
+      "path": "./styles/touch.css",
+      "hash": "889696373c35"
+    },
+    {
+      "path": "./styles/tour.css",
+      "hash": "2b82e5f15fdb"
+    },
+    {
+      "path": "./styles/utilities.css",
+      "hash": "ab77d424d7e1"
+    },
+    {
+      "path": "./terms.html",
+      "hash": "ff23016f5ae3"
+    },
+    {
+      "path": "./utils.js",
+      "hash": "d685971cffff"
+    }
   ]
 }
