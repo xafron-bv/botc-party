@@ -1,4 +1,4 @@
-import { processScriptCharacters, applyTravellerToggleAndRefresh } from './character.js';
+import { processScriptCharacters, applyTravellerToggleAndRefresh, rebuildAllRoles } from './character.js';
 import { resolveAssetPath, isExcludedScriptName } from '../utils.js';
 import { withStateSave } from './app.js';
 import { renderSetupInfo } from './utils/setup.js';
@@ -62,14 +62,13 @@ export async function displayScript({ data, grimoireState }) {
     console.warn('Failed to load jinx data:', e);
   }
 
-  // Filter roles for display: the sidebar toggle only affects what's shown in the script panel.
-  // Script travellers always appear; extra travellers only appear when the toggle is on.
-  const scriptTravellerIds = grimoireState.scriptTravellerRoles || {};
-  const displayRoles = grimoireState.includeTravellers
-    ? grimoireState.allRoles || {}
-    : Object.fromEntries(Object.entries(grimoireState.allRoles || {}).filter(([id, role]) =>
-      role.team !== 'traveller' || id in scriptTravellerIds
-    ));
+  // Build displayRoles from base + script travellers + (extra travellers if toggle on).
+  // This is independent of allRoles, which only tracks actually-assigned travellers.
+  const displayRoles = {
+    ...(grimoireState.baseRoles || {}),
+    ...(grimoireState.scriptTravellerRoles || {}),
+    ...(grimoireState.includeTravellers ? (grimoireState.extraTravellerRoles || {}) : {})
+  };
 
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
@@ -293,6 +292,7 @@ export const processScriptData = withStateSave(async ({ data, addToHistory = fal
   console.log('Processing script with', data.length, 'characters');
   await processScriptCharacters({ characterIds: data, grimoireState });
 
+  rebuildAllRoles({ grimoireState });
   console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
   applyTravellerToggleAndRefresh({ grimoireState });
   renderSetupInfo({ grimoireState });
@@ -542,8 +542,8 @@ function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }
       const jinxEl = document.createElement('div');
       jinxEl.className = 'jinx-entry';
 
-      const char1Role = grimoireState.allRoles[jinx.char1];
-      const char2Role = grimoireState.allRoles[jinx.char2];
+      const char1Role = roles[jinx.char1];
+      const char2Role = roles[jinx.char2];
 
       jinxEl.innerHTML = `
         <div class="jinx-characters">
