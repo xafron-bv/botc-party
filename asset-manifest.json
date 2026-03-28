@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T09:00:07.683Z",
+  "generatedAt": "2026-03-28T10:13:31.996Z",
   "core": [
     {
       "path": "./index.html",
@@ -7,15 +7,15 @@
     },
     {
       "path": "./manifest.json",
-      "hash": "7986d17f0fdd"
+      "hash": "961e9b792e0a"
     },
     {
       "path": "./pwa.js",
-      "hash": "459c60493af9"
+      "hash": "f7be966d2dd3"
     },
     {
       "path": "./src/app.js",
-      "hash": "ab8318697801"
+      "hash": "4c05336a4880"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -23,7 +23,7 @@
     },
     {
       "path": "./src/character.js",
-      "hash": "0ff9a8a901ac"
+      "hash": "a471d044e4b7"
     },
     {
       "path": "./src/constants.js",
@@ -71,7 +71,7 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "79ce16206997"
+      "hash": "29607bc0658c"
     },
     {
       "path": "./src/reminder.js",
@@ -79,7 +79,7 @@
     },
     {
       "path": "./src/script.js",
-      "hash": "d014b01c746d"
+      "hash": "93adabcf69fc"
     },
     {
       "path": "./src/storytellerMessages.js",
@@ -181,7 +181,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "56b8741a6a1f"
+      "hash": "086668a09bda"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1013,7 +1013,7 @@
     },
     {
       "path": "./manifest.json",
-      "hash": "7986d17f0fdd"
+      "hash": "961e9b792e0a"
     },
     {
       "path": "./player-setup.json",
@@ -1021,7 +1021,7 @@
     },
     {
       "path": "./pwa.js",
-      "hash": "459c60493af9"
+      "hash": "f7be966d2dd3"
     },
     {
       "path": "./script-schema.json",
@@ -1037,7 +1037,7 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "ab8318697801"
+      "hash": "4c05336a4880"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -1045,7 +1045,7 @@
     },
     {
       "path": "./src/character.js",
-      "hash": "0ff9a8a901ac"
+      "hash": "a471d044e4b7"
     },
     {
       "path": "./src/constants.js",
@@ -1093,7 +1093,7 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "79ce16206997"
+      "hash": "29607bc0658c"
     },
     {
       "path": "./src/reminder.js",
@@ -1101,7 +1101,7 @@
     },
     {
       "path": "./src/script.js",
-      "hash": "d014b01c746d"
+      "hash": "93adabcf69fc"
     },
     {
       "path": "./src/storytellerMessages.js",
