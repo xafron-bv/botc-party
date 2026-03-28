@@ -91,4 +91,51 @@ describe('Travellers Toggle', () => {
     cy.get('#character-sheet h3.team-travellers').should('not.exist');
     cy.get('#player-circle li .character-name').eq(0).should('contain', 'Beggar');
   });
+
+  it('allRoles includes assigned travellers but not unassigned ones', () => {
+    startGameWithPlayers(5);
+
+    // Before assigning, allRoles should not contain any travellers
+    cy.window().then((win) => {
+      const gs = win.grimoireState;
+      const travellerIds = Object.values(gs.allRoles || {})
+        .filter(r => r.team === 'traveller')
+        .map(r => r.id);
+      expect(travellerIds).to.have.length(0);
+    });
+
+    // Assign a traveller to player 0
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').check({ force: true }).should('be.checked');
+    cy.get('#character-search').clear().type('Beggar');
+    cy.get('#character-grid .token[title="Beggar"]').first().click({ force: true });
+    cy.get('#character-modal').should('not.be.visible');
+
+    // Now allRoles should contain Beggar but not other travellers
+    cy.window().then((win) => {
+      const gs = win.grimoireState;
+      expect(gs.allRoles['beggar']).to.exist;
+      const travellerIds = Object.values(gs.allRoles)
+        .filter(r => r.team === 'traveller')
+        .map(r => r.id);
+      expect(travellerIds).to.deep.equal(['beggar']);
+    });
+  });
+
+  it('sidebar toggle does not add travellers to allRoles', () => {
+    // Check the sidebar toggle
+    cy.get('#include-travellers').check({ force: true }).should('be.checked');
+    // Travellers should appear in the character sheet
+    cy.get('#character-sheet h3.team-travellers').should('exist');
+
+    // But allRoles should NOT contain travellers (none assigned)
+    cy.window().then((win) => {
+      const gs = win.grimoireState;
+      const travellerIds = Object.values(gs.allRoles || {})
+        .filter(r => r.team === 'traveller')
+        .map(r => r.id);
+      expect(travellerIds).to.have.length(0);
+    });
+  });
 });
