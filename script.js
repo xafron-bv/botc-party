@@ -726,18 +726,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       grimoireState.gameStarted = false;
       applyModeUI();
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
-      // Gate further setup until reset (winner flag presence is the gate)
-      try {
-        const openPlayerSetupBtn2 = document.getElementById('open-player-setup');
-        if (openPlayerSetupBtn2) {
-          openPlayerSetupBtn2.disabled = true;
-          openPlayerSetupBtn2.title = 'Reset grimoire to configure a new game';
-        }
-        if (revealSelectedBtn) {
-          revealSelectedBtn.disabled = true;
-          revealSelectedBtn.title = 'Reset grimoire to configure a new game';
-        }
-      } catch (_) { }
     }
 
     if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good'));
@@ -750,14 +738,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (openPlayerSetupBtn) {
         const sel = grimoireState.playerSetup || {};
         const selectionComplete = !!sel.selectionComplete;
-        openPlayerSetupBtn.disabled = !!grimoireState.winner || selectionComplete;
-        if (grimoireState.winner) {
-          openPlayerSetupBtn.title = 'Reset grimoire to configure a new game';
-        } else if (selectionComplete) {
-          openPlayerSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.';
-        } else {
-          openPlayerSetupBtn.title = '';
-        }
+        openPlayerSetupBtn.disabled = selectionComplete;
+        openPlayerSetupBtn.title = selectionComplete ? 'Setup complete. Reset the grimoire to start a new setup.' : '';
       }
 
       if (revealSelectedBtn) {
@@ -766,8 +748,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectionRevealed = !!sel.revealed;
         const shouldShow = selectionComplete && !selectionRevealed;
         revealSelectedBtn.style.display = shouldShow ? '' : 'none';
-        revealSelectedBtn.disabled = !!grimoireState.winner;
-        revealSelectedBtn.title = revealSelectedBtn.disabled ? 'Reset grimoire to configure a new game' : '';
+        revealSelectedBtn.disabled = false;
+        revealSelectedBtn.title = '';
       }
 
       if (endGameBtn) endGameBtn.style.display = grimoireState.winner ? 'none' : '';

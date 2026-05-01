@@ -29,12 +29,8 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const tokenEl = listItem.querySelector('.player-token');
   let touchOccurred = false;
 
-  const canInteract = () => grimoireState.mode === 'player' || !grimoireState.winner;
-
   // Click handler for player token
   tokenEl.onclick = createSafeClickHandler((e) => {
-    if (!canInteract()) return;
-
     const target = e.target;
     if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
       return; // handled by ribbon click
@@ -73,7 +69,6 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
           e,
           listItem,
           actionCallback: () => {
-            if (!canInteract()) return;
             if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
               if (window.openNumberPickerForSelection) {
                 window.openNumberPickerForSelection(playerIndex);
@@ -120,8 +115,6 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
 
   if (placeholderEl) {
     placeholderEl.onclick = createSafeClickHandler((e) => {
-      if (!canInteract()) return; // Gate adding reminders pre-game in storyteller mode
-
       const thisLi = listItem;
       if (thisLi.dataset.expanded !== '1') {
         const allLis = document.querySelectorAll('#player-circle li');

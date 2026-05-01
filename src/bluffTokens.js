@@ -37,10 +37,7 @@ export function createBluffToken({ grimoireState, index }) {
   setupInteractiveElement({
     element: token,
     onTap: () => {
-      if (!canOpenModal({
-        grimoireState,
-        requiresNoWinner: true
-      })) {
+      if (!canOpenModal({ grimoireState })) {
         return;
       }
       openBluffCharacterModal({ grimoireState, bluffIndex: index });
