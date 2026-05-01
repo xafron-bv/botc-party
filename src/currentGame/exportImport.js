@@ -1,6 +1,6 @@
 import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
-import { applyGrimoireHiddenState, applyGrimoireLockedState } from '../grimoire.js';
+import { applyGrimoireHiddenState } from '../grimoire.js';
 import { updateBluffAttentionState } from '../bluffTokens.js';
 
 function getStatusEl() {
@@ -49,7 +49,6 @@ function normalizeImportedGameState(data) {
     bluffs: Array.isArray(state.bluffs) ? state.bluffs : [null, null, null],
     mode: state.mode === 'player' ? 'player' : 'storyteller',
     grimoireHidden: !!state.grimoireHidden,
-    grimoireLocked: !!state.grimoireLocked,
     playerSetup: state.playerSetup || { bag: [], assignments: [], revealed: false },
     gameStarted: !!state.gameStarted,
     winner: state.winner || null
@@ -64,7 +63,6 @@ function applyModeUi({ grimoireState }) {
   const dayNightSlider = document.getElementById('day-night-slider');
   const openRulebookBtn = document.getElementById('open-rulebook');
   const revealToggleBtn = document.getElementById('reveal-assignments');
-  const grimoireLockToggleBtn = document.getElementById('grimoire-lock-toggle');
 
   if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
   if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
@@ -97,13 +95,6 @@ function applyModeUi({ grimoireState }) {
     revealToggleBtn.title = hidden ? 'Reveal characters to players' : 'Hide characters on this device';
     revealToggleBtn.setAttribute('aria-pressed', String(hidden));
   }
-  if (grimoireLockToggleBtn) {
-    const locked = !!grimoireState.grimoireLocked;
-    grimoireLockToggleBtn.style.display = isPlayer ? 'none' : '';
-    grimoireLockToggleBtn.textContent = locked ? 'Unlock Grimoire' : 'Lock Grimoire';
-    grimoireLockToggleBtn.title = locked ? 'Unlock to allow grimoire changes' : 'Lock to prevent lineup changes';
-    grimoireLockToggleBtn.setAttribute('aria-pressed', String(locked));
-  }
 
   try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
 }
@@ -118,7 +109,6 @@ export function exportCurrentGame({ grimoireState }) {
     bluffs: Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [null, null, null],
     mode: grimoireState.mode === 'player' ? 'player' : 'storyteller',
     grimoireHidden: !!grimoireState.grimoireHidden,
-    grimoireLocked: !!grimoireState.grimoireLocked,
     playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
     gameStarted: !!grimoireState.gameStarted,
     winner: grimoireState.winner || null
@@ -190,7 +180,6 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
     bluffs: normalized.bluffs,
     mode: normalized.mode,
     grimoireHidden: normalized.grimoireHidden,
-    grimoireLocked: normalized.grimoireLocked,
     playerSetup: normalized.playerSetup,
     gameStarted: normalized.gameStarted,
     winner: normalized.winner
@@ -202,7 +191,6 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
 
   await loadAppState({ grimoireState, grimoireHistoryList });
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
-  try { applyGrimoireLockedState({ grimoireState }); } catch (_) { }
   try { applyModeUi({ grimoireState }); } catch (_) { }
 
   setStatus({ message: 'Game imported successfully!' });

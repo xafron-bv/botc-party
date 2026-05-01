@@ -2,12 +2,10 @@ import { createEmptyPlayer } from '../../utils.js';
 import { withStateSave } from '../app.js';
 import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
-import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 import { openCustomReminderEditModal } from '../reminder.js';
 import { createContextMenu, positionContextMenu } from './menuFactory.js';
 
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
-  if (!ensureGrimoireUnlocked({ grimoireState })) return;
   const menu = ensurePlayerContextMenu({ grimoireState });
   grimoireState.contextMenuTargetIndex = playerIndex;
   grimoireState.menuOpenedAt = Date.now();
@@ -43,7 +41,6 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
       id: 'reminder-menu-edit',
       label: 'Edit Reminder',
       onClick: withStateSave(() => {
-        if (!ensureGrimoireUnlocked({ grimoireState })) return;
         const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
         hideReminderContextMenu({ grimoireState });
         if (playerIndex < 0 || reminderIndex < 0) return;
@@ -82,7 +79,6 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
       id: 'reminder-menu-delete',
       label: 'Delete Reminder',
       onClick: withStateSave(() => {
-        if (!ensureGrimoireUnlocked({ grimoireState })) return;
         const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
         hideReminderContextMenu({ grimoireState });
         if (playerIndex < 0 || reminderIndex < 0) return;
@@ -121,7 +117,6 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
 
   const addPlayerAt = (offset) => withStateSave(() => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const idx = grimoireState.contextMenuTargetIndex;
     hidePlayerContextMenu({ grimoireState });
     if (idx < 0) return;
@@ -145,7 +140,6 @@ export function ensurePlayerContextMenu({ grimoireState }) {
       id: 'player-menu-remove',
       label: 'Remove Player',
       onClick: withStateSave(() => {
-        if (!ensureGrimoireUnlocked({ grimoireState })) return;
         const idx = grimoireState.contextMenuTargetIndex;
         hidePlayerContextMenu({ grimoireState });
         if (idx < 0) return;
@@ -165,7 +159,6 @@ export function ensurePlayerContextMenu({ grimoireState }) {
   return menu;
 }
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
-  if (!ensureGrimoireUnlocked({ grimoireState })) return;
   const menu = ensureReminderContextMenu({ grimoireState });
   grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
   positionContextMenu(menu, x, y);

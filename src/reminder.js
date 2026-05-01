@@ -27,7 +27,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     if (!tokenEl) return;
     try { e.preventDefault(); } catch (_) { }
     try { e.stopPropagation(); } catch (_) { }
-    if (!canOpenModal({ grimoireState, requiresUnlocked: true })) return;
+    if (!canOpenModal({ grimoireState })) return;
 
     const label = tokenEl.dataset.tokenLabel || '';
 
@@ -155,7 +155,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
 
 
 export function openReminderTokenModal({ grimoireState, playerIndex }) {
-  if (!canOpenModal({ grimoireState, requiresUnlocked: true })) return;
+  if (!canOpenModal({ grimoireState })) return;
 
   const reminderTokenModal = document.getElementById('reminder-token-modal');
   const reminderTokenSearch = document.getElementById('reminder-token-search');
@@ -169,7 +169,7 @@ export function openReminderTokenModal({ grimoireState, playerIndex }) {
 }
 
 export function openTextReminderModal({ grimoireState, playerIndex, reminderIndex = -1, existingText = '' }) {
-  if (!canOpenModal({ grimoireState, requiresUnlocked: true })) return;
+  if (!canOpenModal({ grimoireState })) return;
 
   const reminderTextInput = document.getElementById('reminder-text-input');
   const textReminderModal = document.getElementById('text-reminder-modal');
@@ -180,7 +180,7 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
 }
 
 export function openCustomReminderEditModal({ grimoireState, playerIndex, reminderIndex, existingText = '' }) {
-  if (!canOpenModal({ grimoireState, requiresUnlocked: true })) return;
+  if (!canOpenModal({ grimoireState })) return;
 
   const customReminderTextInput = document.getElementById('custom-reminder-text-input');
   const customReminderEditModal = document.getElementById('custom-reminder-edit-modal');

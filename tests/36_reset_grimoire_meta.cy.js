@@ -1,5 +1,5 @@
 describe('Reset Grimoire meta state', () => {
-  it('clears winner, unlocks grimoire, and empties player setup bag', () => {
+  it('clears winner and empties player setup bag', () => {
     cy.visit('/');
     cy.ensureStorytellerMode();
 
@@ -22,11 +22,6 @@ describe('Reset Grimoire meta state', () => {
     });
     cy.get('#player-setup-panel .close-button, #close-player-setup').click({ multiple: true, force: true });
 
-    // Lock the grimoire to ensure reset clears the state
-    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire').click();
-    cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
-    cy.get('body').should('have.class', 'grimoire-locked');
-
     // Declare winner via button
     cy.get('#good-wins-btn').click({ force: true });
     cy.get('#winner-message').should('contain.text', 'Good has won');
@@ -36,10 +31,6 @@ describe('Reset Grimoire meta state', () => {
 
     // Winner cleared
     cy.get('#winner-message').should('not.exist');
-
-    // Grimoire unlocked
-    cy.get('body').should('not.have.class', 'grimoire-locked');
-    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire');
 
     // Player setup bag emptied: open panel and expect zero checked checkboxes
     cy.get('#open-player-setup').click();

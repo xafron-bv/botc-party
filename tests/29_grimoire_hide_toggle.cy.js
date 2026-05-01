@@ -1,4 +1,4 @@
-describe('Grimoire visibility & locking controls', () => {
+describe('Grimoire visibility controls', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
@@ -6,16 +6,13 @@ describe('Grimoire visibility & locking controls', () => {
     cy.setupGame({ players: 5, loadScript: false });
   });
 
-  it('shows hide/show control only in player mode and lock control only in storyteller mode', () => {
-    cy.get('#grimoire-lock-toggle').should('be.visible').and('contain', 'Lock Grimoire');
+  it('shows hide/show control only in player mode', () => {
     cy.get('#reveal-assignments').should('not.be.visible');
 
     cy.get('#mode-player').click({ force: true });
-    cy.get('#grimoire-lock-toggle').should('not.be.visible');
     cy.get('#reveal-assignments').should('be.visible').and('contain', 'Hide Grimoire');
 
     cy.get('#mode-storyteller').click({ force: true });
-    cy.get('#grimoire-lock-toggle').should('be.visible').and('contain', 'Lock Grimoire');
     cy.get('#reveal-assignments').should('not.be.visible');
   });
 
@@ -91,32 +88,10 @@ describe('Grimoire visibility & locking controls', () => {
     cy.get('#reveal-assignments').click();
   });
 
-  it('locks grimoire actions in storyteller mode until unlocked', () => {
-    // Add a reminder to attempt to delete later
-    cy.get('#player-circle li .reminder-placeholder').first().click({ altKey: true, force: true });
-    cy.get('#text-reminder-modal').should('be.visible');
-    cy.get('#reminder-text-input').type('Locked reminder');
-    cy.get('#save-reminder-btn').click({ force: true });
-    cy.get('#text-reminder-modal').should('not.be.visible');
-    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 1);
-
-    // Lock the grimoire
-    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire').click();
-    cy.get('#grimoire-lock-toggle').should('contain', 'Unlock Grimoire');
-    cy.get('body').should('have.class', 'grimoire-locked');
-
-    // Attempting to delete reminders should be blocked
-    cy.get('#player-circle li').first().find('.text-reminder').first().trigger('contextmenu', { force: true });
-    cy.get('body').find('#reminder-context-menu').should('have.length', 0);
-    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 1);
-
-    // Unlock and verify deletion works again
-    cy.get('#grimoire-lock-toggle').click();
-    cy.get('#grimoire-lock-toggle').should('contain', 'Lock Grimoire');
+  it('does not expose any grimoire lock toggle anywhere', () => {
+    cy.get('#grimoire-lock-toggle').should('not.exist');
+    cy.get('#mode-player').click({ force: true });
+    cy.get('#grimoire-lock-toggle').should('not.exist');
     cy.get('body').should('not.have.class', 'grimoire-locked');
-    cy.get('#player-circle li').first().find('.text-reminder').first().trigger('contextmenu', { force: true });
-    cy.get('#reminder-context-menu').should('be.visible');
-    cy.get('#reminder-menu-delete').click({ force: true });
-    cy.get('#player-circle li').first().find('.text-reminder').should('have.length', 0);
   });
 });

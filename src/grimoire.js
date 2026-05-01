@@ -10,14 +10,12 @@ import { positionInfoIcons, positionTokenReminders } from './ui/tooltip.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
-import { ensureGrimoireUnlocked } from './grimoireLock.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
 import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = withStateSave((_e) => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const currentName = grimoireState.players[playerIndex].name;
     const newName = prompt('Enter player name:', currentName);
     if (newName) {
@@ -42,19 +40,6 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
   updateGrimoire({ grimoireState });
-}
-
-export function applyGrimoireLockedState({ grimoireState }) {
-  try { document.body.classList.toggle('grimoire-locked', !!grimoireState.grimoireLocked); } catch (_) { }
-}
-
-export const setGrimoireLocked = withStateSave(({ grimoireState, locked }) => {
-  grimoireState.grimoireLocked = !!locked;
-  applyGrimoireLockedState({ grimoireState });
-});
-
-export function toggleGrimoireLocked({ grimoireState }) {
-  setGrimoireLocked({ grimoireState, locked: !grimoireState.grimoireLocked });
 }
 
 export const setGrimoireHidden = withStateSave(({ grimoireState, hidden }) => {
@@ -83,8 +68,6 @@ function mountBluffTokensContainer({ grimoireState }) {
 export const setupGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, count }) => {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
-  grimoireState.grimoireLocked = false;
-  applyGrimoireLockedState({ grimoireState });
   try {
     if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
@@ -193,8 +176,6 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
     return createEmptyPlayer(name);
   });
   grimoireState.players = newPlayers;
-  grimoireState.grimoireLocked = false;
-  applyGrimoireLockedState({ grimoireState });
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
   grimoireState.bluffs = [null, null, null];

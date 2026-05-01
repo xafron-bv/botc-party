@@ -39,7 +39,6 @@ export function createBluffToken({ grimoireState, index }) {
     onTap: () => {
       if (!canOpenModal({
         grimoireState,
-        requiresUnlocked: true,
         requiresNoWinner: true
       })) {
         return;
@@ -91,7 +90,6 @@ export function updateBluffToken({ grimoireState, index, updateAttention = true 
 export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
   if (!canOpenModal({
     grimoireState,
-    requiresUnlocked: true,
     requiresScript: true
   })) {
     return;
@@ -146,10 +144,6 @@ export function openBluffCharacterModal({ grimoireState, bluffIndex }) {
 }
 
 export const assignBluffCharacter = withStateSave(({ grimoireState, roleId }) => {
-  if (!canOpenModal({ grimoireState, requiresUnlocked: true })) {
-    hideCharacterModal({ grimoireState, clearBluffSelection: true });
-    return;
-  }
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
     if (!grimoireState.bluffs) {
       grimoireState.bluffs = [null, null, null];

@@ -334,16 +334,3 @@ body.grimoire-hidden #player-circle li .player-token > .token-role-art {
   color: #E74C3C;
   /* Light red */
 }
-body.grimoire-locked #player-circle .player-token,
-body.grimoire-locked #player-circle .player-name,
-body.grimoire-locked #player-circle .reminder-placeholder,
-body.grimoire-locked #player-circle .death-ribbon,
-body.grimoire-locked #player-circle .death-vote-indicator,
-body.grimoire-locked #bluff-tokens-container .bluff-token {
-  cursor: not-allowed;
-}
-
-body.grimoire-locked #player-circle .player-token,
-body.grimoire-locked #bluff-tokens-container .bluff-token {
-  filter: saturate(0.85);
-}

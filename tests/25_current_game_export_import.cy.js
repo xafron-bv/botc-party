@@ -72,7 +72,6 @@ describe('Current Game Export/Import', () => {
         bluffs: [null, null, null],
         mode: 'storyteller',
         grimoireHidden: false,
-        grimoireLocked: false,
         playerSetup: { bag: [], assignments: [], revealed: false },
         gameStarted: true,
         winner: null

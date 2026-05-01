@@ -6,7 +6,6 @@ import { positionRadialStack } from './layout.js';
 import { setupInteractiveElement } from '../utils/interaction.js';
 import { createSafeClickHandler } from '../utils/eventHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
-import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 
 /**
  * Creates and configures a single player list item for the grimoire circle
@@ -52,7 +51,6 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
         window.openNumberPickerForSelection(playerIndex);
       }
     } else if (grimoireState && !grimoireState.grimoireHidden) {
-      if (!ensureGrimoireUnlocked({ grimoireState })) return;
       openCharacterModal({ grimoireState, playerIndex });
     }
   }, {
@@ -81,7 +79,6 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
                 window.openNumberPickerForSelection(playerIndex);
               }
             } else if (grimoireState && !grimoireState.grimoireHidden) {
-              if (!ensureGrimoireUnlocked({ grimoireState })) return;
               openCharacterModal({ grimoireState, playerIndex });
             }
           }
@@ -144,7 +141,6 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
           return;
         }
       }
-      if (!ensureGrimoireUnlocked({ grimoireState })) return;
       if (isTouchDevice()) {
         openReminderTokenModal({ grimoireState, playerIndex });
       } else if (e.altKey) {
