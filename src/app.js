@@ -102,8 +102,10 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     if (saved && saved.winner) {
       grimoireState.winner = saved.winner;
     }
-    if (saved && saved.tempSnapshot) {
-      grimoireState.tempSnapshot = saved.tempSnapshot;
+    if (saved && Object.prototype.hasOwnProperty.call(saved, 'tempSnapshot')) {
+      grimoireState.tempSnapshot = saved.tempSnapshot || null;
+    } else {
+      grimoireState.tempSnapshot = null;
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }

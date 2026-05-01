@@ -14,6 +14,50 @@ describe('Temporary grimoire snapshot/restore', () => {
     cy.get('#grimoire-snapshot-toggle').should('be.visible');
   });
 
+  it('clears any active snapshot when importing a game without one', () => {
+    // Take a snapshot so tempSnapshot is non-null in memory + localStorage
+    cy.get('#grimoire-snapshot-toggle').click({ force: true });
+    cy.get('#grimoire-snapshot-toggle').should('have.attr', 'aria-pressed', 'true');
+    cy.get('body').should('have.class', 'grimoire-snapshot-active');
+
+    // Import a fresh game whose payload explicitly has tempSnapshot: null
+    const importData = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      gameState: {
+        scriptData: [{ id: '_meta', name: 'Imported Script', author: 'cypress' }, 'butler'],
+        scriptMetaName: 'Imported Script',
+        includeTravellers: false,
+        players: [
+          { name: 'Alice', character: 'butler', reminders: [], dead: false, deathVote: false, nightKilledPhase: null },
+          { name: 'Bob', character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null },
+          { name: 'Cara', character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null },
+          { name: 'Dan', character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null },
+          { name: 'Eve', character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null }
+        ],
+        dayNightTracking: { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} },
+        bluffs: [null, null, null],
+        mode: 'storyteller',
+        grimoireHidden: false,
+        playerSetup: { bag: [], assignments: [], revealed: false },
+        gameStarted: true,
+        winner: null,
+        tempSnapshot: null
+      }
+    };
+    cy.get('#import-data-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(importData)),
+      fileName: 'botc-game.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    cy.get('#import-status').should('contain', 'Game imported successfully');
+
+    // The previously-active snapshot must not leak into the newly imported game
+    cy.get('body').should('not.have.class', 'grimoire-snapshot-active');
+    cy.get('#grimoire-snapshot-toggle').should('have.attr', 'aria-pressed', 'false');
+    cy.window().its('grimoireState.tempSnapshot').should('be.null');
+  });
+
   it('snapshots state on click and restores it on second click, persisting across reloads', () => {
     // Establish baseline: assign Chef to player 0, add a reminder to player 1
     cy.get('#player-circle li').eq(0).find('.player-token').click({ force: true });
