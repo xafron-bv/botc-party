@@ -26,7 +26,9 @@ npx eslint --fix
 - Use Conventional Commits (e.g., `feat:`, `fix:`, `docs:`, `refactor:`).
 - Keep the subject line strictly under 80 characters.
 
-4. Require Green Tests Before Commit/Push
+4. If asked to create a branch, create conventional branch name too, starting with prefixes like fix/ refactor/ feat/ etc.
+
+5. Require Green Tests Before Commit/Push
 
 - Always run the full Cypress suite (`./test-parallel.sh`) before committing or pushing.
 - Use `./test-parallel.sh` for fast parallel execution of the full suite.
@@ -34,7 +36,12 @@ npx eslint --fix
 - If any tests fail, fix the code or tests, then re-run until all pass.
 - Do not commit/push with failing tests.
 
-5. Static Imports Only
+5. No AI Attribution in Commits
+
+- Commits must only use the locally configured git user profile.
+- Never include AI agent names, co-author tags, or any other AI attribution in commit messages or metadata.
+
+7. Static Imports Only
 
 - Do not use dynamic `require`/`import()` within functions or blocks.
 - Always place all imports at the top of the module.
