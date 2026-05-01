@@ -39,6 +39,10 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
 
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
+  try {
+    const banner = document.getElementById('grimoire-hidden-banner');
+    if (banner) banner.setAttribute('aria-hidden', String(!grimoireState.grimoireHidden));
+  } catch (_) { }
   updateGrimoire({ grimoireState });
 }
 
