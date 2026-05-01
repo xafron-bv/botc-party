@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-03-28T10:13:31.996Z",
+  "generatedAt": "2026-05-01T23:09:24.189Z",
   "core": [
     {
       "path": "./index.html",
-      "hash": "4c647c9a6c57"
+      "hash": "3140ded1372c"
     },
     {
       "path": "./manifest.json",
@@ -15,15 +15,15 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "4c05336a4880"
+      "hash": "c97e1ed64461"
     },
     {
       "path": "./src/bluffTokens.js",
-      "hash": "3bd5e9c09f9a"
+      "hash": "fa2dd3ac0d0a"
     },
     {
       "path": "./src/character.js",
-      "hash": "a471d044e4b7"
+      "hash": "3809b64e2af9"
     },
     {
       "path": "./src/constants.js",
@@ -31,7 +31,7 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "63e1684fd38b"
+      "hash": "cf5ff54db15a"
     },
     {
       "path": "./src/dayNightTracking.js",
@@ -43,11 +43,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "6790510a863a"
-    },
-    {
-      "path": "./src/grimoireLock.js",
-      "hash": "07cde7fdaa0c"
+      "hash": "9f20403e63e3"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -71,11 +67,11 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "29607bc0658c"
+      "hash": "67f43f115469"
     },
     {
       "path": "./src/reminder.js",
-      "hash": "cf811836fc9d"
+      "hash": "077e7a7f691d"
     },
     {
       "path": "./src/script.js",
@@ -99,7 +95,7 @@
     },
     {
       "path": "./src/ui/contextMenu.js",
-      "hash": "cc4826df5ea8"
+      "hash": "b70e737f63fe"
     },
     {
       "path": "./src/ui/displaySettings.js",
@@ -115,11 +111,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "168471435c9e"
+      "hash": "2d199ffbd73c"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "c759466b4a3a"
+      "hash": "ec58ef2f6743"
     },
     {
       "path": "./src/ui/sidebar.js",
@@ -171,7 +167,7 @@
     },
     {
       "path": "./src/utils/validation.js",
-      "hash": "15e36120fd45"
+      "hash": "ce99a66d3439"
     },
     {
       "path": "./styles.css",
@@ -181,7 +177,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "086668a09bda"
+      "hash": "28a09cf7e7ea"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1009,7 +1005,7 @@
     },
     {
       "path": "./index.html",
-      "hash": "4c647c9a6c57"
+      "hash": "3140ded1372c"
     },
     {
       "path": "./manifest.json",
@@ -1029,7 +1025,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "9be13c5865c3"
+      "hash": "6eb86eeb2a7d"
     },
     {
       "path": "./service-worker.js",
@@ -1037,15 +1033,15 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "4c05336a4880"
+      "hash": "c97e1ed64461"
     },
     {
       "path": "./src/bluffTokens.js",
-      "hash": "3bd5e9c09f9a"
+      "hash": "fa2dd3ac0d0a"
     },
     {
       "path": "./src/character.js",
-      "hash": "a471d044e4b7"
+      "hash": "3809b64e2af9"
     },
     {
       "path": "./src/constants.js",
@@ -1053,7 +1049,7 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "63e1684fd38b"
+      "hash": "cf5ff54db15a"
     },
     {
       "path": "./src/dayNightTracking.js",
@@ -1065,11 +1061,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "6790510a863a"
-    },
-    {
-      "path": "./src/grimoireLock.js",
-      "hash": "07cde7fdaa0c"
+      "hash": "9f20403e63e3"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -1093,11 +1085,11 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "29607bc0658c"
+      "hash": "67f43f115469"
     },
     {
       "path": "./src/reminder.js",
-      "hash": "cf811836fc9d"
+      "hash": "077e7a7f691d"
     },
     {
       "path": "./src/script.js",
@@ -1121,7 +1113,7 @@
     },
     {
       "path": "./src/ui/contextMenu.js",
-      "hash": "cc4826df5ea8"
+      "hash": "b70e737f63fe"
     },
     {
       "path": "./src/ui/displaySettings.js",
@@ -1137,11 +1129,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "168471435c9e"
+      "hash": "2d199ffbd73c"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "c759466b4a3a"
+      "hash": "ec58ef2f6743"
     },
     {
       "path": "./src/ui/sidebar.js",
@@ -1193,7 +1185,7 @@
     },
     {
       "path": "./src/utils/validation.js",
-      "hash": "15e36120fd45"
+      "hash": "ce99a66d3439"
     },
     {
       "path": "./styles.css",
@@ -1201,7 +1193,7 @@
     },
     {
       "path": "./styles/bluff-tokens.css",
-      "hash": "f82eaa1bae10"
+      "hash": "746e9ebad605"
     },
     {
       "path": "./styles/character-panel.css",
@@ -1221,11 +1213,11 @@
     },
     {
       "path": "./styles/core.css",
-      "hash": "0af4bfe068f7"
+      "hash": "980892ca8b48"
     },
     {
       "path": "./styles/day-night-tracking.css",
-      "hash": "57711f13c83a"
+      "hash": "57eb8c9cd4fb"
     },
     {
       "path": "./styles/menus.css",
