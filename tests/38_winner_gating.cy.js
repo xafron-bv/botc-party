@@ -1,14 +1,14 @@
 /// <reference types="cypress" />
 
-// Test: After declaring a winner (ending the game), Start Game and Player Setup are disabled until reset.
+// Test: After declaring a winner the storyteller can still edit and reset; no gating.
 
-describe('Winner gating disables start flow until reset', () => {
+describe('Winner does not gate post-game editing or setup', () => {
   beforeEach(() => {
     cy.resetApp({ mode: 'storyteller', loadScript: false });
   });
 
 
-  it('gates start/player setup after winner until reset', () => {
+  it('keeps player setup and end-game-related controls usable after a winner is declared', () => {
     cy.ensureSidebarOpen();
 
     // Controls should be available immediately since players are preloaded
@@ -28,10 +28,11 @@ describe('Winner gating disables start flow until reset', () => {
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
 
-    // Gate should apply
-    cy.get('#open-player-setup').should('be.disabled');
+    // Open Player Setup remains usable; End Game button is hidden because the game is over
+    cy.get('#open-player-setup').should('not.be.disabled');
+    cy.get('#end-game').should('not.be.visible');
 
-    // Reset to clear gate
+    // Reset still works
     cy.on('window:confirm', () => true);
     cy.get('#reset-grimoire').click({ force: true });
 

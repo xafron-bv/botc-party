@@ -128,9 +128,10 @@ describe('Player Setup - Guards and Resets', () => {
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
-    // After winner, Open Player Setup should be disabled until reset
+    // After full setup completed, open-player-setup is gated by selectionComplete
+    // until a reset, regardless of winner state
     cy.get('#open-player-setup').should('be.disabled');
-    // Reset grimoire (no confirmation expected because gameStarted is false and winner set)
+    // Reset grimoire (no confirmation expected because winner is set, gameStarted is false)
     cy.get('#reset-grimoire').click();
     cy.get('#open-player-setup').should('not.be.disabled').click();
     // Re-fill bag and start selection again after reset to regenerate overlays

@@ -120,6 +120,67 @@ body.character-panel-open .export-print-toggle {
   right: calc(86px + clamp(300px, 30vw, 560px));
 }
 
+/* Grimoire snapshot/restore toggle (storyteller only) */
+.grimoire-snapshot-toggle {
+  position: fixed;
+  bottom: var(--space-5);
+  right: 218px;
+  width: var(--touch-target-xl);
+  height: var(--touch-target-xl);
+  padding: 0;
+  z-index: 1683;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-xl);
+  transition: all var(--transition-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.grimoire-snapshot-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .grimoire-snapshot-toggle:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+.grimoire-snapshot-toggle.active {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  color: #1a1a1a;
+  border-color: #f59e0b;
+}
+
+body.character-panel-open .grimoire-snapshot-toggle {
+  right: calc(218px + clamp(300px, 30vw, 560px));
+}
+
+/* Banner shown when temp snapshot is active */
+body.grimoire-snapshot-active::after {
+  content: 'TEMPORARY CHANGES — original grimoire saved';
+  position: fixed;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(217, 119, 6, 0.92);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 .display-settings-panel {
   position: fixed;
   bottom: 85px;

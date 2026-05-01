@@ -7,7 +7,6 @@ import { withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
-import { ensureGrimoireUnlocked } from './grimoireLock.js';
 import { canOpenModal } from './utils/validation.js';
 
 export function populateCharacterGrid({ grimoireState }) {
@@ -141,19 +140,11 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
   }
 
   if (grimoireState.selectedBluffIndex !== undefined && grimoireState.selectedBluffIndex > -1) {
-    if (!ensureGrimoireUnlocked({ grimoireState })) {
-      hideCharacterModal({ grimoireState, clearBluffSelection: true });
-      return;
-    }
     assignBluffCharacter({ grimoireState, roleId });
     return;
   }
 
   if (grimoireState.selectedPlayerIndex > -1) {
-    if (!ensureGrimoireUnlocked({ grimoireState })) {
-      hideCharacterModal({ grimoireState });
-      return;
-    }
     grimoireState.players[grimoireState.selectedPlayerIndex].character = roleId;
     grimoireState.gameStarted = true;
     console.log(`Assigned character ${roleId} to player ${grimoireState.selectedPlayerIndex}`);
@@ -343,7 +334,6 @@ export function openCharacterModal({ grimoireState, playerIndex }) {
 
   if (!canOpenModal({
     grimoireState,
-    requiresUnlocked: true,
     requiresScript: true,
     requiresNotHidden: true
   })) {

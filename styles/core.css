@@ -217,6 +217,33 @@ body.grimoire-hidden #player-circle li .player-token > .token-role-art {
   display: none !important;
 }
 
+/* Large central indicator that the grimoire is hidden */
+.grimoire-hidden-banner {
+  display: none;
+}
+
+body.grimoire-hidden .grimoire-hidden-banner {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+body.grimoire-hidden .grimoire-hidden-banner span {
+  font-size: clamp(28px, 6vmin, 64px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #ffd166;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
 /* Remove pre-game overlay; keep day/night toggle interactive at all times */
 #day-night-toggle { pointer-events: auto; opacity: 1; cursor: pointer; }
 
@@ -333,17 +360,4 @@ body.grimoire-hidden #player-circle li .player-token > .token-role-art {
 #setup-info .demon-count {
   color: #E74C3C;
   /* Light red */
-}
-body.grimoire-locked #player-circle .player-token,
-body.grimoire-locked #player-circle .player-name,
-body.grimoire-locked #player-circle .reminder-placeholder,
-body.grimoire-locked #player-circle .death-ribbon,
-body.grimoire-locked #player-circle .death-vote-indicator,
-body.grimoire-locked #bluff-tokens-container .bluff-token {
-  cursor: not-allowed;
-}
-
-body.grimoire-locked #player-circle .player-token,
-body.grimoire-locked #bluff-tokens-container .bluff-token {
-  filter: saturate(0.85);
 }

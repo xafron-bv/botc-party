@@ -9,6 +9,10 @@
   z-index: 10;
 }
 
+body.mode-player .bluff-tokens-container {
+  display: none;
+}
+
 /* Individual Bluff Token */
 .bluff-token {
   width: var(--bluff-token-size);

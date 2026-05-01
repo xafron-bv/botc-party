@@ -626,7 +626,7 @@ export function initPlayerSetup({ grimoireState }) {
       const revealBtn = document.getElementById('reveal-selected-characters');
       if (revealBtn) {
         revealBtn.style.display = sel.revealed ? 'none' : '';
-        revealBtn.disabled = !!(window.grimoireState && window.grimoireState.winner);
+        revealBtn.disabled = false;
       }
       try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }
       return true;
@@ -1201,7 +1201,7 @@ export function restoreSelectionSession({ grimoireState }) {
         const revealBtn = document.getElementById('reveal-selected-characters');
         if (revealBtn) {
           revealBtn.style.display = ps.revealed ? 'none' : '';
-          revealBtn.disabled = !!(grimoireState && grimoireState.winner);
+          revealBtn.disabled = false;
         }
       } catch (_) { }
       try { if (window.updateButtonStates) window.updateButtonStates(); } catch (_) { }

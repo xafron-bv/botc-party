@@ -7,7 +7,6 @@ import { showPlayerContextMenu } from './contextMenu.js';
 import { renderRemindersForPlayer, createReminderElement } from '../reminder.js';
 import { positionRadialStack } from './layout.js';
 import { showStorytellerMessage } from '../storytellerMessages.js';
-import { ensureGrimoireUnlocked } from '../grimoireLock.js';
 import { withStateSave } from '../app.js';
 
 function getAlignmentOverrideFilter({ role, player }) {
@@ -129,7 +128,6 @@ export function updatePlayerElement({
   ribbon.classList.add('death-ribbon');
   const handleRibbonToggle = withStateSave((e) => {
     e.stopPropagation();
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const playerSetup = grimoireState.playerSetup || {};
     const selectionActive = !!playerSetup.selectionActive;
     const selectionComplete = !!playerSetup.selectionComplete;

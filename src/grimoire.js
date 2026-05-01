@@ -10,14 +10,12 @@ import { positionInfoIcons, positionTokenReminders } from './ui/tooltip.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
-import { ensureGrimoireUnlocked } from './grimoireLock.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
 import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
 
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = withStateSave((_e) => {
-    if (!ensureGrimoireUnlocked({ grimoireState })) return;
     const currentName = grimoireState.players[playerIndex].name;
     const newName = prompt('Enter player name:', currentName);
     if (newName) {
@@ -41,20 +39,11 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
 
 export function applyGrimoireHiddenState({ grimoireState }) {
   try { document.body.classList.toggle('grimoire-hidden', !!grimoireState.grimoireHidden); } catch (_) { }
+  try {
+    const banner = document.getElementById('grimoire-hidden-banner');
+    if (banner) banner.setAttribute('aria-hidden', String(!grimoireState.grimoireHidden));
+  } catch (_) { }
   updateGrimoire({ grimoireState });
-}
-
-export function applyGrimoireLockedState({ grimoireState }) {
-  try { document.body.classList.toggle('grimoire-locked', !!grimoireState.grimoireLocked); } catch (_) { }
-}
-
-export const setGrimoireLocked = withStateSave(({ grimoireState, locked }) => {
-  grimoireState.grimoireLocked = !!locked;
-  applyGrimoireLockedState({ grimoireState });
-});
-
-export function toggleGrimoireLocked({ grimoireState }) {
-  setGrimoireLocked({ grimoireState, locked: !grimoireState.grimoireLocked });
 }
 
 export const setGrimoireHidden = withStateSave(({ grimoireState, hidden }) => {
@@ -67,6 +56,39 @@ export function toggleGrimoireHidden({ grimoireState }) {
 }
 
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
+
+export function hasGrimoireSnapshot(grimoireState) {
+  return !!(grimoireState && grimoireState.tempSnapshot);
+}
+
+export const takeGrimoireSnapshot = withStateSave(({ grimoireState }) => {
+  grimoireState.tempSnapshot = {
+    players: JSON.parse(JSON.stringify(grimoireState.players || [])),
+    bluffs: JSON.parse(JSON.stringify(grimoireState.bluffs || [null, null, null])),
+    dayNightTracking: grimoireState.dayNightTracking
+      ? JSON.parse(JSON.stringify(grimoireState.dayNightTracking))
+      : null
+  };
+  try { document.body.classList.add('grimoire-snapshot-active'); } catch (_) { }
+});
+
+export const restoreGrimoireSnapshot = withStateSave(({ grimoireState }) => {
+  const snap = grimoireState.tempSnapshot;
+  if (!snap) return;
+  grimoireState.players = JSON.parse(JSON.stringify(snap.players || []));
+  grimoireState.bluffs = JSON.parse(JSON.stringify(snap.bluffs || [null, null, null]));
+  if (snap.dayNightTracking) {
+    grimoireState.dayNightTracking = JSON.parse(JSON.stringify(snap.dayNightTracking));
+  }
+  grimoireState.tempSnapshot = null;
+  try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
+  rebuildPlayerCircleUiPreserveState({ grimoireState });
+  try { updateDayNightUI(grimoireState); } catch (_) { }
+});
+
+export function applyGrimoireSnapshotState({ grimoireState }) {
+  try { document.body.classList.toggle('grimoire-snapshot-active', hasGrimoireSnapshot(grimoireState)); } catch (_) { }
+}
 
 function mountBluffTokensContainer({ grimoireState }) {
   const existingContainer = document.getElementById('bluff-tokens-container');
@@ -83,8 +105,6 @@ function mountBluffTokensContainer({ grimoireState }) {
 export const setupGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, count }) => {
   const playerCircle = document.getElementById('player-circle');
   const playerCountInput = document.getElementById('player-count');
-  grimoireState.grimoireLocked = false;
-  applyGrimoireLockedState({ grimoireState });
   try {
     if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
       snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
@@ -175,6 +195,8 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
   try { grimoireState.gameStarted = false; } catch (_) { }
+  try { grimoireState.tempSnapshot = null; } catch (_) { }
+  try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
   try {
     if (!grimoireState.playerSetup) {
       grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
@@ -193,8 +215,6 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
     return createEmptyPlayer(name);
   });
   grimoireState.players = newPlayers;
-  grimoireState.grimoireLocked = false;
-  applyGrimoireLockedState({ grimoireState });
 
   rebuildPlayerCircleUiPreserveState({ grimoireState });
   grimoireState.bluffs = [null, null, null];
