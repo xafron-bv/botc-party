@@ -1,6 +1,6 @@
 import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
-import { applyGrimoireHiddenState } from '../grimoire.js';
+import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoire.js';
 import { updateBluffAttentionState } from '../bluffTokens.js';
 
 function getStatusEl() {
@@ -51,7 +51,8 @@ function normalizeImportedGameState(data) {
     grimoireHidden: !!state.grimoireHidden,
     playerSetup: state.playerSetup || { bag: [], assignments: [], revealed: false },
     gameStarted: !!state.gameStarted,
-    winner: state.winner || null
+    winner: state.winner || null,
+    tempSnapshot: state.tempSnapshot || null
   };
 }
 
@@ -63,6 +64,7 @@ function applyModeUi({ grimoireState }) {
   const dayNightSlider = document.getElementById('day-night-slider');
   const openRulebookBtn = document.getElementById('open-rulebook');
   const revealToggleBtn = document.getElementById('reveal-assignments');
+  const grimoireSnapshotToggleBtn = document.getElementById('grimoire-snapshot-toggle');
 
   if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
   if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
@@ -95,6 +97,24 @@ function applyModeUi({ grimoireState }) {
     revealToggleBtn.title = hidden ? 'Reveal characters to players' : 'Hide characters on this device';
     revealToggleBtn.setAttribute('aria-pressed', String(hidden));
   }
+  if (grimoireSnapshotToggleBtn) {
+    const isStoryteller = !isPlayer;
+    const active = !!grimoireState.tempSnapshot;
+    grimoireSnapshotToggleBtn.style.display = isStoryteller ? '' : 'none';
+    grimoireSnapshotToggleBtn.setAttribute('aria-pressed', String(active));
+    grimoireSnapshotToggleBtn.classList.toggle('active', active);
+    grimoireSnapshotToggleBtn.title = active
+      ? 'Restore grimoire to before temporary changes'
+      : 'Make temporary changes to the grimoire';
+    grimoireSnapshotToggleBtn.setAttribute(
+      'aria-label',
+      active ? 'Restore grimoire to before temporary changes' : 'Make temporary changes to the grimoire'
+    );
+    const icon = grimoireSnapshotToggleBtn.querySelector('i');
+    if (icon) {
+      icon.className = active ? 'fas fa-rotate-left' : 'fas fa-camera';
+    }
+  }
 
   try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
 }
@@ -111,7 +131,8 @@ export function exportCurrentGame({ grimoireState }) {
     grimoireHidden: !!grimoireState.grimoireHidden,
     playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
     gameStarted: !!grimoireState.gameStarted,
-    winner: grimoireState.winner || null
+    winner: grimoireState.winner || null,
+    tempSnapshot: grimoireState.tempSnapshot || null
   };
 
   const exportData = {
@@ -182,7 +203,8 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
     grimoireHidden: normalized.grimoireHidden,
     playerSetup: normalized.playerSetup,
     gameStarted: normalized.gameStarted,
-    winner: normalized.winner
+    winner: normalized.winner,
+    tempSnapshot: normalized.tempSnapshot
   };
 
   try { localStorage.setItem('botcAppStateV1', JSON.stringify(saved)); } catch (_) { }
@@ -191,6 +213,7 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
 
   await loadAppState({ grimoireState, grimoireHistoryList });
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
+  try { applyGrimoireSnapshotState({ grimoireState }); } catch (_) { }
   try { applyModeUi({ grimoireState }); } catch (_) { }
 
   setStatus({ message: 'Game imported successfully!' });

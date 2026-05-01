@@ -48,7 +48,8 @@ export function saveAppState({ grimoireState }) {
       grimoireHidden: !!grimoireState.grimoireHidden,
       playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
       gameStarted: !!grimoireState.gameStarted,
-      winner: grimoireState.winner || null
+      winner: grimoireState.winner || null,
+      tempSnapshot: grimoireState.tempSnapshot || null
     };
     localStorage.setItem('botcAppStateV1', JSON.stringify(state));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
@@ -100,6 +101,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.winner) {
       grimoireState.winner = saved.winner;
+    }
+    if (saved && saved.tempSnapshot) {
+      grimoireState.tempSnapshot = saved.tempSnapshot;
     }
   } catch (_) { } finally { grimoireState.isRestoringState = false; }
 }

@@ -53,6 +53,39 @@ export function toggleGrimoireHidden({ grimoireState }) {
 
 export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireState, hidden: false }); }
 
+export function hasGrimoireSnapshot(grimoireState) {
+  return !!(grimoireState && grimoireState.tempSnapshot);
+}
+
+export const takeGrimoireSnapshot = withStateSave(({ grimoireState }) => {
+  grimoireState.tempSnapshot = {
+    players: JSON.parse(JSON.stringify(grimoireState.players || [])),
+    bluffs: JSON.parse(JSON.stringify(grimoireState.bluffs || [null, null, null])),
+    dayNightTracking: grimoireState.dayNightTracking
+      ? JSON.parse(JSON.stringify(grimoireState.dayNightTracking))
+      : null
+  };
+  try { document.body.classList.add('grimoire-snapshot-active'); } catch (_) { }
+});
+
+export const restoreGrimoireSnapshot = withStateSave(({ grimoireState }) => {
+  const snap = grimoireState.tempSnapshot;
+  if (!snap) return;
+  grimoireState.players = JSON.parse(JSON.stringify(snap.players || []));
+  grimoireState.bluffs = JSON.parse(JSON.stringify(snap.bluffs || [null, null, null]));
+  if (snap.dayNightTracking) {
+    grimoireState.dayNightTracking = JSON.parse(JSON.stringify(snap.dayNightTracking));
+  }
+  grimoireState.tempSnapshot = null;
+  try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
+  rebuildPlayerCircleUiPreserveState({ grimoireState });
+  try { updateDayNightUI(grimoireState); } catch (_) { }
+});
+
+export function applyGrimoireSnapshotState({ grimoireState }) {
+  try { document.body.classList.toggle('grimoire-snapshot-active', hasGrimoireSnapshot(grimoireState)); } catch (_) { }
+}
+
 function mountBluffTokensContainer({ grimoireState }) {
   const existingContainer = document.getElementById('bluff-tokens-container');
   if (existingContainer) {
@@ -158,6 +191,8 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
   try { grimoireState.gameStarted = false; } catch (_) { }
+  try { grimoireState.tempSnapshot = null; } catch (_) { }
+  try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
   try {
     if (!grimoireState.playerSetup) {
       grimoireState.playerSetup = { bag: [], assignments: [], revealed: false };
