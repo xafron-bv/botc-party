@@ -16,17 +16,17 @@ describe('Grimoire visibility controls', () => {
     cy.get('#reveal-assignments').should('not.be.visible');
   });
 
-  it('hides and shows tokens, reminders, and bluffs while keeping blank circles in player mode', () => {
+  it('hides and shows tokens and reminders while keeping blank circles in player mode', () => {
     // Switch to player mode to expose hide/show button
     cy.get('#mode-player').click({ force: true });
     cy.startGame();
     cy.get('#sidebar-backdrop').click({ force: true });
     cy.get('#reveal-assignments').should('contain', 'Hide Grimoire');
 
-    // Verify baseline visible elements
+    // Verify baseline visible elements (bluffs are storyteller-only and hidden here)
     cy.get('#player-circle li .player-token').should('have.length', 5);
     cy.get('#player-circle li .reminder-placeholder').should('be.visible');
-    cy.get('#bluff-tokens-container').should('be.visible');
+    cy.get('#bluff-tokens-container').should('not.be.visible');
 
     // Hide grimoire
     cy.get('#reveal-assignments').click({ force: true });
@@ -34,7 +34,7 @@ describe('Grimoire visibility controls', () => {
     // Reminders and plus should be hidden
     cy.get('#player-circle li .reminders').should('not.be.visible');
     cy.get('#player-circle li .reminder-placeholder').should('not.be.visible');
-    // Bluff tokens hidden
+    // Bluff tokens still hidden (player mode)
     cy.get('#bluff-tokens-container').should('not.be.visible');
 
     // Player token still visible, but only base background (no character overlay)
@@ -45,9 +45,19 @@ describe('Grimoire visibility controls', () => {
         expect(style.backgroundImage).to.contain('token.png');
       });
 
-    // Show grimoire again
+    // Show grimoire again — bluffs remain hidden in player mode
     cy.get('#reveal-assignments').click({ force: true });
     cy.get('#player-circle li .reminder-placeholder').should('be.visible');
+    cy.get('#bluff-tokens-container').should('not.be.visible');
+  });
+
+  it('hides bluff tokens entirely in player mode and shows them in storyteller mode', () => {
+    cy.get('#bluff-tokens-container').should('be.visible');
+
+    cy.get('#mode-player').click({ force: true });
+    cy.get('#bluff-tokens-container').should('not.be.visible');
+
+    cy.get('#mode-storyteller').click({ force: true });
     cy.get('#bluff-tokens-container').should('be.visible');
   });
 

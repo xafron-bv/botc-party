@@ -348,6 +348,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
       if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
       const isPlayer = grimoireState.mode === 'player';
+      try {
+        document.body.classList.toggle('mode-player', isPlayer);
+        document.body.classList.toggle('mode-storyteller', !isPlayer);
+      } catch (_) { }
       if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
       if (displaySettingsToggleBtn) {
         if (isPlayer) {
