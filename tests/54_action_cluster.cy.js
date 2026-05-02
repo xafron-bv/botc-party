@@ -76,4 +76,34 @@ describe('Bottom-right action cluster collapse/expand', () => {
     cy.get('#center').click('topLeft', { force: true });
     cy.get('#day-night-slider').should('not.have.class', 'open');
   });
+
+  it('keeps popups inside the viewport on small screens, sharing space with the cluster', () => {
+    cy.viewport('iphone-6');
+    cy.reload();
+    cy.ensureStorytellerMode();
+    cy.get('body').then(($b) => {
+      if ($b.hasClass('character-panel-open')) {
+        cy.get('#character-panel-toggle').click({ force: true });
+      }
+    });
+
+    cy.get('#action-cluster-toggle').click();
+
+    cy.get('#day-night-toggle').click();
+    cy.window().then((win) => {
+      const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
+      const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+      expect(slider.left, 'slider stays inside viewport on the left').to.be.at.least(0);
+      expect(slider.right, 'slider does not overlap cluster').to.be.at.most(cluster.left + 1);
+    });
+
+    // Re-open cluster (clicking moon collapses it via cluster's own click-outside guard? no — it's inside)
+    cy.get('#display-settings-toggle').click();
+    cy.window().then((win) => {
+      const panel = win.document.getElementById('display-settings-panel').getBoundingClientRect();
+      const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+      expect(panel.left, 'settings panel stays inside viewport on the left').to.be.at.least(0);
+      expect(panel.right, 'settings panel does not overlap cluster').to.be.at.most(cluster.left + 1);
+    });
+  });
 });
