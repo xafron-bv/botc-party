@@ -7,10 +7,12 @@ describe('Temporary grimoire snapshot/restore', () => {
   });
 
   it('shows the snapshot toggle only in storyteller mode', () => {
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('#grimoire-snapshot-toggle').should('be.visible');
     cy.get('#mode-player').click({ force: true });
     cy.get('#grimoire-snapshot-toggle').should('not.be.visible');
     cy.get('#mode-storyteller').click({ force: true });
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('#grimoire-snapshot-toggle').should('be.visible');
   });
 
@@ -109,26 +111,35 @@ describe('Temporary grimoire snapshot/restore', () => {
     cy.get('#player-circle li').eq(1).find('.text-reminder').should('have.length', 1);
   });
 
-  it('positions the snapshot button next to the other action buttons on small screens', () => {
+  it('keeps the snapshot button aligned with the other action buttons in the collapsible cluster', () => {
     cy.viewport('iphone-6'); // 375 x 667
     cy.reload();
     cy.ensureStorytellerMode();
-    cy.get('#grimoire-snapshot-toggle').should('exist');
+    cy.get('body').then(($b) => {
+      if ($b.hasClass('character-panel-open')) {
+        cy.get('#character-panel-toggle').click({ force: true });
+      }
+    });
+    cy.get('#action-cluster-toggle').should('be.visible').click();
+    cy.get('#action-cluster').should('have.attr', 'data-state', 'expanded');
+    cy.get('#grimoire-snapshot-toggle').should('be.visible');
 
     cy.window().then((win) => {
       const snap = win.document.getElementById('grimoire-snapshot-toggle').getBoundingClientRect();
       const print = win.document.getElementById('export-grimoire-print').getBoundingClientRect();
       const moon = win.document.getElementById('day-night-toggle').getBoundingClientRect();
       const settings = win.document.getElementById('display-settings-toggle').getBoundingClientRect();
-      const debug = `snap=L${snap.left}R${snap.right} print=L${print.left}R${print.right} moon=L${moon.left}R${moon.right} settings=L${settings.left}R${settings.right}`;
+      const debug = `snap=L${snap.left}R${snap.right}T${snap.top}B${snap.bottom} print=L${print.left}R${print.right}T${print.top}B${print.bottom} moon=L${moon.left}R${moon.right}T${moon.top}B${moon.bottom} settings=L${settings.left}R${settings.right}T${settings.top}B${settings.bottom}`;
 
-      // Snapshot button should sit immediately to the left of the print button,
-      // forming a tight cluster with the other bottom-right action buttons rather
-      // than floating in the middle of the screen over the character ability cards.
-      const gap = print.left - snap.right;
-      expect(gap, `gap snap→print (${debug})`).to.be.within(0, 16);
-      expect(moon.left - print.right, `gap print→moon (${debug})`).to.be.within(0, 16);
-      expect(settings.left - moon.right, `gap moon→settings (${debug})`).to.be.within(0, 16);
+      // All action buttons share the same right edge (no horizontal offset).
+      [print, moon, settings].forEach((rect, i) => {
+        expect(rect.right, `button[${i}] right edge matches snap (${debug})`).to.be.closeTo(snap.right, 1);
+      });
+
+      // Stack order top → bottom: settings, snapshot, print, moon.
+      expect(settings.top, `settings above snapshot (${debug})`).to.be.lessThan(snap.top);
+      expect(snap.top, `snapshot above print (${debug})`).to.be.lessThan(print.top);
+      expect(print.top, `print above moon (${debug})`).to.be.lessThan(moon.top);
     });
   });
 });

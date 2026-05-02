@@ -135,7 +135,7 @@ export function updateDayNightUI(grimoireState) {
   }
 
   if (enabled) {
-    sliderContainer.style.display = 'block';
+    sliderContainer.style.display = 'flex';
     void sliderContainer.offsetHeight;
     sliderContainer.classList.add('open');
   } else {

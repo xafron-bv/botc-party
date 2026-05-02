@@ -33,6 +33,7 @@ describe('Bluff Tokens', () => {
   it('keeps bluff tokens pinned when the grimoire scrolls at large circle sizes', () => {
     cy.viewport(1200, 720);
 
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('[data-testid="display-settings-toggle"]').should('be.visible').click();
     cy.get('[data-testid="token-size-slider"]').invoke('val', 160).trigger('input');
     cy.get('[data-testid="circle-size-slider"]').invoke('val', 160).trigger('input');

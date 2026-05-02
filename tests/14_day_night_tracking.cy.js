@@ -172,12 +172,16 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
     });
 
-    it('should show slider as seamless extension of toggle button when enabled', () => {
+    it('should show slider as a popup above the action cluster when enabled', () => {
       cy.get('[data-testid="day-night-slider"]').should('be.visible');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '56px');
       cy.get('[data-testid="day-night-slider"]').should('have.class', 'open');
+      cy.window().then((win) => {
+        const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
+        const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+        expect(slider.bottom, 'slider sits above cluster').to.be.at.most(cluster.top + 1);
+      });
     });
 
     it('should allow navigating through day/night history', () => {
@@ -215,14 +219,18 @@ describe('Day/Night Tracking Feature', () => {
   });
 
   describe('UI Integration', () => {
-    it('should position slider seamlessly with toggle button without interfering with grimoire', () => {
+    it('should position slider as a popup above the action cluster without interfering with grimoire', () => {
       cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
-      // Slider should be positioned at same level as toggle button
+      // Slider is a popup anchored to the right side, sitting above the cluster.
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '86px');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '56px');
+      cy.window().then((win) => {
+        const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
+        const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+        expect(slider.bottom, 'slider sits above cluster').to.be.at.most(cluster.top + 1);
+        expect(slider.right, 'slider anchored to right side').to.be.greaterThan(win.innerWidth / 2);
+      });
 
       // Player circle should still be visible and not overlapped
       cy.get('#player-circle').should('be.visible');
