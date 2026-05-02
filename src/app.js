@@ -3,7 +3,7 @@ import { setupGrimoire, updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
-import { updateDayNightUI } from './dayNightTracking.js';
+import { showDayNightSlider, updateDayNightUI } from './dayNightTracking.js';
 import { rebuildAllRoles } from './character.js';
 
 export function withStateSave(fn) {
@@ -78,6 +78,9 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     }
     if (saved && saved.dayNightTracking) {
       grimoireState.dayNightTracking = saved.dayNightTracking;
+      if (grimoireState.dayNightTracking.enabled) {
+        showDayNightSlider();
+      }
       updateDayNightUI(grimoireState);
     }
     if (saved && saved.bluffs) {

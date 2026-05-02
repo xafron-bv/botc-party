@@ -38,6 +38,11 @@ describe('Bottom-right action cluster collapse/expand', () => {
     cy.viewport('iphone-6');
     cy.reload();
     cy.ensureStorytellerMode();
+    cy.get('body').then(($b) => {
+      if ($b.hasClass('character-panel-open')) {
+        cy.get('#character-panel-toggle').click({ force: true });
+      }
+    });
     cy.get('#action-cluster-toggle').click();
 
     cy.window().then((win) => {
@@ -50,7 +55,7 @@ describe('Bottom-right action cluster collapse/expand', () => {
     });
   });
 
-  it('opens the day/night slider as a popup above the cluster (not to the left)', () => {
+  it('opens the day/night slider as a popup to the left of the cluster column', () => {
     cy.get('#action-cluster-toggle').click();
     cy.get('#day-night-toggle').click();
     cy.get('#day-night-slider').should('have.class', 'open');
@@ -58,10 +63,17 @@ describe('Bottom-right action cluster collapse/expand', () => {
     cy.window().then((win) => {
       const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
       const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
-      // Slider must sit above the cluster, not overlap horizontally to its left.
-      expect(slider.bottom, 'slider bottom above cluster top').to.be.at.most(cluster.top + 1);
-      // Slider should be roughly aligned to the cluster's right edge (popup behavior).
-      expect(slider.right, 'slider right edge near viewport right').to.be.greaterThan(win.innerWidth / 2);
+      expect(slider.right, 'slider right edge to the left of cluster').to.be.at.most(cluster.left + 1);
+      expect(slider.bottom, 'slider aligned with cluster bottom').to.be.closeTo(cluster.bottom, 4);
     });
+  });
+
+  it('closes the day/night slider when clicking outside (matching settings behavior)', () => {
+    cy.get('#action-cluster-toggle').click();
+    cy.get('#day-night-toggle').click();
+    cy.get('#day-night-slider').should('have.class', 'open');
+
+    cy.get('#center').click('topLeft', { force: true });
+    cy.get('#day-night-slider').should('not.have.class', 'open');
   });
 });

@@ -109,10 +109,10 @@ body.grimoire-snapshot-active::after {
 
 .display-settings-panel {
   position: fixed;
-  /* Sit above the maximally-expanded action cluster (5 buttons + gaps). */
-  bottom: calc(var(--space-5) + 5 * var(--touch-target-xl) + 4 * var(--space-2) + var(--space-2));
-  right: var(--space-5);
-  width: min(320px, calc(100vw - var(--space-10)));
+  /* Sit to the LEFT of the action cluster column. */
+  bottom: var(--space-5);
+  right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2));
+  width: min(320px, calc(100vw - var(--touch-target-xl) - var(--space-12)));
   background: rgba(10, 10, 10, 0.95);
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-xl);
@@ -120,7 +120,7 @@ body.grimoire-snapshot-active::after {
   z-index: 1720;
   box-shadow: var(--shadow-2xl);
   opacity: 0;
-  transform: translateY(var(--space-2));
+  transform: translateX(var(--space-2));
   transition: opacity 0.24s ease, transform 0.24s ease;
   pointer-events: none;
   backdrop-filter: blur(4px);
@@ -128,13 +128,13 @@ body.grimoire-snapshot-active::after {
 
 @media (min-width: 901px) {
   body.character-panel-open .display-settings-panel {
-    right: calc(var(--space-5) + clamp(300px, 30vw, 560px));
+    right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2) + clamp(300px, 30vw, 560px));
   }
 }
 
 .display-settings-panel.open {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
 }
 
@@ -222,13 +222,13 @@ body.grimoire-snapshot-active::after {
   color: var(--color-primary-light);
 }
 
-/* Day/Night History Slider — popup that appears above the action cluster. */
+/* Day/Night History Slider — popup to the LEFT of the action cluster. */
 .day-night-slider {
   position: fixed;
-  bottom: calc(var(--space-5) + 5 * var(--touch-target-xl) + 4 * var(--space-2) + var(--space-2));
-  right: var(--space-5);
+  bottom: var(--space-5);
+  right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2));
   height: var(--touch-target-xl);
-  width: min(320px, calc(100vw - var(--space-10)));
+  width: min(320px, calc(100vw - var(--touch-target-xl) - var(--space-12)));
   background: var(--color-bg-dark);
   border: 2px solid var(--color-primary);
   border-radius: 28px;
@@ -237,7 +237,7 @@ body.grimoire-snapshot-active::after {
   box-shadow: var(--shadow-xl);
   transition: opacity 0.24s ease, transform 0.24s ease;
   opacity: 0;
-  transform: translateY(var(--space-2));
+  transform: translateX(var(--space-2));
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -245,13 +245,13 @@ body.grimoire-snapshot-active::after {
 
 @media (min-width: 901px) {
   body.character-panel-open .day-night-slider {
-    right: calc(var(--space-5) + clamp(300px, 30vw, 560px));
+    right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2) + clamp(300px, 30vw, 560px));
   }
 }
 
 .day-night-slider.open {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
 }
 
@@ -442,12 +442,12 @@ body.grimoire-snapshot-active::after {
 
   .day-night-slider,
   .display-settings-panel {
-    bottom: calc(var(--space-4) + 5 * var(--touch-target-lg) + 4 * var(--space-2) + var(--space-2));
-    right: var(--space-4);
+    bottom: var(--space-4);
+    right: calc(var(--space-4) + var(--touch-target-lg) + var(--space-2));
   }
 
   .day-night-slider {
-    width: min(calc(100vw - var(--space-8)), 360px);
+    width: min(calc(100vw - var(--touch-target-lg) - var(--space-10)), 360px);
     height: var(--touch-target-lg);
     padding: 0 var(--space-4);
     border-width: 3px;
@@ -458,7 +458,7 @@ body.grimoire-snapshot-active::after {
   }
 
   .display-settings-panel {
-    width: min(300px, calc(100vw - var(--space-8)));
+    width: min(300px, calc(100vw - var(--touch-target-lg) - var(--space-10)));
     padding: var(--space-4);
     border-width: 3px;
   }

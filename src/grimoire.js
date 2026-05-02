@@ -1,7 +1,7 @@
 import { createEmptyPlayer } from '../utils.js';
 import { withStateSave } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
-import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, saveCurrentPhaseState } from './dayNightTracking.js';
+import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, hideDayNightSlider, saveCurrentPhaseState } from './dayNightTracking.js';
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal } from './reminder.js';
 import { closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu } from './ui/contextMenu.js';
@@ -227,6 +227,7 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
       grimoireState.dayNightTracking.currentPhaseIndex = 0;
       grimoireState.dayNightTracking.reminderTimestamps = {};
     }
+    hideDayNightSlider();
     updateDayNightUI(grimoireState);
   } catch (_) { }
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }

@@ -23,6 +23,9 @@ export function initDayNightTracking(grimoireState) {
   }
 
   setupDayNightEventListeners(grimoireState);
+  if (grimoireState.dayNightTracking.enabled) {
+    showDayNightSlider();
+  }
   updateDayNightUI(grimoireState);
 }
 
@@ -33,15 +36,19 @@ function setupDayNightEventListeners(grimoireState) {
 
   if (toggle) {
     toggle.addEventListener('click', withStateSave(() => {
-      grimoireState.dayNightTracking.enabled = !grimoireState.dayNightTracking.enabled;
-
-      if (grimoireState.dayNightTracking.enabled) {
+      const sliderContainer = document.getElementById('day-night-slider');
+      const isOpen = !!(sliderContainer && sliderContainer.classList.contains('open'));
+      if (isOpen) {
+        grimoireState.dayNightTracking.enabled = false;
+        hideDayNightSlider();
+      } else {
+        grimoireState.dayNightTracking.enabled = true;
         if (!grimoireState.dayNightTracking.phaseSnapshots) {
           grimoireState.dayNightTracking.phaseSnapshots = {};
         }
         saveCurrentPhaseState(grimoireState);
+        showDayNightSlider();
       }
-
       updateDayNightUI(grimoireState);
       updateGrimoire({ grimoireState });
     }));
@@ -66,6 +73,20 @@ function setupDayNightEventListeners(grimoireState) {
       advanceOrAddPhase(grimoireState);
     });
   }
+
+  document.addEventListener('pointerdown', (event) => {
+    const sliderContainer = document.getElementById('day-night-slider');
+    if (!sliderContainer || !sliderContainer.classList.contains('open')) return;
+    const target = event.target;
+    if (!target || typeof target.closest !== 'function') return;
+    if (sliderContainer.contains(target)) return;
+    if (toggle && toggle.contains(target)) return;
+    // Don't dismiss during in-game interactions: phase tracking is meant to be
+    // visible while adding/editing reminders or adjusting players.
+    if (target.closest('#player-circle, .modal, #sidebar')) return;
+    hideDayNightSlider();
+    updateDayNightUI(grimoireState);
+  });
 }
 
 function addNextPhaseInternal(grimoireState) {
@@ -113,6 +134,25 @@ const advanceOrAddPhase = withStateSave((grimoireState) => {
   addNextPhaseInternal(grimoireState);
 });
 
+export function showDayNightSlider() {
+  const sliderContainer = document.getElementById('day-night-slider');
+  if (!sliderContainer) return;
+  sliderContainer.style.display = 'flex';
+  void sliderContainer.offsetHeight;
+  sliderContainer.classList.add('open');
+}
+
+export function hideDayNightSlider() {
+  const sliderContainer = document.getElementById('day-night-slider');
+  if (!sliderContainer) return;
+  sliderContainer.classList.remove('open');
+  setTimeout(() => {
+    if (sliderContainer && !sliderContainer.classList.contains('open')) {
+      sliderContainer.style.display = 'none';
+    }
+  }, 300);
+}
+
 export function updateDayNightUI(grimoireState) {
   const toggle = document.getElementById('day-night-toggle');
   const sliderContainer = document.getElementById('day-night-slider');
@@ -123,28 +163,17 @@ export function updateDayNightUI(grimoireState) {
   if (!toggle || !sliderContainer) return;
 
   const { enabled, phases, currentPhaseIndex } = grimoireState.dayNightTracking;
+  const sliderOpen = sliderContainer.classList.contains('open');
+  const showActive = enabled && sliderOpen;
 
-  toggle.classList.toggle('active', enabled);
-  toggle.setAttribute('aria-pressed', enabled);
+  toggle.classList.toggle('active', showActive);
+  toggle.setAttribute('aria-pressed', showActive);
 
   const icon = toggle.querySelector('i');
   if (icon) {
     const currentPhase = phases[currentPhaseIndex];
     const isNight = currentPhase && currentPhase.startsWith('N');
     icon.className = isNight ? 'fas fa-moon' : 'fas fa-sun';
-  }
-
-  if (enabled) {
-    sliderContainer.style.display = 'flex';
-    void sliderContainer.offsetHeight;
-    sliderContainer.classList.add('open');
-  } else {
-    sliderContainer.classList.remove('open');
-    setTimeout(() => {
-      if (!grimoireState.dayNightTracking.enabled) {
-        sliderContainer.style.display = 'none';
-      }
-    }, 300);
   }
 
   if (enabled) {
