@@ -22,6 +22,7 @@ describe('Comprehensive Phase Change Tracking', () => {
     cy.get('#character-grid .token[title="Baron"]').click();
 
     // Enable day/night tracking
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('[data-testid="day-night-toggle"]').click();
     cy.get('#day-night-slider').should('be.visible');
   });

@@ -47,6 +47,7 @@ describe('Display Settings Controls', () => {
       baseNameGap = Math.abs(centerDist - tokenRect.width / 2);
     });
 
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('[data-testid="display-settings-toggle"]').should('be.visible').click();
     cy.get('[data-testid="display-settings-panel"]').should('be.visible');
 
@@ -116,6 +117,7 @@ describe('Display Settings Controls', () => {
       expect(width).to.be.greaterThan(baseTokenWidth * 1.2);
     });
 
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('[data-testid="display-settings-toggle"]').click();
     cy.get('[data-testid="token-size-slider"]').should('have.value', '150');
     cy.get('[data-testid="player-name-slider"]').should('have.value', '120');
@@ -126,6 +128,7 @@ describe('Display Settings Controls', () => {
     cy.get('#mode-player').click({ force: true });
     cy.get('#mode-player').should('be.checked');
 
+    cy.get('#action-cluster-toggle').click({ force: true });
     cy.get('[data-testid="display-settings-toggle"]').should('be.visible').click();
     cy.get('[data-testid="display-settings-panel"]').should('be.visible');
   });

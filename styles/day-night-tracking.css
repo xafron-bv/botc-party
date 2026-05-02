@@ -1,33 +1,75 @@
-/* Day/Night Tracking Toggle Button */
-.day-night-toggle {
+/* Bottom-right action cluster: collapses into a single trigger that expands
+   into a vertical stack of action buttons sharing one column. */
+.action-cluster {
   position: fixed;
   bottom: var(--space-5);
   right: var(--space-5);
+  z-index: 1700;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: var(--touch-target-xl);
+  pointer-events: none;
+}
+
+@media (min-width: 901px) {
+  body.character-panel-open .action-cluster {
+    right: calc(var(--space-5) + clamp(300px, 30vw, 560px));
+  }
+}
+
+.action-cluster .button.action-cluster__btn,
+.action-cluster .button.action-cluster__trigger {
+  pointer-events: auto;
+  position: relative;
   width: var(--touch-target-xl);
   height: var(--touch-target-xl);
+  min-height: 0;
+  margin: 0;
   padding: 0;
-  z-index: 1700;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
   box-shadow: var(--shadow-xl);
-  transition: all var(--transition-base);
+  transition: opacity 0.2s ease, transform 0.2s ease, height 0.2s ease, margin 0.2s ease;
+  transform-origin: bottom center;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.day-night-toggle:hover {
+.action-cluster .button.action-cluster__btn + .button {
+  margin-top: var(--space-2);
+}
+
+.action-cluster .button.action-cluster__btn:hover,
+.action-cluster .button.action-cluster__trigger:hover {
   transform: scale(1.08);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .day-night-toggle:active {
+  .action-cluster .button:active {
     transform: scale(0.95);
     transition: transform 0.1s ease;
   }
+}
+
+.action-cluster[data-state="collapsed"] .action-cluster__btn {
+  opacity: 0;
+  transform: translateY(8px) scale(0.4);
+  pointer-events: none;
+  height: 0;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border: none;
+  overflow: hidden;
+}
+
+.action-cluster__trigger[aria-expanded="true"] i {
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
 }
 
 .day-night-toggle.active {
@@ -40,126 +82,10 @@
   background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
 }
 
-.display-settings-toggle {
-  position: fixed;
-  bottom: var(--space-5);
-  right: 86px;
-  width: var(--touch-target-xl);
-  height: var(--touch-target-xl);
-  padding: 0;
-  z-index: 1690;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  box-shadow: var(--shadow-xl);
-  transition: all var(--transition-base);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.display-settings-toggle:hover,
-.display-settings-toggle.active {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .display-settings-toggle:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
-  }
-}
-
-.display-settings-toggle.single-toggle {
-  right: 20px;
-}
-
-body.character-panel-open .display-settings-toggle,
-body.character-panel-open .display-settings-toggle.single-toggle {
-  right: calc(20px + clamp(300px, 30vw, 560px));
-}
-
-.export-print-toggle {
-  position: fixed;
-  bottom: var(--space-5);
-  right: 152px;
-  width: var(--touch-target-xl);
-  height: var(--touch-target-xl);
-  padding: 0;
-  z-index: 1685;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  box-shadow: var(--shadow-xl);
-  transition: all var(--transition-base);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.export-print-toggle:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .export-print-toggle:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
-  }
-}
-
-.display-settings-toggle.single-toggle + .export-print-toggle {
-  right: 86px;
-}
-
-body.character-panel-open .export-print-toggle {
-  right: calc(86px + clamp(300px, 30vw, 560px));
-}
-
-/* Grimoire snapshot/restore toggle (storyteller only) */
-.grimoire-snapshot-toggle {
-  position: fixed;
-  bottom: var(--space-5);
-  right: 218px;
-  width: var(--touch-target-xl);
-  height: var(--touch-target-xl);
-  padding: 0;
-  z-index: 1683;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  box-shadow: var(--shadow-xl);
-  transition: all var(--transition-base);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.grimoire-snapshot-toggle:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .grimoire-snapshot-toggle:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
-  }
-}
-
 .grimoire-snapshot-toggle.active {
   background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
   color: #1a1a1a;
   border-color: #f59e0b;
-}
-
-body.character-panel-open .grimoire-snapshot-toggle {
-  right: calc(218px + clamp(300px, 30vw, 560px));
 }
 
 /* Banner shown when temp snapshot is active */
@@ -183,25 +109,33 @@ body.grimoire-snapshot-active::after {
 
 .display-settings-panel {
   position: fixed;
-  bottom: 85px;
-  right: var(--space-5);
-  width: min(320px, calc(100vw - var(--space-10)));
+  /* Sit to the LEFT of the action cluster column. */
+  bottom: var(--space-5);
+  right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2));
+  width: min(320px, calc(100vw - var(--touch-target-xl) - var(--space-12)));
+  box-sizing: border-box;
   background: rgba(10, 10, 10, 0.95);
   border: 2px solid var(--color-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-4);
-  z-index: 115;
+  z-index: 1720;
   box-shadow: var(--shadow-2xl);
   opacity: 0;
-  transform: translateY(var(--space-2));
+  transform: translateX(var(--space-2));
   transition: opacity 0.24s ease, transform 0.24s ease;
   pointer-events: none;
   backdrop-filter: blur(4px);
 }
 
+@media (min-width: 901px) {
+  body.character-panel-open .display-settings-panel {
+    right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2) + clamp(300px, 30vw, 560px));
+  }
+}
+
 .display-settings-panel.open {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
 }
 
@@ -289,32 +223,37 @@ body.grimoire-snapshot-active::after {
   color: var(--color-primary-light);
 }
 
-/* Day/Night History Slider Drawer */
+/* Day/Night History Slider — popup to the LEFT of the action cluster. */
 .day-night-slider {
   position: fixed;
   bottom: var(--space-5);
-  right: 86px;
+  right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2));
   height: var(--touch-target-xl);
-  width: 320px;
-  max-width: calc(100vw - 100px);
+  width: min(320px, calc(100vw - var(--touch-target-xl) - var(--space-12)));
+  box-sizing: border-box;
   background: var(--color-bg-dark);
   border: 2px solid var(--color-primary);
   border-radius: 28px;
   padding: 0 var(--space-5);
-  z-index: 1710;
+  z-index: 1720;
   box-shadow: var(--shadow-xl);
-  transform-origin: center right;
-  transition: transform var(--transition-slow), opacity var(--transition-slow);
+  transition: opacity 0.24s ease, transform 0.24s ease;
   opacity: 0;
-  transform: scaleX(0.1);
+  transform: translateX(var(--space-2));
   pointer-events: none;
   display: flex;
   align-items: center;
 }
 
+@media (min-width: 901px) {
+  body.character-panel-open .day-night-slider {
+    right: calc(var(--space-5) + var(--touch-target-xl) + var(--space-2) + clamp(300px, 30vw, 560px));
+  }
+}
+
 .day-night-slider.open {
   opacity: 1;
-  transform: scaleX(1);
+  transform: translateX(0);
   pointer-events: auto;
 }
 
@@ -489,46 +428,31 @@ body.grimoire-snapshot-active::after {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .day-night-toggle {
-    bottom: var(--space-4);
-    right: 76px;
-    width: var(--touch-target-lg);
-    height: var(--touch-target-lg);
-    font-size: 20px;
-    /* Add subtle glow for better visibility */
-    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
-  }
-
-  .day-night-slider {
-    width: calc(100vw - 240px);
-    right: 198px;
-    bottom: var(--space-4);
-    height: var(--touch-target-lg);
-    padding: 0 var(--space-4);
-    border-width: 3px;
-  }
-
-  .export-print-toggle {
-    bottom: var(--space-4);
-    right: 136px;
-    width: var(--touch-target-lg);
-    height: var(--touch-target-lg);
-    font-size: 20px;
-    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
-  }
-
-  .display-settings-toggle {
+  .action-cluster {
     bottom: var(--space-4);
     right: var(--space-4);
     width: var(--touch-target-lg);
+  }
+
+  .action-cluster .button.action-cluster__btn,
+  .action-cluster .button.action-cluster__trigger {
+    width: var(--touch-target-lg);
     height: var(--touch-target-lg);
     font-size: 20px;
     box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
-  /* In player mode, day/night toggle is hidden and display toggle moves to the far right */
-  .display-settings-toggle.single-toggle + .export-print-toggle {
-    right: 76px;
+  .day-night-slider,
+  .display-settings-panel {
+    bottom: var(--space-4);
+    right: calc(var(--space-4) + var(--touch-target-lg) + var(--space-2));
+  }
+
+  .day-night-slider {
+    width: min(calc(100vw - var(--touch-target-lg) - var(--space-10)), 360px);
+    height: var(--touch-target-lg);
+    padding: 0 var(--space-4);
+    border-width: 3px;
   }
 
   .display-settings-value {
@@ -536,9 +460,7 @@ body.grimoire-snapshot-active::after {
   }
 
   .display-settings-panel {
-    width: min(300px, calc(100vw - var(--space-8)));
-    right: var(--space-4);
-    bottom: calc(var(--touch-target-lg) + var(--space-4) + var(--space-2));
+    width: min(300px, calc(100vw - var(--touch-target-lg) - var(--space-10)));
     padding: var(--space-4);
     border-width: 3px;
   }

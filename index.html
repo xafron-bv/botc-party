@@ -168,22 +168,29 @@
         <span class="sr-only sidebar-toggle__label">Open Sidebar</span>
       </button>
   <button id="character-panel-toggle" class="button character-panel-toggle" aria-label="Toggle script panel" aria-pressed="false" data-testid="character-panel-toggle">Script</button>
-      <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle"
-        aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
-        <i class="fas fa-moon"></i>
-      </button>
-      <button id="grimoire-snapshot-toggle" data-testid="grimoire-snapshot-toggle"
-        class="button grimoire-snapshot-toggle" aria-label="Make temporary changes to the grimoire"
-        aria-pressed="false" title="Make temporary changes to the grimoire" style="display:none;">
-        <i class="fas fa-camera" aria-hidden="true"></i>
-      </button>
-	      <button id="display-settings-toggle" data-testid="display-settings-toggle" class="button display-settings-toggle"
-	        aria-label="Adjust display settings" aria-pressed="false" title="Adjust display settings">
-	        <i class="fas fa-sliders-h"></i>
-	      </button>
-	      <button id="export-grimoire-print" class="button export-print-toggle" aria-label="Print grimoire (save as PDF)" title="Print grimoire (save as PDF)">
-	        <i class="fas fa-print"></i>
-	      </button>
+      <div id="action-cluster" class="action-cluster" data-state="collapsed">
+        <button id="display-settings-toggle" data-testid="display-settings-toggle" class="button display-settings-toggle action-cluster__btn"
+          aria-label="Adjust display settings" aria-pressed="false" title="Adjust display settings">
+          <i class="fas fa-sliders-h"></i>
+        </button>
+        <button id="grimoire-snapshot-toggle" data-testid="grimoire-snapshot-toggle"
+          class="button grimoire-snapshot-toggle action-cluster__btn" aria-label="Make temporary changes to the grimoire"
+          aria-pressed="false" title="Make temporary changes to the grimoire" style="display:none;">
+          <i class="fas fa-camera" aria-hidden="true"></i>
+        </button>
+        <button id="export-grimoire-print" class="button export-print-toggle action-cluster__btn"
+          aria-label="Print grimoire (save as PDF)" title="Print grimoire (save as PDF)">
+          <i class="fas fa-print"></i>
+        </button>
+        <button id="day-night-toggle" data-testid="day-night-toggle" class="button day-night-toggle action-cluster__btn"
+          aria-label="Toggle day/night tracking" aria-pressed="false" title="Toggle day/night tracking">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button id="action-cluster-toggle" data-testid="action-cluster-toggle" class="button action-cluster__trigger"
+          aria-label="Show grimoire actions" aria-expanded="false" title="Grimoire actions">
+          <i class="fas fa-ellipsis-vertical" aria-hidden="true"></i>
+        </button>
+      </div>
 	      <div id="display-settings-panel" data-testid="display-settings-panel" class="display-settings-panel" aria-hidden="true">
 	        <h4>Display Settings</h4>
 	        <div class="display-settings-row">

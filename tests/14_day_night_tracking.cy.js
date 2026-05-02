@@ -123,6 +123,14 @@ describe('Day/Night Tracking Feature', () => {
 
       cy.viewport(320, 700);
 
+      // Sidebar-close click counts as an outside-click and dismisses the slider;
+      // re-open it before driving the add-phase button.
+      cy.get('body').then(($body) => {
+        if (!$body.find('#day-night-slider.open').length) {
+          cy.get('[data-testid="day-night-toggle"]').click({ force: true });
+        }
+      });
+
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('[data-testid="add-phase-button"]').click();
@@ -146,18 +154,24 @@ describe('Day/Night Tracking Feature', () => {
 
   describe('History Slider', () => {
     beforeEach(() => {
-      // Enable day/night tracking
+      // Enable day/night tracking (reopen slider when needed because clicking
+      // outside the slider — e.g. on a player token — now closes it).
+      const reopenSlider = () => cy.get('body').then(($body) => {
+        if (!$body.find('#day-night-slider.open').length) {
+          cy.get('[data-testid="day-night-toggle"]').click({ force: true });
+        }
+      });
+
       cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
-      // Create multiple phases with reminders
       // N1 reminder
       cy.get('li').first().find('.reminder-placeholder').click({ altKey: true, force: true });
-      // Wait for modal to be visible
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Reminder N1');
       cy.get('[data-testid="save-text-reminder"]').click();
 
       // Move to D1 and add reminder
+      reopenSlider();
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('li').eq(1).find('.reminder-placeholder').click({ altKey: true });
       cy.get('#text-reminder-modal').should('be.visible');
@@ -165,19 +179,27 @@ describe('Day/Night Tracking Feature', () => {
       cy.get('[data-testid="save-text-reminder"]').click();
 
       // Move to N2 and add reminder
+      reopenSlider();
       cy.get('[data-testid="add-phase-button"]').click();
       cy.get('li').eq(2).find('.reminder-placeholder').click({ altKey: true });
       cy.get('#text-reminder-modal').should('be.visible');
       cy.get('#reminder-text-input').type('Reminder N2');
       cy.get('[data-testid="save-text-reminder"]').click();
+
+      // Re-open so slider-based assertions in the tests below find it visible.
+      reopenSlider();
     });
 
-    it('should show slider as seamless extension of toggle button when enabled', () => {
+    it('should show slider as a popup to the left of the action cluster when enabled', () => {
       cy.get('[data-testid="day-night-slider"]').should('be.visible');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '56px');
       cy.get('[data-testid="day-night-slider"]').should('have.class', 'open');
+      cy.window().then((win) => {
+        const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
+        const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+        expect(slider.right, 'slider sits to the left of cluster').to.be.at.most(cluster.left + 1);
+      });
     });
 
     it('should allow navigating through day/night history', () => {
@@ -215,14 +237,18 @@ describe('Day/Night Tracking Feature', () => {
   });
 
   describe('UI Integration', () => {
-    it('should position slider seamlessly with toggle button without interfering with grimoire', () => {
+    it('should position slider as a popup to the left of the action cluster without interfering with grimoire', () => {
       cy.get('[data-testid="day-night-toggle"]').click({ force: true });
 
-      // Slider should be positioned at same level as toggle button
+      // Slider is a popup sitting to the left of the cluster column.
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'position', 'fixed');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'bottom', '20px');
-      cy.get('[data-testid="day-night-slider"]').should('have.css', 'right', '86px');
       cy.get('[data-testid="day-night-slider"]').should('have.css', 'height', '56px');
+      cy.window().then((win) => {
+        const slider = win.document.getElementById('day-night-slider').getBoundingClientRect();
+        const cluster = win.document.getElementById('action-cluster').getBoundingClientRect();
+        expect(slider.right, 'slider sits to the left of cluster').to.be.at.most(cluster.left + 1);
+        expect(slider.bottom, 'slider aligned with cluster bottom').to.be.closeTo(cluster.bottom, 4);
+      });
 
       // Player circle should still be visible and not overlapped
       cy.get('#player-circle').should('be.visible');

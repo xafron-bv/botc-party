@@ -17,6 +17,7 @@ try { window.processScriptData = processScriptData; } catch (_) { /* noop */ }
 import { initStorytellerMessages } from './src/storytellerMessages.js';
 import { repositionPlayers } from './src/ui/layout.js';
 import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
+import { initActionCluster } from './src/ui/actionCluster.js';
 import { initDisplaySettings } from './src/ui/displaySettings.js';
 import { initInAppTour } from './src/ui/tour.js';
 import { handleGrimoireBackgroundChange, initGrimoireBackground } from './src/ui/background.js';
@@ -250,7 +251,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modePlayerRadio = document.getElementById('mode-player');
     const dayNightToggleBtn = document.getElementById('day-night-toggle');
     const dayNightSlider = document.getElementById('day-night-slider');
-    const displaySettingsToggleBtn = document.getElementById('display-settings-toggle');
     const revealToggleBtn = document.getElementById('reveal-assignments');
     const revealSelectedBtn = document.getElementById('reveal-selected-characters');
     const grimoireSnapshotToggleBtn = document.getElementById('grimoire-snapshot-toggle');
@@ -294,6 +294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.updateButtonStates = updateButtonStates;
 
     initGrimoireBackground();
+    initActionCluster();
     initDisplaySettings({ grimoireState });
     initGrimoirePrintExport();
 
@@ -353,13 +354,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.classList.toggle('mode-storyteller', !isPlayer);
       } catch (_) { }
       if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
-      if (displaySettingsToggleBtn) {
-        if (isPlayer) {
-          displaySettingsToggleBtn.classList.add('single-toggle');
-        } else {
-          displaySettingsToggleBtn.classList.remove('single-toggle');
-        }
-      }
       if (dayNightSlider && isPlayer) {
         dayNightSlider.classList.remove('open');
         dayNightSlider.style.display = 'none';

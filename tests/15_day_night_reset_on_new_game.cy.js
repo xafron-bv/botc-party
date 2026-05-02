@@ -29,6 +29,9 @@ describe('Day/Night slider resets when starting a new game', () => {
   it('resets tracking to N1 for a new game (tracking only available in-game)', () => {
     startGameWithPlayers(5);
 
+    // Expand the action cluster so the day-night-toggle is reachable.
+    cy.get('#action-cluster-toggle').click({ force: true });
+
     // Toggle is interactive immediately
     cy.get('#day-night-toggle').should('have.css', 'pointer-events', 'auto').click();
     cy.get('#day-night-slider').should('have.class', 'open');
