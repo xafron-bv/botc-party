@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-05-01T23:09:24.189Z",
+  "generatedAt": "2026-05-02T09:44:01.243Z",
   "core": [
     {
       "path": "./index.html",
-      "hash": "3140ded1372c"
+      "hash": "05bdf4ec7eee"
     },
     {
       "path": "./manifest.json",
@@ -15,7 +15,7 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "c97e1ed64461"
+      "hash": "e1cdd1226420"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -35,7 +35,7 @@
     },
     {
       "path": "./src/dayNightTracking.js",
-      "hash": "116b822e647a"
+      "hash": "a1d98406d39c"
     },
     {
       "path": "./src/export/grimoirePrint.js",
@@ -43,7 +43,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "9f20403e63e3"
+      "hash": "7a927f47318b"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -88,6 +88,10 @@
     {
       "path": "./src/ui/abilityInfoIcon.js",
       "hash": "ec2a689d165c"
+    },
+    {
+      "path": "./src/ui/actionCluster.js",
+      "hash": "1500469b5588"
     },
     {
       "path": "./src/ui/background.js",
@@ -177,7 +181,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "28a09cf7e7ea"
+      "hash": "dabd2e928928"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1005,7 +1009,7 @@
     },
     {
       "path": "./index.html",
-      "hash": "3140ded1372c"
+      "hash": "05bdf4ec7eee"
     },
     {
       "path": "./manifest.json",
@@ -1025,7 +1029,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "6eb86eeb2a7d"
+      "hash": "72a36fc7b530"
     },
     {
       "path": "./service-worker.js",
@@ -1033,7 +1037,7 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "c97e1ed64461"
+      "hash": "e1cdd1226420"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -1053,7 +1057,7 @@
     },
     {
       "path": "./src/dayNightTracking.js",
-      "hash": "116b822e647a"
+      "hash": "a1d98406d39c"
     },
     {
       "path": "./src/export/grimoirePrint.js",
@@ -1061,7 +1065,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "9f20403e63e3"
+      "hash": "7a927f47318b"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -1106,6 +1110,10 @@
     {
       "path": "./src/ui/abilityInfoIcon.js",
       "hash": "ec2a689d165c"
+    },
+    {
+      "path": "./src/ui/actionCluster.js",
+      "hash": "1500469b5588"
     },
     {
       "path": "./src/ui/background.js",
@@ -1217,7 +1225,7 @@
     },
     {
       "path": "./styles/day-night-tracking.css",
-      "hash": "57eb8c9cd4fb"
+      "hash": "1806b3863d05"
     },
     {
       "path": "./styles/menus.css",
