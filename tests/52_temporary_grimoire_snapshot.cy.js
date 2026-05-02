@@ -108,4 +108,27 @@ describe('Temporary grimoire snapshot/restore', () => {
     cy.get('#player-circle li').eq(0).find('.character-name').should('contain', 'Chef');
     cy.get('#player-circle li').eq(1).find('.text-reminder').should('have.length', 1);
   });
+
+  it('positions the snapshot button next to the other action buttons on small screens', () => {
+    cy.viewport('iphone-6'); // 375 x 667
+    cy.reload();
+    cy.ensureStorytellerMode();
+    cy.get('#grimoire-snapshot-toggle').should('exist');
+
+    cy.window().then((win) => {
+      const snap = win.document.getElementById('grimoire-snapshot-toggle').getBoundingClientRect();
+      const print = win.document.getElementById('export-grimoire-print').getBoundingClientRect();
+      const moon = win.document.getElementById('day-night-toggle').getBoundingClientRect();
+      const settings = win.document.getElementById('display-settings-toggle').getBoundingClientRect();
+      const debug = `snap=L${snap.left}R${snap.right} print=L${print.left}R${print.right} moon=L${moon.left}R${moon.right} settings=L${settings.left}R${settings.right}`;
+
+      // Snapshot button should sit immediately to the left of the print button,
+      // forming a tight cluster with the other bottom-right action buttons rather
+      // than floating in the middle of the screen over the character ability cards.
+      const gap = print.left - snap.right;
+      expect(gap, `gap snap→print (${debug})`).to.be.within(0, 16);
+      expect(moon.left - print.right, `gap print→moon (${debug})`).to.be.within(0, 16);
+      expect(settings.left - moon.right, `gap moon→settings (${debug})`).to.be.within(0, 16);
+    });
+  });
 });

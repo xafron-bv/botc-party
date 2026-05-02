@@ -526,6 +526,19 @@ body.grimoire-snapshot-active::after {
     box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 
+  .grimoire-snapshot-toggle {
+    bottom: var(--space-4);
+    right: 196px;
+    width: var(--touch-target-lg);
+    height: var(--touch-target-lg);
+    font-size: 20px;
+    box-shadow: var(--shadow-xl), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  body.character-panel-open .grimoire-snapshot-toggle {
+    right: calc(196px + clamp(300px, 30vw, 560px));
+  }
+
   /* In player mode, day/night toggle is hidden and display toggle moves to the far right */
   .display-settings-toggle.single-toggle + .export-print-toggle {
     right: 76px;
