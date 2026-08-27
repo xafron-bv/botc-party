@@ -62,6 +62,9 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
           (target && target.closest('.token-reminder'));
       }
     });
+    tokenEl.addEventListener('touchend', () => {
+      if (grimoireState.playerContextMenu?.style.display === 'block') grimoireState.menuOpenedAt = Date.now();
+    });
   }
   listItem.addEventListener('contextmenu', (e) => {
     const target = e.target; const fromReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
