@@ -2,6 +2,7 @@ import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
 import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoire.js';
 import { updateBluffAttentionState } from '../bluffTokens.js';
+import { captureGameState, normalizeGameState } from '../gameState.js';
 function getStatusEl() { return document.getElementById('import-status'); }
 function setStatus({ message, isError = false }) {
   const el = getStatusEl(); if (!el) return; el.textContent = message || ''; el.className = message ? (isError ? 'error' : 'status') : '';
@@ -19,25 +20,6 @@ function isHistoryExportFile(data) {
     typeof data === 'object' &&
     !Array.isArray(data) &&
     ('scriptHistory' in data || 'grimoireHistory' in data));
-}
-function normalizeImportedGameState(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return null; const state = (data.gameState && typeof data.gameState === 'object') ? data.gameState : data;
-  if (!state || typeof state !== 'object' || Array.isArray(state)) return null; const scriptData = Array.isArray(state.scriptData) ? state.scriptData : [];
-  const players = Array.isArray(state.players) ? state.players : [];
-  return {
-    scriptData,
-    players,
-    scriptMetaName: typeof state.scriptMetaName === 'string' ? state.scriptMetaName : (typeof state.scriptName === 'string' ? state.scriptName : ''),
-    includeTravellers: !!state.includeTravellers,
-    dayNightTracking: state.dayNightTracking || { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} },
-    bluffs: Array.isArray(state.bluffs) ? state.bluffs : [null, null, null],
-    mode: state.mode === 'player' ? 'player' : 'storyteller',
-    grimoireHidden: !!state.grimoireHidden,
-    playerSetup: state.playerSetup || { bag: [], assignments: [], revealed: false },
-    gameStarted: !!state.gameStarted,
-    winner: state.winner || null,
-    tempSnapshot: state.tempSnapshot || null
-  };
 }
 function applyModeUi({ grimoireState }) {
   const modeStorytellerRadio = document.getElementById('mode-storyteller'); const modePlayerRadio = document.getElementById('mode-player');
@@ -75,20 +57,7 @@ function applyModeUi({ grimoireState }) {
   try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
 }
 export function exportCurrentGame({ grimoireState }) {
-  const gameState = {
-    scriptData: Array.isArray(grimoireState.scriptData) ? grimoireState.scriptData : [],
-    scriptMetaName: typeof grimoireState.scriptMetaName === 'string' ? grimoireState.scriptMetaName : '',
-    includeTravellers: !!grimoireState.includeTravellers,
-    players: Array.isArray(grimoireState.players) ? grimoireState.players : [],
-    dayNightTracking: grimoireState.dayNightTracking || { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} },
-    bluffs: Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [null, null, null],
-    mode: grimoireState.mode === 'player' ? 'player' : 'storyteller',
-    grimoireHidden: !!grimoireState.grimoireHidden,
-    playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
-    gameStarted: !!grimoireState.gameStarted,
-    winner: grimoireState.winner || null,
-    tempSnapshot: grimoireState.tempSnapshot || null
-  };
+  const gameState = captureGameState(grimoireState);
   const exportData = {
     kind: 'botc-current-game',
     version: 1,
@@ -112,7 +81,7 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
   }
   if (Array.isArray(data)) { alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); return; }
   if (isHistoryExportFile(data)) { alert('This appears to be a user data history export file. Please use the "Import Data" button.'); return; }
-  const normalized = normalizeImportedGameState(data);
+  const normalized = normalizeGameState(data);
   if (!normalized) { alert('Invalid game export file.'); return; }
   const saved = {
     scriptData: normalized.scriptData,

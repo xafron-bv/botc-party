@@ -31,6 +31,7 @@ import { initThemeSelector, handleThemeChange } from './src/themeManager.js';
 import { initGrimoirePrintExport } from './src/export/grimoirePrint.js';
 import { byId, byIds } from './src/utils/dom.js';
 import { createGrimoireState, showVersion, trackPageLoad } from './src/bootstrap.js';
+import { createDayNightTrackingState } from './src/gameState.js';
 document.addEventListener('DOMContentLoaded', async () => {
   const finishPageLoad = trackPageLoad();
   const bootstrap = async () => {
@@ -124,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
       }
       try {
-        if (!grimoireState.dayNightTracking) { grimoireState.dayNightTracking = { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} }; } else {
+        if (!grimoireState.dayNightTracking) { grimoireState.dayNightTracking = createDayNightTrackingState(); } else {
           grimoireState.dayNightTracking.enabled = false; grimoireState.dayNightTracking.phases = ['N1']; grimoireState.dayNightTracking.currentPhaseIndex = 0;
           grimoireState.dayNightTracking.reminderTimestamps = {};
         }

@@ -1,4 +1,5 @@
 import { byId } from './utils/dom.js';
+import { createPlayerSetupState } from './gameState.js';
 export function trackPageLoad() {
   const overlay = byId('app-loading'); window.__overlayInitialVisible = Boolean(overlay); window.__overlayInitialMessage = byId('app-loading-message')?.textContent || '';
   let appReady = false; let windowReady = document.readyState === 'complete'; let removed = false;
@@ -29,6 +30,6 @@ export function createGrimoireState() {
     editingReminder: { playerIndex: -1, reminderIndex: -1 }, isRestoringState: false,
     outsideCollapseHandlerInstalled: false, mode: 'player', grimoireHidden: false, tempSnapshot: null, gameStarted: false,
     displaySettings: { tokenScale: 1, playerNameScale: 1, circleScale: 1 },
-    playerSetup: { bag: [], assignments: [], revealed: false }
+    playerSetup: createPlayerSetupState()
   };
 }

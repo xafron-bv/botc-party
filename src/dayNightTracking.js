@@ -1,15 +1,10 @@
 import { updateGrimoire } from './grimoire.js';
 import { withStateSave } from './app.js';
 import { settleAnimations } from './utils/dom.js';
+import { createDayNightTrackingState } from './gameState.js';
 export function initDayNightTracking(grimoireState) {
   if (!grimoireState.dayNightTracking) {
-    grimoireState.dayNightTracking = {
-      enabled: false,
-      phases: ['N1'],
-      currentPhaseIndex: 0,
-      reminderTimestamps: {},
-      phaseSnapshots: {}
-    };
+    grimoireState.dayNightTracking = createDayNightTrackingState({ includeSnapshots: true });
   } else {
     if (!grimoireState.dayNightTracking.phaseSnapshots) { grimoireState.dayNightTracking.phaseSnapshots = {}; }
   }
