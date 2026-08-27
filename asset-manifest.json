@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-27T12:48:33.808Z",
+  "generatedAt": "2026-08-27T18:54:43.701Z",
   "core": [
     {
       "path": "./index.html",
@@ -23,11 +23,11 @@
     },
     {
       "path": "./src/bootstrap.js",
-      "hash": "d55506637edc"
+      "hash": "11565ed5a660"
     },
     {
       "path": "./src/character.js",
-      "hash": "6911a2e1b074"
+      "hash": "4cdf43fe8ba1"
     },
     {
       "path": "./src/constants.js",
@@ -71,11 +71,15 @@
     },
     {
       "path": "./src/playerSelection.js",
-      "hash": "d33c3b92a7eb"
+      "hash": "b1009ce74dba"
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "fa1fb6828b36"
+      "hash": "f29985f37b2a"
+    },
+    {
+      "path": "./src/playerSetupState.js",
+      "hash": "9f8ce4957724"
     },
     {
       "path": "./src/reminder.js",
@@ -83,7 +87,7 @@
     },
     {
       "path": "./src/script.js",
-      "hash": "e8be5542390f"
+      "hash": "7e20dfee36de"
     },
     {
       "path": "./src/storytellerMessages.js",
@@ -118,6 +122,10 @@
       "hash": "865203373e58"
     },
     {
+      "path": "./src/ui/gameMode.js",
+      "hash": "ebed5e953141"
+    },
+    {
       "path": "./src/ui/layout.js",
       "hash": "76abc11eab8a"
     },
@@ -126,12 +134,20 @@
       "hash": "70eae5580264"
     },
     {
+      "path": "./src/ui/nightOrderControls.js",
+      "hash": "d46e3e5d2ca2"
+    },
+    {
       "path": "./src/ui/playerCircle.js",
-      "hash": "424f9c4ef496"
+      "hash": "1961aa9d04f2"
     },
     {
       "path": "./src/ui/playerUpdate.js",
       "hash": "4da775f1c712"
+    },
+    {
+      "path": "./src/ui/scriptControls.js",
+      "hash": "c70995cf27da"
     },
     {
       "path": "./src/ui/sidebar.js",
@@ -197,7 +213,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "584719728fbf"
+      "hash": "65f145342eeb"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1045,7 +1061,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "622428bc4912"
+      "hash": "3eed22926e61"
     },
     {
       "path": "./service-worker.js",
@@ -1061,11 +1077,11 @@
     },
     {
       "path": "./src/bootstrap.js",
-      "hash": "d55506637edc"
+      "hash": "11565ed5a660"
     },
     {
       "path": "./src/character.js",
-      "hash": "6911a2e1b074"
+      "hash": "4cdf43fe8ba1"
     },
     {
       "path": "./src/constants.js",
@@ -1109,11 +1125,15 @@
     },
     {
       "path": "./src/playerSelection.js",
-      "hash": "d33c3b92a7eb"
+      "hash": "b1009ce74dba"
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "fa1fb6828b36"
+      "hash": "f29985f37b2a"
+    },
+    {
+      "path": "./src/playerSetupState.js",
+      "hash": "9f8ce4957724"
     },
     {
       "path": "./src/reminder.js",
@@ -1121,7 +1141,7 @@
     },
     {
       "path": "./src/script.js",
-      "hash": "e8be5542390f"
+      "hash": "7e20dfee36de"
     },
     {
       "path": "./src/storytellerMessages.js",
@@ -1156,6 +1176,10 @@
       "hash": "865203373e58"
     },
     {
+      "path": "./src/ui/gameMode.js",
+      "hash": "ebed5e953141"
+    },
+    {
       "path": "./src/ui/layout.js",
       "hash": "76abc11eab8a"
     },
@@ -1164,12 +1188,20 @@
       "hash": "70eae5580264"
     },
     {
+      "path": "./src/ui/nightOrderControls.js",
+      "hash": "d46e3e5d2ca2"
+    },
+    {
       "path": "./src/ui/playerCircle.js",
-      "hash": "424f9c4ef496"
+      "hash": "1961aa9d04f2"
     },
     {
       "path": "./src/ui/playerUpdate.js",
       "hash": "4da775f1c712"
+    },
+    {
+      "path": "./src/ui/scriptControls.js",
+      "hash": "c70995cf27da"
     },
     {
       "path": "./src/ui/sidebar.js",
