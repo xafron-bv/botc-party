@@ -9,6 +9,7 @@ import { showReminderContextMenu } from './ui/contextMenu.js';
 import { setupInteractiveElement } from './utils/interaction.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
+import { loadGameData } from './roleData.js';
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid'); const reminderTokenSearch = document.getElementById('reminder-token-search');
   const reminderTokenModal = document.getElementById('reminder-token-modal'); if (!reminderTokenGrid) return; reminderTokenGrid.innerHTML = '';
@@ -42,7 +43,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     try { reminderTokenModal.style.display = 'none'; } catch (_) { }
   }); reminderTokenGrid.addEventListener('click', delegatedSelectionHandler, true); reminderTokenGrid._delegatedSelectionHandler = delegatedSelectionHandler;
   try {
-    const res = await fetch('./data.json?v=reminders', { cache: 'no-store' }); if (!res.ok) throw new Error('Failed to load data.json'); const data = await res.json();
+    const data = await loadGameData();
     const json = { roles: data.roles, reminderTokens: data.reminderTokens || [] }; let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
     const scriptReminderTokens = []; const isPlayerMode = grimoireState && grimoireState.mode === 'player';
     try {

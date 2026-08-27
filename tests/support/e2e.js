@@ -108,12 +108,13 @@ Cypress.Commands.add('resetApp', ({
   showSidebar = true,
   showGrimoire = true
 } = {}) => {
-  cy.visit('/');
+  cy.visit('/', clearStorage ? {
+    onBeforeLoad: (win) => {
+      try { win.localStorage.clear(); } catch (_) { }
+    }
+  } : {});
   if (viewport) {
     Array.isArray(viewport) ? cy.viewport(viewport[0], viewport[1]) : cy.viewport(viewport);
-  }
-  if (clearStorage) {
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
   }
   if (mode === 'storyteller') {
     cy.ensureStorytellerMode();

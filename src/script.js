@@ -5,6 +5,7 @@ import { renderSetupInfo } from './utils/setup.js';
 import { addScriptToHistory } from './history/script.js';
 import { openCharacterPanel } from './ui/characterPanel.js';
 import { byId, createElement } from './utils/dom.js';
+import { loadGameData } from './roleData.js';
 const TOKEN_IMAGE = './assets/img/token.png';
 const HISTORY_EXPORT_MESSAGE = 'This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.';
 const isHistoryExport = (value) => value && typeof value === 'object' && !Array.isArray(value)
@@ -46,13 +47,10 @@ export async function displayScript({ data, grimoireState }) {
   }
   let jinxData = [];
   try {
-    const dataResponse = await fetch('./data.json');
-    if (dataResponse.ok) {
-      const data = await dataResponse.json();
-      jinxData = data.roles
-        .filter(role => role.jinxes && role.jinxes.length > 0)
-        .map(role => ({ id: role.id, jinx: role.jinxes }));
-    }
+    const gameData = await loadGameData();
+    jinxData = gameData.roles
+      .filter(role => role.jinxes && role.jinxes.length > 0)
+      .map(role => ({ id: role.id, jinx: role.jinxes }));
   } catch (e) { console.warn('Failed to load jinx data:', e); }
   const displayRoles = {
     ...(grimoireState.baseRoles || {}),
@@ -105,8 +103,7 @@ export function loadScriptFromDataJson({ editionId, grimoireState }) {
     const setStatus = statusWriter();
     const editionNames = { 'tb': 'Trouble Brewing', 'bmr': 'Bad Moon Rising', 'snv': 'Sects and Violets' };
     try {
-      const editionName = editionNames[editionId] || editionId; setStatus(`Loading ${editionName}...`); const res = await fetch('./data.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`); const data = await res.json(); const edition = data.editions.find(e => e.id === editionId);
+      const editionName = editionNames[editionId] || editionId; setStatus(`Loading ${editionName}...`); const data = await loadGameData(); const edition = data.editions.find(e => e.id === editionId);
       if (!edition) throw new Error(`Edition ${editionId} not found`);
       const editionCharacters = data.roles.filter(role => role.edition === editionId && role.team !== 'traveller').map(role => role.id);
       const scriptData = [{ id: '_meta', author: '', name: editionName }, ...editionCharacters];

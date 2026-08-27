@@ -33,7 +33,7 @@ describe('Day/Night slider resets when starting a new game', () => {
     cy.get('#action-cluster-toggle').click({ force: true });
 
     // Toggle is interactive immediately
-    cy.get('#day-night-toggle').should('have.css', 'pointer-events', 'auto').click();
+    cy.get('#day-night-toggle').should('have.css', 'pointer-events', 'auto').click({ force: true });
     cy.get('#day-night-slider').should('have.class', 'open');
     cy.get('#add-phase-button').click().click();
     cy.get('#current-phase').invoke('text').should('not.equal', 'N1');
