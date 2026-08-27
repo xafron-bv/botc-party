@@ -6,7 +6,9 @@ export function calculateRadialPosition({
   offset = 0,
   usePercentage = false
 }) {
-  const totalDistance = radius + offset; const dx = Math.cos(angle) * totalDistance; const dy = Math.sin(angle) * totalDistance;
+  const totalDistance = radius + offset;
+  const dx = Math.cos(angle) * totalDistance;
+  const dy = Math.sin(angle) * totalDistance;
   if (usePercentage) {
     return {
       left: `calc(50% + ${dx}px)`,

@@ -1,15 +1,37 @@
 @media (max-width: 600px) {
-  :root { --token-size-base: clamp(56px, 16vmin, 120px); }
-  #character-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: var(--space-5) var(--space-3); }
-  .modal-content {
-    padding: clamp(var(--space-4), 4vmin, var(--space-6)); max-width: 94%; max-height: 92%; min-width: min(75%, 280px); border-radius: var(--radius-lg);
+  :root {
+    --token-size-base: clamp(56px, 16vmin, 120px);
   }
-  #reminder-token-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: var(--space-3); }
-  .player-token .death-vote-indicator { width: calc(var(--player-token-size) * 0.22); height: calc(var(--player-token-size) * 0.22); }
-  .button { font-size: var(--font-lg); padding: var(--space-4) var(--space-6); min-height: var(--touch-target-lg); }
-  input[type="text"],
-  input[type="number"],
-  input[type="url"],
+  #character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: var(--space-5) var(--space-3);
+  }
+  .modal-content {
+    padding: clamp(var(--space-4), 4vmin, var(--space-6));
+    max-width: 94%;
+    max-height: 92%;
+    min-width: min(75%, 280px);
+    border-radius: var(--radius-lg);
+  }
+  #reminder-token-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: var(--space-3);
+  }
+  .player-token .death-vote-indicator {
+    width: calc(var(--player-token-size) * 0.22);
+    height: calc(var(--player-token-size) * 0.22);
+  }
+  .button {
+    font-size: var(--font-lg);
+    padding: var(--space-4) var(--space-6);
+    min-height: var(--touch-target-lg);
+  }
+  input[type='text'],
+  input[type='number'],
+  input[type='url'],
   textarea,
-  select { font-size: var(--font-lg); min-height: var(--touch-target-lg); }
+  select {
+    font-size: var(--font-lg);
+    min-height: var(--touch-target-lg);
+  }
 }

@@ -1,9 +1,16 @@
 @media print {
-  @page { margin: 0; size: landscape; }
+  @page {
+    margin: 0;
+    size: landscape;
+  }
   html,
   body {
-    margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   #app-loading,
   #sidebar,
@@ -22,12 +29,24 @@
   #ability-tooltip,
   #touch-ability-popup,
   .ability-info-icon,
-  .reminder-placeholder { display: none !important; }
+  .reminder-placeholder {
+    display: none !important;
+  }
   #app,
   #grimoire,
-  #center { width: 100vw !important; height: 100vh !important; overflow: hidden !important; }
-  #player-circle-wrapper { width: 100% !important; height: 100% !important; }
+  #center {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+  #player-circle-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+  }
   #player-circle-wrapper,
   #player-circle,
-  #bluff-tokens-container { break-inside: avoid; page-break-inside: avoid; }
+  #bluff-tokens-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

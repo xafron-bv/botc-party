@@ -9,19 +9,31 @@ import { positionRadialStack } from './layout.js';
 import { showStorytellerMessage } from '../storytellerMessages.js';
 import { withStateSave } from '../app.js';
 function getAlignmentOverrideFilter({ role, player }) {
-  if (!role || !player) return null; const reminders = Array.isArray(player.reminders) ? player.reminders : []; let override = null;
+  if (!role || !player) return null;
+  const reminders = Array.isArray(player.reminders) ? player.reminders : [];
+  let override = null;
   for (const reminder of reminders) {
     if (!reminder || reminder.type !== 'icon') continue;
-    if (reminder.id === 'evil-evil') { override = 'evil'; break; }
+    if (reminder.id === 'evil-evil') {
+      override = 'evil';
+      break;
+    }
     if (reminder.id === 'good-good') override = 'good';
   }
   if (!override) return null;
-  const baseAlignment = (role.team === 'minion' || role.team === 'demon') ? 'evil'
-    : (role.team === 'townsfolk' || role.team === 'outsider') ? 'good'
-      : null;
+  const baseAlignment =
+    role.team === 'minion' || role.team === 'demon'
+      ? 'evil'
+      : role.team === 'townsfolk' || role.team === 'outsider'
+        ? 'good'
+        : null;
   if (!baseAlignment || baseAlignment === override) return null;
-  if (baseAlignment === 'good' && override === 'evil') { return 'hue-rotate(120deg) saturate(1.25) brightness(0.88) contrast(1.12)'; }
-  if (baseAlignment === 'evil' && override === 'good') { return 'hue-rotate(-120deg) saturate(1.15) brightness(0.95) contrast(1.08)'; }
+  if (baseAlignment === 'good' && override === 'evil') {
+    return 'hue-rotate(120deg) saturate(1.25) brightness(0.88) contrast(1.12)';
+  }
+  if (baseAlignment === 'evil' && override === 'good') {
+    return 'hue-rotate(-120deg) saturate(1.15) brightness(0.95) contrast(1.08)';
+  }
   return null;
 }
 export function updatePlayerElement({
@@ -35,22 +47,41 @@ export function updatePlayerElement({
   showNightReminders = false,
   currentPhase
 }) {
-  const player = grimoireState.players[playerIndex]; const playerNameEl = li.querySelector('.player-name'); playerNameEl.textContent = player.name;
-  const angle = parseFloat(li.dataset.angle || '0'); const y = Math.sin(angle); const isNorthQuadrant = y < 0;
-  if (isNorthQuadrant) { playerNameEl.classList.add('top-half'); li.classList.add('is-north'); li.classList.remove('is-south'); } else {
-    playerNameEl.classList.remove('top-half'); li.classList.add('is-south'); li.classList.remove('is-north');
+  const player = grimoireState.players[playerIndex];
+  const playerNameEl = li.querySelector('.player-name');
+  playerNameEl.textContent = player.name;
+  const angle = parseFloat(li.dataset.angle || '0');
+  const y = Math.sin(angle);
+  const isNorthQuadrant = y < 0;
+  if (isNorthQuadrant) {
+    playerNameEl.classList.add('top-half');
+    li.classList.add('is-north');
+    li.classList.remove('is-south');
+  } else {
+    playerNameEl.classList.remove('top-half');
+    li.classList.add('is-south');
+    li.classList.remove('is-north');
   }
-  const tokenDiv = li.querySelector('.player-token'); const charNameDiv = li.querySelector('.character-name'); const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
-  if (existingArc) existingArc.remove(); const oldCircle = tokenDiv.querySelector('.death-overlay'); if (oldCircle) oldCircle.remove();
-  const oldRibbon = tokenDiv.querySelector('.death-ribbon'); if (oldRibbon) oldRibbon.remove(); li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
+  const tokenDiv = li.querySelector('.player-token');
+  const charNameDiv = li.querySelector('.character-name');
+  const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
+  if (existingArc) existingArc.remove();
+  const oldCircle = tokenDiv.querySelector('.death-overlay');
+  if (oldCircle) oldCircle.remove();
+  const oldRibbon = tokenDiv.querySelector('.death-ribbon');
+  if (oldRibbon) oldRibbon.remove();
+  li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
   const isSelectionActive = grimoireState.playerSetup && grimoireState.playerSetup.selectionActive;
-  const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null; const isTraveller = role && role.team === 'traveller';
-  const shouldShowCharacter = !grimoireState.grimoireHidden || (isSelectionActive && isTraveller); const baseTokenImage = resolveAssetPath('assets/img/token.png');
+  const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
+  const isTraveller = role && role.team === 'traveller';
+  const shouldShowCharacter = !grimoireState.grimoireHidden || (isSelectionActive && isTraveller);
+  const baseTokenImage = resolveAssetPath('assets/img/token.png');
   if (shouldShowCharacter && player.character && role) {
     const filter = getAlignmentOverrideFilter({ role, player });
     try {
-      if (filter) tokenDiv.style.setProperty('--role-art-filter', filter); else tokenDiv.style.removeProperty('--role-art-filter');
-    } catch (_) { }
+      if (filter) tokenDiv.style.setProperty('--role-art-filter', filter);
+      else tokenDiv.style.removeProperty('--role-art-filter');
+    } catch (_) {}
     renderTokenElement({
       tokenElement: tokenDiv,
       role,
@@ -59,49 +90,70 @@ export function updatePlayerElement({
       showAbilityIcon: shouldShowCharacter,
       iconContainer: li,
       dataset: { playerIndex: String(playerIndex) }
-    }); if (charNameDiv) charNameDiv.textContent = role.name;
+    });
+    if (charNameDiv) charNameDiv.textContent = role.name;
   } else {
-    try { tokenDiv.style.removeProperty('--role-art-filter'); } catch (_) { }
+    try {
+      tokenDiv.style.removeProperty('--role-art-filter');
+    } catch (_) {}
     renderTokenElement({
       tokenElement: tokenDiv,
       role: null,
       baseImage: baseTokenImage,
       showLabel: false
-    }); if (charNameDiv) charNameDiv.textContent = '';
+    });
+    if (charNameDiv) charNameDiv.textContent = '';
   }
-  const overlay = document.createElement('div'); overlay.className = 'death-overlay'; overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
+  const overlay = document.createElement('div');
+  overlay.className = 'death-overlay';
+  overlay.title = player.dead ? 'Click to mark alive' : 'Click to mark dead';
   tokenDiv.appendChild(overlay);
   const shouldHighlightNightKill = Boolean(
     player &&
-    player.dead &&
-    player.nightKilledPhase &&
-    currentPhase &&
-    player.nightKilledPhase === currentPhase
+      player.dead &&
+      player.nightKilledPhase &&
+      currentPhase &&
+      player.nightKilledPhase === currentPhase
   );
   const ribbon = createDeathRibbonSvg({
     highlightNightKill: shouldHighlightNightKill,
     dead: !!player.dead,
     voteUsed: !!(player.dead && player.deathVote)
-  }); ribbon.classList.add('death-ribbon');
+  });
+  ribbon.classList.add('death-ribbon');
   const handleRibbonToggle = withStateSave((e) => {
-    e.stopPropagation(); const playerSetup = grimoireState.playerSetup || {}; const selectionActive = !!playerSetup.selectionActive;
-    const selectionComplete = !!playerSetup.selectionComplete; const gameStarted = !!grimoireState.gameStarted;
-    if (selectionActive || (selectionComplete && !gameStarted)) { return; }
-    const player = grimoireState.players[playerIndex]; const phaseAtClick = currentPhase; const killedDuringNight = !!(phaseAtClick && phaseAtClick.startsWith('N'));
-    if (!player.dead) { // Phase 1: Alive -> Dead
+    e.stopPropagation();
+    const playerSetup = grimoireState.playerSetup || {};
+    const selectionActive = !!playerSetup.selectionActive;
+    const selectionComplete = !!playerSetup.selectionComplete;
+    const gameStarted = !!grimoireState.gameStarted;
+    if (selectionActive || (selectionComplete && !gameStarted)) {
+      return;
+    }
+    const player = grimoireState.players[playerIndex];
+    const phaseAtClick = currentPhase;
+    const killedDuringNight = !!(phaseAtClick && phaseAtClick.startsWith('N'));
+    if (!player.dead) {
+      // Phase 1: Alive -> Dead
       grimoireState.players[playerIndex].dead = true;
       grimoireState.players[playerIndex].deathVote = false; // initialize unused vote
       grimoireState.players[playerIndex].nightKilledPhase = killedDuringNight ? phaseAtClick : null;
-    } else if (player.dead && !player.deathVote) { // Phase 2: mark vote used
+    } else if (player.dead && !player.deathVote) {
+      // Phase 2: mark vote used
       grimoireState.players[playerIndex].deathVote = true;
-    } else if (player.dead && player.deathVote) { // Phase 3: confirm resurrect
+    } else if (player.dead && player.deathVote) {
+      // Phase 3: confirm resurrect
       if (window.confirm('Resurrect this player?')) {
-        grimoireState.players[playerIndex].dead = false; grimoireState.players[playerIndex].deathVote = false; grimoireState.players[playerIndex].nightKilledPhase = null;
+        grimoireState.players[playerIndex].dead = false;
+        grimoireState.players[playerIndex].deathVote = false;
+        grimoireState.players[playerIndex].nightKilledPhase = null;
       } else {
         return; // abort update/save if cancelled
       }
     }
-    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) { saveCurrentPhaseStateFn(grimoireState); }
+    if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
+      saveCurrentPhaseStateFn(grimoireState);
+    }
     updateGrimoireFn({ grimoireState });
   });
   setupInteractiveElement({
@@ -115,17 +167,26 @@ export function updatePlayerElement({
           grimoireState,
           playerIndex
         });
-      } else { handleRibbonToggle(e); }
+      } else {
+        handleRibbonToggle(e);
+      }
     },
     onLongPress: (e, x, y) => {
-      clearTimeout(grimoireState.longPressTimer); showPlayerContextMenu({ grimoireState, x, y, playerIndex });
+      clearTimeout(grimoireState.longPressTimer);
+      showPlayerContextMenu({ grimoireState, x, y, playerIndex });
     },
-    setTouchOccurred: (val) => { grimoireState.touchOccurred = val; }
-  }); tokenDiv.appendChild(ribbon);
-  if (player.dead) { tokenDiv.classList.add('is-dead'); } else {
+    setTouchOccurred: (val) => {
+      grimoireState.touchOccurred = val;
+    }
+  });
+  tokenDiv.appendChild(ribbon);
+  if (player.dead) {
+    tokenDiv.classList.add('is-dead');
+  } else {
     tokenDiv.classList.remove('is-dead');
   }
-  tokenDiv.querySelectorAll('.token-reminder').forEach((node) => node.remove()); let nextReminderIndex = 0;
+  tokenDiv.querySelectorAll('.token-reminder').forEach((node) => node.remove());
+  let nextReminderIndex = 0;
   const addTokenReminder = ({
     text,
     testId,
@@ -143,11 +204,15 @@ export function updatePlayerElement({
       className,
       ariaLabel,
       title,
-      onClick: onActivate ? (e) => {
-        e.stopPropagation();
-        try { e.preventDefault(); } catch (_) { }
-        onActivate(e);
-      } : undefined,
+      onClick: onActivate
+        ? (e) => {
+          e.stopPropagation();
+          try {
+            e.preventDefault();
+          } catch (_) {}
+          onActivate(e);
+        }
+        : undefined,
       radiusFactor,
       angleOffset,
       dataset: {
@@ -156,11 +221,18 @@ export function updatePlayerElement({
       },
       grimoireState
     });
-    if (onActivate) { reminder.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true }); reminder.addEventListener('mousedown', (e) => e.stopPropagation()); }
-    tokenDiv.appendChild(reminder); return reminder;
+    if (onActivate) {
+      reminder.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+      reminder.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+    tokenDiv.appendChild(reminder);
+    return reminder;
   };
   const getBluffRoleIds = () => {
-    const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : []; const ids = bluffs.slice(0, 3); while (ids.length < 3) ids.push(null); return ids;
+    const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [];
+    const ids = bluffs.slice(0, 3);
+    while (ids.length < 3) ids.push(null);
+    return ids;
   };
   const showBluffOverlay = () => {
     showStorytellerMessage({
@@ -180,7 +252,12 @@ export function updatePlayerElement({
       text: 'THIS IS THE DEMON',
       slotCount: 0
     });
-  }; const REMINDER_RADIUS_BASE = 1.26; const NIGHT_ORDER_RADIUS = 1.24; const RIGHT_OFFSET = Math.PI / 6; const LEFT_OFFSET = -Math.PI / 6; const LEFT_DELTA = Math.PI / 18;
+  };
+  const REMINDER_RADIUS_BASE = 1.26;
+  const NIGHT_ORDER_RADIUS = 1.24;
+  const RIGHT_OFFSET = Math.PI / 6;
+  const LEFT_OFFSET = -Math.PI / 6;
+  const LEFT_DELTA = Math.PI / 18;
   const hasNightOrder = !!nightOrderMap[playerIndex];
   if (showNightReminders) {
     if (isFirstNight && role && role.team === 'demon') {
@@ -203,7 +280,8 @@ export function updatePlayerElement({
         title: `Night order ${nightOrderMap[playerIndex]}`,
         radiusFactor: NIGHT_ORDER_RADIUS,
         angleOffset: RIGHT_OFFSET
-      }); reminder.dataset.playerIndex = playerIndex;
+      });
+      reminder.dataset.playerIndex = playerIndex;
     }
     if (isFirstNight && role && role.team === 'demon') {
       addTokenReminder({
@@ -229,5 +307,6 @@ export function updatePlayerElement({
       });
     }
   }
-  const visibleRemindersCount = renderRemindersForPlayer({ li, grimoireState, playerIndex }); positionRadialStack(li, visibleRemindersCount);
+  const visibleRemindersCount = renderRemindersForPlayer({ li, grimoireState, playerIndex });
+  positionRadialStack(li, visibleRemindersCount);
 }
