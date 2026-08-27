@@ -4,72 +4,36 @@ import { saveCurrentPhaseState } from '../dayNightTracking.js';
 import { rebuildPlayerCircleUiPreserveState, updateGrimoire } from '../grimoire.js';
 import { openCustomReminderEditModal } from '../reminder.js';
 import { createContextMenu, positionContextMenu } from './menuFactory.js';
-
 export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
-  const menu = ensurePlayerContextMenu({ grimoireState });
-  grimoireState.contextMenuTargetIndex = playerIndex;
-  grimoireState.menuOpenedAt = Date.now();
-
-  const canAdd = grimoireState.players.length < 20;
-  const canRemove = grimoireState.players.length > 5;
-  const addBeforeBtn = menu.querySelector('#player-menu-add-before');
-  const addAfterBtn = menu.querySelector('#player-menu-add-after');
-  const removeBtn = menu.querySelector('#player-menu-remove');
-
-  [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => {
-    btn.disabled = false;
-    btn.classList.remove('disabled');
-  });
-
-  if (!canAdd) {
-    addBeforeBtn.disabled = true;
-    addAfterBtn.disabled = true;
-    addBeforeBtn.classList.add('disabled');
-    addAfterBtn.classList.add('disabled');
-  }
-  if (!canRemove) {
-    removeBtn.disabled = true;
-    removeBtn.classList.add('disabled');
-  }
-
+  const menu = ensurePlayerContextMenu({ grimoireState }); grimoireState.contextMenuTargetIndex = playerIndex; grimoireState.menuOpenedAt = Date.now();
+  const canAdd = grimoireState.players.length < 20; const canRemove = grimoireState.players.length > 5; const addBeforeBtn = menu.querySelector('#player-menu-add-before');
+  const addAfterBtn = menu.querySelector('#player-menu-add-after'); const removeBtn = menu.querySelector('#player-menu-remove');
+  [addBeforeBtn, addAfterBtn, removeBtn].forEach(btn => { btn.disabled = false; btn.classList.remove('disabled'); });
+  if (!canAdd) { addBeforeBtn.disabled = true; addAfterBtn.disabled = true; addBeforeBtn.classList.add('disabled'); addAfterBtn.classList.add('disabled'); }
+  if (!canRemove) { removeBtn.disabled = true; removeBtn.classList.add('disabled'); }
   positionContextMenu(menu, x, y);
 } export function ensureReminderContextMenu({ grimoireState }) {
   if (grimoireState.reminderContextMenu) return grimoireState.reminderContextMenu;
-
   const buttons = [
     {
       id: 'reminder-menu-edit',
       label: 'Edit Reminder',
       onClick: withStateSave(() => {
-        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
-        hideReminderContextMenu({ grimoireState });
-        if (playerIndex < 0 || reminderIndex < 0) return;
-        const player = grimoireState.players[playerIndex];
-        const reminders = player && player.reminders;
-        const rem = (reminders && reminders[reminderIndex]) || null;
-        if (!rem) return;
-
-        const isCustomReminder = rem.id === 'custom-note' || rem.type === 'text';
-        const current = rem.label || rem.value || '';
-
+        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget; hideReminderContextMenu({ grimoireState }); if (playerIndex < 0 || reminderIndex < 0) return;
+        const player = grimoireState.players[playerIndex]; const reminders = player && player.reminders; const rem = (reminders && reminders[reminderIndex]) || null;
+        if (!rem) return; const isCustomReminder = rem.id === 'custom-note' || rem.type === 'text'; const current = rem.label || rem.value || '';
         if (isCustomReminder) {
           openCustomReminderEditModal({
             grimoireState,
             playerIndex,
             reminderIndex,
             existingText: current
-          });
-          return;
+          }); return;
         }
-
         const next = prompt('Edit reminder', current);
         if (next !== null) {
-          if (rem.type === 'icon') {
-            rem.label = next;
-          } else {
-            // Text reminder
-            rem.value = next;
-            if (rem.label !== undefined) rem.label = next;
+          if (rem.type === 'icon') { rem.label = next; } else {
+            rem.value = next; if (rem.label !== undefined) rem.label = next;
           }
           updateGrimoire({ grimoireState });
         }
@@ -79,52 +43,32 @@ export function showPlayerContextMenu({ grimoireState, x, y, playerIndex }) {
       id: 'reminder-menu-delete',
       label: 'Delete Reminder',
       onClick: withStateSave(() => {
-        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget;
-        hideReminderContextMenu({ grimoireState });
-        if (playerIndex < 0 || reminderIndex < 0) return;
-        if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return;
-        grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
-
-        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) {
-          saveCurrentPhaseState(grimoireState);
-        }
-
+        const { playerIndex, reminderIndex } = grimoireState.reminderContextTarget; hideReminderContextMenu({ grimoireState }); if (playerIndex < 0 || reminderIndex < 0) return;
+        if (!grimoireState.players[playerIndex] || !grimoireState.players[playerIndex].reminders) return; grimoireState.players[playerIndex].reminders.splice(reminderIndex, 1);
+        if (grimoireState.dayNightTracking && grimoireState.dayNightTracking.enabled) { saveCurrentPhaseState(grimoireState); }
         updateGrimoire({ grimoireState });
       })
     }
   ];
-
   const menu = createContextMenu({
     id: 'reminder-context-menu',
     buttons
-  });
-
-  grimoireState.reminderContextMenu = menu;
-  return menu;
+  }); grimoireState.reminderContextMenu = menu; return menu;
 }
 export function hideReminderContextMenu({ grimoireState }) {
-  if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none';
-  grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
+  if (grimoireState.reminderContextMenu) grimoireState.reminderContextMenu.style.display = 'none'; grimoireState.reminderContextTarget = { playerIndex: -1, reminderIndex: -1 };
   clearTimeout(grimoireState.longPressTimer);
 }
 export function hidePlayerContextMenu({ grimoireState }) {
-  if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none';
-  grimoireState.contextMenuTargetIndex = -1;
-  grimoireState.menuOpenedAt = 0;
+  if (grimoireState.playerContextMenu) grimoireState.playerContextMenu.style.display = 'none'; grimoireState.contextMenuTargetIndex = -1; grimoireState.menuOpenedAt = 0;
   clearTimeout(grimoireState.longPressTimer);
 }
 export function ensurePlayerContextMenu({ grimoireState }) {
   if (grimoireState.playerContextMenu) return grimoireState.playerContextMenu;
-
   const addPlayerAt = (offset) => withStateSave(() => {
-    const idx = grimoireState.contextMenuTargetIndex;
-    hidePlayerContextMenu({ grimoireState });
-    if (idx < 0) return;
-    if (grimoireState.players.length >= 20) return;
-    grimoireState.players.splice(idx + offset, 0, createEmptyPlayer(`Player ${grimoireState.players.length + 1}`));
-    rebuildPlayerCircleUiPreserveState({ grimoireState });
+    const idx = grimoireState.contextMenuTargetIndex; hidePlayerContextMenu({ grimoireState }); if (idx < 0) return; if (grimoireState.players.length >= 20) return;
+    grimoireState.players.splice(idx + offset, 0, createEmptyPlayer(`Player ${grimoireState.players.length + 1}`)); rebuildPlayerCircleUiPreserveState({ grimoireState });
   });
-
   const buttons = [
     {
       id: 'player-menu-add-before',
@@ -140,47 +84,28 @@ export function ensurePlayerContextMenu({ grimoireState }) {
       id: 'player-menu-remove',
       label: 'Remove Player',
       onClick: withStateSave(() => {
-        const idx = grimoireState.contextMenuTargetIndex;
-        hidePlayerContextMenu({ grimoireState });
-        if (idx < 0) return;
+        const idx = grimoireState.contextMenuTargetIndex; hidePlayerContextMenu({ grimoireState }); if (idx < 0) return;
         if (grimoireState.players.length <= 5) return; // keep within 5..20
-        grimoireState.players.splice(idx, 1);
-        rebuildPlayerCircleUiPreserveState({ grimoireState });
+        grimoireState.players.splice(idx, 1); rebuildPlayerCircleUiPreserveState({ grimoireState });
       })
     }
   ];
-
   const menu = createContextMenu({
     id: 'player-context-menu',
     buttons
-  });
-
-  grimoireState.playerContextMenu = menu;
-  return menu;
+  }); grimoireState.playerContextMenu = menu; return menu;
 }
 export function showReminderContextMenu({ grimoireState, x, y, playerIndex, reminderIndex }) {
-  const menu = ensureReminderContextMenu({ grimoireState });
-  grimoireState.reminderContextTarget = { playerIndex, reminderIndex };
-  positionContextMenu(menu, x, y);
+  const menu = ensureReminderContextMenu({ grimoireState }); grimoireState.reminderContextTarget = { playerIndex, reminderIndex }; positionContextMenu(menu, x, y);
 }
-
 export function closeMenusOnOutsideEvent(e) {
-  const grimoireState = window.grimoireState;
-  if (!grimoireState) return;
-
-  const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
-
+  const grimoireState = window.grimoireState; if (!grimoireState) return; const timeSinceOpen = Date.now() - (grimoireState.menuOpenedAt || 0);
   if (grimoireState.playerContextMenu) {
     const menu = grimoireState.playerContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      if (timeSinceOpen > 100) hidePlayerContextMenu({ grimoireState });
-    }
+    if (menu.style.display === 'block' && !menu.contains(e.target)) { if (timeSinceOpen > 100) hidePlayerContextMenu({ grimoireState }); }
   }
-
   if (grimoireState.reminderContextMenu) {
     const menu = grimoireState.reminderContextMenu;
-    if (menu.style.display === 'block' && !menu.contains(e.target)) {
-      if (timeSinceOpen > 100) hideReminderContextMenu({ grimoireState });
-    }
+    if (menu.style.display === 'block' && !menu.contains(e.target)) { if (timeSinceOpen > 100) hideReminderContextMenu({ grimoireState }); }
   }
 }

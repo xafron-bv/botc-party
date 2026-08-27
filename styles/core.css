@@ -1,363 +1,104 @@
 :root {
   /* === BASE DESIGN TOKENS === */
-  
-  /* Spacing scale (8px base) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-14: 56px;
-  
-  /* Border radius scale */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 50%;
-  
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px;
+  --space-10: 40px; --space-12: 48px; --space-14: 56px; --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-full: 50%;
   /* Touch target sizes (iOS/Android guidelines) */
-  --touch-target-sm: 44px;
-  --touch-target-md: 48px;
-  --touch-target-lg: 52px;
-  --touch-target-xl: 56px;
-  
-  /* Font sizes (fluid typography) - 12.5% larger than original */
-  --font-xs: clamp(13.5px, 1.8vmin, 14.6px);
-  --font-sm: clamp(14.6px, 2vmin, 16.9px);
-  --font-base: clamp(15.8px, 2.25vmin, 18px);
-  --font-md: clamp(16.9px, 2.25vmin, 19.1px);
-  --font-lg: clamp(18px, 2.5vmin, 20.3px);
-  --font-xl: clamp(19.1px, 2.5vmin, 22.5px);
-  --font-2xl: clamp(20.3px, 2.7vmin, 24.8px);
-  --font-3xl: clamp(20.3px, 3.2vmin, 27px);
-  --font-button: clamp(15px, 2vmin, 16px);
-  --font-textarea: clamp(30px, 4.8vmin, 40px);
-  
-  /* Line heights */
-  --line-tight: 1.2;
-  --line-snug: 1.3;
-  --line-normal: 1.4;
-  --line-relaxed: 1.5;
-  
-  /* Font weights */
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
-  --font-extrabold: 800;
-  
-  /* Colors - Semantic (consistent across themes) */
-  --color-success: #10b981;
-  --color-success-bg: rgba(16, 185, 129, 0.12);
-  --color-success-border: #059669;
-  --color-error: #ef4444;
-  --color-error-bg: rgba(239, 68, 68, 0.12);
-  --color-error-border: #dc2626;
-  
-  /* Shadows (softer, more natural) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.35);
-  --shadow-2xl: 0 8px 16px rgba(0, 0, 0, 0.4);
-  --shadow-3xl: 0 12px 32px rgba(0, 0, 0, 0.5);
-  
-  /* Transitions */
-  --transition-fast: 0.1s ease;
-  --transition-base: 0.2s ease;
-  --transition-slow: 0.3s ease;
-  
-  /* Z-index scale */
-  --z-base: 0;
-  --z-raised: 5;
-  --z-dropdown: 1000;
-  --z-sticky: 1100;
-  --z-overlay: 1500;
-  --z-modal: 4000;
-  --z-tooltip: 5000;
-  --z-toast: 9000;
-  --z-loading: 9999;
-  
+  --touch-target-sm: 44px; --touch-target-md: 48px; --touch-target-lg: 52px; --touch-target-xl: 56px;
+  --font-xs: clamp(13.5px, 1.8vmin, 14.6px); --font-sm: clamp(14.6px, 2vmin, 16.9px);
+  --font-base: clamp(15.8px, 2.25vmin, 18px); --font-md: clamp(16.9px, 2.25vmin, 19.1px);
+  --font-lg: clamp(18px, 2.5vmin, 20.3px); --font-xl: clamp(19.1px, 2.5vmin, 22.5px);
+  --font-2xl: clamp(20.3px, 2.7vmin, 24.8px); --font-3xl: clamp(20.3px, 3.2vmin, 27px);
+  --font-button: clamp(15px, 2vmin, 16px); --font-textarea: clamp(30px, 4.8vmin, 40px);
+  --line-tight: 1.2; --line-snug: 1.3; --line-normal: 1.4; --line-relaxed: 1.5;
+  --font-normal: 400; --font-medium: 500; --font-semibold: 600; --font-bold: 700; --font-extrabold: 800;
+  --color-success: #10b981; --color-success-bg: rgba(16, 185, 129, 0.12); --color-success-border: #059669;
+  --color-error: #ef4444; --color-error-bg: rgba(239, 68, 68, 0.12); --color-error-border: #dc2626;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25); --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3); --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 8px 16px rgba(0, 0, 0, 0.4); --shadow-3xl: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --transition-fast: 0.1s ease; --transition-base: 0.2s ease; --transition-slow: 0.3s ease;
+  --z-base: 0; --z-raised: 5; --z-dropdown: 1000; --z-sticky: 1100; --z-overlay: 1500; --z-modal: 4000; --z-tooltip: 5000; --z-toast: 9000; --z-loading: 9999;
   /* === COMPONENT-SPECIFIC TOKENS === */
-  
-  /* Token system */
-  --token-size-base: clamp(64px, 14vmin, 140px);
-  --bluff-token-size: var(--token-size-base);
-  --player-token-scale: 1;
+  --token-size-base: clamp(64px, 14vmin, 140px); --bluff-token-size: var(--token-size-base); --player-token-scale: 1;
   --player-token-size: calc(var(--token-size-base) * var(--player-token-scale));
-  --reminder-token-size: calc(var(--player-token-size) * 0.5);
-  --player-name-scale: 1;
-  --circle-scale: 1;
-  --min-reminder-size: clamp(28px, 4vmin, 48px);
-  --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
-  --token-ring-width: 3px;
-  --token-ring-width-sm: 2px;
-  --token-ring-width-xs: 1.5px;
+  --reminder-token-size: calc(var(--player-token-size) * 0.5); --player-name-scale: 1; --circle-scale: 1;
+  --min-reminder-size: clamp(28px, 4vmin, 48px); --player-name-gap: calc(var(--player-name-scale) * var(--space-5));
+  --token-ring-width: 3px; --token-ring-width-sm: 2px; --token-ring-width-xs: 1.5px;
 }
-
 body {
-  background-color: var(--color-bg-darker);
-  color: var(--color-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  margin: 0;
+  background-color: var(--color-bg-darker); color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
 }
-
-#app {
-  display: flex;
-  height: 100vh;
-  height: 100dvh;
-  width: 100vw;
-}
-
-/* Full-screen storyteller message overlay */
+#app { display: flex; height: 100vh; height: 100dvh; width: 100vw; }
 #storyteller-message-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.92);
-  color: #fff;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  z-index: 10000;
-  padding: 24px;
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); color: #fff; display: none; align-items: center;
+  justify-content: center; text-align: center; z-index: 10000; padding: 24px;
 }
-
 #storyteller-message-overlay .message-text,
 #storyteller-message-display .message-text,
-#custom-reminder-edit-modal .message-text {
-  font-size: clamp(22px, 6vmin, 38px);
-  line-height: 1.4;
-  font-weight: 800;
-  text-align: center;
-}
-
+#custom-reminder-edit-modal .message-text { font-size: clamp(22px, 6vmin, 38px); line-height: 1.4; font-weight: 800; text-align: center; }
 #storyteller-message-overlay .bluffs-container,
-#storyteller-message-display .bluffs-container {
-  display: none;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-#grimoire {
-  flex-grow: 1;
-  position: relative;
-  background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%);
-  overflow: hidden;
-}
-
-
-/* Background variants applied to #center via JS */
-#center.bg-dark {
-  background-color: #111;
-  background-image: none;
-}
-
-#center.bg-red-gradient {
-  background: radial-gradient(circle at 50% 45%, #7a0000 0%, #4a0000 55%, #220000 100%);
-}
-
-#center.bg-dark-purple {
-  background: radial-gradient(circle at 50% 50%, #1d0028 0%, #12001b 55%, #07000d 100%);
-}
-
-/* Wood texture (attachment provided) */
+#storyteller-message-display .bluffs-container { display: none; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; }
+#grimoire { flex-grow: 1; position: relative; background: linear-gradient(135deg, #8B0000 0%, #4A0000 100%); overflow: hidden; }
+#center.bg-dark { background-color: #111; background-image: none; }
+#center.bg-red-gradient { background: radial-gradient(circle at 50% 45%, #7a0000 0%, #4a0000 55%, #220000 100%); }
+#center.bg-dark-purple { background: radial-gradient(circle at 50% 50%, #1d0028 0%, #12001b 55%, #07000d 100%); }
 #center.bg-wood {
-  background-image: url('/assets/img/bg-wood.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #3b2412;
+  background-image: url('/assets/img/bg-wood.png'); background-size: cover; background-position: center;
+  background-repeat: no-repeat; background-color: #3b2412;
 }
-
-/* Cosmic vortex (attachment provided) */
 #center.bg-cosmic {
-  background-image: url('/assets/img/bg-cosmic.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: #05060a;
+  background-image: url('/assets/img/bg-cosmic.png'); background-size: cover; background-position: center;
+  background-repeat: no-repeat; background-color: #05060a;
 }
-
-/* Grimoire hidden state: hide reminders, plus, bluffs; keep blank circles */
 body.grimoire-hidden #player-circle li .reminders,
 body.grimoire-hidden #player-circle li .reminder-placeholder,
-body.grimoire-hidden #bluff-tokens-container {
-  display: none !important;
-}
-
-/* During token selection, hide reminders, bluffs, and death UI like hidden mode */
+body.grimoire-hidden #bluff-tokens-container { display: none !important; }
 body.selection-active #player-circle li .reminders,
 body.selection-active #player-circle li .reminder-placeholder,
 body.selection-active #bluff-tokens-container,
 body.selection-active #player-circle li .player-token .death-ribbon,
-body.selection-active #player-circle li .player-token .death-vote-indicator {
-  display: none !important;
-}
-
-/* Redact character artwork on player tokens but keep the base token visible */
-body.grimoire-hidden #player-circle li .player-token {
-  background-image: url('/assets/img/token.png') !important;
-}
-
-/* Hide role artwork layer when grimoire is hidden */
-body.grimoire-hidden #player-circle li .player-token > .token-role-art {
-  display: none !important;
-}
-
-/* Large central indicator that the grimoire is hidden */
-.grimoire-hidden-banner {
-  display: none;
-}
-
+body.selection-active #player-circle li .player-token .death-vote-indicator { display: none !important; }
+body.grimoire-hidden #player-circle li .player-token { background-image: url('/assets/img/token.png') !important; }
+body.grimoire-hidden #player-circle li .player-token > .token-role-art { display: none !important; }
+.grimoire-hidden-banner { display: none; }
 body.grimoire-hidden .grimoire-hidden-banner {
-  display: flex;
-  position: absolute;
-  inset: 0;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 5;
+  display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; pointer-events: none; z-index: 5;
 }
-
 body.grimoire-hidden .grimoire-hidden-banner span {
-  font-size: clamp(28px, 6vmin, 64px);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #ffd166;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  background: rgba(0, 0, 0, 0.55);
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  border: 2px solid rgba(255, 255, 255, 0.18);
+  font-size: clamp(28px, 6vmin, 64px); font-weight: 800; letter-spacing: 0.12em; color: #ffd166;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); background: rgba(0, 0, 0, 0.55); padding: 12px 24px;
+  border-radius: var(--radius-md); border: 2px solid rgba(255, 255, 255, 0.18);
 }
-
-/* Remove pre-game overlay; keep day/night toggle interactive at all times */
 #day-night-toggle { pointer-events: auto; opacity: 1; cursor: pointer; }
-
-/* Sidebar toggle button */
 .sidebar-toggle {
-  position: fixed;
-  top: var(--space-3);
-  left: var(--space-3);
-  z-index: 1000;
-  width: var(--touch-target-xl);
-  height: var(--touch-target-xl);
-  padding: 0;
-  border-radius: var(--radius-full);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  min-height: 0;
-  text-align: center;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  position: fixed; top: var(--space-3); left: var(--space-3); z-index: 1000; width: var(--touch-target-xl);
+  height: var(--touch-target-xl); padding: 0; border-radius: var(--radius-full); display: inline-flex;
+  align-items: center; justify-content: center; font-size: 22px; min-height: 0; text-align: center;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-
-/* Close button inside sidebar header */
-#sidebar .sidebar-close {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  z-index: 5;
-  margin: 0 0 var(--space-2) 0;
-}
-
+#sidebar .sidebar-close { position: sticky; top: 0; width: 100%; z-index: 5; margin: 0 0 var(--space-2) 0; }
 @media (max-width: 900px) {
-  #sidebar .sidebar-close {
-    position: relative;
-    top: auto;
-  }
+  #sidebar .sidebar-close { position: relative; top: auto; }
 }
-
 @media (hover: none) and (pointer: coarse) {
-  .sidebar-toggle {
-    width: var(--touch-target-xl);
-    height: var(--touch-target-xl);
-    font-size: 22px;
-    padding: 0;
-    min-height: 0;
-  }
+  .sidebar-toggle { width: var(--touch-target-xl); height: var(--touch-target-xl); font-size: 22px; padding: 0; min-height: 0; }
 }
-
 #center {
-  background-size: cover;
-  background-position: center;
-  height: 100%;
-  width: 100%;
-  position: relative;
-  display: grid;
-  place-items: center;
-  padding: var(--space-3);
-  box-sizing: border-box;
-  overflow: auto;
+  background-size: cover; background-position: center; height: 100%; width: 100%; position: relative; display: grid;
+  place-items: center; padding: var(--space-3); box-sizing: border-box; overflow: auto;
 }
-
-#player-circle-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Center overlay with script name and role counts */
+#player-circle-wrapper { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 #setup-info {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: var(--color-text-primary);
-  padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.45);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  z-index: 0;
-  pointer-events: none;
-  font-weight: var(--font-bold);
-  white-space: pre-line;
-  line-height: var(--line-normal);
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center;
+  color: var(--color-text-primary); padding: var(--space-3) var(--space-4); border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.45); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  z-index: 0; pointer-events: none; font-weight: var(--font-bold); white-space: pre-line; line-height: var(--line-normal);
 }
-
-/* Simple single-line display */
-#setup-info {
-  font-size: clamp(16px, 2.6vmin, 22px);
-  line-height: var(--line-relaxed);
-}
-
-/* Role count colors - light colors for dark background */
-#setup-info .townsfolk-count {
-  color: #5DADE2;
-  /* Light blue */
-}
-
-#setup-info .outsider-count {
-  color: #BDC3C7;
-  /* Light gray */
-}
-
-#setup-info .minion-count {
-  color: #F39C12;
-  /* Orange */
-}
-
-#setup-info .demon-count {
-  color: #E74C3C;
-  /* Light red */
-}
+#setup-info { font-size: clamp(16px, 2.6vmin, 22px); line-height: var(--line-relaxed); }
+#setup-info .townsfolk-count { color: #5DADE2; }
+#setup-info .outsider-count { color: #BDC3C7; }
+#setup-info .minion-count { color: #F39C12; }
+#setup-info .demon-count { color: #E74C3C; }

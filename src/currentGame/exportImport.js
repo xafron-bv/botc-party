@@ -2,44 +2,28 @@ import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
 import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoire.js';
 import { updateBluffAttentionState } from '../bluffTokens.js';
-
-function getStatusEl() {
-  return document.getElementById('import-status');
-}
-
+function getStatusEl() { return document.getElementById('import-status'); }
 function setStatus({ message, isError = false }) {
-  const el = getStatusEl();
-  if (!el) return;
-  el.textContent = message || '';
-  el.className = message ? (isError ? 'error' : 'status') : '';
+  const el = getStatusEl(); if (!el) return; el.textContent = message || ''; el.className = message ? (isError ? 'error' : 'status') : '';
   if (message) {
     setTimeout(() => {
       try {
         const current = getStatusEl();
-        if (current) {
-          current.textContent = '';
-          current.className = '';
-        }
+        if (current) { current.textContent = ''; current.className = ''; }
       } catch (_) { }
     }, 5000);
   }
 }
-
 function isHistoryExportFile(data) {
   return !!(data &&
     typeof data === 'object' &&
     !Array.isArray(data) &&
     ('scriptHistory' in data || 'grimoireHistory' in data));
 }
-
 function normalizeImportedGameState(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
-  const state = (data.gameState && typeof data.gameState === 'object') ? data.gameState : data;
-  if (!state || typeof state !== 'object' || Array.isArray(state)) return null;
-
-  const scriptData = Array.isArray(state.scriptData) ? state.scriptData : [];
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null; const state = (data.gameState && typeof data.gameState === 'object') ? data.gameState : data;
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return null; const scriptData = Array.isArray(state.scriptData) ? state.scriptData : [];
   const players = Array.isArray(state.players) ? state.players : [];
-
   return {
     scriptData,
     players,
@@ -55,74 +39,41 @@ function normalizeImportedGameState(data) {
     tempSnapshot: state.tempSnapshot || null
   };
 }
-
 function applyModeUi({ grimoireState }) {
-  const modeStorytellerRadio = document.getElementById('mode-storyteller');
-  const modePlayerRadio = document.getElementById('mode-player');
-  const dayNightToggleBtn = document.getElementById('day-night-toggle');
-  const displaySettingsToggleBtn = document.getElementById('display-settings-toggle');
-  const dayNightSlider = document.getElementById('day-night-slider');
-  const openRulebookBtn = document.getElementById('open-rulebook');
-  const revealToggleBtn = document.getElementById('reveal-assignments');
-  const grimoireSnapshotToggleBtn = document.getElementById('grimoire-snapshot-toggle');
-
-  if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player';
-  if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
-
+  const modeStorytellerRadio = document.getElementById('mode-storyteller'); const modePlayerRadio = document.getElementById('mode-player');
+  const dayNightToggleBtn = document.getElementById('day-night-toggle'); const displaySettingsToggleBtn = document.getElementById('display-settings-toggle');
+  const dayNightSlider = document.getElementById('day-night-slider'); const openRulebookBtn = document.getElementById('open-rulebook');
+  const revealToggleBtn = document.getElementById('reveal-assignments'); const grimoireSnapshotToggleBtn = document.getElementById('grimoire-snapshot-toggle');
+  if (modeStorytellerRadio) modeStorytellerRadio.checked = grimoireState.mode !== 'player'; if (modePlayerRadio) modePlayerRadio.checked = grimoireState.mode === 'player';
   const isPlayer = grimoireState.mode === 'player';
   try {
-    document.body.classList.toggle('mode-player', isPlayer);
-    document.body.classList.toggle('mode-storyteller', !isPlayer);
+    document.body.classList.toggle('mode-player', isPlayer); document.body.classList.toggle('mode-storyteller', !isPlayer);
   } catch (_) { }
   if (dayNightToggleBtn) dayNightToggleBtn.style.display = isPlayer ? 'none' : '';
-  if (displaySettingsToggleBtn) {
-    if (isPlayer) displaySettingsToggleBtn.classList.add('single-toggle');
-    else displaySettingsToggleBtn.classList.remove('single-toggle');
-  }
-  if (dayNightSlider && isPlayer) {
-    dayNightSlider.classList.remove('open');
-    dayNightSlider.style.display = 'none';
-  }
-
-  const openPlayerSetupBtn = document.getElementById('open-player-setup');
-  if (openPlayerSetupBtn) openPlayerSetupBtn.style.display = isPlayer ? 'none' : '';
-  if (openRulebookBtn) openRulebookBtn.style.display = isPlayer ? 'none' : '';
-  const openStBtn = document.getElementById('open-storyteller-message');
+  if (displaySettingsToggleBtn) { if (isPlayer) displaySettingsToggleBtn.classList.add('single-toggle'); else displaySettingsToggleBtn.classList.remove('single-toggle'); }
+  if (dayNightSlider && isPlayer) { dayNightSlider.classList.remove('open'); dayNightSlider.style.display = 'none'; }
+  const openPlayerSetupBtn = document.getElementById('open-player-setup'); if (openPlayerSetupBtn) openPlayerSetupBtn.style.display = isPlayer ? 'none' : '';
+  if (openRulebookBtn) openRulebookBtn.style.display = isPlayer ? 'none' : ''; const openStBtn = document.getElementById('open-storyteller-message');
   if (openStBtn) openStBtn.style.display = isPlayer ? 'none' : '';
-
-  if (isPlayer && grimoireState.dayNightTracking) {
-    grimoireState.dayNightTracking.enabled = false;
-  }
-
+  if (isPlayer && grimoireState.dayNightTracking) { grimoireState.dayNightTracking.enabled = false; }
   if (revealToggleBtn) {
-    const hidden = !!grimoireState.grimoireHidden;
-    revealToggleBtn.style.display = isPlayer ? '' : 'none';
-    revealToggleBtn.textContent = hidden ? 'Show Grimoire' : 'Hide Grimoire';
-    revealToggleBtn.title = hidden ? 'Reveal characters to players' : 'Hide characters on this device';
-    revealToggleBtn.setAttribute('aria-pressed', String(hidden));
+    const hidden = !!grimoireState.grimoireHidden; revealToggleBtn.style.display = isPlayer ? '' : 'none'; revealToggleBtn.textContent = hidden ? 'Show Grimoire' : 'Hide Grimoire';
+    revealToggleBtn.title = hidden ? 'Reveal characters to players' : 'Hide characters on this device'; revealToggleBtn.setAttribute('aria-pressed', String(hidden));
   }
   if (grimoireSnapshotToggleBtn) {
-    const isStoryteller = !isPlayer;
-    const active = !!grimoireState.tempSnapshot;
-    grimoireSnapshotToggleBtn.style.display = isStoryteller ? '' : 'none';
-    grimoireSnapshotToggleBtn.setAttribute('aria-pressed', String(active));
-    grimoireSnapshotToggleBtn.classList.toggle('active', active);
+    const isStoryteller = !isPlayer; const active = !!grimoireState.tempSnapshot; grimoireSnapshotToggleBtn.style.display = isStoryteller ? '' : 'none';
+    grimoireSnapshotToggleBtn.setAttribute('aria-pressed', String(active)); grimoireSnapshotToggleBtn.classList.toggle('active', active);
     grimoireSnapshotToggleBtn.title = active
       ? 'Restore grimoire to before temporary changes'
       : 'Make temporary changes to the grimoire';
     grimoireSnapshotToggleBtn.setAttribute(
       'aria-label',
       active ? 'Restore grimoire to before temporary changes' : 'Make temporary changes to the grimoire'
-    );
-    const icon = grimoireSnapshotToggleBtn.querySelector('i');
-    if (icon) {
-      icon.className = active ? 'fas fa-rotate-left' : 'fas fa-camera';
-    }
+    ); const icon = grimoireSnapshotToggleBtn.querySelector('i');
+    if (icon) { icon.className = active ? 'fas fa-rotate-left' : 'fas fa-camera'; }
   }
-
   try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
 }
-
 export function exportCurrentGame({ grimoireState }) {
   const gameState = {
     scriptData: Array.isArray(grimoireState.scriptData) ? grimoireState.scriptData : [],
@@ -138,28 +89,14 @@ export function exportCurrentGame({ grimoireState }) {
     winner: grimoireState.winner || null,
     tempSnapshot: grimoireState.tempSnapshot || null
   };
-
   const exportData = {
     kind: 'botc-current-game',
     version: 1,
     exportDate: new Date().toISOString(),
     gameState
-  };
-
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  const date = new Date().toISOString().split('T')[0];
-  a.download = `botc-game-${date}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  setStatus({ message: 'Game exported successfully!' });
-
+  }; const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; const date = new Date().toISOString().split('T')[0]; a.download = `botc-game-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url); setStatus({ message: 'Game exported successfully!' });
   if (window.Cypress) {
     window.lastDownloadedGameFile = {
       filename: a.download,
@@ -168,33 +105,15 @@ export function exportCurrentGame({ grimoireState }) {
     };
   }
 }
-
 export async function importCurrentGame({ file, grimoireState, grimoireHistoryList }) {
-  const text = await file.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch (error) {
-    setStatus({ message: 'Error importing game: invalid JSON.', isError: true });
-    throw error;
+  const text = await file.text(); let data;
+  try { data = JSON.parse(text); } catch (error) {
+    setStatus({ message: 'Error importing game: invalid JSON.', isError: true }); throw error;
   }
-
-  if (Array.isArray(data)) {
-    alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
-    return;
-  }
-
-  if (isHistoryExportFile(data)) {
-    alert('This appears to be a user data history export file. Please use the "Import Data" button.');
-    return;
-  }
-
+  if (Array.isArray(data)) { alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); return; }
+  if (isHistoryExportFile(data)) { alert('This appears to be a user data history export file. Please use the "Import Data" button.'); return; }
   const normalized = normalizeImportedGameState(data);
-  if (!normalized) {
-    alert('Invalid game export file.');
-    return;
-  }
-
+  if (!normalized) { alert('Invalid game export file.'); return; }
   const saved = {
     scriptData: normalized.scriptData,
     scriptMetaName: normalized.scriptMetaName,
@@ -210,17 +129,12 @@ export async function importCurrentGame({ file, grimoireState, grimoireHistoryLi
     winner: normalized.winner,
     tempSnapshot: normalized.tempSnapshot
   };
-
   try { localStorage.setItem('botcAppStateV1', JSON.stringify(saved)); } catch (_) { }
   try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, saved.includeTravellers ? '1' : '0'); } catch (_) { }
   try { localStorage.setItem(MODE_STORAGE_KEY, saved.mode); } catch (_) { }
-
   await loadAppState({ grimoireState, grimoireHistoryList });
   try { applyGrimoireHiddenState({ grimoireState }); } catch (_) { }
   try { applyGrimoireSnapshotState({ grimoireState }); } catch (_) { }
   try { applyModeUi({ grimoireState }); } catch (_) { }
-
   setStatus({ message: 'Game imported successfully!' });
 }
-
-

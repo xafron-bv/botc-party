@@ -3,52 +3,47 @@ import { resolveAssetPath, isExcludedScriptName } from '../utils.js';
 import { withStateSave } from './app.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { addScriptToHistory } from './history/script.js';
-
+import { openCharacterPanel } from './ui/characterPanel.js';
+import { byId, createElement } from './utils/dom.js';
+const TOKEN_IMAGE = './assets/img/token.png';
+const HISTORY_EXPORT_MESSAGE = 'This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.';
+const isHistoryExport = (value) => value && typeof value === 'object' && !Array.isArray(value)
+  && 'version' in value && 'scriptHistory' in value && 'grimoireHistory' in value;
+function statusWriter() {
+  const element = byId('load-status');
+  return (message, className = 'status') => { if (element) Object.assign(element, { textContent: message, className }); };
+}
+function rejectHistoryExport(data, setStatus, shortMessage = 'This looks like a history export. Use Import History instead.') {
+  if (!isHistoryExport(data)) return false; setStatus(shortMessage, 'error'); alert(HISTORY_EXPORT_MESSAGE); return true;
+}
+function appendRole(characterSheet, role, simple = false) {
+  const element = createElement('div', 'role'); const image = role.image ? resolveAssetPath(role.image) : TOKEN_IMAGE;
+  element.innerHTML = simple
+    ? `<span class="icon" style="background-image: url('${TOKEN_IMAGE}'); background-size: cover;"></span><span class="name">${role.name}</span>`
+    : `<span class="icon" style="background-image: url('${image}'), url('${TOKEN_IMAGE}'); background-size: cover, cover;"></span>
+      <span class="name">${role.name || role.id}</span><div class="ability">${role.ability || 'No ability description available'}</div>`;
+  if (!simple) element.addEventListener('click', () => element.classList.toggle('show-ability')); characterSheet.appendChild(element);
+}
+function appendHeader(characterSheet, text, className) { characterSheet.appendChild(createElement('h3', className, text)); }
 export async function displayScript({ data, grimoireState }) {
-  const characterSheet = document.getElementById('character-sheet');
-  console.log('Displaying script with', data.length, 'characters');
-  characterSheet.innerHTML = '';
-
+  const characterSheet = byId('character-sheet'); console.log('Displaying script with', data.length, 'characters'); characterSheet.innerHTML = ''; let storedPanelState;
+  try { storedPanelState = localStorage.getItem('characterPanelOpen'); } catch (_) { }
+  const autoOpen = !window.matchMedia('(max-width: 900px)').matches && (storedPanelState === null || (new URLSearchParams(window.location.search).has('test') && storedPanelState !== '0'));
+  if (autoOpen) openCharacterPanel();
   const metaEntry = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
-  const scriptTitle = metaEntry?.name || grimoireState.scriptMetaName || '';
-  const scriptAuthor = metaEntry?.author || '';
+  const scriptTitle = metaEntry?.name || grimoireState.scriptMetaName || ''; const scriptAuthor = metaEntry?.author || '';
   const bootleggerNotes = Array.isArray(metaEntry?.bootlegger) ? metaEntry.bootlegger.filter(Boolean) : [];
-
   if (scriptTitle || scriptAuthor || bootleggerNotes.length) {
-    const metaBlock = document.createElement('div');
-    metaBlock.className = 'script-meta';
-    if (scriptTitle) {
-      const titleEl = document.createElement('div');
-      titleEl.className = 'script-meta__title';
-      titleEl.textContent = scriptTitle;
-      metaBlock.appendChild(titleEl);
-    }
-    if (scriptAuthor) {
-      const authorEl = document.createElement('div');
-      authorEl.className = 'script-meta__author';
-      authorEl.textContent = `Author: ${scriptAuthor}`;
-      metaBlock.appendChild(authorEl);
-    }
+    const metaBlock = createElement('div', 'script-meta');
+    if (scriptTitle) { metaBlock.appendChild(createElement('div', 'script-meta__title', scriptTitle)); }
+    if (scriptAuthor) { metaBlock.appendChild(createElement('div', 'script-meta__author', `Author: ${scriptAuthor}`)); }
     if (bootleggerNotes.length) {
-      const bootleggerEl = document.createElement('div');
-      bootleggerEl.className = 'script-meta__bootlegger';
-      const heading = document.createElement('div');
-      heading.className = 'script-meta__bootlegger-title';
-      heading.textContent = 'Bootlegger';
-      bootleggerEl.appendChild(heading);
-      const list = document.createElement('ul');
-      list.className = 'script-meta__bootlegger-list';
-      bootleggerNotes.forEach((note) => {
-        const li = document.createElement('li');
-        li.textContent = note;
-        list.appendChild(li);
-      });
-      bootleggerEl.appendChild(list);
-      metaBlock.appendChild(bootleggerEl);
+      const bootleggerEl = createElement('div', 'script-meta__bootlegger'); const list = createElement('ul', 'script-meta__bootlegger-list');
+      bootleggerEl.appendChild(createElement('div', 'script-meta__bootlegger-title', 'Bootlegger'));
+      bootleggerNotes.forEach(note => list.appendChild(createElement('li', '', note))); bootleggerEl.appendChild(list); metaBlock.appendChild(bootleggerEl);
     }
     characterSheet.appendChild(metaBlock);
   }
-
   let jinxData = [];
   try {
     const dataResponse = await fetch('./data.json');
@@ -58,493 +53,190 @@ export async function displayScript({ data, grimoireState }) {
         .filter(role => role.jinxes && role.jinxes.length > 0)
         .map(role => ({ id: role.id, jinx: role.jinxes }));
     }
-  } catch (e) {
-    console.warn('Failed to load jinx data:', e);
-  }
-
-  // Build displayRoles from base + script travellers + (extra travellers if toggle on).
-  // This is independent of allRoles, which only tracks actually-assigned travellers.
+  } catch (e) { console.warn('Failed to load jinx data:', e); }
   const displayRoles = {
     ...(grimoireState.baseRoles || {}),
     ...(grimoireState.scriptTravellerRoles || {}),
     ...(grimoireState.includeTravellers ? (grimoireState.extraTravellerRoles || {}) : {})
   };
-
   if (grimoireState.nightOrderSort) {
     const nightOrderKey = grimoireState.nightPhase === 'first-night' ? 'firstNight' : 'otherNight';
-    const nightOrderCharacterIds = (grimoireState.nightOrderData && grimoireState.nightOrderData[nightOrderKey]) || [];
-    const officialOrderMap = new Map();
+    const nightOrderCharacterIds = (grimoireState.nightOrderData && grimoireState.nightOrderData[nightOrderKey]) || []; const officialOrderMap = new Map();
     nightOrderCharacterIds.forEach((id, index) => {
-      if (!officialOrderMap.has(id)) {
-        officialOrderMap.set(id, index + 1);
-      }
-    });
-
-    const rolesToRender = [];
+      if (!officialOrderMap.has(id)) { officialOrderMap.set(id, index + 1); }
+    }); const rolesToRender = [];
     Object.values(displayRoles).forEach(role => {
-      if (!role || !role.id || role.id === '_meta') return;
-      const orderFromData = officialOrderMap.get(role.id);
-      if (orderFromData !== undefined) {
-        rolesToRender.push({ role, order: orderFromData, sourcePriority: 0 });
-        return;
-      }
+      if (!role || !role.id || role.id === '_meta') return; const orderFromData = officialOrderMap.get(role.id);
+      if (orderFromData !== undefined) { rolesToRender.push({ role, order: orderFromData, sourcePriority: 0 }); return; }
       const scriptOrderValue = typeof role[nightOrderKey] === 'number' ? role[nightOrderKey] : null;
-      if (scriptOrderValue && scriptOrderValue > 0) {
-        rolesToRender.push({ role, order: scriptOrderValue, sourcePriority: 1 });
-      }
+      if (scriptOrderValue && scriptOrderValue > 0) { rolesToRender.push({ role, order: scriptOrderValue, sourcePriority: 1 }); }
     });
-
     rolesToRender.sort((a, b) => {
-      if (a.order !== b.order) return a.order - b.order;
-      if (a.sourcePriority !== b.sourcePriority) return a.sourcePriority - b.sourcePriority;
-      const nameA = a.role.name || a.role.id || '';
-      const nameB = b.role.name || b.role.id || '';
-      return nameA.localeCompare(nameB);
-    });
-
-    rolesToRender.forEach(({ role }) => {
-      const roleEl = document.createElement('div');
-      roleEl.className = 'role';
-      roleEl.innerHTML = `
-        <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
-        <span class="name">${role.name}</span>
-        <div class="ability">${role.ability || 'No ability description available'}</div>
-      `;
-      roleEl.addEventListener('click', () => {
-        roleEl.classList.toggle('show-ability');
-      });
-      characterSheet.appendChild(roleEl);
-    });
-
-    displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
+      if (a.order !== b.order) return a.order - b.order; if (a.sourcePriority !== b.sourcePriority) return a.sourcePriority - b.sourcePriority;
+      const nameA = a.role.name || a.role.id || ''; const nameB = b.role.name || b.role.id || ''; return nameA.localeCompare(nameB);
+    }); rolesToRender.forEach(({ role }) => appendRole(characterSheet, role)); displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
   } else {
     const teamGroups = {};
     Object.values(displayRoles).forEach(role => {
-      if (!teamGroups[role.team]) {
-        teamGroups[role.team] = [];
-      }
+      if (!teamGroups[role.team]) { teamGroups[role.team] = []; }
       teamGroups[role.team].push(role);
     });
-
     if (Object.keys(teamGroups).length > 0) {
       const teamOrder = ['townsfolk', 'outsider', 'minion', 'demon', 'traveller', 'fabled', 'loric'];
       teamOrder.forEach(team => {
-        if (teamGroups[team] && teamGroups[team].length > 0) {
-          const teamHeader = document.createElement('h3');
-          let teamLabel = team.charAt(0).toUpperCase() + team.slice(1);
-          if (team === 'traveller') teamLabel = 'Travellers';
-          teamHeader.textContent = teamLabel;
-          teamHeader.className = `team-${team === 'traveller' ? 'travellers' : team}`;
-          characterSheet.appendChild(teamHeader);
-
-          teamGroups[team].forEach(role => {
-            const roleEl = document.createElement('div');
-            roleEl.className = 'role';
-            roleEl.innerHTML = `
-                           <span class="icon" style="background-image: url('${role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
-                           <span class="name">${role.name}</span>
-                           <div class="ability">${role.ability || 'No ability description available'}</div>
-                       `;
-            roleEl.addEventListener('click', () => {
-              roleEl.classList.toggle('show-ability');
-            });
-            characterSheet.appendChild(roleEl);
-          });
+        if (teamGroups[team]?.length) {
+          const name = team === 'traveller' ? 'Travellers' : team.charAt(0).toUpperCase() + team.slice(1);
+          appendHeader(characterSheet, name, `team-${team === 'traveller' ? 'travellers' : team}`); teamGroups[team].forEach(role => appendRole(characterSheet, role));
         }
-
-        if (team === 'demon') {
-          displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
-        }
+        if (team === 'demon') displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles });
       });
     } else {
-      const header = document.createElement('h3');
-      header.textContent = 'Characters';
-      header.className = 'team-townsfolk';
-      characterSheet.appendChild(header);
-
+      appendHeader(characterSheet, 'Characters', 'team-townsfolk');
       data.forEach((characterItem) => {
         if (typeof characterItem === 'string' && characterItem !== '_meta') {
-          const roleEl = document.createElement('div');
-          roleEl.className = 'role';
-          roleEl.innerHTML = `
-                       <span class="icon" style="background-image: url('./assets/img/token.png'); background-size: cover;"></span>
-                       <span class="name">${characterItem.charAt(0).toUpperCase() + characterItem.slice(1)}</span>
-                   `;
-          characterSheet.appendChild(roleEl);
-        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-          const roleEl = document.createElement('div');
-          roleEl.className = 'role';
-          const image = characterItem.image ? resolveAssetPath(characterItem.image) : './assets/img/token.png';
-          roleEl.innerHTML = `
-                      <span class="icon" style="background-image: url('${image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
-                      <span class="name">${characterItem.name || characterItem.id}</span>
-                      <div class="ability">${characterItem.ability || 'No ability description available'}</div>
-                  `;
-          roleEl.addEventListener('click', () => {
-            roleEl.classList.toggle('show-ability');
-          });
-          characterSheet.appendChild(roleEl);
-        }
+          appendRole(characterSheet, { name: characterItem.charAt(0).toUpperCase() + characterItem.slice(1) }, true);
+        } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') { appendRole(characterSheet, characterItem); }
       });
     }
   }
-  try {
-    const panel = document.getElementById('character-panel');
-    const toggleBtn = document.getElementById('character-panel-toggle');
-    const PANEL_KEY = 'characterPanelOpen';
-    let storedPref = null;
-    try { storedPref = localStorage.getItem(PANEL_KEY); } catch (_) { }
-    const roles = characterSheet.querySelectorAll('.role');
-    const urlParams = new URLSearchParams(window.location.search);
-    const isTest = urlParams.has('test');
-    if (panel && toggleBtn && roles.length > 0 && panel.getAttribute('aria-hidden') === 'true') {
-      if (storedPref === null || (isTest && storedPref !== '0')) {
-        toggleBtn.dispatchEvent(new Event('click'));
-      }
-    }
-  } catch (_) { }
 }
-
 export async function loadScriptFromDataJson({ editionId, grimoireState }) {
-  const loadStatus = document.getElementById('load-status');
-
-  // Map edition IDs to their full names
+  const setStatus = statusWriter();
   const editionNames = {
     'tb': 'Trouble Brewing',
     'bmr': 'Bad Moon Rising',
     'snv': 'Sects and Violets'
   };
-
   try {
-    const editionName = editionNames[editionId] || editionId;
-    loadStatus.textContent = `Loading ${editionName}...`;
-    loadStatus.className = 'status';
-
-    const res = await fetch('./data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    const edition = data.editions.find(e => e.id === editionId);
+    const editionName = editionNames[editionId] || editionId; setStatus(`Loading ${editionName}...`); const res = await fetch('./data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`); const data = await res.json(); const edition = data.editions.find(e => e.id === editionId);
     if (!edition) throw new Error(`Edition ${editionId} not found`);
-
     const editionCharacters = data.roles
       .filter(role => role.edition === editionId && role.team !== 'traveller')
       .map(role => role.id);
-
     const scriptData = [
       { id: '_meta', author: '', name: editionName },
       ...editionCharacters
-    ];
-
-    await processScriptData({ data: scriptData, addToHistory: true, grimoireState });
-    loadStatus.textContent = 'Script loaded successfully!';
-    loadStatus.className = 'status';
-  } catch (e) {
-    console.error('Failed to load edition:', e);
-    loadStatus.textContent = `Failed to load ${editionId}: ${e.message}`;
-    loadStatus.className = 'error';
-  }
+    ]; await processScriptData({ data: scriptData, addToHistory: true, grimoireState }); setStatus('Script loaded successfully!');
+  } catch (e) { console.error('Failed to load edition:', e); setStatus(`Failed to load ${editionId}: ${e.message}`, 'error'); }
 }
-
 export async function loadScriptFromFile({ path, grimoireState }) {
-  const loadStatus = document.getElementById('load-status');
+  const setStatus = statusWriter();
   try {
-    loadStatus.textContent = `Loading script from ${path}...`;
-    loadStatus.className = 'status';
+    setStatus(`Loading script from ${path}...`);
     try {
       const match = String(path).match(/([^/]+)\.json$/i);
-      if (match) {
-        const base = match[1].replace(/\s*&\s*/g, ' & ');
-        grimoireState.scriptMetaName = base;
-        renderSetupInfo({ grimoireState });
-      }
+      if (match) { const base = match[1].replace(/\s*&\s*/g, ' & '); grimoireState.scriptMetaName = base; renderSetupInfo({ grimoireState }); }
     } catch (_) { }
-    const res = await fetch(path, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    await processScriptData({ data: json, addToHistory: true, grimoireState });
-    loadStatus.textContent = 'Script loaded successfully!';
-    loadStatus.className = 'status';
-  } catch (e) {
-    console.error('Failed to load script:', e);
-    loadStatus.textContent = `Failed to load ${path}: ${e.message}`;
-    loadStatus.className = 'error';
-  }
+    const res = await fetch(path, { cache: 'no-store' }); if (!res.ok) throw new Error(`HTTP ${res.status}`); const json = await res.json();
+    await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Script loaded successfully!');
+  } catch (e) { console.error('Failed to load script:', e); setStatus(`Failed to load ${path}: ${e.message}`, 'error'); }
 }
-
 export const processScriptData = withStateSave(async ({ data, addToHistory = false, grimoireState }) => {
-  const scriptHistoryList = document.getElementById('script-history-list');
-  console.log('Processing script data:', data);
-  grimoireState.scriptData = data;
-  grimoireState.allRoles = {};
-  grimoireState.baseRoles = {};
-  grimoireState.extraTravellerRoles = {};
-  grimoireState.scriptTravellerRoles = {};
+  const scriptHistoryList = document.getElementById('script-history-list'); console.log('Processing script data:', data); grimoireState.scriptData = data;
+  grimoireState.allRoles = {}; grimoireState.baseRoles = {}; grimoireState.extraTravellerRoles = {}; grimoireState.scriptTravellerRoles = {};
   try {
     const meta = Array.isArray(data) ? data.find(x => x && typeof x === 'object' && x.id === '_meta') : null;
     grimoireState.scriptMetaName = meta && meta.name ? String(meta.name) : '';
   } catch (_) { grimoireState.scriptMetaName = ''; }
-
-  if (!Array.isArray(data)) {
-    throw new Error(`Unexpected script format: ${typeof data}. Expected an array of script entries`);
-  }
-
-  console.log('Processing script with', data.length, 'characters');
-  await processScriptCharacters({ characterIds: data, grimoireState });
-
-  rebuildAllRoles({ grimoireState });
-  console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length);
-  applyTravellerToggleAndRefresh({ grimoireState });
-  renderSetupInfo({ grimoireState });
-  // Update button states after script is loaded
-  if (typeof window.updateButtonStates === 'function') {
-    window.updateButtonStates();
-  }
+  if (!Array.isArray(data)) { throw new Error(`Unexpected script format: ${typeof data}. Expected an array of script entries`); }
+  console.log('Processing script with', data.length, 'characters'); await processScriptCharacters({ characterIds: data, grimoireState }); rebuildAllRoles({ grimoireState });
+  console.log('Total roles processed:', Object.keys(grimoireState.allRoles).length); applyTravellerToggleAndRefresh({ grimoireState }); renderSetupInfo({ grimoireState });
+  if (typeof window.updateButtonStates === 'function') { window.updateButtonStates(); }
   if (addToHistory) {
     const histName = grimoireState.scriptMetaName || (Array.isArray(data) && (data.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || 'Custom Script')) || 'Custom Script';
-    if (!isExcludedScriptName(histName)) {
-      addScriptToHistory({ name: histName, data, scriptHistoryList });
-    }
+    if (!isExcludedScriptName(histName)) { addScriptToHistory({ name: histName, data, scriptHistoryList }); }
   }
 });
-
 export async function loadScriptFromText({ grimoireState, text }) {
-  const loadStatus = document.getElementById('load-status');
-  const setStatus = (message, className = 'status') => {
-    if (!loadStatus) return;
-    loadStatus.textContent = message;
-    loadStatus.className = className;
-  };
-
-  const raw = (text || '').trim();
-  if (!raw) {
-    setStatus('Paste script JSON into the textbox first.', 'error');
-    return;
-  }
-
+  const setStatus = statusWriter(); const raw = (text || '').trim();
+  if (!raw) { setStatus('Paste script JSON into the textbox first.', 'error'); return; }
   let json;
-  try {
-    json = JSON.parse(raw);
-  } catch (error) {
-    setStatus(`Pasted content is not valid JSON: ${error.message}`, 'error');
-    return;
+  try { json = JSON.parse(raw); } catch (error) {
+    setStatus(`Pasted content is not valid JSON: ${error.message}`, 'error'); return;
   }
-
-  if (json && typeof json === 'object' && !Array.isArray(json)) {
-    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
-      setStatus('This looks like a history export. Use Import History instead.', 'error');
-      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
-      return;
-    }
-  }
-
-  try {
-    await processScriptData({ data: json, addToHistory: true, grimoireState });
-    setStatus('Custom script loaded from pasted text!');
-  } catch (error) {
-    console.error('Error processing pasted script:', error);
-    setStatus(`Invalid script data: ${error.message}`, 'error');
+  if (rejectHistoryExport(json, setStatus)) return;
+  try { await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Custom script loaded from pasted text!'); } catch (error) {
+    console.error('Error processing pasted script:', error); setStatus(`Invalid script data: ${error.message}`, 'error');
   }
 }
-
 export async function loadScriptFromUrl({ grimoireState, url }) {
-  const loadStatus = document.getElementById('load-status');
-  const setStatus = (message, className = 'status') => {
-    if (!loadStatus) return;
-    loadStatus.textContent = message;
-    loadStatus.className = className;
-  };
-
-  const trimmed = (url || '').trim();
-  if (!trimmed) {
-    setStatus('Enter a script URL first.', 'error');
-    return;
+  const setStatus = statusWriter(); const trimmed = (url || '').trim();
+  if (!trimmed) { setStatus('Enter a script URL first.', 'error'); return; }
+  let targetUrl = trimmed; let urlObj = null;
+  try { urlObj = new URL(trimmed, window.location.href); targetUrl = urlObj.toString(); } catch (_) {
+    setStatus('That link is not a valid URL.', 'error'); return;
   }
-
-  let targetUrl = trimmed;
-  let urlObj = null;
-  try {
-    urlObj = new URL(trimmed, window.location.href);
-    targetUrl = urlObj.toString();
-  } catch (_) {
-    setStatus('That link is not a valid URL.', 'error');
-    return;
-  }
-
   const sharedScriptParam = urlObj?.searchParams?.get('script');
   if (sharedScriptParam) {
-    setStatus('Loading script from link...');
-    const data = decodeSharedScriptParam(sharedScriptParam);
-    if (!data) {
-      setStatus('Could not load shared script (invalid share link).', 'error');
-      return;
-    }
-    try {
-      await processScriptData({ data, addToHistory: true, grimoireState });
-      setStatus('Custom script loaded from link!');
-    } catch (error) {
-      console.error('Error processing shared script data:', error);
-      setStatus(`Invalid script data: ${error.message}`, 'error');
+    setStatus('Loading script from link...'); const data = decodeSharedScriptParam(sharedScriptParam);
+    if (!data) { setStatus('Could not load shared script (invalid share link).', 'error'); return; }
+    try { await processScriptData({ data, addToHistory: true, grimoireState }); setStatus('Custom script loaded from link!'); } catch (error) {
+      console.error('Error processing shared script data:', error); setStatus(`Invalid script data: ${error.message}`, 'error');
     }
     return;
   }
-
   const nestedUrl = urlObj?.searchParams?.get('scriptUrl');
   if (nestedUrl) {
-    try {
-      targetUrl = new URL(nestedUrl, window.location.href).toString();
-    } catch (_) {
-      setStatus('That nested link is not a valid URL.', 'error');
-      return;
+    try { targetUrl = new URL(nestedUrl, window.location.href).toString(); } catch (_) {
+      setStatus('That nested link is not a valid URL.', 'error'); return;
     }
   }
-
-  setStatus('Loading script from link...');
-  let json;
-  try {
-    const res = await fetch(targetUrl, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    json = await res.json();
-  } catch (error) {
+  setStatus('Loading script from link...'); let json;
+  try { const res = await fetch(targetUrl, { cache: 'no-store' }); if (!res.ok) throw new Error(`HTTP ${res.status}`); json = await res.json(); } catch (error) {
     console.error('Failed to fetch script from URL', error);
     const msg = /Failed to fetch/i.test(error?.message || '')
       ? 'This link will not allow us to download the script. Please paste the JSON or upload the file instead.'
       : `Failed to load script from URL: ${error.message}`;
-    setStatus(msg, 'error');
-    return;
+    setStatus(msg, 'error'); return;
   }
-
-  if (json && typeof json === 'object' && !Array.isArray(json)) {
-    if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
-      setStatus('This looks like a history export. Use Import History instead.', 'error');
-      alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
-      return;
-    }
-  }
-
-  try {
-    await processScriptData({ data: json, addToHistory: true, grimoireState });
-    setStatus('Custom script loaded from URL!');
-  } catch (error) {
-    console.error('Error processing URL script:', error);
-    setStatus(`Invalid script data: ${error.message}`, 'error');
+  if (rejectHistoryExport(json, setStatus)) return;
+  try { await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Custom script loaded from URL!'); } catch (error) {
+    console.error('Error processing URL script:', error); setStatus(`Invalid script data: ${error.message}`, 'error');
   }
 }
-
 export function decodeSharedScriptParam(param) {
   if (!param) return null;
   try {
-    const decoded = decodeURIComponent(param);
-    const normalized = decoded.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-    const binary = atob(padded);
-    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    const decoded = decodeURIComponent(param); const normalized = decoded.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4); const binary = atob(padded); const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
     let jsonStr = '';
     if (typeof TextDecoder !== 'undefined') {
       try {
         jsonStr = new TextDecoder().decode(bytes);
       } catch (_) { /* fallback below */ }
     }
-    if (!jsonStr) {
-      jsonStr = Array.from(bytes).map((b) => `%${b.toString(16).padStart(2, '0')}`).join('');
-      jsonStr = decodeURIComponent(jsonStr);
-    }
+    if (!jsonStr) { jsonStr = Array.from(bytes).map((b) => `%${b.toString(16).padStart(2, '0')}`).join(''); jsonStr = decodeURIComponent(jsonStr); }
     return JSON.parse(jsonStr);
-  } catch (err) {
-    console.error('Failed to decode shared script param', err);
-    return null;
-  }
+  } catch (err) { console.error('Failed to decode shared script param', err); return null; }
 }
-
 export async function loadScriptFile({ event, grimoireState }) {
-  const loadStatus = document.getElementById('load-status');
-  const file = event.target.files[0];
-  if (!file) return;
-
-  console.log('File selected:', file.name, 'Size:', file.size);
-
+  const setStatus = statusWriter(); const file = event.target.files[0]; if (!file) return; console.log('File selected:', file.name, 'Size:', file.size);
   const reader = new FileReader();
   reader.onload = async (e) => {
     let json;
-    try {
-      console.log('Parsing uploaded file...');
-      json = JSON.parse(e.target.result);
-      console.log('Uploaded script parsed successfully:', json);
-    } catch (error) {
-      console.error('Error parsing uploaded file:', error);
-      loadStatus.textContent = `Invalid JSON file: ${error.message}`;
-      loadStatus.className = 'error';
-      return;
+    try { console.log('Parsing uploaded file...'); json = JSON.parse(e.target.result); console.log('Uploaded script parsed successfully:', json); } catch (error) {
+      console.error('Error parsing uploaded file:', error); setStatus(`Invalid JSON file: ${error.message}`, 'error'); return;
     }
-
-    // Check if this is a history export file
-    if (json && typeof json === 'object' && !Array.isArray(json)) {
-      if ('version' in json && 'scriptHistory' in json && 'grimoireHistory' in json) {
-        console.error('History export file detected in script upload');
-        loadStatus.textContent = 'This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.';
-        loadStatus.className = 'error';
-        alert('This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.');
-        return;
-      }
-    }
-
+    if (rejectHistoryExport(json, setStatus, HISTORY_EXPORT_MESSAGE)) return;
     try {
-      await processScriptData({ data: json, addToHistory: true, grimoireState });
-      loadStatus.textContent = 'Custom script loaded successfully!';
-      loadStatus.className = 'status';
+      await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Custom script loaded successfully!');
       try { event.target.value = ''; } catch (_) { }
-    } catch (error) {
-      console.error('Error processing uploaded script:', error);
-      loadStatus.textContent = `Invalid script file: ${error.message}`;
-      loadStatus.className = 'error';
-    }
+    } catch (error) { console.error('Error processing uploaded script:', error); setStatus(`Invalid script file: ${error.message}`, 'error'); }
   };
-
   reader.onerror = (error) => {
-    console.error('File reading error:', error);
-    loadStatus.textContent = 'Error reading file';
-    loadStatus.className = 'error';
-  };
-
-  reader.readAsText(file);
+    console.error('File reading error:', error); setStatus('Error reading file', 'error');
+  }; reader.readAsText(file);
 }
-
 function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }) {
-  const roles = displayRoles || grimoireState.allRoles;
-  const scriptCharacterIds = new Set();
-  Object.values(roles).forEach(role => {
-    scriptCharacterIds.add(role.id);
-  });
-
-  const applicableJinxes = [];
-
-  jinxData.forEach(character => {
-    if (scriptCharacterIds.has(character.id) && character.jinx) {
-      character.jinx.forEach(jinx => {
-        if (scriptCharacterIds.has(jinx.id)) {
-          applicableJinxes.push({
-            char1: character.id,
-            char2: jinx.id,
-            reason: jinx.reason
-          });
-        }
-      });
-    }
-  });
-
+  const roles = displayRoles || grimoireState.allRoles; const scriptCharacterIds = new Set(Object.values(roles).map(role => role.id));
+  const applicableJinxes = jinxData.flatMap(character => !scriptCharacterIds.has(character.id) ? []
+    : (character.jinx || []).filter(jinx => scriptCharacterIds.has(jinx.id))
+      .map(jinx => ({ char1: character.id, char2: jinx.id, reason: jinx.reason })));
   if (applicableJinxes.length > 0) {
-    const jinxHeader = document.createElement('h3');
-    jinxHeader.textContent = 'Jinxes';
-    jinxHeader.className = 'team-jinxes';
-    characterSheet.appendChild(jinxHeader);
-
+    appendHeader(characterSheet, 'Jinxes', 'team-jinxes');
     applicableJinxes.forEach(jinx => {
-      const jinxEl = document.createElement('div');
-      jinxEl.className = 'jinx-entry';
-
-      const char1Role = roles[jinx.char1];
-      const char2Role = roles[jinx.char2];
-
+      const jinxEl = createElement('div', 'jinx-entry'); const char1Role = roles[jinx.char1]; const char2Role = roles[jinx.char2];
       jinxEl.innerHTML = `
         <div class="jinx-characters">
           <span class="icon" style="background-image: url('${char1Role.image}'), url('./assets/img/token.png'); background-size: cover, cover;"></span>
@@ -554,13 +246,7 @@ function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }
           <span class="name">${char2Role.name}</span>
         </div>
         <div class="jinx-reason">${jinx.reason}</div>
-      `;
-
-      jinxEl.addEventListener('click', () => {
-        jinxEl.classList.toggle('show-jinx-reason');
-      });
-
-      characterSheet.appendChild(jinxEl);
+      `; jinxEl.addEventListener('click', () => jinxEl.classList.toggle('show-jinx-reason')); characterSheet.appendChild(jinxEl);
     });
   }
 }
