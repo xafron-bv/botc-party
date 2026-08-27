@@ -1,7 +1,7 @@
 import { populateCharacterGrid, hideCharacterModal } from './character.js';
 import { withStateSave } from './app.js';
 import { setupInteractiveElement } from './utils/interaction.js';
-import { renderTokenElement } from './ui/tokenRendering.js';
+import { createTokenElement, renderTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
 const BLUFF_BASE_TOKEN_IMAGE = resolveAssetPath('./assets/img/token.png');
@@ -11,12 +11,12 @@ export function createBluffTokensContainer({ grimoireState }) {
   return container;
 }
 export function createBluffToken({ grimoireState, index }) {
-  const token = document.createElement('div'); token.className = 'bluff-token empty'; token.dataset.bluffIndex = index;
-  renderTokenElement({
-    tokenElement: token,
+  const token = createTokenElement({
+    className: 'bluff-token empty',
     role: null,
     baseImage: BLUFF_BASE_TOKEN_IMAGE,
-    showLabel: false
+    showLabel: false,
+    dataset: { bluffIndex: index }
   }); token.style.position = 'relative'; token.style.overflow = 'visible';
   setupInteractiveElement({
     element: token,

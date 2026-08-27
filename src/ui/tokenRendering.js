@@ -3,6 +3,9 @@ import { createCurvedLabelSvg } from './svg.js';
 import { applyTokenArtwork } from './tokenArtwork.js';
 import { createAbilityInfoIcon } from './abilityInfoIcon.js';
 import { showTouchAbilityPopup } from './tooltip.js';
+export function createTokenElement({ tagName = 'div', className = 'token', ...renderOptions } = {}) {
+  const tokenElement = document.createElement(tagName); tokenElement.className = className; renderTokenElement({ tokenElement, ...renderOptions }); return tokenElement;
+}
 export function renderTokenElement({
   tokenElement,
   role,

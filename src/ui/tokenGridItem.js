@@ -1,5 +1,4 @@
-import { resolveAssetPath } from '../../utils.js';
-import { renderTokenElement } from './tokenRendering.js';
+import { createTokenElement } from './tokenRendering.js';
 export function createTokenGridItem(options = {}) {
   const {
     id = '',
@@ -10,35 +9,18 @@ export function createTokenGridItem(options = {}) {
     onClick = null,
     curvedId = `picker-arc-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     data = {},
-    showCheckbox = false,
-    checkboxLabel = '',
-    checkboxChecked = false,
-    onCheckboxChange = null,
     extraClasses = []
-  } = options; const tokenEl = document.createElement('div'); tokenEl.className = ['token', ...extraClasses].join(' ').trim();
-  renderTokenElement({
-    tokenElement: tokenEl,
+  } = options; const tokenEl = createTokenElement({
+    className: ['token', ...extraClasses].join(' ').trim(),
     role: image ? { image, name: label } : null,
-    baseImage: resolveAssetPath(baseImage),
+    baseImage,
     labelIdPrefix: curvedId,
     showLabel: !!label,
-    customLabel: label,
-    activeColor: 'transparent'
+    customLabel: label
   }); tokenEl.style.position = 'relative'; tokenEl.style.overflow = 'visible'; tokenEl.style.zIndex = '1'; if (title) tokenEl.title = title; if (id) tokenEl.dataset.tokenId = id;
   if (data && typeof data === 'object') {
     Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null) tokenEl.dataset[k] = String(v); });
   }
   if (typeof onClick === 'function') { tokenEl.addEventListener('click', (e) => onClick(e)); }
-  if (showCheckbox) {
-    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = !!checkboxChecked; checkbox.style.position = 'absolute';
-    checkbox.style.left = '6px'; checkbox.style.top = '6px'; checkbox.style.zIndex = '3'; checkbox.setAttribute('aria-label', checkboxLabel || 'toggle');
-    if (typeof onCheckboxChange === 'function') { checkbox.addEventListener('change', () => onCheckboxChange(checkbox.checked)); }
-    tokenEl.appendChild(checkbox);
-    if (checkboxLabel) {
-      const labelEl = document.createElement('div'); labelEl.textContent = checkboxLabel; labelEl.style.position = 'absolute'; labelEl.style.left = '26px';
-      labelEl.style.top = '6px'; labelEl.style.color = '#eee'; labelEl.style.fontSize = '12px'; labelEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)'; labelEl.style.zIndex = '3';
-      tokenEl.appendChild(labelEl);
-    }
-  }
   return tokenEl;
 }

@@ -1,6 +1,6 @@
 import { withStateSave } from './app.js';
 import { resetGrimoire, updateGrimoire } from './grimoire.js';
-import { renderTokenElement } from './ui/tokenRendering.js';
+import { createTokenElement } from './ui/tokenRendering.js';
 import { resolveAssetPath, getRoleById } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
 import { rebuildAllRoles } from './character.js';
@@ -120,9 +120,9 @@ export function initPlayerSetup({ grimoireState, collapseSidebar }) {
         if (isBagDisabled && Array.isArray(grimoireState.playerSetup.bag)) {
           const idxInBag = grimoireState.playerSetup.bag.indexOf(role.id); if (idxInBag !== -1) grimoireState.playerSetup.bag.splice(idxInBag, 1);
         }
-        const tokenEl = document.createElement('label'); tokenEl.className = 'token role';
-        renderTokenElement({
-          tokenElement: tokenEl,
+        const tokenEl = createTokenElement({
+          tagName: 'label',
+          className: 'token role',
           role,
           baseImage: BASE_TOKEN_IMAGE,
           labelIdPrefix: 'setup-role-arc'
@@ -258,9 +258,7 @@ export function initPlayerSetup({ grimoireState, collapseSidebar }) {
     try {
       if (!playerRevealModal || !role) return; revealCurrentPlayerIndex = forIdx;
       if (revealCharacterTokenEl) {
-        revealCharacterTokenEl.innerHTML = ''; const token = document.createElement('div'); token.className = 'token';
-        renderTokenElement({
-          tokenElement: token,
+        revealCharacterTokenEl.innerHTML = ''; const token = createTokenElement({
           role,
           baseImage: BASE_TOKEN_IMAGE,
           labelIdPrefix: 'reveal-token'
@@ -287,9 +285,8 @@ export function initPlayerSetup({ grimoireState, collapseSidebar }) {
       const travellerLabel = document.createElement('div'); travellerLabel.className = 'selection-section-title'; travellerLabel.textContent = 'Or choose a Traveller:';
       const travellerGrid = document.createElement('div'); travellerGrid.className = 'traveller-picker-grid';
       travellerBag.forEach((roleId) => {
-        const role = getRoleById({ grimoireState, roleId }); if (!role) return; const tokenEl = document.createElement('div'); tokenEl.className = 'traveller-token token';
-        renderTokenElement({
-          tokenElement: tokenEl,
+        const role = getRoleById({ grimoireState, roleId }); if (!role) return; const tokenEl = createTokenElement({
+          className: 'traveller-token token',
           role,
           baseImage: BASE_TOKEN_IMAGE,
           labelIdPrefix: 'picker-traveller'
