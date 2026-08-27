@@ -15,9 +15,7 @@ export function createTokenGridItem(options = {}) {
     checkboxChecked = false,
     onCheckboxChange = null,
     extraClasses = []
-  } = options;
-  const tokenEl = document.createElement('div');
-  tokenEl.className = ['token', ...extraClasses].join(' ').trim();
+  } = options; const tokenEl = document.createElement('div'); tokenEl.className = ['token', ...extraClasses].join(' ').trim();
   renderTokenElement({
     tokenElement: tokenEl,
     role: image ? { image, name: label } : null,
@@ -26,43 +24,19 @@ export function createTokenGridItem(options = {}) {
     showLabel: !!label,
     customLabel: label,
     activeColor: 'transparent'
-  });
-  tokenEl.style.position = 'relative';
-  tokenEl.style.overflow = 'visible';
-  tokenEl.style.zIndex = '1';
-  if (title) tokenEl.title = title;
-  if (id) tokenEl.dataset.tokenId = id;
+  }); tokenEl.style.position = 'relative'; tokenEl.style.overflow = 'visible'; tokenEl.style.zIndex = '1'; if (title) tokenEl.title = title; if (id) tokenEl.dataset.tokenId = id;
   if (data && typeof data === 'object') {
-    Object.entries(data).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) tokenEl.dataset[k] = String(v);
-    });
+    Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null) tokenEl.dataset[k] = String(v); });
   }
-  if (typeof onClick === 'function') {
-    tokenEl.addEventListener('click', (e) => onClick(e));
-  }
+  if (typeof onClick === 'function') { tokenEl.addEventListener('click', (e) => onClick(e)); }
   if (showCheckbox) {
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = !!checkboxChecked;
-    checkbox.style.position = 'absolute';
-    checkbox.style.left = '6px';
-    checkbox.style.top = '6px';
-    checkbox.style.zIndex = '3';
-    checkbox.setAttribute('aria-label', checkboxLabel || 'toggle');
-    if (typeof onCheckboxChange === 'function') {
-      checkbox.addEventListener('change', () => onCheckboxChange(checkbox.checked));
-    }
+    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = !!checkboxChecked; checkbox.style.position = 'absolute';
+    checkbox.style.left = '6px'; checkbox.style.top = '6px'; checkbox.style.zIndex = '3'; checkbox.setAttribute('aria-label', checkboxLabel || 'toggle');
+    if (typeof onCheckboxChange === 'function') { checkbox.addEventListener('change', () => onCheckboxChange(checkbox.checked)); }
     tokenEl.appendChild(checkbox);
     if (checkboxLabel) {
-      const labelEl = document.createElement('div');
-      labelEl.textContent = checkboxLabel;
-      labelEl.style.position = 'absolute';
-      labelEl.style.left = '26px';
-      labelEl.style.top = '6px';
-      labelEl.style.color = '#eee';
-      labelEl.style.fontSize = '12px';
-      labelEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)';
-      labelEl.style.zIndex = '3';
+      const labelEl = document.createElement('div'); labelEl.textContent = checkboxLabel; labelEl.style.position = 'absolute'; labelEl.style.left = '26px';
+      labelEl.style.top = '6px'; labelEl.style.color = '#eee'; labelEl.style.fontSize = '12px'; labelEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)'; labelEl.style.zIndex = '3';
       tokenEl.appendChild(labelEl);
     }
   }
