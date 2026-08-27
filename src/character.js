@@ -202,6 +202,10 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
   }
 }
 export function openCharacterModal({ grimoireState, playerIndex }) {
+  if (grimoireState.scriptLoadPromise) {
+    grimoireState.scriptLoadPromise.then(() => openCharacterModal({ grimoireState, playerIndex }));
+    return;
+  }
   const characterModalPlayerName = document.getElementById('character-modal-player-name');
   const characterModalTitlePrefix = document.getElementById('character-modal-title-prefix'); const characterSearch = document.getElementById('character-search');
   const characterModal = document.getElementById('character-modal'); const includeModalTravellersCheckbox = document.getElementById('include-travellers-in-modal');

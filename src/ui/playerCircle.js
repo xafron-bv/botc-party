@@ -62,6 +62,9 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
           (target && target.closest('.token-reminder'));
       }
     });
+    tokenEl.addEventListener('touchend', () => {
+      if (grimoireState.playerContextMenu?.style.display === 'block') grimoireState.menuOpenedAt = Date.now();
+    });
   }
   listItem.addEventListener('contextmenu', (e) => {
     const target = e.target; const fromReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
@@ -126,7 +129,8 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       return; // Don't expand when tapping ghost vote indicator
     }
     const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder')); const tappedRemindersContainer = !!(target && target.closest('.reminders'));
-    if (tappedPlaceholder || tappedRemindersContainer) {
+    const tappedIndividualReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
+    if ((tappedPlaceholder || tappedRemindersContainer) && !tappedIndividualReminder) {
       listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS); expand();
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
     }

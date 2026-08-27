@@ -191,7 +191,8 @@ describe('Player context menu - touch long-press', () => {
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
       .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
-      .wait(550)
+      // Hold beyond the menu's grace period to prove it starts on release.
+      .wait(700)
       .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');

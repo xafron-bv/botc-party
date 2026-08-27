@@ -100,25 +100,23 @@ export async function displayScript({ data, grimoireState }) {
     }
   }
 }
-export async function loadScriptFromDataJson({ editionId, grimoireState }) {
-  const setStatus = statusWriter();
-  const editionNames = {
-    'tb': 'Trouble Brewing',
-    'bmr': 'Bad Moon Rising',
-    'snv': 'Sects and Violets'
-  };
-  try {
-    const editionName = editionNames[editionId] || editionId; setStatus(`Loading ${editionName}...`); const res = await fetch('./data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`); const data = await res.json(); const edition = data.editions.find(e => e.id === editionId);
-    if (!edition) throw new Error(`Edition ${editionId} not found`);
-    const editionCharacters = data.roles
-      .filter(role => role.edition === editionId && role.team !== 'traveller')
-      .map(role => role.id);
-    const scriptData = [
-      { id: '_meta', author: '', name: editionName },
-      ...editionCharacters
-    ]; await processScriptData({ data: scriptData, addToHistory: true, grimoireState }); setStatus('Script loaded successfully!');
-  } catch (e) { console.error('Failed to load edition:', e); setStatus(`Failed to load ${editionId}: ${e.message}`, 'error'); }
+export function loadScriptFromDataJson({ editionId, grimoireState }) {
+  const pendingLoad = (async () => {
+    const setStatus = statusWriter();
+    const editionNames = { 'tb': 'Trouble Brewing', 'bmr': 'Bad Moon Rising', 'snv': 'Sects and Violets' };
+    try {
+      const editionName = editionNames[editionId] || editionId; setStatus(`Loading ${editionName}...`); const res = await fetch('./data.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`); const data = await res.json(); const edition = data.editions.find(e => e.id === editionId);
+      if (!edition) throw new Error(`Edition ${editionId} not found`);
+      const editionCharacters = data.roles.filter(role => role.edition === editionId && role.team !== 'traveller').map(role => role.id);
+      const scriptData = [{ id: '_meta', author: '', name: editionName }, ...editionCharacters];
+      await processScriptData({ data: scriptData, addToHistory: true, grimoireState }); setStatus('Script loaded successfully!');
+    } catch (error) { console.error('Failed to load edition:', error); setStatus(`Failed to load ${editionId}: ${error.message}`, 'error'); }
+  })();
+  grimoireState.scriptLoadPromise = pendingLoad;
+  return pendingLoad.finally(() => {
+    if (grimoireState.scriptLoadPromise === pendingLoad) grimoireState.scriptLoadPromise = null;
+  });
 }
 export async function loadScriptFromFile({ path, grimoireState }) {
   const setStatus = statusWriter();

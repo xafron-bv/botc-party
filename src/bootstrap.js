@@ -23,7 +23,7 @@ export async function showVersion() {
 export function createGrimoireState() {
   return {
     includeTravellers: false, nightOrderSort: false, nightPhase: 'first-night', playerContextMenu: null,
-    contextMenuTargetIndex: -1, longPressTimer: null, reminderContextMenu: null,
+    contextMenuTargetIndex: -1, longPressTimer: null, scriptLoadPromise: null, reminderContextMenu: null,
     reminderContextTarget: { playerIndex: -1, reminderIndex: -1 }, scriptData: null, scriptMetaName: '',
     playerSetupTable: [], allRoles: {}, baseRoles: {}, extraTravellerRoles: {}, players: [], selectedPlayerIndex: -1,
     editingReminder: { playerIndex: -1, reminderIndex: -1 }, isRestoringState: false,
