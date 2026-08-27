@@ -1,21 +1,5 @@
-/* Touch optimizations */
 @media (hover: none) and (pointer: coarse) {
-  #player-circle li .player-name {
-    /* Keep below all other game elements */
-    opacity: 0.5;
-    filter: blur(0.5px);
-    pointer-events: auto;
-    z-index: 0;
-  }
-
+  #player-circle li .player-name { opacity: 0.5; filter: blur(0.5px); pointer-events: auto; z-index: 0; }
   /* Override for raised player names - must be above token z-index: 5 */
-  #player-circle li[data-raised="true"] .player-name {
-    opacity: 1;
-    filter: blur(0);
-    z-index: 9999 !important;
-    /* Maximum z-index to ensure it's on top */
-    position: absolute !important;
-    /* Keep absolute positioning */
-    /* The transform is needed for centering, so we keep it */
-  }
+  #player-circle li[data-raised="true"] .player-name { opacity: 1; filter: blur(0); z-index: 9999 !important; position: absolute !important; }
 }

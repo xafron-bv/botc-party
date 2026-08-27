@@ -1,22 +1,10 @@
 @media print {
-  @page {
-    margin: 0;
-    /* Many browsers ignore this, but it's a helpful hint. */
-    size: landscape;
-  }
-
-  /* Keep the existing layout, but remove chrome and fit to page */
+  @page { margin: 0; size: landscape; }
   html,
   body {
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 100% !important;
-    overflow: hidden !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-
-  /* Hide all chrome/UI */
   #app-loading,
   #sidebar,
   #sidebar-resizer,
@@ -34,30 +22,12 @@
   #ability-tooltip,
   #touch-ability-popup,
   .ability-info-icon,
-  .reminder-placeholder {
-    display: none !important;
-  }
-
-  /* Fill the page with the grimoire area */
+  .reminder-placeholder { display: none !important; }
   #app,
   #grimoire,
-  #center {
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-  }
-
-  /* Ensure the player circle uses the full printable area for positioning */
-  #player-circle-wrapper {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  /* Avoid page breaks through the circle */
+  #center { width: 100vw !important; height: 100vh !important; overflow: hidden !important; }
+  #player-circle-wrapper { width: 100% !important; height: 100% !important; }
   #player-circle-wrapper,
   #player-circle,
-  #bluff-tokens-container {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+  #bluff-tokens-container { break-inside: avoid; page-break-inside: avoid; }
 }

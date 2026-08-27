@@ -1,28 +1,16 @@
-/* Hide radial guides SVG */
-#radial-guides {
-  display: none !important;
-}
-
+#radial-guides { display: none !important; }
 /* Prevent iOS text selection/callout in player area and context menu */
 #player-circle,
 #player-circle * {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   touch-action: manipulation; /* Prevents double-tap zoom on iOS */
 }
-
 #player-circle .player-token,
 #player-circle .player-name,
 #player-circle .reminders,
-#player-circle .reminder-placeholder {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
+#player-circle .reminder-placeholder { -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
 #player-context-menu,
 #player-context-menu * {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   touch-action: manipulation; /* Prevents double-tap zoom on iOS */
 }
