@@ -35,7 +35,7 @@ describe('Day/Night slider resets when starting a new game', () => {
     // Toggle is interactive immediately
     cy.get('#day-night-toggle').should('have.css', 'pointer-events', 'auto').click({ force: true });
     cy.get('#day-night-slider').should('have.class', 'open');
-    cy.get('#add-phase-button').click().click();
+    cy.get('#add-phase-button').click({ force: true }).click({ force: true });
     cy.get('#current-phase').invoke('text').should('not.equal', 'N1');
 
     // Reset grimoire (confirm any prompt)

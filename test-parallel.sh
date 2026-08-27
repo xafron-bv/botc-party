@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   ./test-parallel.sh                # run full Cypress suite in parallel (4 shards)
+#   ./test-parallel.sh                # run full Cypress suite in parallel (2 shards)
 #   ./test-parallel.sh 2              # run with 2 shards
 #   ./test-parallel.sh tests/05_*.cy.js tests/10_*.cy.js  # run specific specs
 #
@@ -13,9 +13,9 @@ OUTPUT_DIR=".test-output"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RUN_DIR="${OUTPUT_DIR}/${TIMESTAMP}"
 
-# Determine number of shards: first arg if numeric, else 4 (balanced for local)
-# CI uses 6 shards but local machines may struggle with that many parallel Cypress instances
-SHARD_TOTAL=4
+# Keep local Electron below the renderer-crash threshold; callers can still opt in
+# to more concurrency by passing a numeric shard count.
+SHARD_TOTAL=2
 if [[ "$#" -gt 0 ]] && [[ "$1" =~ ^[0-9]+$ ]]; then
 	SHARD_TOTAL=$1
 	shift

@@ -186,13 +186,14 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
 
-  it('does not close context menu immediately after opening', () => {
+  it('does not close context menu during its opening grace period', () => {
     cy.viewport('iphone-6');
+    cy.clock();
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
-      // Hold beyond the menu's grace period to prove it starts on release.
-      .wait(700)
+      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] });
+    cy.tick(500);
+    cy.get('#player-circle li .player-token').first()
       .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
@@ -204,7 +205,7 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
     // Wait for grace period to expire
-    cy.wait(150);
+    cy.tick(101);
 
     // Touch outside again
     cy.get('body').trigger('touchstart', { force: true, clientX: 10, clientY: 10 });
