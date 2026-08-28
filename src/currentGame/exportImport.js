@@ -4,17 +4,10 @@ import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoir
 import { updateBluffAttentionState } from '../bluffTokens.js';
 import { captureGameState, normalizeGameState } from '../gameState.js';
 import { downloadJson } from '../utils/jsonFiles.js';
-function getStatusEl() { return document.getElementById('import-status'); }
+import { createStatusWriter } from '../utils/dom.js';
+const writeImportStatus = createStatusWriter('import-status', 5000);
 function setStatus({ message, isError = false }) {
-  const el = getStatusEl(); if (!el) return; el.textContent = message || ''; el.className = message ? (isError ? 'error' : 'status') : '';
-  if (message) {
-    setTimeout(() => {
-      try {
-        const current = getStatusEl();
-        if (current) { current.textContent = ''; current.className = ''; }
-      } catch (_) { }
-    }, 5000);
-  }
+  writeImportStatus(message, isError ? 'error' : 'status');
 }
 function isHistoryExportFile(data) {
   return !!(data &&

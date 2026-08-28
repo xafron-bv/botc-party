@@ -27,6 +27,24 @@ describe('Upload & Background', () => {
     cy.contains('#script-history-list .history-item .history-name', 'Uploaded Script').should('exist');
   });
 
+  it('keeps script load status until another update', () => {
+    cy.clock();
+    const customScript = [
+      { id: '_meta', name: 'Persistent Status Script', author: 'Cypress' },
+      'chef'
+    ];
+
+    cy.get('#script-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify(customScript)),
+      fileName: 'persistent-status.json',
+      mimeType: 'application/json'
+    }, { force: true });
+
+    cy.get('#load-status').should('have.class', 'status').and('contain', 'Custom script loaded successfully!');
+    cy.tick(5000);
+    cy.get('#load-status').should('have.class', 'status').and('contain', 'Custom script loaded successfully!');
+  });
+
   it('shows an error for invalid JSON upload', () => {
     cy.reload();
     const badPath = '/tmp/cy_bad.json';
@@ -85,4 +103,3 @@ describe('Upload & Background', () => {
       .and('not.have.class', 'bg-wood');
   });
 });
-

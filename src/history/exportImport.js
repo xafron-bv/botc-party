@@ -3,7 +3,9 @@ import { renderGrimoireHistory } from './grimoire.js';
 import { renderScriptHistory } from './script.js';
 import { exportCurrentGame, importCurrentGame } from '../currentGame/exportImport.js';
 import { downloadJson, readJsonFile } from '../utils/jsonFiles.js';
+import { createStatusWriter } from '../utils/dom.js';
 
+const writeImportStatus = createStatusWriter('import-status', 5000);
 const HISTORY_ENTRY_SCHEMAS = {
   script: [['id'], ['name'], ['data', JSON.stringify], ['createdAt'], ['updatedAt']],
   grimoire: [['id'], ['name'], ['playerCount'], ['script', JSON.stringify], ['players', JSON.stringify], ['createdAt'], ['updatedAt']]
@@ -49,20 +51,14 @@ export function exportUserData() {
   };
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   const download = downloadJson({ filename: `botc-user-data-${date}.json`, data: exportData });
-  const importStatus = document.getElementById('import-status');
-  if (importStatus) {
-    const scriptCount = exportData.scriptHistory.length; const grimoireCount = exportData.grimoireHistory.length; let message = 'User data exported successfully! ';
-    const parts = [];
-    if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
-    if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
-    if (parts.length > 0) { message += `Exported ${parts.join(' and ')}.`; } else {
-      message += 'Exported empty user data.';
-    }
-    importStatus.textContent = message; importStatus.className = 'status';
-    setTimeout(() => {
-      importStatus.textContent = ''; importStatus.className = '';
-    }, 5000);
+  const scriptCount = exportData.scriptHistory.length; const grimoireCount = exportData.grimoireHistory.length; let message = 'User data exported successfully! ';
+  const parts = [];
+  if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
+  if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
+  if (parts.length > 0) { message += `Exported ${parts.join(' and ')}.`; } else {
+    message += 'Exported empty user data.';
   }
+  writeImportStatus(message);
   if (window.Cypress) {
     window.lastDownloadedFile = {
       ...download,
@@ -98,20 +94,14 @@ export async function importUserData(data) {
     saveHistories(); const scriptHistoryList = document.getElementById('script-history-list'); const grimoireHistoryList = document.getElementById('grimoire-history-list');
     if (scriptHistoryList) { renderScriptHistory({ scriptHistoryList }); }
     if (grimoireHistoryList) { renderGrimoireHistory({ grimoireHistoryList }); }
-    const importStatus = document.getElementById('import-status');
-    if (importStatus) {
-      const scriptCount = processedScriptHistory.length; const grimoireCount = processedGrimoireHistory.length; let message = 'User data imported successfully! ';
-      if (scriptCount > 0 || grimoireCount > 0) {
-        const parts = [];
-        if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
-        if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
-        message += `Added ${parts.join(' and ')}.`;
-      } else { message += 'No new entries added (all were duplicates).'; }
-      importStatus.textContent = message; importStatus.className = 'status';
-      setTimeout(() => {
-        importStatus.textContent = ''; importStatus.className = '';
-      }, 5000);
-    }
+    const scriptCount = processedScriptHistory.length; const grimoireCount = processedGrimoireHistory.length; let message = 'User data imported successfully! ';
+    if (scriptCount > 0 || grimoireCount > 0) {
+      const parts = [];
+      if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
+      if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
+      message += `Added ${parts.join(' and ')}.`;
+    } else { message += 'No new entries added (all were duplicates).'; }
+    writeImportStatus(message);
   } catch (error) { console.error('Error importing user data:', error); alert(`Error importing user data: ${error.message}`); throw error; }
 }
 export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
@@ -132,8 +122,7 @@ export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
     importFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const importStatus = document.getElementById('import-status');
-        if (importStatus) { importStatus.textContent = ''; importStatus.className = ''; }
+        writeImportStatus('');
         try {
           let parsed;
           try { parsed = await readJsonFile(file); } catch (error) {

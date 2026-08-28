@@ -9,6 +9,8 @@ import { assignBluffCharacter } from './bluffTokens.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
 import { createCustomRole, indexRoles, loadGameData, normalizeRole } from './roleData.js';
+import { createStatusWriter } from './utils/dom.js';
+const writeLoadStatus = createStatusWriter('load-status');
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid'); const characterSearch = document.getElementById('character-search'); characterGrid.innerHTML = '';
   const filter = characterSearch.value.toLowerCase(); const isBluffSelection = typeof grimoireState.selectedBluffIndex === 'number';
@@ -195,9 +197,8 @@ export const onIncludeTravellersChange = withStateSave(({ grimoireState, include
   grimoireState.includeTravellers = !!includeTravellersCheckbox.checked; applyTravellerToggleAndRefresh({ grimoireState });
 });
 export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
-  const loadStatus = document.getElementById('load-status');
   try {
-    loadStatus.textContent = 'Loading all characters...'; loadStatus.className = 'status'; const data = await loadGameData(); const characters = data.roles;
+    writeLoadStatus('Loading all characters...'); const data = await loadGameData(); const characters = data.roles;
     console.log('Loading all characters from data.json'); grimoireState.allRoles = {};
     grimoireState.baseRoles = {}; grimoireState.extraTravellerRoles = {}; const characterIds = [];
     if (Array.isArray(characters)) {
@@ -209,9 +210,8 @@ export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
     }
     console.log(`Loaded ${Object.keys(grimoireState.allRoles).length} characters from all teams`);
     grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds]; rebuildAllRoles({ grimoireState });
-    applyTravellerToggleAndRefresh({ grimoireState }); loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;
-    loadStatus.className = 'status';
+    applyTravellerToggleAndRefresh({ grimoireState }); writeLoadStatus(`Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`);
   } catch (error) {
-    console.error('Failed to load all characters:', error); loadStatus.textContent = `Failed to load all characters: ${error.message}`; loadStatus.className = 'error';
+    console.error('Failed to load all characters:', error); writeLoadStatus(`Failed to load all characters: ${error.message}`, 'error');
   }
 });

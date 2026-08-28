@@ -51,6 +51,18 @@ describe('User Data Export/Import', () => {
     });
   });
 
+  it('should clear import status after five seconds', () => {
+    cy.clock();
+    cy.get('#export-type-select').select('full-data');
+    cy.get('#export-data-btn').click();
+
+    cy.get('#import-status').should('have.class', 'status').and('not.have.text', '');
+    cy.tick(4999);
+    cy.get('#import-status').should('have.class', 'status').and('not.have.text', '');
+    cy.tick(1);
+    cy.get('#import-status').should('have.text', '').and('have.attr', 'class', '');
+  });
+
   it('should export history with script and grimoire entries', () => {
     // Seed history with test data
     const scriptEntry = {
