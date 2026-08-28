@@ -9,7 +9,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrent
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initPlayerSetup } from './src/playerSetup.js';
-import { restoreSelectionSession } from './src/playerSelection.js';
+import { deactivateSelection, restoreSelectionSession } from './src/playerSelection.js';
 import { updateBluffAttentionState } from './src/bluffTokens.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { processScriptData } from './src/script.js';
@@ -111,9 +111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     const handleRevealSelectedFromSidebar = () => {
-      const sel = grimoireState.playerSetup || {}; if (!sel.selectionComplete || sel.revealed) return; _applyAssignmentsFromBag(); sel.selectionActive = false; sel.revealed = true;
+      const sel = grimoireState.playerSetup || {}; if (!sel.selectionComplete || sel.revealed) return; _applyAssignmentsFromBag(); deactivateSelection(grimoireState); sel.revealed = true;
       grimoireState.gameStarted = true;
-      try { document.body.classList.remove('selection-active'); } catch (_) { }
       try { showGrimoire({ grimoireState }); } catch (_) { }
       try { updateGrimoire({ grimoireState }); } catch (_) { }
       try { renderSetupInfo({ grimoireState }); } catch (_) { }

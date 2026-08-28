@@ -5,7 +5,7 @@ import { resolveAssetPath, getRoleById } from '../utils.js';
 import { canOpenModal } from './utils/validation.js';
 import { rebuildAllRoles } from './character.js';
 import { byId, byIds, createElement } from './utils/dom.js';
-import { clearNextPlayerHighlight, findNextSelectable, highlightNextPlayer, renderSelectionOverlay, selectionState } from './playerSelection.js';
+import { clearNextPlayerHighlight, deactivateSelection, findNextSelectable, highlightNextPlayer, renderSelectionOverlay, selectionState } from './playerSelection.js';
 import { countTravellersInBag, countTravellersInPlay, getEffectivePlayerCount, initializePlayerSetupState, summarizePlayerSetupBag } from './playerSetupState.js';
 export function initPlayerSetup({ grimoireState, collapseSidebar }) {
   const [openPlayerSetupBtn, playerSetupPanel, closePlayerSetupBtn, shuffleCharactersBtn,
@@ -244,8 +244,7 @@ export function initPlayerSetup({ grimoireState, collapseSidebar }) {
       const allAssigned = (grimoireState.players || []).every((p, idx) => {
         const role = p && p.character ? getRoleById({ grimoireState, roleId: p.character }) : null; const isTraveller = role && role.team === 'traveller';
         if (isTraveller) return true; return assignments[idx] !== null && assignments[idx] !== undefined;
-      }); if (!allAssigned) return false; sel.selectionActive = false; sel.selectionComplete = true;
-      try { document.body.classList.remove('selection-active'); } catch (_) { }
+      }); if (!allAssigned) return false; deactivateSelection(grimoireState); sel.selectionComplete = true;
       clearNextPlayerHighlight(); const openSetupBtn = byId('open-player-setup');
       if (openSetupBtn) { openSetupBtn.disabled = true; openSetupBtn.title = 'Setup complete. Reset the grimoire to start a new setup.'; }
       const revealBtn = byId('reveal-selected-characters');

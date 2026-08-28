@@ -12,6 +12,7 @@ import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
 import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
+import { deactivateSelection } from './playerSelection.js';
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = withStateSave((_e) => {
@@ -117,8 +118,7 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
     try {
       document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove());
     } catch (_) { }
-    sel.selectionActive = false; sel.assignments = new Array((grimoireState.players || []).length).fill(null);
-    try { document.body.classList.remove('selection-active'); } catch (_) { }
+    deactivateSelection(grimoireState); sel.assignments = new Array((grimoireState.players || []).length).fill(null);
     try { document.body.classList.remove('player-setup-open'); } catch (_) { }
     try {
       const numberPickerOverlay = document.getElementById('number-picker-overlay'); if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';

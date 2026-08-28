@@ -2,6 +2,7 @@
  * Touch handling utilities for iOS compatibility and consistent touch behavior
  */
 const elementHandlers = new WeakMap();
+export function isActivationKey(event) { return event.key === 'Enter' || event.key === ' '; }
 export function setupInteractiveElement({
   element,
   onTap,

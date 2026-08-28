@@ -1,5 +1,6 @@
 import { populateCharacterGrid } from './character.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
+import { isActivationKey } from './utils/interaction.js';
 let showOverlayHandler = null;
 export function showStorytellerMessage({ text = '', slotCount = 0, slotRoleIds = [] } = {}) {
   if (typeof showOverlayHandler === 'function') { showOverlayHandler({ text, slotCount, slotRoleIds }); }
@@ -48,7 +49,7 @@ export function initStorytellerMessages({ grimoireState }) {
       const slot = document.createElement('div'); slot.className = 'token'; slot.dataset.storySlotIndex = String(index); slot.tabIndex = 0;
       applyRoleLookToToken(slot, roleId || null); slot.addEventListener('click', () => openRoleGridForSlot(index));
       slot.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openRoleGridForSlot(index); }
+        if (isActivationKey(event)) { event.preventDefault(); openRoleGridForSlot(index); }
         if (event.key === 'Backspace' || event.key === 'Delete') { event.preventDefault(); clearSlot(index); }
       });
       slot.addEventListener('contextmenu', (event) => {

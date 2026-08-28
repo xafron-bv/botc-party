@@ -14,6 +14,10 @@ export function findNextSelectable({ grimoireState, fromIndex, assignments = gri
 export function clearNextPlayerHighlight(playerCircle = byId('player-circle')) {
   playerCircle?.querySelectorAll('.player-token.next-player').forEach(token => token.classList.remove('next-player'));
 }
+export function deactivateSelection(grimoireState) {
+  if (grimoireState.playerSetup) grimoireState.playerSetup.selectionActive = false;
+  try { document.body.classList.remove('selection-active'); } catch (_) { }
+}
 export function highlightNextPlayer({ grimoireState, fromIndex, assignments, playerCircle = byId('player-circle') }) {
   clearNextPlayerHighlight(playerCircle); const index = findNextSelectable({ grimoireState, fromIndex, assignments });
   playerCircle?.children[index]?.querySelector('.player-token')?.classList.add('next-player'); return index;
