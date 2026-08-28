@@ -12,7 +12,7 @@ describe('Overlay hidden after game end', () => {
     cy.get('#reset-grimoire').click();
     cy.ensureSidebarOpen();
     cy.get('#pre-game-overlay').should('not.exist');
-    cy.get('#end-game').should('be.visible');
+    cy.get('#end-game').scrollIntoView().should('be.visible');
     // Declare winner (open end game modal and pick a side)
     cy.get('#end-game').click();
     cy.get('#good-wins-btn').click();

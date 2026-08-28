@@ -77,8 +77,8 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#mode-player').check({ force: true });
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
-    cy.get('body').then(($b) => { if ($b.hasClass('sidebar-collapsed')) cy.get('#sidebar-toggle').click({ force: true }); });
-    cy.get('#end-game').should('be.visible');
+    cy.ensureSidebarOpen();
+    cy.get('#end-game').scrollIntoView().should('be.visible');
 
     // Load the ended game; accept confirmation
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });

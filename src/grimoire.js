@@ -1,4 +1,4 @@
-import { createEmptyPlayer } from '../utils.js';
+import { cloneJsonValue, createEmptyPlayer } from '../utils.js';
 import { withStateSave } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, hideDayNightSlider, saveCurrentPhaseState } from './dayNightTracking.js';
@@ -12,6 +12,7 @@ import { handlePlayerElementTouch } from './ui/touchHelpers.js';
 import { createPlayerListItem } from './ui/playerCircle.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
 import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
+import { deactivateSelection } from './playerSelection.js';
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = withStateSave((_e) => {
@@ -43,18 +44,18 @@ export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireSt
 export function hasGrimoireSnapshot(grimoireState) { return !!(grimoireState && grimoireState.tempSnapshot); }
 export const takeGrimoireSnapshot = withStateSave(({ grimoireState }) => {
   grimoireState.tempSnapshot = {
-    players: JSON.parse(JSON.stringify(grimoireState.players || [])),
-    bluffs: JSON.parse(JSON.stringify(grimoireState.bluffs || [null, null, null])),
+    players: cloneJsonValue(grimoireState.players || []),
+    bluffs: cloneJsonValue(grimoireState.bluffs || [null, null, null]),
     dayNightTracking: grimoireState.dayNightTracking
-      ? JSON.parse(JSON.stringify(grimoireState.dayNightTracking))
+      ? cloneJsonValue(grimoireState.dayNightTracking)
       : null
   };
   try { document.body.classList.add('grimoire-snapshot-active'); } catch (_) { }
 });
 export const restoreGrimoireSnapshot = withStateSave(({ grimoireState }) => {
-  const snap = grimoireState.tempSnapshot; if (!snap) return; grimoireState.players = JSON.parse(JSON.stringify(snap.players || []));
-  grimoireState.bluffs = JSON.parse(JSON.stringify(snap.bluffs || [null, null, null]));
-  if (snap.dayNightTracking) { grimoireState.dayNightTracking = JSON.parse(JSON.stringify(snap.dayNightTracking)); }
+  const snap = grimoireState.tempSnapshot; if (!snap) return; grimoireState.players = cloneJsonValue(snap.players || []);
+  grimoireState.bluffs = cloneJsonValue(snap.bluffs || [null, null, null]);
+  if (snap.dayNightTracking) { grimoireState.dayNightTracking = cloneJsonValue(snap.dayNightTracking); }
   grimoireState.tempSnapshot = null;
   try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
   rebuildPlayerCircleUiPreserveState({ grimoireState });
@@ -117,8 +118,7 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
     try {
       document.querySelectorAll('#player-circle li .number-overlay, #player-circle li .number-badge').forEach((el) => el.remove());
     } catch (_) { }
-    sel.selectionActive = false; sel.assignments = new Array((grimoireState.players || []).length).fill(null);
-    try { document.body.classList.remove('selection-active'); } catch (_) { }
+    deactivateSelection(grimoireState); sel.assignments = new Array((grimoireState.players || []).length).fill(null);
     try { document.body.classList.remove('player-setup-open'); } catch (_) { }
     try {
       const numberPickerOverlay = document.getElementById('number-picker-overlay'); if (numberPickerOverlay) numberPickerOverlay.style.display = 'none';

@@ -2,6 +2,36 @@ import { history, saveHistories } from './index.js';
 import { renderGrimoireHistory } from './grimoire.js';
 import { renderScriptHistory } from './script.js';
 import { exportCurrentGame, importCurrentGame } from '../currentGame/exportImport.js';
+import { downloadJson, readJsonFile } from '../utils/jsonFiles.js';
+import { createStatusWriter } from '../utils/dom.js';
+
+const writeImportStatus = createStatusWriter('import-status', 5000);
+const HISTORY_ENTRY_SCHEMAS = {
+  script: [['id'], ['name'], ['data', JSON.stringify], ['createdAt'], ['updatedAt']],
+  grimoire: [['id'], ['name'], ['playerCount'], ['script', JSON.stringify], ['players', JSON.stringify], ['createdAt'], ['updatedAt']]
+};
+
+function areHistoryEntriesIdentical(entry1, entry2, schema) {
+  return schema.every(([field, serialize]) =>
+    (serialize ? serialize(entry1[field]) : entry1[field]) ===
+    (serialize ? serialize(entry2[field]) : entry2[field]));
+}
+
+function prepareImportedHistoryEntries({ existingEntries, importedEntries, schema }) {
+  const existingIds = new Set(existingEntries.map(item => item.id));
+  return importedEntries.reduce((processedEntries, importedEntry) => {
+    if (existingEntries.some(existingEntry =>
+      areHistoryEntriesIdentical(existingEntry, importedEntry, schema))) { return processedEntries; }
+    processedEntries.push(existingIds.has(importedEntry.id)
+      ? {
+        ...importedEntry,
+        id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }
+      : importedEntry);
+    return processedEntries;
+  }, []);
+}
+
 function isUserDataExport(data) {
   return !!(data &&
     typeof data === 'object' &&
@@ -18,35 +48,26 @@ export function exportUserData() {
     exportDate: new Date().toISOString(),
     scriptHistory: history.scriptHistory || [],
     grimoireHistory: history.grimoireHistory || []
-  }; const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href = url;
+  };
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-  a.download = `botc-user-data-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  const importStatus = document.getElementById('import-status');
-  if (importStatus) {
-    const scriptCount = exportData.scriptHistory.length; const grimoireCount = exportData.grimoireHistory.length; let message = 'User data exported successfully! ';
-    const parts = [];
-    if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
-    if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
-    if (parts.length > 0) { message += `Exported ${parts.join(' and ')}.`; } else {
-      message += 'Exported empty user data.';
-    }
-    importStatus.textContent = message; importStatus.className = 'status';
-    setTimeout(() => {
-      importStatus.textContent = ''; importStatus.className = '';
-    }, 5000);
+  const download = downloadJson({ filename: `botc-user-data-${date}.json`, data: exportData });
+  const scriptCount = exportData.scriptHistory.length; const grimoireCount = exportData.grimoireHistory.length; let message = 'User data exported successfully! ';
+  const parts = [];
+  if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
+  if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
+  if (parts.length > 0) { message += `Exported ${parts.join(' and ')}.`; } else {
+    message += 'Exported empty user data.';
   }
+  writeImportStatus(message);
   if (window.Cypress) {
     window.lastDownloadedFile = {
-      filename: a.download,
-      content: JSON.stringify(exportData, null, 2),
+      ...download,
       exportDate: exportData.exportDate
     };
   }
 }
-export async function importUserData(file) {
+export async function importUserData(data) {
   try {
-    const text = await file.text(); const data = JSON.parse(text);
     if (Array.isArray(data)) {
       console.error('Script file detected in user data import');
       alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); return;
@@ -59,65 +80,28 @@ export async function importUserData(file) {
     if (!data.scriptHistory || !data.grimoireHistory || !Array.isArray(data.scriptHistory) || !Array.isArray(data.grimoireHistory)) {
       throw new Error('Invalid user data format: missing or invalid scriptHistory/grimoireHistory arrays');
     }
-    const areEntriesIdentical = (entry1, entry2) => {
-      return entry1.id === entry2.id &&
-        entry1.name === entry2.name &&
-        JSON.stringify(entry1.data) === JSON.stringify(entry2.data) &&
-        entry1.createdAt === entry2.createdAt &&
-        entry1.updatedAt === entry2.updatedAt;
-    };
-    const areGrimoireEntriesIdentical = (entry1, entry2) => {
-      return entry1.id === entry2.id &&
-        entry1.name === entry2.name &&
-        entry1.playerCount === entry2.playerCount &&
-        JSON.stringify(entry1.script) === JSON.stringify(entry2.script) &&
-        JSON.stringify(entry1.players) === JSON.stringify(entry2.players) &&
-        entry1.createdAt === entry2.createdAt &&
-        entry1.updatedAt === entry2.updatedAt;
-    }; const processedScriptHistory = []; const existingScriptIds = new Set(history.scriptHistory.map(item => item.id));
-    for (const importedEntry of data.scriptHistory) {
-      const isDuplicate = history.scriptHistory.some(existingEntry =>
-        areEntriesIdentical(existingEntry, importedEntry)
-      );
-      if (isDuplicate) { continue; }
-      if (existingScriptIds.has(importedEntry.id)) {
-        processedScriptHistory.push({
-          ...importedEntry,
-          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        });
-      } else { processedScriptHistory.push(importedEntry); }
-    }
-    const processedGrimoireHistory = []; const existingGrimoireIds = new Set(history.grimoireHistory.map(item => item.id));
-    for (const importedEntry of data.grimoireHistory) {
-      const isDuplicate = history.grimoireHistory.some(existingEntry =>
-        areGrimoireEntriesIdentical(existingEntry, importedEntry)
-      );
-      if (isDuplicate) { continue; }
-      if (existingGrimoireIds.has(importedEntry.id)) {
-        processedGrimoireHistory.push({
-          ...importedEntry,
-          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        });
-      } else { processedGrimoireHistory.push(importedEntry); }
-    }
+    const processedScriptHistory = prepareImportedHistoryEntries({
+      existingEntries: history.scriptHistory,
+      importedEntries: data.scriptHistory,
+      schema: HISTORY_ENTRY_SCHEMAS.script
+    });
+    const processedGrimoireHistory = prepareImportedHistoryEntries({
+      existingEntries: history.grimoireHistory,
+      importedEntries: data.grimoireHistory,
+      schema: HISTORY_ENTRY_SCHEMAS.grimoire
+    });
     history.scriptHistory = [...history.scriptHistory, ...processedScriptHistory]; history.grimoireHistory = [...history.grimoireHistory, ...processedGrimoireHistory];
     saveHistories(); const scriptHistoryList = document.getElementById('script-history-list'); const grimoireHistoryList = document.getElementById('grimoire-history-list');
     if (scriptHistoryList) { renderScriptHistory({ scriptHistoryList }); }
     if (grimoireHistoryList) { renderGrimoireHistory({ grimoireHistoryList }); }
-    const importStatus = document.getElementById('import-status');
-    if (importStatus) {
-      const scriptCount = processedScriptHistory.length; const grimoireCount = processedGrimoireHistory.length; let message = 'User data imported successfully! ';
-      if (scriptCount > 0 || grimoireCount > 0) {
-        const parts = [];
-        if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
-        if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
-        message += `Added ${parts.join(' and ')}.`;
-      } else { message += 'No new entries added (all were duplicates).'; }
-      importStatus.textContent = message; importStatus.className = 'status';
-      setTimeout(() => {
-        importStatus.textContent = ''; importStatus.className = '';
-      }, 5000);
-    }
+    const scriptCount = processedScriptHistory.length; const grimoireCount = processedGrimoireHistory.length; let message = 'User data imported successfully! ';
+    if (scriptCount > 0 || grimoireCount > 0) {
+      const parts = [];
+      if (scriptCount > 0) { parts.push(`${scriptCount} script${scriptCount !== 1 ? 's' : ''}`); }
+      if (grimoireCount > 0) { parts.push(`${grimoireCount} grimoire${grimoireCount !== 1 ? 's' : ''}`); }
+      message += `Added ${parts.join(' and ')}.`;
+    } else { message += 'No new entries added (all were duplicates).'; }
+    writeImportStatus(message);
   } catch (error) { console.error('Error importing user data:', error); alert(`Error importing user data: ${error.message}`); throw error; }
 }
 export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
@@ -138,20 +122,19 @@ export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
     importFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const importStatus = document.getElementById('import-status');
-        if (importStatus) { importStatus.textContent = ''; importStatus.className = ''; }
+        writeImportStatus('');
         try {
-          const raw = await file.text(); let parsed;
-          try { parsed = JSON.parse(raw); } catch (error) {
+          let parsed;
+          try { parsed = await readJsonFile(file); } catch (error) {
             alert('Error importing file: invalid JSON.'); throw error;
           }
           if (Array.isArray(parsed)) {
             alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
           } else if (isUserDataExport(parsed)) {
-            await importUserData(file);
+            await importUserData(parsed);
           } else if (isCurrentGameExport(parsed)) {
             if (!grimoireState) { alert('Unable to import current game: missing game state.'); } else {
-              await importCurrentGame({ file, grimoireState, grimoireHistoryList });
+              await importCurrentGame({ data: parsed, grimoireState, grimoireHistoryList });
             }
           } else { alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); }
           importFileInput.value = '';

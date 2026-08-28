@@ -5,6 +5,7 @@ import { repositionPlayers } from './ui/layout.js';
 import { processScriptData } from './script.js';
 import { showDayNightSlider, updateDayNightUI } from './dayNightTracking.js';
 import { rebuildAllRoles } from './character.js';
+import { captureStoredGameState } from './gameState.js';
 export function withStateSave(fn) {
   return function (...args) {
     const result = fn.apply(this, args); let grimoireState = null;
@@ -20,19 +21,7 @@ export function withStateSave(fn) {
 }
 export function saveAppState({ grimoireState }) {
   try {
-    const state = {
-      scriptData: grimoireState.scriptData,
-      players: grimoireState.players,
-      scriptName: grimoireState.scriptMetaName,
-      dayNightTracking: grimoireState.dayNightTracking,
-      bluffs: grimoireState.bluffs || [null, null, null],
-      mode: grimoireState.mode || 'player',
-      grimoireHidden: !!grimoireState.grimoireHidden,
-      playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
-      gameStarted: !!grimoireState.gameStarted,
-      winner: grimoireState.winner || null,
-      tempSnapshot: grimoireState.tempSnapshot || null
-    }; localStorage.setItem('botcAppStateV1', JSON.stringify(state));
+    localStorage.setItem('botcAppStateV1', JSON.stringify(captureStoredGameState(grimoireState)));
     try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, grimoireState.includeTravellers ? '1' : '0'); } catch (_) { }
     try { localStorage.setItem(MODE_STORAGE_KEY, (grimoireState.mode === 'player') ? 'player' : 'storyteller'); } catch (_) { }
   } catch (_) { }

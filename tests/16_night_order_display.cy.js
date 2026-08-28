@@ -319,8 +319,6 @@ describe('Night Order Display', () => {
 
   describe('Night Order Calculation', () => {
     beforeEach(() => {
-      cy.resetApp({ mode: 'storyteller', loadScript: true });
-
       // Enable day/night tracking
       cy.get('[data-testid="day-night-toggle"]').click({ force: true });
     });

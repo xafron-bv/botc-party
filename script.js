@@ -9,7 +9,7 @@ import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrent
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initPlayerSetup } from './src/playerSetup.js';
-import { restoreSelectionSession } from './src/playerSelection.js';
+import { deactivateSelection, restoreSelectionSession } from './src/playerSelection.js';
 import { updateBluffAttentionState } from './src/bluffTokens.js';
 import { populateReminderTokenGrid } from './src/reminder.js';
 import { processScriptData } from './src/script.js';
@@ -31,6 +31,7 @@ import { initThemeSelector, handleThemeChange } from './src/themeManager.js';
 import { initGrimoirePrintExport } from './src/export/grimoirePrint.js';
 import { byId, byIds } from './src/utils/dom.js';
 import { createGrimoireState, showVersion, trackPageLoad } from './src/bootstrap.js';
+import { createDayNightTrackingState } from './src/gameState.js';
 document.addEventListener('DOMContentLoaded', async () => {
   const finishPageLoad = trackPageLoad();
   const bootstrap = async () => {
@@ -110,9 +111,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     const handleRevealSelectedFromSidebar = () => {
-      const sel = grimoireState.playerSetup || {}; if (!sel.selectionComplete || sel.revealed) return; _applyAssignmentsFromBag(); sel.selectionActive = false; sel.revealed = true;
+      const sel = grimoireState.playerSetup || {}; if (!sel.selectionComplete || sel.revealed) return; _applyAssignmentsFromBag(); deactivateSelection(grimoireState); sel.revealed = true;
       grimoireState.gameStarted = true;
-      try { document.body.classList.remove('selection-active'); } catch (_) { }
       try { showGrimoire({ grimoireState }); } catch (_) { }
       try { updateGrimoire({ grimoireState }); } catch (_) { }
       try { renderSetupInfo({ grimoireState }); } catch (_) { }
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         grimoireState._gameStatusTimer = setTimeout(() => { try { gameStatusEl.textContent = ''; } catch (_) { } }, 3000);
       }
       try {
-        if (!grimoireState.dayNightTracking) { grimoireState.dayNightTracking = { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} }; } else {
+        if (!grimoireState.dayNightTracking) { grimoireState.dayNightTracking = createDayNightTrackingState(); } else {
           grimoireState.dayNightTracking.enabled = false; grimoireState.dayNightTracking.phases = ['N1']; grimoireState.dayNightTracking.currentPhaseIndex = 0;
           grimoireState.dayNightTracking.reminderTimestamps = {};
         }

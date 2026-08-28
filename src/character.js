@@ -1,13 +1,15 @@
 import { displayScript } from './script.js';
-import { resolveAssetPath, normalizeKey } from '../utils.js';
+import { normalizeKey } from '../utils.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
-import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
+import { createCustomRole, indexRoles, loadGameData, normalizeRole } from './roleData.js';
+import { createStatusWriter } from './utils/dom.js';
+const writeLoadStatus = createStatusWriter('load-status');
 export function populateCharacterGrid({ grimoireState }) {
   const characterGrid = document.getElementById('character-grid'); const characterSearch = document.getElementById('character-search'); characterGrid.innerHTML = '';
   const filter = characterSearch.value.toLowerCase(); const isBluffSelection = typeof grimoireState.selectedBluffIndex === 'number';
@@ -65,27 +67,7 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
     const slotIndex = grimoireState._tempStorytellerSlotIndex;
     try {
       if (!Array.isArray(grimoireState.storytellerTempSlots)) { grimoireState.storytellerTempSlots = []; }
-      grimoireState.storytellerTempSlots[slotIndex] = roleId; const slotsEl = document.getElementById('storyteller-message-slots');
-      if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
-        const slotEl = slotsEl.children[slotIndex]; const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
-        if (role && role.image) {
-          renderTokenElement({
-            tokenElement: slotEl,
-            role,
-            baseImage: resolveAssetPath('./assets/img/token.png'),
-            labelIdPrefix: `story-slot-${role.id}-${Date.now()}`
-          });
-        } else {
-          renderTokenElement({
-            tokenElement: slotEl,
-            role: null,
-            baseImage: resolveAssetPath('./assets/img/token.png'),
-            labelIdPrefix: 'story-slot-empty',
-            showLabel: true,
-            customLabel: 'None'
-          });
-        }
-      }
+      grimoireState.storytellerTempSlots[slotIndex] = roleId;
     } catch (_) { }
     hideCharacterModal({ grimoireState }); delete grimoireState._tempStorytellerSlotIndex; return;
   }
@@ -110,62 +92,40 @@ export function applyTravellerToggleAndRefresh({ grimoireState }) {
   if (Array.isArray(grimoireState.scriptData)) displayScript({ data: grimoireState.scriptData, grimoireState }).catch(console.error);
 }
 export async function processScriptCharacters({ characterIds, grimoireState }) {
-  try {
-    console.log('Loading data.json to resolve character IDs...'); const response = await fetch('./data.json');
-    if (!response.ok) { throw new Error(`Failed to load data.json: ${response.status}`); }
-    const data = await response.json(); const characters = data.roles; const nightOrder = data.nightOrder; console.log('data.json loaded successfully');
-    grimoireState.nightOrderData = nightOrder; const roleLookup = {}; const normalizedToCanonicalId = {};
-    if (Array.isArray(characters)) {
-      characters.forEach(role => {
-        if (!role || !role.id) return; const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`; const image = resolveAssetPath(imagePath);
-        const canonical = { ...role, image, team: (role.team || '').toLowerCase() }; roleLookup[role.id] = canonical; const normId = normalizeKey(role.id);
-        const normName = normalizeKey(role.name); if (normId) normalizedToCanonicalId[normId] = role.id; if (normName) normalizedToCanonicalId[normName] = role.id;
-      });
+  const addScriptRole = (role) => {
+    if (role.team === 'traveller') {
+      grimoireState.extraTravellerRoles[role.id] = role;
+      grimoireState.scriptTravellerRoles[role.id] = role;
+    } else {
+      grimoireState.baseRoles[role.id] = role;
     }
+  };
+  try {
+    console.log('Loading data.json to resolve character IDs...'); const data = await loadGameData(); const { byId: roleLookup, idByNormalizedKey } = indexRoles(data.roles);
+    grimoireState.nightOrderData = data.nightOrder; console.log('data.json loaded successfully');
     hideCharacterModal({ grimoireState }); console.log('Role lookup created with', Object.keys(roleLookup).length, 'roles');
     Object.values(roleLookup).forEach(role => {
       if ((role.team || '').toLowerCase() === 'traveller') { grimoireState.extraTravellerRoles[role.id] = role; }
     });
     characterIds.forEach((characterItem) => {
       if (typeof characterItem === 'string' && characterItem !== '_meta') {
-        const key = normalizeKey(characterItem); const canonicalId = normalizedToCanonicalId[key];
+        const key = normalizeKey(characterItem); const canonicalId = idByNormalizedKey[key];
         if (canonicalId && roleLookup[canonicalId]) {
-          const role = roleLookup[canonicalId];
-          if (role.team === 'traveller') { grimoireState.extraTravellerRoles[canonicalId] = role; grimoireState.scriptTravellerRoles[canonicalId] = role; } else {
-            grimoireState.baseRoles[canonicalId] = role;
-          }
+          const role = roleLookup[canonicalId]; addScriptRole(role);
           console.log(`Resolved character ${characterItem} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
         } else { console.warn(`Character not found: ${characterItem}`); }
       } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
         const idKey = normalizeKey(characterItem.id); const nameKey = normalizeKey(characterItem.name || '');
-        const canonicalId = normalizedToCanonicalId[idKey] || normalizedToCanonicalId[nameKey];
+        const canonicalId = idByNormalizedKey[idKey] || idByNormalizedKey[nameKey];
         if (canonicalId && roleLookup[canonicalId]) {
-          const role = roleLookup[canonicalId];
-          if (role.team === 'traveller') { grimoireState.extraTravellerRoles[canonicalId] = role; grimoireState.scriptTravellerRoles[canonicalId] = role; } else {
-            grimoireState.baseRoles[canonicalId] = role;
-          }
+          const role = roleLookup[canonicalId]; addScriptRole(role);
           console.log(`Resolved object character ${characterItem.id} -> ${canonicalId} (${roleLookup[canonicalId].name})`);
-        } else if (characterItem.name && characterItem.team && characterItem.ability) {
-          let img = characterItem.image;
-          if (Array.isArray(img)) { img = img.find(v => typeof v === 'string' && v.trim().length > 0) || null; }
-          const customRole = {
-            id: characterItem.id,
-            name: characterItem.name,
-            team: String(characterItem.team || '').toLowerCase(),
-            ability: characterItem.ability,
-            image: img ? resolveAssetPath(img) : './assets/img/token.png'
-          }; if (characterItem.reminders) customRole.reminders = characterItem.reminders;
-          if (characterItem.remindersGlobal) customRole.remindersGlobal = characterItem.remindersGlobal;
-          if (characterItem.setup !== undefined) customRole.setup = characterItem.setup; if (characterItem.jinxes) customRole.jinxes = characterItem.jinxes;
-          if (typeof characterItem.firstNight === 'number') customRole.firstNight = characterItem.firstNight;
-          if (typeof characterItem.otherNight === 'number') customRole.otherNight = characterItem.otherNight;
-          if (typeof characterItem.firstNightReminder === 'string') customRole.firstNightReminder = characterItem.firstNightReminder;
-          if (typeof characterItem.otherNightReminder === 'string') customRole.otherNightReminder = characterItem.otherNightReminder;
-          if (customRole.team === 'traveller') {
-            grimoireState.extraTravellerRoles[characterItem.id] = customRole; grimoireState.scriptTravellerRoles[characterItem.id] = customRole;
-          } else { grimoireState.baseRoles[characterItem.id] = customRole; }
+        } else {
+          const customRole = createCustomRole(characterItem);
+          if (!customRole) { console.warn('Invalid custom character object:', characterItem); return; }
+          addScriptRole(customRole);
           console.log(`Added custom character ${characterItem.id} (${characterItem.name})`);
-        } else { console.warn('Invalid custom character object:', characterItem); }
+        }
       }
     }); console.log('Script processing completed');
   } catch (error) {
@@ -179,24 +139,8 @@ export async function processScriptCharacters({ characterIds, grimoireState }) {
           team: 'unknown'
         };
       } else if (typeof characterItem === 'object' && characterItem !== null && characterItem.id && characterItem.id !== '_meta') {
-        if (characterItem.name && characterItem.team && characterItem.ability) {
-          let img = characterItem.image;
-          if (Array.isArray(img)) { img = img.find(v => typeof v === 'string' && v.trim().length > 0) || null; }
-          const customFallback = {
-            id: characterItem.id,
-            name: characterItem.name,
-            team: String(characterItem.team || '').toLowerCase(),
-            ability: characterItem.ability,
-            image: img ? resolveAssetPath(img) : './assets/img/token.png'
-          }; if (typeof characterItem.firstNight === 'number') customFallback.firstNight = characterItem.firstNight;
-          if (typeof characterItem.otherNight === 'number') customFallback.otherNight = characterItem.otherNight;
-          if (typeof characterItem.firstNightReminder === 'string') customFallback.firstNightReminder = characterItem.firstNightReminder;
-          if (typeof characterItem.otherNightReminder === 'string') customFallback.otherNightReminder = characterItem.otherNightReminder;
-          if (customFallback.team === 'traveller') {
-            grimoireState.extraTravellerRoles[characterItem.id] = customFallback;
-            if (grimoireState.scriptTravellerRoles) { grimoireState.scriptTravellerRoles[characterItem.id] = customFallback; }
-          } else { grimoireState.baseRoles[characterItem.id] = customFallback; }
-        }
+        const customFallback = createCustomRole(characterItem, { includeSetupData: false });
+        if (customFallback) addScriptRole(customFallback);
       }
     });
   }
@@ -232,26 +176,21 @@ export const onIncludeTravellersChange = withStateSave(({ grimoireState, include
   grimoireState.includeTravellers = !!includeTravellersCheckbox.checked; applyTravellerToggleAndRefresh({ grimoireState });
 });
 export const loadAllCharacters = withStateSave(async ({ grimoireState }) => {
-  const loadStatus = document.getElementById('load-status');
   try {
-    loadStatus.textContent = 'Loading all characters...'; loadStatus.className = 'status'; const response = await fetch('./data.json');
-    if (!response.ok) { throw new Error(`Failed to load data.json: ${response.status}`); }
-    const data = await response.json(); const characters = data.roles; console.log('Loading all characters from data.json'); grimoireState.allRoles = {};
-    grimoireState.baseRoles = {}; grimoireState.extraTravellerRoles = {}; const roleLookup = {}; const characterIds = [];
+    writeLoadStatus('Loading all characters...'); const data = await loadGameData(); const characters = data.roles;
+    console.log('Loading all characters from data.json'); grimoireState.allRoles = {};
+    grimoireState.baseRoles = {}; grimoireState.extraTravellerRoles = {}; const characterIds = [];
     if (Array.isArray(characters)) {
       characters.forEach(role => {
-        if (!role || !role.id) return; const teamName = (role.team || '').toLowerCase();
-        if (teamName === 'traveller') { return; }
-        if ((role.edition || '').toLowerCase() === 'special') { return; }
-        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`; const image = resolveAssetPath(imagePath);
-        const canonical = { ...role, image, team: teamName }; roleLookup[role.id] = canonical; grimoireState.baseRoles[role.id] = canonical; characterIds.push(role.id);
+        const canonical = normalizeRole(role); if (!canonical || canonical.team === 'traveller') return;
+        if ((canonical.edition || '').toLowerCase() === 'special') return;
+        grimoireState.baseRoles[canonical.id] = canonical; characterIds.push(canonical.id);
       });
     }
     console.log(`Loaded ${Object.keys(grimoireState.allRoles).length} characters from all teams`);
     grimoireState.scriptData = [{ id: '_meta', name: 'All Characters', author: 'System' }, ...characterIds]; rebuildAllRoles({ grimoireState });
-    applyTravellerToggleAndRefresh({ grimoireState }); loadStatus.textContent = `Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`;
-    loadStatus.className = 'status';
+    applyTravellerToggleAndRefresh({ grimoireState }); writeLoadStatus(`Loaded ${Object.keys(grimoireState.allRoles).length} characters successfully`);
   } catch (error) {
-    console.error('Failed to load all characters:', error); loadStatus.textContent = `Failed to load all characters: ${error.message}`; loadStatus.className = 'error';
+    console.error('Failed to load all characters:', error); writeLoadStatus(`Failed to load all characters: ${error.message}`, 'error');
   }
 });

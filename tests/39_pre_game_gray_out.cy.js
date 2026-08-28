@@ -20,16 +20,15 @@ describe('Pre-game grimoire access is always available', () => {
       let dataRequestCount = 0;
       win.fetch = (input, options) => {
         const request = originalFetch(input, options);
-        if (!String(input).includes('data.json') || ++dataRequestCount !== 2) return request;
+        if (!String(input).includes('data.json') || ++dataRequestCount !== 1) return request;
         return new win.Promise((resolve, reject) => {
-          win.setTimeout(() => request.then(resolve, reject), 500);
+          win.setTimeout(() => request.then(resolve, reject), 2000);
         });
       };
     });
 
     cy.get('#load-tb').click();
     cy.window().should((win) => {
-      expect(win.grimoireState.scriptData).to.be.an('array');
       expect(win.grimoireState.scriptLoadPromise?.then).to.be.a('function');
     });
     cy.get('#player-circle li .player-token').first().click({ force: true });

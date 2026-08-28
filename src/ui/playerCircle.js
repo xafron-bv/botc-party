@@ -6,6 +6,20 @@ import { positionRadialStack } from './layout.js';
 import { setupInteractiveElement } from '../utils/interaction.js';
 import { createSafeClickHandler } from '../utils/eventHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
+function isReminderExpansionTarget(target) {
+  const clickedReminderArea = !!(target && (target.closest('.reminder-placeholder') || target.closest('.reminders')));
+  const clickedIndividualReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
+  return clickedReminderArea && !clickedIndividualReminder;
+}
+function collapseOtherReminderStacks({ listItem, grimoireState }) {
+  let collapsedAny = false; const listItems = Array.from(document.querySelectorAll('#player-circle li'));
+  listItems.forEach((element, playerIndex) => {
+    if (element === listItem || element.dataset.expanded !== '1') return;
+    collapsedAny = true; element.dataset.expanded = '0';
+    positionRadialStack(element, getVisibleRemindersCount({ grimoireState, playerIndex }));
+  });
+  return collapsedAny;
+}
 export function createPlayerListItem({ grimoireState, playerIndex, playerName, setupPlayerNameHandlers }) {
   const listItem = document.createElement('li');
   listItem.innerHTML = `
@@ -76,13 +90,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     placeholderEl.onclick = createSafeClickHandler((e) => {
       const thisLi = listItem;
       if (thisLi.dataset.expanded !== '1') {
-        const allLis = document.querySelectorAll('#player-circle li'); let someoneExpanded = false;
-        allLis.forEach(el => {
-          if (el !== thisLi && el.dataset.expanded === '1') {
-            someoneExpanded = true; el.dataset.expanded = '0'; const idx = Array.from(allLis).indexOf(el);
-            positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
-          }
-        });
+        const someoneExpanded = collapseOtherReminderStacks({ listItem: thisLi, grimoireState });
         if (someoneExpanded) {
           thisLi.dataset.expanded = '1'; thisLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS);
           positionRadialStack(thisLi, getVisibleRemindersCount({ grimoireState, playerIndex })); return;
@@ -97,21 +105,13 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   }
   listItem.dataset.expanded = '0';
   const expand = () => {
-    const wasExpanded = listItem.dataset.expanded === '1'; const allLis = document.querySelectorAll('#player-circle li');
-    allLis.forEach(el => {
-      if (el !== listItem && el.dataset.expanded === '1') {
-        el.dataset.expanded = '0'; const idx = Array.from(allLis).indexOf(el); positionRadialStack(el, getVisibleRemindersCount({ grimoireState, playerIndex: idx }));
-      }
-    }); listItem.dataset.expanded = '1';
+    const wasExpanded = listItem.dataset.expanded === '1'; collapseOtherReminderStacks({ listItem, grimoireState }); listItem.dataset.expanded = '1';
     if (isTouchDevice() && !wasExpanded) { listItem.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS); }
     positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
   };
   if (remindersEl) {
     remindersEl.addEventListener('click', (e) => {
-      const target = e.target; const clickedPlaceholder = !!(target && target.closest('.reminder-placeholder'));
-      const clickedRemindersContainer = !!(target && target.closest('.reminders'));
-      const clickedIndividualReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
-      if ((clickedPlaceholder || clickedRemindersContainer) && !clickedIndividualReminder) { expand(); }
+      if (isReminderExpansionTarget(e.target)) { expand(); }
     });
   }
   listItem.addEventListener('touchstart', (e) => {
@@ -128,9 +128,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     if (target && target.closest('.death-vote-indicator')) {
       return; // Don't expand when tapping ghost vote indicator
     }
-    const tappedPlaceholder = !!(target && target.closest('.reminder-placeholder')); const tappedRemindersContainer = !!(target && target.closest('.reminders'));
-    const tappedIndividualReminder = !!(target && (target.closest('.icon-reminder') || target.closest('.text-reminder')));
-    if ((tappedPlaceholder || tappedRemindersContainer) && !tappedIndividualReminder) {
+    if (isReminderExpansionTarget(target)) {
       listItem.dataset.touchSuppressUntil = String(Date.now() + TOUCH_EXPAND_SUPPRESS_MS); expand();
       positionRadialStack(listItem, getVisibleRemindersCount({ grimoireState, playerIndex }));
     }

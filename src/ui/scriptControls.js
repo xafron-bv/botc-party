@@ -9,8 +9,10 @@ import {
   loadScriptFromUrl,
   processScriptData
 } from '../script.js';
-import { byId } from '../utils/dom.js';
+import { createStatusWriter } from '../utils/dom.js';
 import { renderSetupInfo } from '../utils/setup.js';
+
+const writeLoadStatus = createStatusWriter('load-status');
 
 export function initScriptControls({
   grimoireState,
@@ -66,28 +68,22 @@ async function applySharedScriptFromUrl({ grimoireState }) {
     return;
   }
 
-  const loadStatus = byId('load-status');
-  const updateStatus = (text, className = 'status') => {
-    if (!loadStatus) return;
-    loadStatus.textContent = text;
-    loadStatus.className = className;
-  };
   const data = decodeSharedScriptParam(encodedScript);
   if (!data) {
-    updateStatus('Could not load shared script (invalid share link).', 'error');
+    writeLoadStatus('Could not load shared script (invalid share link).', 'error');
     return;
   }
 
-  updateStatus('Loading shared script...');
+  writeLoadStatus('Loading shared script...');
   try {
     await processScriptData({ data, addToHistory: true, grimoireState });
     await displayScript({ data: grimoireState.scriptData, grimoireState });
     renderSetupInfo({ grimoireState });
     saveAppState({ grimoireState });
     window.updateButtonStates?.();
-    updateStatus('Shared script loaded');
+    writeLoadStatus('Shared script loaded');
   } catch (error) {
     console.error('Failed to load shared script', error);
-    updateStatus('Could not load shared script', 'error');
+    writeLoadStatus('Could not load shared script', 'error');
   }
 }

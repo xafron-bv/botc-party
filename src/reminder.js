@@ -6,9 +6,24 @@ import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { CLICK_EXPAND_SUPPRESS_MS } from './constants.js';
 import { positionRadialStack } from './ui/layout.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
-import { setupInteractiveElement } from './utils/interaction.js';
+import { isActivationKey, setupInteractiveElement } from './utils/interaction.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
+import { loadGameData } from './roleData.js';
+const ROLE_REMINDER_FIELDS = [['reminders', ''], ['remindersGlobal', 'global-']];
+function appendRoleReminderTokens(target, role) {
+  if (!role) return;
+  const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`; const image = resolveAssetPath(imagePath);
+  ROLE_REMINDER_FIELDS.forEach(([field, idPrefix]) => {
+    if (!Array.isArray(role[field]) || !role[field].length) return;
+    role[field].forEach(reminder => {
+      const label = String(reminder || '').trim(); if (!label) return;
+      const normalizedLabel = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      target.push({ id: `${role.id}-${idPrefix}${normalizedLabel}`, image, label, characterName: role.name, characterId: role.id });
+    });
+  });
+}
+function normalizeReminderToken(token) { return { ...token, image: resolveAssetPath(token.image) }; }
 export async function populateReminderTokenGrid({ grimoireState }) {
   const reminderTokenGrid = document.getElementById('reminder-token-grid'); const reminderTokenSearch = document.getElementById('reminder-token-search');
   const reminderTokenModal = document.getElementById('reminder-token-modal'); if (!reminderTokenGrid) return; reminderTokenGrid.innerHTML = '';
@@ -42,25 +57,11 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     try { reminderTokenModal.style.display = 'none'; } catch (_) { }
   }); reminderTokenGrid.addEventListener('click', delegatedSelectionHandler, true); reminderTokenGrid._delegatedSelectionHandler = delegatedSelectionHandler;
   try {
-    const res = await fetch('./data.json?v=reminders', { cache: 'no-store' }); if (!res.ok) throw new Error('Failed to load data.json'); const data = await res.json();
+    const data = await loadGameData();
     const json = { roles: data.roles, reminderTokens: data.reminderTokens || [] }; let reminderTokens = Array.isArray(json.reminderTokens) ? json.reminderTokens : [];
     const scriptReminderTokens = []; const isPlayerMode = grimoireState && grimoireState.mode === 'player';
     try {
-      Object.values(grimoireState.allRoles || {}).forEach(role => {
-        const imagePath = role.image || `/build/img/icons/${role.team}/${role.id}.webp`; const roleImage = resolveAssetPath(imagePath);
-        if (role && Array.isArray(role.reminders) && role.reminders.length) {
-          role.reminders.forEach(rem => {
-            const label = String(rem || '').trim(); if (!label) return; const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, ''); const id = `${role.id}-${norm}`;
-            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-          });
-        }
-        if (role && Array.isArray(role.remindersGlobal) && role.remindersGlobal.length) {
-          role.remindersGlobal.forEach(rem => {
-            const label = String(rem || '').trim(); if (!label) return; const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, ''); const id = `${role.id}-global-${norm}`;
-            scriptReminderTokens.push({ id, image: roleImage, label, characterName: role.name, characterId: role.id });
-          });
-        }
-      });
+      Object.values(grimoireState.allRoles || {}).forEach(role => appendRoleReminderTokens(scriptReminderTokens, role));
     } catch (_) { }
     const genericTokens = [
       { id: 'townsfolk-townsfolk', image: './assets/reminders/good-D9wGdnv9.webp', label: 'Townsfolk' },
@@ -85,7 +86,7 @@ export async function populateReminderTokenGrid({ grimoireState }) {
       ...scriptReminderTokens,
       ...reminderTokens
     ]; const filter = (reminderTokenSearch && reminderTokenSearch.value || '').toLowerCase();
-    reminderTokens = reminderTokens.map(t => ({ ...t, image: resolveAssetPath(t.image) })); const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
+    reminderTokens = reminderTokens.map(normalizeReminderToken); const isCustom = (t) => /custom/i.test(t.label || '') || /custom/i.test(t.id || '');
     reminderTokens.sort((a, b) => (isCustom(a) === isCustom(b)) ? 0 : (isCustom(a) ? -1 : 1));
     const filtered = reminderTokens.filter(t => {
       const combined = `${(t.label || '').toLowerCase()} ${(t.characterName || '').toLowerCase()}`.trim(); if (!filter) return true;
@@ -94,14 +95,14 @@ export async function populateReminderTokenGrid({ grimoireState }) {
     filtered.forEach((token, idx) => {
       const tokenEl = createTokenGridItem({
         id: token.id || '',
-        image: resolveAssetPath(token.image),
+        image: token.image,
         baseImage: 'assets/img/token.png',
         label: token.label || '',
         title: token.label || '',
         curvedId: `picker-arc-${idx}`,
         data: {
           tokenLabel: token.label || '',
-          tokenImage: resolveAssetPath(token.image)
+          tokenImage: token.image
         }
       }); reminderTokenGrid.appendChild(tokenEl);
     });
@@ -120,6 +121,14 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
   if (!canOpenModal({ grimoireState })) return; const reminderTextInput = document.getElementById('reminder-text-input');
   const textReminderModal = document.getElementById('text-reminder-modal'); grimoireState.editingReminder = { playerIndex, reminderIndex }; reminderTextInput.value = existingText;
   textReminderModal.style.display = 'flex'; reminderTextInput.focus();
+}
+export function closeCustomReminderEditModal({ grimoireState }) {
+  const customReminderEditModal = document.getElementById('custom-reminder-edit-modal'); if (!customReminderEditModal) return;
+  customReminderEditModal.style.display = 'none'; if (grimoireState) { grimoireState.editingCustomReminder = null; }
+  const customReminderTextInput = document.getElementById('custom-reminder-text-input');
+  if (customReminderTextInput) {
+    const clonedInput = customReminderTextInput.cloneNode(true); customReminderTextInput.parentNode.replaceChild(clonedInput, customReminderTextInput);
+  }
 }
 export function openCustomReminderEditModal({ grimoireState, playerIndex, reminderIndex, existingText = '' }) {
   if (!canOpenModal({ grimoireState })) return; const customReminderTextInput = document.getElementById('custom-reminder-text-input');
@@ -231,7 +240,7 @@ export function createReminderElement({
       showPressFeedback: true
     }); element.setAttribute('role', 'button'); element.setAttribute('tabindex', '0');
     element.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (onClick) onClick(e); }
+      if (isActivationKey(e)) { e.preventDefault(); if (onClick) onClick(e); }
     });
   } else {
     if (type === 'token') { element.setAttribute('aria-hidden', 'true'); }

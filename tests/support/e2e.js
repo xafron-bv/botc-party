@@ -28,7 +28,7 @@ Cypress.on('window:before:load', (win) => {
 // Usage: cy.setupGame({ players: 5, loadScript: true })
 // Default: players=5, loadScript=true
 Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'storyteller' } = {}) => {
-  cy.window().then((win) => { try { win.localStorage.removeItem('sidebarCollapsed'); } catch (_) { } });
+  cy.ensureSidebarOpen();
   if (mode === 'storyteller') {
     cy.ensureStorytellerMode();
   } else if (mode === 'player') {
@@ -37,6 +37,7 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'sto
   if (loadScript) {
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.ensureSidebarOpen();
   }
   cy.get('#player-count').then(($el) => {
     const el = $el[0];
@@ -46,17 +47,7 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'sto
   });
   cy.get('#reset-grimoire').click({ force: true });
   cy.get('#player-circle li').should('have.length', players);
-  // Ensure sidebar is open so the End Game button is visible
-  cy.get('body').then(($b) => {
-    if ($b.hasClass('sidebar-collapsed')) {
-      cy.get('#sidebar-toggle').click({ force: true });
-    }
-  });
-  cy.get('#sidebar').then(($sidebar) => {
-    if (($sidebar.width() || 0) < 50) {
-      cy.get('#sidebar-toggle').click({ force: true });
-    }
-  });
+  cy.ensureSidebarOpen();
   cy.get('#end-game').scrollIntoView().should('be.visible');
 });
 
@@ -84,19 +75,22 @@ Cypress.Commands.add('startGame', () => {
 });
 
 Cypress.Commands.add('ensureSidebarOpen', () => {
-  cy.window().then((win) => {
-    const body = win.document.body;
-    body.classList.remove('sidebar-collapsed');
-    body.classList.add('sidebar-open');
-    const sidebar = win.document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.style.width = '';
-      sidebar.style.display = '';
-      sidebar.style.overflow = 'visible';
+  cy.get('body').then(($body) => {
+    if ($body.hasClass('character-panel-open')) {
+      cy.get('#character-panel-toggle').click({ force: true });
     }
   });
-  cy.get('#sidebar-toggle').then($btn => {
-    if ($btn.is(':visible')) cy.wrap($btn).click({ force: true });
+  cy.get('body').should('not.have.class', 'character-panel-open').then(($body) => {
+    if ($body.hasClass('sidebar-collapsed')) {
+      cy.get('#sidebar-toggle').should('be.visible').click({ force: true });
+    }
+  });
+  cy.get('body').should('not.have.class', 'sidebar-collapsed');
+  cy.get('#sidebar').should(($sidebar) => {
+    const sidebar = $sidebar[0]; const rect = sidebar.getBoundingClientRect(); const view = sidebar.ownerDocument.defaultView;
+    expect(rect.width, 'sidebar width').to.be.greaterThan(Math.min(200, view.innerWidth * 0.5));
+    expect(rect.left, 'sidebar left edge').to.be.gte(-1);
+    expect(view.getComputedStyle(sidebar).overflowY, 'sidebar vertical overflow').to.equal('auto');
   });
 });
 
@@ -108,12 +102,13 @@ Cypress.Commands.add('resetApp', ({
   showSidebar = true,
   showGrimoire = true
 } = {}) => {
-  cy.visit('/');
+  cy.visit('/', clearStorage ? {
+    onBeforeLoad: (win) => {
+      try { win.localStorage.clear(); } catch (_) { }
+    }
+  } : {});
   if (viewport) {
     Array.isArray(viewport) ? cy.viewport(viewport[0], viewport[1]) : cy.viewport(viewport);
-  }
-  if (clearStorage) {
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
   }
   if (mode === 'storyteller') {
     cy.ensureStorytellerMode();

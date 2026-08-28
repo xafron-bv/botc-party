@@ -170,7 +170,7 @@ describe('Player Setup - Bag Flow (Storyteller mode)', () => {
     }
 
     // Sidebar is collapsed after selection; reopen it to access the reveal button
-    cy.get('#sidebar-toggle').click({ force: true });
+    cy.ensureSidebarOpen();
     cy.get('#reveal-selected-characters').should('be.visible').and('not.be.disabled').click();
 
     // Character names should appear under player tokens and overlays removed

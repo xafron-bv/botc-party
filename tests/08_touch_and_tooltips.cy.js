@@ -7,10 +7,7 @@ const startGameWithPlayers = (n) => {
 
 describe('Ability UI - Desktop', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
+    cy.resetApp({ mode: 'storyteller', loadScript: false });
     cy.setupGame({ players: 5, loadScript: true });
   });
 
@@ -31,47 +28,12 @@ describe('Ability UI - Touch', () => {
     // Simulate touch before app initializes to ensure touch mode code paths are used
     cy.visit('/', {
       onBeforeLoad(win) {
+        win.localStorage.clear();
         Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
-    // On desktop-width touch emulation the persistent sidebar toggle can overlap
-    // the top script load buttons. If it is visible, open the sidebar first so
-    // the toggle hides and no longer covers the target controls on small/touch viewports.
-    cy.get('body').then(($body) => {
-      const toggle = $body.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-    });
-    // Wait for sidebar-open (added by app) OR hide toggle fallback
-    cy.get('body').then(($body) => {
-      if (!$body.hasClass('sidebar-open')) {
-        // As a resilience fallback in CI if animation/state lagged, directly set class
-        $body.addClass('sidebar-open');
-      }
-    });
-    // Now attempt script load; force in case of race
-    cy.get('#load-tb').click({ force: true });
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    // Directly set player count then trigger reset via native dispatch; also collapse character panel first
-    cy.get('#player-count').then(($el) => {
-      const el = $el[0];
-      el.value = '5';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    cy.window().then((win) => {
-      try { win.document.body.classList.remove('character-panel-open'); } catch (_) { }
-      const btn = win.document.getElementById('reset-grimoire');
-      if (btn) btn.dispatchEvent(new Event('click', { bubbles: true }));
-    });
-    cy.get('#player-circle li').should('have.length', 5);
-    // Hide toggle explicitly after player setup
-    cy.get('#sidebar-toggle').then(($btn) => { $btn.css('display', 'none'); });
+    cy.setupGame({ players: 5, loadScript: true });
     // Start the game so interactions are enabled
     cy.startGame();
   });

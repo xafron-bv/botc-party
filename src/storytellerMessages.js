@@ -1,5 +1,6 @@
 import { populateCharacterGrid } from './character.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
+import { isActivationKey } from './utils/interaction.js';
 let showOverlayHandler = null;
 export function showStorytellerMessage({ text = '', slotCount = 0, slotRoleIds = [] } = {}) {
   if (typeof showOverlayHandler === 'function') { showOverlayHandler({ text, slotCount, slotRoleIds }); }
@@ -17,10 +18,7 @@ export function initStorytellerMessages({ grimoireState }) {
   }
   function applyRoleLookToToken(tokenEl, roleId) {
     if (!tokenEl) return;
-    if (roleId) { tokenEl.dataset.roleId = roleId; } else {
-      delete tokenEl.dataset.roleId;
-    }
-    const existingSvg = tokenEl.querySelector('svg'); if (existingSvg) existingSvg.remove(); tokenEl.style.width = 'calc(var(--token-size-base) * 1.5)';
+    tokenEl.style.width = 'calc(var(--token-size-base) * 1.5)';
     tokenEl.style.height = 'calc(var(--token-size-base) * 1.5)'; tokenEl.style.border = 'var(--token-ring-width) solid var(--token-ring-color)';
     tokenEl.style.boxShadow = '0 0 34px var(--token-halo-inner), 0 0 48px var(--token-halo-outer), inset 0 0 18px rgba(255, 249, 235, 0.55)'; tokenEl.style.borderRadius = '50%';
     tokenEl.style.backgroundColor = 'var(--token-surface-tint)'; const role = (roleId && grimoireState.allRoles[roleId]) ? grimoireState.allRoles[roleId] : null;
@@ -48,7 +46,7 @@ export function initStorytellerMessages({ grimoireState }) {
       const slot = document.createElement('div'); slot.className = 'token'; slot.dataset.storySlotIndex = String(index); slot.tabIndex = 0;
       applyRoleLookToToken(slot, roleId || null); slot.addEventListener('click', () => openRoleGridForSlot(index));
       slot.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openRoleGridForSlot(index); }
+        if (isActivationKey(event)) { event.preventDefault(); openRoleGridForSlot(index); }
         if (event.key === 'Backspace' || event.key === 'Delete') { event.preventDefault(); clearSlot(index); }
       });
       slot.addEventListener('contextmenu', (event) => {

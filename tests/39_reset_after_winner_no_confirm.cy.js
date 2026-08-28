@@ -41,11 +41,7 @@ describe('Reset after winner does not prompt', () => {
       });
     }
     // Open sidebar for reveal/end controls
-    cy.get('body').then(($b) => {
-      if ($b.hasClass('sidebar-collapsed')) {
-        cy.get('#sidebar-toggle').click({ force: true });
-      }
-    });
+    cy.ensureSidebarOpen();
     // Reveal assignments to apply characters
     cy.get('#reveal-selected-characters').should('be.visible').click();
   }

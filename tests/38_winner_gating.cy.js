@@ -18,13 +18,9 @@ describe('Winner does not gate post-game editing or setup', () => {
     // Load a script so roles are available
     cy.get('#load-tb').click();
 
-    // End game -> open modal and declare winner (force in case sidebar collapsed)
-    cy.get('#sidebar').then(($s) => {
-      if (($s.width() || 0) < 50) {
-        cy.get('#sidebar-toggle').click({ force: true });
-      }
-    });
-    cy.get('#end-game').click({ force: true });
+    // End game -> open modal and declare winner
+    cy.ensureSidebarOpen();
+    cy.get('#end-game').scrollIntoView().should('be.visible').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
 
@@ -34,9 +30,10 @@ describe('Winner does not gate post-game editing or setup', () => {
 
     // Reset still works
     cy.on('window:confirm', () => true);
-    cy.get('#reset-grimoire').click({ force: true });
+    cy.ensureSidebarOpen();
+    cy.get('#reset-grimoire').scrollIntoView().should('be.visible').click();
 
     cy.get('#open-player-setup').should('not.be.disabled');
-    cy.get('#end-game').should('be.visible');
+    cy.get('#end-game').scrollIntoView().should('be.visible');
   });
 });

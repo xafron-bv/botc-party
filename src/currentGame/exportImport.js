@@ -2,42 +2,18 @@ import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
 import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoire.js';
 import { updateBluffAttentionState } from '../bluffTokens.js';
-function getStatusEl() { return document.getElementById('import-status'); }
+import { captureGameState, normalizeGameState } from '../gameState.js';
+import { downloadJson } from '../utils/jsonFiles.js';
+import { createStatusWriter } from '../utils/dom.js';
+const writeImportStatus = createStatusWriter('import-status', 5000);
 function setStatus({ message, isError = false }) {
-  const el = getStatusEl(); if (!el) return; el.textContent = message || ''; el.className = message ? (isError ? 'error' : 'status') : '';
-  if (message) {
-    setTimeout(() => {
-      try {
-        const current = getStatusEl();
-        if (current) { current.textContent = ''; current.className = ''; }
-      } catch (_) { }
-    }, 5000);
-  }
+  writeImportStatus(message, isError ? 'error' : 'status');
 }
 function isHistoryExportFile(data) {
   return !!(data &&
     typeof data === 'object' &&
     !Array.isArray(data) &&
     ('scriptHistory' in data || 'grimoireHistory' in data));
-}
-function normalizeImportedGameState(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return null; const state = (data.gameState && typeof data.gameState === 'object') ? data.gameState : data;
-  if (!state || typeof state !== 'object' || Array.isArray(state)) return null; const scriptData = Array.isArray(state.scriptData) ? state.scriptData : [];
-  const players = Array.isArray(state.players) ? state.players : [];
-  return {
-    scriptData,
-    players,
-    scriptMetaName: typeof state.scriptMetaName === 'string' ? state.scriptMetaName : (typeof state.scriptName === 'string' ? state.scriptName : ''),
-    includeTravellers: !!state.includeTravellers,
-    dayNightTracking: state.dayNightTracking || { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} },
-    bluffs: Array.isArray(state.bluffs) ? state.bluffs : [null, null, null],
-    mode: state.mode === 'player' ? 'player' : 'storyteller',
-    grimoireHidden: !!state.grimoireHidden,
-    playerSetup: state.playerSetup || { bag: [], assignments: [], revealed: false },
-    gameStarted: !!state.gameStarted,
-    winner: state.winner || null,
-    tempSnapshot: state.tempSnapshot || null
-  };
 }
 function applyModeUi({ grimoireState }) {
   const modeStorytellerRadio = document.getElementById('mode-storyteller'); const modePlayerRadio = document.getElementById('mode-player');
@@ -75,44 +51,25 @@ function applyModeUi({ grimoireState }) {
   try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
 }
 export function exportCurrentGame({ grimoireState }) {
-  const gameState = {
-    scriptData: Array.isArray(grimoireState.scriptData) ? grimoireState.scriptData : [],
-    scriptMetaName: typeof grimoireState.scriptMetaName === 'string' ? grimoireState.scriptMetaName : '',
-    includeTravellers: !!grimoireState.includeTravellers,
-    players: Array.isArray(grimoireState.players) ? grimoireState.players : [],
-    dayNightTracking: grimoireState.dayNightTracking || { enabled: false, phases: ['N1'], currentPhaseIndex: 0, reminderTimestamps: {} },
-    bluffs: Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : [null, null, null],
-    mode: grimoireState.mode === 'player' ? 'player' : 'storyteller',
-    grimoireHidden: !!grimoireState.grimoireHidden,
-    playerSetup: grimoireState.playerSetup || { bag: [], assignments: [], revealed: false },
-    gameStarted: !!grimoireState.gameStarted,
-    winner: grimoireState.winner || null,
-    tempSnapshot: grimoireState.tempSnapshot || null
-  };
+  const gameState = captureGameState(grimoireState);
   const exportData = {
     kind: 'botc-current-game',
     version: 1,
     exportDate: new Date().toISOString(),
     gameState
-  }; const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href = url; const date = new Date().toISOString().split('T')[0]; a.download = `botc-game-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url); setStatus({ message: 'Game exported successfully!' });
+  }; const date = new Date().toISOString().split('T')[0]; const download = downloadJson({ filename: `botc-game-${date}.json`, data: exportData });
+  setStatus({ message: 'Game exported successfully!' });
   if (window.Cypress) {
     window.lastDownloadedGameFile = {
-      filename: a.download,
-      content: JSON.stringify(exportData, null, 2),
+      ...download,
       exportDate: exportData.exportDate
     };
   }
 }
-export async function importCurrentGame({ file, grimoireState, grimoireHistoryList }) {
-  const text = await file.text(); let data;
-  try { data = JSON.parse(text); } catch (error) {
-    setStatus({ message: 'Error importing game: invalid JSON.', isError: true }); throw error;
-  }
+export async function importCurrentGame({ data, grimoireState, grimoireHistoryList }) {
   if (Array.isArray(data)) { alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); return; }
   if (isHistoryExportFile(data)) { alert('This appears to be a user data history export file. Please use the "Import Data" button.'); return; }
-  const normalized = normalizeImportedGameState(data);
+  const normalized = normalizeGameState(data);
   if (!normalized) { alert('Invalid game export file.'); return; }
   const saved = {
     scriptData: normalized.scriptData,

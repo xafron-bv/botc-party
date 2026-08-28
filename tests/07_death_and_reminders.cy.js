@@ -4,28 +4,7 @@
 
 describe('Death & Reminders', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.viewport(1280, 900);
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
-    // Ensure the sidebar is open so the persistent desktop toggle does not cover
-    // the load script buttons after UI changes making it always visible.
-    cy.get('body').then(($body) => {
-      if ($body.hasClass('sidebar-collapsed') || !$body.hasClass('sidebar-open')) {
-        const toggle = $body.find('#sidebar-toggle:visible');
-        if (toggle.length) {
-          cy.wrap(toggle).click({ force: true });
-        }
-        // Fallback: directly add class if still not open (race resilience)
-        if (!$body.hasClass('sidebar-open')) {
-          $body.addClass('sidebar-open');
-          $body.removeClass('sidebar-collapsed');
-        }
-      }
-    });
-    cy.get('#load-tb').click({ force: true });
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.resetApp({ mode: 'storyteller', loadScript: true });
     cy.setupGame({ players: 5, loadScript: false });
     // Assign one character to enable ability UI
     cy.get('#player-circle li .player-token').first().click({ force: true });

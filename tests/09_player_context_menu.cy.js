@@ -6,21 +6,7 @@ const startGameWithPlayers = (n) => {
 
 describe('Player context menu - desktop right-click', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Ensure sidebar open to prevent persistent toggle from overlapping load/reset buttons
-    cy.get('body').then(($b) => {
-      const toggle = $b.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-      if (!$b.hasClass('sidebar-open')) {
-        $b.addClass('sidebar-open');
-        $b.removeClass('sidebar-collapsed');
-      }
-    });
-    cy.get('#load-tb').click({ force: true });
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.resetApp({ mode: 'storyteller', loadScript: true });
     startGameWithPlayers(7);
   });
 
@@ -69,8 +55,8 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#player-circle li').should('have.length', 6);
     // End a game so a snapshot is created
     cy.get('#mode-player').check({ force: true });
-    cy.get('#sidebar-toggle').click({ force: true });
-    cy.get('#end-game').click();
+    cy.ensureSidebarOpen();
+    cy.get('#end-game').scrollIntoView().should('be.visible').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
@@ -118,24 +104,13 @@ describe('Player context menu - touch long-press', () => {
   beforeEach(() => {
     cy.visit('/', {
       onBeforeLoad(win) {
+        win.localStorage.clear();
         Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('body').then(($b) => {
-      const toggle = $b.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-      if (!$b.hasClass('sidebar-open')) {
-        $b.addClass('sidebar-open');
-        $b.removeClass('sidebar-collapsed');
-      }
-      // Final fallback: hide the toggle if still present to avoid covering controls
-      $b.find('#sidebar-toggle').css('display', 'none');
-    });
-    cy.get('#load-tb').click({ force: true });
+    cy.ensureSidebarOpen();
+    cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
   });
@@ -186,13 +161,14 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-context-menu').should('have.css', 'display', 'none');
   });
 
-  it('does not close context menu immediately after opening', () => {
+  it('does not close context menu during its opening grace period', () => {
     cy.viewport('iphone-6');
+    cy.clock();
     // Long-press first player's token to open context menu
     cy.get('#player-circle li .player-token').first()
-      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] })
-      // Hold beyond the menu's grace period to prove it starts on release.
-      .wait(700)
+      .trigger('touchstart', { force: true, touches: [{ clientX: 100, clientY: 100 }] });
+    cy.tick(500);
+    cy.get('#player-circle li .player-token').first()
       .trigger('touchend', { force: true, changedTouches: [{ clientX: 100, clientY: 100 }] });
 
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
@@ -204,7 +180,7 @@ describe('Player context menu - touch long-press', () => {
     cy.get('#player-context-menu').should('have.css', 'display', 'block');
 
     // Wait for grace period to expire
-    cy.wait(150);
+    cy.tick(101);
 
     // Touch outside again
     cy.get('body').trigger('touchstart', { force: true, clientX: 10, clientY: 10 });

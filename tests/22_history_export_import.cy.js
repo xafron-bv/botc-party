@@ -51,6 +51,18 @@ describe('User Data Export/Import', () => {
     });
   });
 
+  it('should clear import status after five seconds', () => {
+    cy.clock();
+    cy.get('#export-type-select').select('full-data');
+    cy.get('#export-data-btn').click();
+
+    cy.get('#import-status').should('have.class', 'status').and('not.have.text', '');
+    cy.tick(4999);
+    cy.get('#import-status').should('have.class', 'status').and('not.have.text', '');
+    cy.tick(1);
+    cy.get('#import-status').should('have.text', '').and('have.attr', 'class', '');
+  });
+
   it('should export history with script and grimoire entries', () => {
     // Seed history with test data
     const scriptEntry = {
@@ -224,6 +236,41 @@ describe('User Data Export/Import', () => {
       const history = JSON.parse(win.localStorage.getItem('botcScriptHistoryV1'));
       expect(history).to.have.length(2);
       expect(history[0].id).to.not.equal(history[1].id);
+    });
+  });
+
+  it('should preserve generated ID format for grimoire entry collisions', () => {
+    const existingGrimoire = {
+      id: 'grimoire_collision',
+      name: 'Collision Game',
+      playerCount: 5,
+      script: ['chef'],
+      players: [],
+      createdAt: 1000,
+      updatedAt: 2000
+    };
+
+    cy.window().then((win) => {
+      win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([existingGrimoire]));
+    });
+    cy.reload();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 1);
+
+    cy.get('#import-data-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify({
+        version: 1,
+        scriptHistory: [],
+        grimoireHistory: [{ ...existingGrimoire, playerCount: 6 }]
+      })),
+      fileName: 'grimoire-collision-test.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    cy.get('#import-status').should('contain', 'Added 1 grimoire');
+
+    cy.window().then((win) => {
+      const grimoireHistory = JSON.parse(win.localStorage.getItem('botcGrimoireHistoryV1'));
+      expect(grimoireHistory).to.have.length(2);
+      expect(grimoireHistory[1].id).to.match(/^grimoire_collision_imported_\d+_[a-z0-9]{9}$/);
     });
   });
 
