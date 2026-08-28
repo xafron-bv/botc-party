@@ -1,4 +1,4 @@
-import { generateId, formatDateName } from '../../utils.js';
+import { cloneJsonValue, generateId, formatDateName } from '../../utils.js';
 import { saveHistories, history } from './index.js';
 import { updateGrimoire, setupGrimoire } from '../grimoire.js';
 import { renderSetupInfo } from '../utils/setup.js';
@@ -51,15 +51,15 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
       };
       if (isGrimoireStateEqual(currentState, historyState)) { return; }
     }
-    const snapPlayers = JSON.parse(JSON.stringify(players)); const name = formatDateName(new Date());
+    const snapPlayers = cloneJsonValue(players); const name = formatDateName(new Date());
     const entry = {
       id: generateId('grimoire'),
       name,
       createdAt: Date.now(),
       players: snapPlayers,
       scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData: Array.isArray(scriptData) ? JSON.parse(JSON.stringify(scriptData)) : null,
-      dayNightTracking: dayNightTracking ? JSON.parse(JSON.stringify(dayNightTracking)) : null,
+      scriptData: Array.isArray(scriptData) ? cloneJsonValue(scriptData) : null,
+      dayNightTracking: dayNightTracking ? cloneJsonValue(dayNightTracking) : null,
       winner: winner || null,
       gameStarted: !!gameStarted
     }; history.grimoireHistory.unshift(entry); saveHistories(); renderGrimoireHistory({ grimoireHistoryList });
@@ -136,9 +136,9 @@ export const restoreGrimoireFromEntry = withStateSave(async ({ entry, grimoireSt
     if (entry.scriptData) {
       await processScriptData({ data: entry.scriptData, addToHistory: false, grimoireState }); grimoireState.scriptMetaName = entry.scriptName || grimoireState.scriptMetaName;
     }
-    setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 }); grimoireState.players = JSON.parse(JSON.stringify(entry.players || []));
+    setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 }); grimoireState.players = cloneJsonValue(entry.players || []);
     grimoireState.winner = entry.winner || null; grimoireState.gameStarted = !!entry.gameStarted;
-    if (entry.dayNightTracking) { grimoireState.dayNightTracking = JSON.parse(JSON.stringify(entry.dayNightTracking)); initDayNightTracking(grimoireState); }
+    if (entry.dayNightTracking) { grimoireState.dayNightTracking = cloneJsonValue(entry.dayNightTracking); initDayNightTracking(grimoireState); }
     updateGrimoire({ grimoireState }); repositionPlayers({ grimoireState }); renderSetupInfo({ grimoireState });
     try {
       const endBtn = document.getElementById('end-game'); const openSetupBtn = document.getElementById('open-player-setup');

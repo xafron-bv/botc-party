@@ -28,3 +28,4 @@ export function getRoleById({ grimoireState, roleId }) {
   return allRoles[roleId] || baseRoles[roleId] || scriptTravellerRoles[roleId] || extraTravellerRoles[roleId] || null;
 }
 export function createEmptyPlayer(name = '') { return { name, character: null, reminders: [], dead: false, deathVote: false, nightKilledPhase: null }; }
+export function cloneJsonValue(value) { return JSON.parse(JSON.stringify(value)); }

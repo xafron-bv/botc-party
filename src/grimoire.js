@@ -1,4 +1,4 @@
-import { createEmptyPlayer } from '../utils.js';
+import { cloneJsonValue, createEmptyPlayer } from '../utils.js';
 import { withStateSave } from './app.js';
 import { createBluffTokensContainer, updateAllBluffTokens } from './bluffTokens.js';
 import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrentPhase, hideDayNightSlider, saveCurrentPhaseState } from './dayNightTracking.js';
@@ -43,18 +43,18 @@ export function showGrimoire({ grimoireState }) { setGrimoireHidden({ grimoireSt
 export function hasGrimoireSnapshot(grimoireState) { return !!(grimoireState && grimoireState.tempSnapshot); }
 export const takeGrimoireSnapshot = withStateSave(({ grimoireState }) => {
   grimoireState.tempSnapshot = {
-    players: JSON.parse(JSON.stringify(grimoireState.players || [])),
-    bluffs: JSON.parse(JSON.stringify(grimoireState.bluffs || [null, null, null])),
+    players: cloneJsonValue(grimoireState.players || []),
+    bluffs: cloneJsonValue(grimoireState.bluffs || [null, null, null]),
     dayNightTracking: grimoireState.dayNightTracking
-      ? JSON.parse(JSON.stringify(grimoireState.dayNightTracking))
+      ? cloneJsonValue(grimoireState.dayNightTracking)
       : null
   };
   try { document.body.classList.add('grimoire-snapshot-active'); } catch (_) { }
 });
 export const restoreGrimoireSnapshot = withStateSave(({ grimoireState }) => {
-  const snap = grimoireState.tempSnapshot; if (!snap) return; grimoireState.players = JSON.parse(JSON.stringify(snap.players || []));
-  grimoireState.bluffs = JSON.parse(JSON.stringify(snap.bluffs || [null, null, null]));
-  if (snap.dayNightTracking) { grimoireState.dayNightTracking = JSON.parse(JSON.stringify(snap.dayNightTracking)); }
+  const snap = grimoireState.tempSnapshot; if (!snap) return; grimoireState.players = cloneJsonValue(snap.players || []);
+  grimoireState.bluffs = cloneJsonValue(snap.bluffs || [null, null, null]);
+  if (snap.dayNightTracking) { grimoireState.dayNightTracking = cloneJsonValue(snap.dayNightTracking); }
   grimoireState.tempSnapshot = null;
   try { document.body.classList.remove('grimoire-snapshot-active'); } catch (_) { }
   rebuildPlayerCircleUiPreserveState({ grimoireState });

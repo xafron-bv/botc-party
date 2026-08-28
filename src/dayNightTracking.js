@@ -2,6 +2,7 @@ import { updateGrimoire } from './grimoire.js';
 import { withStateSave } from './app.js';
 import { settleAnimations } from './utils/dom.js';
 import { createDayNightTrackingState } from './gameState.js';
+import { cloneJsonValue } from '../utils.js';
 export function initDayNightTracking(grimoireState) {
   if (!grimoireState.dayNightTracking) {
     grimoireState.dayNightTracking = createDayNightTrackingState({ includeSnapshots: true });
@@ -117,7 +118,7 @@ export function shouldShowNightOrder(grimoireState) {
 }
 function createPhaseSnapshot(grimoireState) {
   return {
-    players: JSON.parse(JSON.stringify(grimoireState.players))
+    players: cloneJsonValue(grimoireState.players)
   };
 }
 export function saveCurrentPhaseState(grimoireState) {
@@ -128,5 +129,5 @@ export function saveCurrentPhaseState(grimoireState) {
 function restorePhaseState(grimoireState, phase) {
   if (!grimoireState.dayNightTracking.enabled) return;
   if (!grimoireState.dayNightTracking.phaseSnapshots) { grimoireState.dayNightTracking.phaseSnapshots = {}; return; }
-  const snapshot = grimoireState.dayNightTracking.phaseSnapshots[phase]; if (!snapshot) return; grimoireState.players = JSON.parse(JSON.stringify(snapshot.players));
+  const snapshot = grimoireState.dayNightTracking.phaseSnapshots[phase]; if (!snapshot) return; grimoireState.players = cloneJsonValue(snapshot.players);
 }
