@@ -6,6 +6,7 @@ import { addScriptToHistory } from './history/script.js';
 import { openCharacterPanel } from './ui/characterPanel.js';
 import { byId, createElement } from './utils/dom.js';
 import { loadGameData } from './roleData.js';
+import { readJsonFile } from './utils/jsonFiles.js';
 const TOKEN_IMAGE = './assets/img/token.png';
 const HISTORY_EXPORT_MESSAGE = 'This appears to be a history export file. Please use the "Import History" button in the History Management section to import it.';
 const isHistoryExport = (value) => value && typeof value === 'object' && !Array.isArray(value)
@@ -207,21 +208,15 @@ export function decodeSharedScriptParam(param) {
 }
 export async function loadScriptFile({ event, grimoireState }) {
   const setStatus = statusWriter(); const file = event.target.files[0]; if (!file) return; console.log('File selected:', file.name, 'Size:', file.size);
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    let json;
-    try { console.log('Parsing uploaded file...'); json = JSON.parse(e.target.result); console.log('Uploaded script parsed successfully:', json); } catch (error) {
-      console.error('Error parsing uploaded file:', error); setStatus(`Invalid JSON file: ${error.message}`, 'error'); return;
-    }
-    if (rejectHistoryExport(json, setStatus, HISTORY_EXPORT_MESSAGE)) return;
-    try {
-      await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Custom script loaded successfully!');
-      try { event.target.value = ''; } catch (_) { }
-    } catch (error) { console.error('Error processing uploaded script:', error); setStatus(`Invalid script file: ${error.message}`, 'error'); }
-  };
-  reader.onerror = (error) => {
-    console.error('File reading error:', error); setStatus('Error reading file', 'error');
-  }; reader.readAsText(file);
+  let json;
+  try { console.log('Parsing uploaded file...'); json = await readJsonFile(file); console.log('Uploaded script parsed successfully:', json); } catch (error) {
+    if (!(error instanceof SyntaxError)) { console.error('File reading error:', error); setStatus('Error reading file', 'error'); return; }
+    console.error('Error parsing uploaded file:', error); setStatus(`Invalid JSON file: ${error.message}`, 'error'); return;
+  }
+  if (rejectHistoryExport(json, setStatus, HISTORY_EXPORT_MESSAGE)) return;
+  try {
+    await processScriptData({ data: json, addToHistory: true, grimoireState }); setStatus('Custom script loaded successfully!'); event.target.value = '';
+  } catch (error) { console.error('Error processing uploaded script:', error); setStatus(`Invalid script file: ${error.message}`, 'error'); }
 }
 function displayJinxes({ jinxData, grimoireState, characterSheet, displayRoles }) {
   const roles = displayRoles || grimoireState.allRoles; const scriptCharacterIds = new Set(Object.values(roles).map(role => role.id));

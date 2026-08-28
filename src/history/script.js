@@ -3,15 +3,11 @@ import { generateId } from '../../utils.js';
 import { renderSetupInfo } from '../utils/setup.js';
 import { withStateSave } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
+import { downloadJson } from '../utils/jsonFiles.js';
 function encodeScriptForShare(data) {
   try { const json = JSON.stringify(data); return btoa(unescape(encodeURIComponent(json))); } catch (_) {
     return '';
   }
-}
-function triggerJsonDownload({ name, data }) {
-  const safeName = (name || 'script').replace(/[^a-z0-9_-]+/gi, '_'); const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${safeName}.json`; document.body.appendChild(a); a.click();
-  document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 250);
 }
 export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryList, grimoireState }) => {
   const li = e.target.closest('li'); if (!li) return; const id = li.dataset.id; const entry = history.scriptHistory.find(x => x.id === id); if (!entry) return;
@@ -34,7 +30,9 @@ export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryL
     if (newName) { entry.name = newName; entry.updatedAt = Date.now(); saveHistories(); renderScriptHistory({ scriptHistoryList }); }
     li.classList.remove('editing'); return;
   }
-  if (clickedDownload) { triggerJsonDownload({ name: entry.name, data: entry.data }); return; }
+  if (clickedDownload) {
+    const safeName = (entry.name || 'script').replace(/[^a-z0-9_-]+/gi, '_'); downloadJson({ filename: `${safeName}.json`, data: entry.data, revokeDelay: 250 }); return;
+  }
   if (clickedShare) {
     const encoded = encodeScriptForShare(entry.data); if (!encoded) return; const base = `${window.location.origin}${window.location.pathname}`;
     const shareUrl = `${base}?script=${encodeURIComponent(encoded)}`;

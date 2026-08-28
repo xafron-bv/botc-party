@@ -2,6 +2,7 @@ import { history, saveHistories } from './index.js';
 import { renderGrimoireHistory } from './grimoire.js';
 import { renderScriptHistory } from './script.js';
 import { exportCurrentGame, importCurrentGame } from '../currentGame/exportImport.js';
+import { downloadJson, readJsonFile } from '../utils/jsonFiles.js';
 function isUserDataExport(data) {
   return !!(data &&
     typeof data === 'object' &&
@@ -18,10 +19,9 @@ export function exportUserData() {
     exportDate: new Date().toISOString(),
     scriptHistory: history.scriptHistory || [],
     grimoireHistory: history.grimoireHistory || []
-  }; const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href = url;
+  };
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-  a.download = `botc-user-data-${date}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const download = downloadJson({ filename: `botc-user-data-${date}.json`, data: exportData });
   const importStatus = document.getElementById('import-status');
   if (importStatus) {
     const scriptCount = exportData.scriptHistory.length; const grimoireCount = exportData.grimoireHistory.length; let message = 'User data exported successfully! ';
@@ -38,15 +38,13 @@ export function exportUserData() {
   }
   if (window.Cypress) {
     window.lastDownloadedFile = {
-      filename: a.download,
-      content: JSON.stringify(exportData, null, 2),
+      ...download,
       exportDate: exportData.exportDate
     };
   }
 }
-export async function importUserData(file) {
+export async function importUserData(data) {
   try {
-    const text = await file.text(); const data = JSON.parse(text);
     if (Array.isArray(data)) {
       console.error('Script file detected in user data import');
       alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); return;
@@ -141,17 +139,17 @@ export function initExportImport({ grimoireState, grimoireHistoryList } = {}) {
         const importStatus = document.getElementById('import-status');
         if (importStatus) { importStatus.textContent = ''; importStatus.className = ''; }
         try {
-          const raw = await file.text(); let parsed;
-          try { parsed = JSON.parse(raw); } catch (error) {
+          let parsed;
+          try { parsed = await readJsonFile(file); } catch (error) {
             alert('Error importing file: invalid JSON.'); throw error;
           }
           if (Array.isArray(parsed)) {
             alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.');
           } else if (isUserDataExport(parsed)) {
-            await importUserData(file);
+            await importUserData(parsed);
           } else if (isCurrentGameExport(parsed)) {
             if (!grimoireState) { alert('Unable to import current game: missing game state.'); } else {
-              await importCurrentGame({ file, grimoireState, grimoireHistoryList });
+              await importCurrentGame({ data: parsed, grimoireState, grimoireHistoryList });
             }
           } else { alert('This appears to be a script file. Please use the "Upload Custom Script" option in the Game Setup section to load it.'); }
           importFileInput.value = '';
