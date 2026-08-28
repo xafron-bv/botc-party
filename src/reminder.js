@@ -122,6 +122,14 @@ export function openTextReminderModal({ grimoireState, playerIndex, reminderInde
   const textReminderModal = document.getElementById('text-reminder-modal'); grimoireState.editingReminder = { playerIndex, reminderIndex }; reminderTextInput.value = existingText;
   textReminderModal.style.display = 'flex'; reminderTextInput.focus();
 }
+export function closeCustomReminderEditModal({ grimoireState }) {
+  const customReminderEditModal = document.getElementById('custom-reminder-edit-modal'); if (!customReminderEditModal) return;
+  customReminderEditModal.style.display = 'none'; if (grimoireState) { grimoireState.editingCustomReminder = null; }
+  const customReminderTextInput = document.getElementById('custom-reminder-text-input');
+  if (customReminderTextInput) {
+    const clonedInput = customReminderTextInput.cloneNode(true); customReminderTextInput.parentNode.replaceChild(clonedInput, customReminderTextInput);
+  }
+}
 export function openCustomReminderEditModal({ grimoireState, playerIndex, reminderIndex, existingText = '' }) {
   if (!canOpenModal({ grimoireState })) return; const customReminderTextInput = document.getElementById('custom-reminder-text-input');
   const customReminderEditModal = document.getElementById('custom-reminder-edit-modal'); const saveCustomReminderBtn = document.getElementById('save-custom-reminder-btn');
