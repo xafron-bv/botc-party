@@ -3,6 +3,33 @@ import { renderGrimoireHistory } from './grimoire.js';
 import { renderScriptHistory } from './script.js';
 import { exportCurrentGame, importCurrentGame } from '../currentGame/exportImport.js';
 import { downloadJson, readJsonFile } from '../utils/jsonFiles.js';
+
+const HISTORY_ENTRY_SCHEMAS = {
+  script: [['id'], ['name'], ['data', JSON.stringify], ['createdAt'], ['updatedAt']],
+  grimoire: [['id'], ['name'], ['playerCount'], ['script', JSON.stringify], ['players', JSON.stringify], ['createdAt'], ['updatedAt']]
+};
+
+function areHistoryEntriesIdentical(entry1, entry2, schema) {
+  return schema.every(([field, serialize]) =>
+    (serialize ? serialize(entry1[field]) : entry1[field]) ===
+    (serialize ? serialize(entry2[field]) : entry2[field]));
+}
+
+function prepareImportedHistoryEntries({ existingEntries, importedEntries, schema }) {
+  const existingIds = new Set(existingEntries.map(item => item.id));
+  return importedEntries.reduce((processedEntries, importedEntry) => {
+    if (existingEntries.some(existingEntry =>
+      areHistoryEntriesIdentical(existingEntry, importedEntry, schema))) { return processedEntries; }
+    processedEntries.push(existingIds.has(importedEntry.id)
+      ? {
+        ...importedEntry,
+        id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }
+      : importedEntry);
+    return processedEntries;
+  }, []);
+}
+
 function isUserDataExport(data) {
   return !!(data &&
     typeof data === 'object' &&
@@ -57,47 +84,16 @@ export async function importUserData(data) {
     if (!data.scriptHistory || !data.grimoireHistory || !Array.isArray(data.scriptHistory) || !Array.isArray(data.grimoireHistory)) {
       throw new Error('Invalid user data format: missing or invalid scriptHistory/grimoireHistory arrays');
     }
-    const areEntriesIdentical = (entry1, entry2) => {
-      return entry1.id === entry2.id &&
-        entry1.name === entry2.name &&
-        JSON.stringify(entry1.data) === JSON.stringify(entry2.data) &&
-        entry1.createdAt === entry2.createdAt &&
-        entry1.updatedAt === entry2.updatedAt;
-    };
-    const areGrimoireEntriesIdentical = (entry1, entry2) => {
-      return entry1.id === entry2.id &&
-        entry1.name === entry2.name &&
-        entry1.playerCount === entry2.playerCount &&
-        JSON.stringify(entry1.script) === JSON.stringify(entry2.script) &&
-        JSON.stringify(entry1.players) === JSON.stringify(entry2.players) &&
-        entry1.createdAt === entry2.createdAt &&
-        entry1.updatedAt === entry2.updatedAt;
-    }; const processedScriptHistory = []; const existingScriptIds = new Set(history.scriptHistory.map(item => item.id));
-    for (const importedEntry of data.scriptHistory) {
-      const isDuplicate = history.scriptHistory.some(existingEntry =>
-        areEntriesIdentical(existingEntry, importedEntry)
-      );
-      if (isDuplicate) { continue; }
-      if (existingScriptIds.has(importedEntry.id)) {
-        processedScriptHistory.push({
-          ...importedEntry,
-          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        });
-      } else { processedScriptHistory.push(importedEntry); }
-    }
-    const processedGrimoireHistory = []; const existingGrimoireIds = new Set(history.grimoireHistory.map(item => item.id));
-    for (const importedEntry of data.grimoireHistory) {
-      const isDuplicate = history.grimoireHistory.some(existingEntry =>
-        areGrimoireEntriesIdentical(existingEntry, importedEntry)
-      );
-      if (isDuplicate) { continue; }
-      if (existingGrimoireIds.has(importedEntry.id)) {
-        processedGrimoireHistory.push({
-          ...importedEntry,
-          id: `${importedEntry.id}_imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        });
-      } else { processedGrimoireHistory.push(importedEntry); }
-    }
+    const processedScriptHistory = prepareImportedHistoryEntries({
+      existingEntries: history.scriptHistory,
+      importedEntries: data.scriptHistory,
+      schema: HISTORY_ENTRY_SCHEMAS.script
+    });
+    const processedGrimoireHistory = prepareImportedHistoryEntries({
+      existingEntries: history.grimoireHistory,
+      importedEntries: data.grimoireHistory,
+      schema: HISTORY_ENTRY_SCHEMAS.grimoire
+    });
     history.scriptHistory = [...history.scriptHistory, ...processedScriptHistory]; history.grimoireHistory = [...history.grimoireHistory, ...processedGrimoireHistory];
     saveHistories(); const scriptHistoryList = document.getElementById('script-history-list'); const grimoireHistoryList = document.getElementById('grimoire-history-list');
     if (scriptHistoryList) { renderScriptHistory({ scriptHistoryList }); }

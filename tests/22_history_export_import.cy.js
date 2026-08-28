@@ -227,6 +227,41 @@ describe('User Data Export/Import', () => {
     });
   });
 
+  it('should preserve generated ID format for grimoire entry collisions', () => {
+    const existingGrimoire = {
+      id: 'grimoire_collision',
+      name: 'Collision Game',
+      playerCount: 5,
+      script: ['chef'],
+      players: [],
+      createdAt: 1000,
+      updatedAt: 2000
+    };
+
+    cy.window().then((win) => {
+      win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([existingGrimoire]));
+    });
+    cy.reload();
+    cy.get('#grimoire-history-list .history-item').should('have.length', 1);
+
+    cy.get('#import-data-file').selectFile({
+      contents: Cypress.Buffer.from(JSON.stringify({
+        version: 1,
+        scriptHistory: [],
+        grimoireHistory: [{ ...existingGrimoire, playerCount: 6 }]
+      })),
+      fileName: 'grimoire-collision-test.json',
+      mimeType: 'application/json'
+    }, { force: true });
+    cy.get('#import-status').should('contain', 'Added 1 grimoire');
+
+    cy.window().then((win) => {
+      const grimoireHistory = JSON.parse(win.localStorage.getItem('botcGrimoireHistoryV1'));
+      expect(grimoireHistory).to.have.length(2);
+      expect(grimoireHistory[1].id).to.match(/^grimoire_collision_imported_\d+_[a-z0-9]{9}$/);
+    });
+  });
+
   it('should show error message for invalid JSON file', () => {
     // Upload invalid JSON
     cy.get('#import-data-file').selectFile({
