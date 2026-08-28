@@ -6,21 +6,7 @@ const startGameWithPlayers = (n) => {
 
 describe('Player context menu - desktop right-click', () => {
   beforeEach(() => {
-    cy.visit('/');
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    // Ensure sidebar open to prevent persistent toggle from overlapping load/reset buttons
-    cy.get('body').then(($b) => {
-      const toggle = $b.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-      if (!$b.hasClass('sidebar-open')) {
-        $b.addClass('sidebar-open');
-        $b.removeClass('sidebar-collapsed');
-      }
-    });
-    cy.get('#load-tb').click({ force: true });
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
+    cy.resetApp({ mode: 'storyteller', loadScript: true });
     startGameWithPlayers(7);
   });
 
@@ -69,8 +55,8 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#player-circle li').should('have.length', 6);
     // End a game so a snapshot is created
     cy.get('#mode-player').check({ force: true });
-    cy.get('#sidebar-toggle').click({ force: true });
-    cy.get('#end-game').click();
+    cy.ensureSidebarOpen();
+    cy.get('#end-game').scrollIntoView().should('be.visible').click();
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();
     cy.get('#grimoire-history-list .history-item').should('have.length.greaterThan', 0);
@@ -118,24 +104,13 @@ describe('Player context menu - touch long-press', () => {
   beforeEach(() => {
     cy.visit('/', {
       onBeforeLoad(win) {
+        win.localStorage.clear();
         Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
         Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
-    cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
-    cy.get('body').then(($b) => {
-      const toggle = $b.find('#sidebar-toggle:visible');
-      if (toggle.length) {
-        cy.wrap(toggle).click({ force: true });
-      }
-      if (!$b.hasClass('sidebar-open')) {
-        $b.addClass('sidebar-open');
-        $b.removeClass('sidebar-collapsed');
-      }
-      // Final fallback: hide the toggle if still present to avoid covering controls
-      $b.find('#sidebar-toggle').css('display', 'none');
-    });
-    cy.get('#load-tb').click({ force: true });
+    cy.ensureSidebarOpen();
+    cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     startGameWithPlayers(5);
   });

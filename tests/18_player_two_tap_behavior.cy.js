@@ -1,37 +1,16 @@
 describe('Player two-tap behavior in touch mode', () => {
   beforeEach(() => {
     cy.viewport(800, 600);
-    cy.visit('/');
-    cy.window().then((win) => {
-      try { win.localStorage.clear(); } catch (_) { }
-    });
-    cy.reload();
-
-    // Force touch mode
-    cy.window().then((win) => {
-      Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
-    });
-
-    // Ensure sidebar is open so we can interact with controls in narrow viewports
-    cy.get('body').then(($body) => {
-      if ($body.hasClass('sidebar-collapsed')) {
-        cy.get('#sidebar-toggle').click({ force: true });
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+        Object.defineProperty(win, 'ontouchstart', { value: true, configurable: true });
+        Object.defineProperty(win.navigator, 'maxTouchPoints', { value: 1, configurable: true });
       }
     });
 
     // Load script and start game with many players
-    cy.get('#load-tb').click({ force: true });
-    cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-
-    // Start with 20 players to ensure overlaps
-    cy.get('#player-count').then(($el) => {
-      const el = $el[0];
-      el.value = '20';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    cy.get('#reset-grimoire').click({ force: true });
-    cy.get('#player-circle li').should('have.length', 20);
+    cy.setupGame({ players: 20, loadScript: true });
     cy.get('#sidebar').scrollTo('top', { ensureScrollable: false });
   });
 
