@@ -390,8 +390,16 @@ export function initPlayerSetup({ grimoireState, collapseSidebar }) {
       }
       return;
     }
+    const assignedTravellers = grimoireState.players.map((player) => {
+      const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null;
+      return role?.team === 'traveller' ? player.character : null;
+    });
     const [playerCountInput, grimoireHistoryList] = byIds('player-count', 'grimoire-history-list');
     resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput, preserveBag: true });
+    assignedTravellers.forEach((roleId, playerIndex) => {
+      if (roleId && grimoireState.players[playerIndex]) grimoireState.players[playerIndex].character = roleId;
+    });
+    rebuildAllRoles({ grimoireState });
     if (playerSetupPanel) {
       playerSetupPanel.style.display = 'none';
       try { document.body.classList.remove('player-setup-open'); } catch (_) { }
