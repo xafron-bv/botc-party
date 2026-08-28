@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-27T18:54:43.701Z",
+  "generatedAt": "2026-08-28T18:15:07.957Z",
   "core": [
     {
       "path": "./index.html",
@@ -15,19 +15,19 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "3e59bedbb773"
+      "hash": "935e07feb437"
     },
     {
       "path": "./src/bluffTokens.js",
-      "hash": "adb7c363bd42"
+      "hash": "86bc0ba72801"
     },
     {
       "path": "./src/bootstrap.js",
-      "hash": "11565ed5a660"
+      "hash": "c680d2477f1b"
     },
     {
       "path": "./src/character.js",
-      "hash": "4cdf43fe8ba1"
+      "hash": "750fb8a728ae"
     },
     {
       "path": "./src/constants.js",
@@ -35,27 +35,31 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "eaf16f145707"
+      "hash": "f806cbfccdab"
     },
     {
       "path": "./src/dayNightTracking.js",
-      "hash": "dd298a4eb761"
+      "hash": "dbc647783281"
     },
     {
       "path": "./src/export/grimoirePrint.js",
       "hash": "f49fa7055408"
     },
     {
+      "path": "./src/gameState.js",
+      "hash": "1209e9a60022"
+    },
+    {
       "path": "./src/grimoire.js",
-      "hash": "2855633a5edf"
+      "hash": "7894aceefab5"
     },
     {
       "path": "./src/history/exportImport.js",
-      "hash": "23839a956c21"
+      "hash": "e7afdef8a385"
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "2bd73d418b5f"
+      "hash": "fe47211afc9e"
     },
     {
       "path": "./src/history/index.js",
@@ -63,19 +67,19 @@
     },
     {
       "path": "./src/history/script.js",
-      "hash": "42ad456229f1"
+      "hash": "109a1c6bb49d"
     },
     {
       "path": "./src/modalCloseHandlers.js",
-      "hash": "4a7ccb8ad798"
+      "hash": "8f6622fc7342"
     },
     {
       "path": "./src/playerSelection.js",
-      "hash": "b1009ce74dba"
+      "hash": "ed043e357920"
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "f29985f37b2a"
+      "hash": "391b13a98011"
     },
     {
       "path": "./src/playerSetupState.js",
@@ -83,15 +87,19 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "9915c7c30aae"
+      "hash": "966a4e7db642"
+    },
+    {
+      "path": "./src/roleData.js",
+      "hash": "e29faca2219e"
     },
     {
       "path": "./src/script.js",
-      "hash": "7e20dfee36de"
+      "hash": "26ed6323008b"
     },
     {
       "path": "./src/storytellerMessages.js",
-      "hash": "fa0b5655cdba"
+      "hash": "757d47f5790c"
     },
     {
       "path": "./src/themeManager.js",
@@ -99,7 +107,7 @@
     },
     {
       "path": "./src/ui/abilityInfoIcon.js",
-      "hash": "6cf062eeaad5"
+      "hash": "9009918c44a8"
     },
     {
       "path": "./src/ui/actionCluster.js",
@@ -139,15 +147,15 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "1961aa9d04f2"
+      "hash": "9174a11eb76b"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "4da775f1c712"
+      "hash": "3c286fa2feb3"
     },
     {
       "path": "./src/ui/scriptControls.js",
-      "hash": "c70995cf27da"
+      "hash": "27f5234444d7"
     },
     {
       "path": "./src/ui/sidebar.js",
@@ -163,11 +171,11 @@
     },
     {
       "path": "./src/ui/tokenGridItem.js",
-      "hash": "a994f7045d3d"
+      "hash": "35c83df4a8c5"
     },
     {
       "path": "./src/ui/tokenRendering.js",
-      "hash": "279d6a7e92d1"
+      "hash": "ef5979bfd254"
     },
     {
       "path": "./src/ui/tooltip.js",
@@ -183,7 +191,7 @@
     },
     {
       "path": "./src/utils/dom.js",
-      "hash": "dc89a40f016a"
+      "hash": "eff615bc3491"
     },
     {
       "path": "./src/utils/eventHandlers.js",
@@ -191,7 +199,11 @@
     },
     {
       "path": "./src/utils/interaction.js",
-      "hash": "ae3f7a0e9b1c"
+      "hash": "1909e0e712af"
+    },
+    {
+      "path": "./src/utils/jsonFiles.js",
+      "hash": "677ffb1a9406"
     },
     {
       "path": "./src/utils/positioning.js",
@@ -213,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "65f145342eeb"
+      "hash": "159847700a61"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1061,7 +1073,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "3eed22926e61"
+      "hash": "b6dba946ed01"
     },
     {
       "path": "./service-worker.js",
@@ -1069,19 +1081,19 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "3e59bedbb773"
+      "hash": "935e07feb437"
     },
     {
       "path": "./src/bluffTokens.js",
-      "hash": "adb7c363bd42"
+      "hash": "86bc0ba72801"
     },
     {
       "path": "./src/bootstrap.js",
-      "hash": "11565ed5a660"
+      "hash": "c680d2477f1b"
     },
     {
       "path": "./src/character.js",
-      "hash": "4cdf43fe8ba1"
+      "hash": "750fb8a728ae"
     },
     {
       "path": "./src/constants.js",
@@ -1089,27 +1101,31 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "eaf16f145707"
+      "hash": "f806cbfccdab"
     },
     {
       "path": "./src/dayNightTracking.js",
-      "hash": "dd298a4eb761"
+      "hash": "dbc647783281"
     },
     {
       "path": "./src/export/grimoirePrint.js",
       "hash": "f49fa7055408"
     },
     {
+      "path": "./src/gameState.js",
+      "hash": "1209e9a60022"
+    },
+    {
       "path": "./src/grimoire.js",
-      "hash": "2855633a5edf"
+      "hash": "7894aceefab5"
     },
     {
       "path": "./src/history/exportImport.js",
-      "hash": "23839a956c21"
+      "hash": "e7afdef8a385"
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "2bd73d418b5f"
+      "hash": "fe47211afc9e"
     },
     {
       "path": "./src/history/index.js",
@@ -1117,19 +1133,19 @@
     },
     {
       "path": "./src/history/script.js",
-      "hash": "42ad456229f1"
+      "hash": "109a1c6bb49d"
     },
     {
       "path": "./src/modalCloseHandlers.js",
-      "hash": "4a7ccb8ad798"
+      "hash": "8f6622fc7342"
     },
     {
       "path": "./src/playerSelection.js",
-      "hash": "b1009ce74dba"
+      "hash": "ed043e357920"
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "f29985f37b2a"
+      "hash": "391b13a98011"
     },
     {
       "path": "./src/playerSetupState.js",
@@ -1137,15 +1153,19 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "9915c7c30aae"
+      "hash": "966a4e7db642"
+    },
+    {
+      "path": "./src/roleData.js",
+      "hash": "e29faca2219e"
     },
     {
       "path": "./src/script.js",
-      "hash": "7e20dfee36de"
+      "hash": "26ed6323008b"
     },
     {
       "path": "./src/storytellerMessages.js",
-      "hash": "fa0b5655cdba"
+      "hash": "757d47f5790c"
     },
     {
       "path": "./src/themeManager.js",
@@ -1153,7 +1173,7 @@
     },
     {
       "path": "./src/ui/abilityInfoIcon.js",
-      "hash": "6cf062eeaad5"
+      "hash": "9009918c44a8"
     },
     {
       "path": "./src/ui/actionCluster.js",
@@ -1193,15 +1213,15 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "1961aa9d04f2"
+      "hash": "9174a11eb76b"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "4da775f1c712"
+      "hash": "3c286fa2feb3"
     },
     {
       "path": "./src/ui/scriptControls.js",
-      "hash": "c70995cf27da"
+      "hash": "27f5234444d7"
     },
     {
       "path": "./src/ui/sidebar.js",
@@ -1217,11 +1237,11 @@
     },
     {
       "path": "./src/ui/tokenGridItem.js",
-      "hash": "a994f7045d3d"
+      "hash": "35c83df4a8c5"
     },
     {
       "path": "./src/ui/tokenRendering.js",
-      "hash": "279d6a7e92d1"
+      "hash": "ef5979bfd254"
     },
     {
       "path": "./src/ui/tooltip.js",
@@ -1237,7 +1257,7 @@
     },
     {
       "path": "./src/utils/dom.js",
-      "hash": "dc89a40f016a"
+      "hash": "eff615bc3491"
     },
     {
       "path": "./src/utils/eventHandlers.js",
@@ -1245,7 +1265,11 @@
     },
     {
       "path": "./src/utils/interaction.js",
-      "hash": "ae3f7a0e9b1c"
+      "hash": "1909e0e712af"
+    },
+    {
+      "path": "./src/utils/jsonFiles.js",
+      "hash": "677ffb1a9406"
     },
     {
       "path": "./src/utils/positioning.js",
@@ -1345,7 +1369,7 @@
     },
     {
       "path": "./utils.js",
-      "hash": "8e4540a4d5f6"
+      "hash": "6e3dbca841db"
     }
   ]
 }
