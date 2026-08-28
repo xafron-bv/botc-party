@@ -1,12 +1,11 @@
 import { displayScript } from './script.js';
-import { resolveAssetPath, normalizeKey } from '../utils.js';
+import { normalizeKey } from '../utils.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { updateGrimoire } from './grimoire.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { withStateSave } from './app.js';
 import { saveCurrentPhaseState } from './dayNightTracking.js';
 import { assignBluffCharacter } from './bluffTokens.js';
-import { renderTokenElement } from './ui/tokenRendering.js';
 import { canOpenModal } from './utils/validation.js';
 import { createCustomRole, indexRoles, loadGameData, normalizeRole } from './roleData.js';
 import { createStatusWriter } from './utils/dom.js';
@@ -68,27 +67,7 @@ export const assignCharacter = withStateSave(({ grimoireState, roleId }) => {
     const slotIndex = grimoireState._tempStorytellerSlotIndex;
     try {
       if (!Array.isArray(grimoireState.storytellerTempSlots)) { grimoireState.storytellerTempSlots = []; }
-      grimoireState.storytellerTempSlots[slotIndex] = roleId; const slotsEl = document.getElementById('storyteller-message-slots');
-      if (slotsEl && slotsEl.children && slotsEl.children[slotIndex]) {
-        const slotEl = slotsEl.children[slotIndex]; const role = roleId ? (grimoireState.allRoles[roleId] || {}) : null;
-        if (role && role.image) {
-          renderTokenElement({
-            tokenElement: slotEl,
-            role,
-            baseImage: resolveAssetPath('./assets/img/token.png'),
-            labelIdPrefix: `story-slot-${role.id}-${Date.now()}`
-          });
-        } else {
-          renderTokenElement({
-            tokenElement: slotEl,
-            role: null,
-            baseImage: resolveAssetPath('./assets/img/token.png'),
-            labelIdPrefix: 'story-slot-empty',
-            showLabel: true,
-            customLabel: 'None'
-          });
-        }
-      }
+      grimoireState.storytellerTempSlots[slotIndex] = roleId;
     } catch (_) { }
     hideCharacterModal({ grimoireState }); delete grimoireState._tempStorytellerSlotIndex; return;
   }

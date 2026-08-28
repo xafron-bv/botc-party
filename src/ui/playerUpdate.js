@@ -40,8 +40,7 @@ export function updatePlayerElement({
   if (isNorthQuadrant) { playerNameEl.classList.add('top-half'); li.classList.add('is-north'); li.classList.remove('is-south'); } else {
     playerNameEl.classList.remove('top-half'); li.classList.add('is-south'); li.classList.remove('is-north');
   }
-  const tokenDiv = li.querySelector('.player-token'); const charNameDiv = li.querySelector('.character-name'); const existingArc = tokenDiv.querySelector('.icon-reminder-svg');
-  if (existingArc) existingArc.remove(); const oldCircle = tokenDiv.querySelector('.death-overlay'); if (oldCircle) oldCircle.remove();
+  const tokenDiv = li.querySelector('.player-token'); const charNameDiv = li.querySelector('.character-name'); const oldCircle = tokenDiv.querySelector('.death-overlay'); if (oldCircle) oldCircle.remove();
   const oldRibbon = tokenDiv.querySelector('.death-ribbon'); if (oldRibbon) oldRibbon.remove(); li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
   const isSelectionActive = grimoireState.playerSetup && grimoireState.playerSetup.selectionActive;
   const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null; const isTraveller = role && role.team === 'traveller';
