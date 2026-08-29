@@ -51,8 +51,10 @@ select { cursor: pointer; }
 .reminder-placeholder:focus,
 #character-grid .token:focus,
 #reminder-token-grid .token:focus,
-#sidebar .history-list .history-item:focus {
-  outline: 3px solid var(--color-primary-light); outline-offset: 3px; box-shadow: 0 0 0 4px var(--color-primary-light);
+#sidebar .history-list .history-load:focus,
+.token-reminder[role="button"]:focus {
+  outline: 3px solid var(--color-primary-light) !important; outline-offset: 3px; box-shadow: 0 0 0 4px var(--color-primary-light) !important;
+  transition-property: background, border-color, color, filter, opacity, transform, left, top;
 }
 input[type="number"]:focus,
 input[type="file"]:focus,

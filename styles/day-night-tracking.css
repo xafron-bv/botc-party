@@ -124,14 +124,13 @@ body.grimoire-snapshot-active::after {
   text-transform: uppercase; user-select: none; transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .token-reminder[role="button"] { cursor: pointer; }
-.token-reminder[role="button"]:focus { outline: none; }
 .token-reminder[role="button"]:active { transform: translate(-50%, -50%) scale(0.95); }
 .token-reminder--night-order { background: #583286; }
 .token-reminder--bluffs { background: #1e88e5; }
 .token-reminder--minions { background: #fb8c00; color: #1a1a1a; }
 .token-reminder--demon { background: #e53935; }
-.player-token.is-dead .token-reminder--night-order { opacity: 0.6; }
-.player-token.is-dead .token-reminder--night-order[role="button"] { opacity: 0.6; }
+.player-token.is-dead ~ .token-reminder--night-order { opacity: 0.6; }
+.player-token.is-dead ~ .token-reminder--night-order[role="button"] { opacity: 0.6; }
 @media (max-width: 768px) {
   .action-cluster { bottom: var(--space-4); right: var(--space-4); width: var(--touch-target-lg); }
   .action-cluster .button.action-cluster__btn,

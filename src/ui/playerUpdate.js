@@ -128,7 +128,7 @@ export function updatePlayerElement({
   if (player.dead) { tokenDiv.classList.add('is-dead'); } else {
     tokenDiv.classList.remove('is-dead');
   }
-  tokenDiv.querySelectorAll('.token-reminder').forEach((node) => node.remove()); let nextReminderIndex = 0;
+  li.querySelectorAll('.token-reminder').forEach((node) => node.remove()); let nextReminderIndex = 0;
   const addTokenReminder = ({
     text,
     testId,
@@ -160,7 +160,7 @@ export function updatePlayerElement({
       grimoireState
     });
     if (onActivate) { reminder.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true }); reminder.addEventListener('mousedown', (e) => e.stopPropagation()); }
-    tokenDiv.appendChild(reminder); return reminder;
+    li.appendChild(reminder); return reminder;
   };
   const getBluffRoleIds = () => {
     const bluffs = Array.isArray(grimoireState.bluffs) ? grimoireState.bluffs : []; const ids = bluffs.slice(0, 3); while (ids.length < 3) ids.push(null); return ids;

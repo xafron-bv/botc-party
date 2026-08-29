@@ -30,7 +30,7 @@ function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
         grimoireState,
         playerIndex
       });
-    }, { triggerOnStart: true });
+    }, { triggerOnStart: true, includeClick: false });
   }
 }
 export function applyGrimoireHiddenState({ grimoireState }) {
