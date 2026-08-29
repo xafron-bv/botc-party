@@ -3,7 +3,7 @@ import { CLICK_EXPAND_SUPPRESS_MS, TOUCH_EXPAND_SUPPRESS_MS, isTouchDevice } fro
 import { getVisibleRemindersCount, openReminderTokenModal, openTextReminderModal } from '../reminder.js';
 import { showPlayerContextMenu } from './contextMenu.js';
 import { positionRadialStack } from './layout.js';
-import { setupInteractiveElement } from '../utils/interaction.js';
+import { setupInteractiveElement, setupKeyboardActivation } from '../utils/interaction.js';
 import { createSafeClickHandler } from '../utils/eventHandlers.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 function isReminderExpansionTarget(target) {
@@ -24,11 +24,19 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   const listItem = document.createElement('li');
   listItem.innerHTML = `
     <div class="reminders"></div>
-    <div class="player-token" title="Assign character"></div>
+    <button type="button" class="player-token" title="Assign character"></button>
     <div class="character-name" aria-live="polite"></div>
-    <div class="player-name" title="Edit name">${playerName}</div>
-    <div class="reminder-placeholder" title="Add text reminder">+</div>
+    <button type="button" class="player-name" title="Edit name">${playerName}</button>
+    <button type="button" class="reminder-placeholder" title="Add reminder">+</button>
   `; const tokenEl = listItem.querySelector('.player-token'); let touchOccurred = false;
+  tokenEl.setAttribute('aria-label', `Assign character to ${playerName}`);
+  listItem.querySelector('.player-name').setAttribute('aria-label', `Edit name for ${playerName}`);
+  listItem.querySelector('.reminder-placeholder').setAttribute('aria-label', `Add reminder for ${playerName}`);
+  const activateToken = () => {
+    if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
+      if (window.openNumberPickerForSelection) { window.openNumberPickerForSelection(playerIndex); }
+    } else if (grimoireState && !grimoireState.grimoireHidden) { openCharacterModal({ grimoireState, playerIndex }); }
+  };
   tokenEl.onclick = createSafeClickHandler((e) => {
     const target = e.target;
     if (target && (target.closest('.death-ribbon') || target.classList.contains('death-ribbon'))) {
@@ -40,9 +48,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     if (target && (target.closest('.death-vote-indicator') || target.classList.contains('death-vote-indicator'))) {
       return; // handled by death vote indicator
     }
-    if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-      if (window.openNumberPickerForSelection) { window.openNumberPickerForSelection(playerIndex); }
-    } else if (grimoireState && !grimoireState.grimoireHidden) { openCharacterModal({ grimoireState, playerIndex }); }
+    activateToken();
   }, {
     shouldSkip: () => {
       if (touchOccurred) { touchOccurred = false; return true; }
@@ -50,6 +56,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
     },
     stopPropagation: false
   });
+  setupKeyboardActivation({ element: tokenEl, onActivate: activateToken });
   if ('ontouchstart' in window) {
     setupInteractiveElement({
       element: tokenEl,
@@ -57,11 +64,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
         handlePlayerElementTouch({
           e,
           listItem,
-          actionCallback: () => {
-            if (grimoireState && grimoireState.playerSetup && grimoireState.playerSetup.selectionActive) {
-              if (window.openNumberPickerForSelection) { window.openNumberPickerForSelection(playerIndex); }
-            } else if (grimoireState && !grimoireState.grimoireHidden) { openCharacterModal({ grimoireState, playerIndex }); }
-          }
+          actionCallback: activateToken
         });
       },
       onLongPress: (e, x, y) => {
@@ -87,7 +90,7 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
   }); setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }); const remindersEl = listItem.querySelector('.reminders');
   const placeholderEl = listItem.querySelector('.reminder-placeholder');
   if (placeholderEl) {
-    placeholderEl.onclick = createSafeClickHandler((e) => {
+    const activateReminderPlaceholder = (e) => {
       const thisLi = listItem;
       if (thisLi.dataset.expanded !== '1') {
         const someoneExpanded = collapseOtherReminderStacks({ listItem: thisLi, grimoireState });
@@ -101,7 +104,9 @@ export function createPlayerListItem({ grimoireState, playerIndex, playerName, s
       } else if (e.altKey) { openTextReminderModal({ grimoireState, playerIndex }); } else {
         openReminderTokenModal({ grimoireState, playerIndex });
       }
-    });
+    };
+    placeholderEl.onclick = createSafeClickHandler(activateReminderPlaceholder);
+    setupKeyboardActivation({ element: placeholderEl, onActivate: activateReminderPlaceholder });
   }
   listItem.dataset.expanded = '0';
   const expand = () => {

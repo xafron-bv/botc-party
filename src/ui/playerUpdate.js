@@ -36,11 +36,15 @@ export function updatePlayerElement({
   currentPhase
 }) {
   const player = grimoireState.players[playerIndex]; const playerNameEl = li.querySelector('.player-name'); playerNameEl.textContent = player.name;
+  playerNameEl.setAttribute('aria-label', `Edit name for ${player.name}`);
   const angle = parseFloat(li.dataset.angle || '0'); const y = Math.sin(angle); const isNorthQuadrant = y < 0;
   if (isNorthQuadrant) { playerNameEl.classList.add('top-half'); li.classList.add('is-north'); li.classList.remove('is-south'); } else {
     playerNameEl.classList.remove('top-half'); li.classList.add('is-south'); li.classList.remove('is-north');
   }
-  const tokenDiv = li.querySelector('.player-token'); const charNameDiv = li.querySelector('.character-name'); const oldCircle = tokenDiv.querySelector('.death-overlay'); if (oldCircle) oldCircle.remove();
+  const tokenDiv = li.querySelector('.player-token'); const reminderPlaceholder = li.querySelector('.reminder-placeholder');
+  tokenDiv.setAttribute('aria-label', `Assign character to ${player.name}`);
+  if (reminderPlaceholder) reminderPlaceholder.setAttribute('aria-label', `Add reminder for ${player.name}`);
+  const charNameDiv = li.querySelector('.character-name'); const oldCircle = tokenDiv.querySelector('.death-overlay'); if (oldCircle) oldCircle.remove();
   const oldRibbon = tokenDiv.querySelector('.death-ribbon'); if (oldRibbon) oldRibbon.remove(); li.querySelectorAll('.ability-info-icon').forEach((node) => node.remove());
   const isSelectionActive = grimoireState.playerSetup && grimoireState.playerSetup.selectionActive;
   const role = player.character ? getRoleById({ grimoireState, roleId: player.character }) : null; const isTraveller = role && role.team === 'traveller';

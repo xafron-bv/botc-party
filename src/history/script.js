@@ -4,6 +4,7 @@ import { renderSetupInfo } from '../utils/setup.js';
 import { withStateSave } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
 import { downloadJson } from '../utils/jsonFiles.js';
+import { isActivationKey } from '../utils/interaction.js';
 function encodeScriptForShare(data) {
   try { const json = JSON.stringify(data); return btoa(unescape(encodeURIComponent(json))); } catch (_) {
     return '';
@@ -53,6 +54,7 @@ export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryL
 }
 export function handleScriptHistoryOnClear() { document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed')); }
 export function handleScriptHistoryOnKeyDown({ e, scriptHistoryList }) {
+  if (e.target.classList.contains('history-item') && isActivationKey(e)) { e.preventDefault(); if (!e.repeat) e.target.click(); return; }
   if (!e.target.classList.contains('history-edit-input')) return; const li = e.target.closest('li'); const id = li && li.dataset.id;
   const entry = history.scriptHistory.find(x => x.id === id); if (!entry) return;
   if (e.key === 'Enter') {
@@ -69,8 +71,9 @@ export function addScriptHistoryListListeners({ scriptHistoryList, grimoireState
 export function renderScriptHistory({ scriptHistoryList }) {
   if (!scriptHistoryList) return; scriptHistoryList.innerHTML = '';
   history.scriptHistory.forEach(entry => {
-    const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item'; const nameSpan = document.createElement('span');
-    nameSpan.className = 'history-name'; nameSpan.textContent = entry.name || '(unnamed script)'; const nameInput = document.createElement('input'); nameInput.type = 'text';
+    const entryName = entry.name || '(unnamed script)'; const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item';
+    li.setAttribute('role', 'button'); li.tabIndex = 0; li.setAttribute('aria-label', `Load script ${entryName}`); const nameSpan = document.createElement('span');
+    nameSpan.className = 'history-name'; nameSpan.textContent = entryName; const nameInput = document.createElement('input'); nameInput.type = 'text';
     nameInput.className = 'history-edit-input'; nameInput.value = entry.name || ''; nameInput.style.display = 'none'; const renameBtn = document.createElement('button');
     renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
     saveBtn.className = 'icon-btn save'; saveBtn.title = 'Save'; saveBtn.style.display = 'none'; saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';

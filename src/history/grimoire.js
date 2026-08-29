@@ -6,11 +6,13 @@ import { withStateSave } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
 import { initDayNightTracking } from '../dayNightTracking.js';
 import { processScriptData } from '../script.js';
+import { isActivationKey } from '../utils/interaction.js';
 export function renderGrimoireHistory({ grimoireHistoryList }) {
   if (!grimoireHistoryList) return; grimoireHistoryList.innerHTML = '';
   history.grimoireHistory.forEach(entry => {
-    const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item'; const nameSpan = document.createElement('span');
-    nameSpan.className = 'history-name'; nameSpan.textContent = entry.name || formatDateName(new Date(entry.createdAt || Date.now()));
+    const entryName = entry.name || formatDateName(new Date(entry.createdAt || Date.now())); const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item';
+    li.setAttribute('role', 'button'); li.tabIndex = 0; li.setAttribute('aria-label', `Load grimoire ${entryName}`); const nameSpan = document.createElement('span');
+    nameSpan.className = 'history-name'; nameSpan.textContent = entryName;
     const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.className = 'history-edit-input';
     nameInput.value = entry.name || formatDateName(new Date(entry.createdAt || Date.now())); nameInput.style.display = 'none'; const renameBtn = document.createElement('button');
     renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
@@ -122,6 +124,7 @@ export function handleGrimoireHistoryOnDown(e) {
 }
 export function handleGrimoireHistoryOnClear() { document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed')); }
 export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
+  if (e.target.classList.contains('history-item') && isActivationKey(e)) { e.preventDefault(); if (!e.repeat) e.target.click(); return; }
   if (!e.target.classList.contains('history-edit-input')) return; const li = e.target.closest('li'); const id = li && li.dataset.id;
   const entry = history.grimoireHistory.find(x => x.id === id); if (!entry) return;
   if (e.key === 'Enter') {

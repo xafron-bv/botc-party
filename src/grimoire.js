@@ -13,14 +13,16 @@ import { createPlayerListItem } from './ui/playerCircle.js';
 import { updatePlayerElement } from './ui/playerUpdate.js';
 import { createSafeClickHandler, attachTouchHandler } from './utils/eventHandlers.js';
 import { deactivateSelection } from './playerSelection.js';
+import { setupKeyboardActivation } from './utils/interaction.js';
 try { window.openReminderTokenModal = openReminderTokenModal; } catch (_) { }
 function setupPlayerNameHandlers({ listItem, grimoireState, playerIndex }) {
   const handlePlayerNameClick = withStateSave((_e) => {
     const currentName = grimoireState.players[playerIndex].name; const newName = prompt('Enter player name:', currentName);
     if (newName) { grimoireState.players[playerIndex].name = newName; updateGrimoire({ grimoireState }); }
-  }); listItem.querySelector('.player-name').onclick = createSafeClickHandler(handlePlayerNameClick);
+  }); const playerNameElement = listItem.querySelector('.player-name'); playerNameElement.onclick = createSafeClickHandler(handlePlayerNameClick);
+  setupKeyboardActivation({ element: playerNameElement, onActivate: handlePlayerNameClick });
   if ('ontouchstart' in window) {
-    attachTouchHandler(listItem.querySelector('.player-name'), (e) => {
+    attachTouchHandler(playerNameElement, (e) => {
       handlePlayerElementTouch({
         e,
         listItem,
