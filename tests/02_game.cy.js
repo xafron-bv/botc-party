@@ -148,7 +148,7 @@ describe('Game', () => {
   it('grimoire history create/rename/load/delete', () => {
     cy.setupGame({ players: 6, loadScript: false });
     // End a game to create an initial snapshot for 6-player state
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');

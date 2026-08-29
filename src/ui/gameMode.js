@@ -12,6 +12,7 @@ import {
   toggleGrimoireHidden
 } from '../grimoire.js';
 import { byId } from '../utils/dom.js';
+import { applyEndGameControlState } from './endGameControls.js';
 
 export function initGameMode({
   grimoireState,
@@ -79,6 +80,7 @@ export function initGameMode({
     storytellerOnlyControls.forEach((control) => {
       if (control) control.style.display = isPlayer ? 'none' : '';
     });
+    applyEndGameControlState({ grimoireState });
     if (isPlayer && grimoireState.dayNightTracking) {
       grimoireState.dayNightTracking.enabled = false;
     }

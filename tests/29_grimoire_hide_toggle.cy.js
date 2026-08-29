@@ -10,7 +10,7 @@ describe('Grimoire visibility controls', () => {
     cy.get('#reveal-assignments').should('not.be.visible');
 
     cy.get('#mode-player').click({ force: true });
-    cy.get('#reveal-assignments').should('be.visible').and('contain', 'Hide Grimoire');
+    cy.get('#reveal-assignments').scrollIntoView().should('be.visible').and('contain', 'Hide Grimoire');
 
     cy.get('#mode-storyteller').click({ force: true });
     cy.get('#reveal-assignments').should('not.be.visible');

@@ -7,7 +7,7 @@ describe('Game state reset vs preserve by mode changes', () => {
     cy.setupGame({ players: 5, loadScript: true });
   });
 
-  it('Player mode: resetting after winner clears characters/reminders/death', () => {
+  it('resetting after winner clears characters/reminders/death', () => {
     // Game already set up via beforeEach helper
     // Assign a character and death state to first player
     cy.get('#player-circle li .player-token').first().click({ force: true });
@@ -21,8 +21,8 @@ describe('Game state reset vs preserve by mode changes', () => {
     cy.get('#player-circle li .player-token .death-ribbon').first().click({ force: true });
     cy.get('#player-circle li .player-token').first().should('have.class', 'is-dead');
 
-    // Switch to player mode and end with winner
-    cy.get('#mode-player').check({ force: true });
+    // End with a winner in Storyteller mode
+    cy.ensureStorytellerMode();
     cy.get('#end-game').click({ force: true });
     cy.get('#end-game-modal').should('be.visible');
     cy.get('#good-wins-btn').click();

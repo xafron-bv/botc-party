@@ -20,6 +20,7 @@ import { initSidebarResize, initSidebarToggle } from './src/ui/sidebar.js';
 import { initActionCluster } from './src/ui/actionCluster.js';
 import { initCharacterPanel } from './src/ui/characterPanel.js';
 import { initDisplaySettings } from './src/ui/displaySettings.js';
+import { applyEndGameControlState } from './src/ui/endGameControls.js';
 import { initGameMode } from './src/ui/gameMode.js';
 import { initNightOrderControls } from './src/ui/nightOrderControls.js';
 import { initScriptControls } from './src/ui/scriptControls.js';
@@ -97,13 +98,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       try { grimoireState.winner = null; } catch (_) { }
       grimoireState.gameStarted = false;
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
-      if (endGameBtn) endGameBtn.style.display = ''; if (revealSelectedBtn) revealSelectedBtn.style.display = 'none';
+      if (revealSelectedBtn) revealSelectedBtn.style.display = 'none';
       try {
         const openPlayerSetupBtn2 = byId('open-player-setup');
         if (openPlayerSetupBtn2) { openPlayerSetupBtn2.disabled = false; openPlayerSetupBtn2.title = ''; }
       } catch (_) { }
       applyModeUI(); updateButtonStates(); updateSnapshotToggleUI();
-    }); if (endGameBtn) endGameBtn.addEventListener('click', () => { if (endGameModal) endGameModal.style.display = 'flex'; });
+    }); if (endGameBtn) endGameBtn.addEventListener('click', () => {
+      if (grimoireState.mode !== 'storyteller') return;
+      if (endGameModal) endGameModal.style.display = 'flex';
+    });
     if (closeEndGameModalBtn && endGameModal) closeEndGameModalBtn.addEventListener('click', () => { endGameModal.style.display = 'none'; });
     if (endGameModal) {
       endGameModal.addEventListener('click', (e) => {
@@ -135,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     if (revealSelectedBtn) { revealSelectedBtn.addEventListener('click', handleRevealSelectedFromSidebar); }
     function declareWinner(team) {
-      if (!team) return;
+      if (!team || grimoireState.mode !== 'storyteller') return;
       grimoireState.winner = team; // 'good' or 'evil'
       try { saveAppState({ grimoireState }); } catch (_) { }
       try { updateGrimoire({ grimoireState }); } catch (_) { }
@@ -161,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           gameStarted: false
         });
       } catch (_) { }
-      if (endGameModal) endGameModal.style.display = 'none'; if (endGameBtn) endGameBtn.style.display = 'none'; grimoireState.gameStarted = false; applyModeUI();
+      if (endGameModal) endGameModal.style.display = 'none'; grimoireState.gameStarted = false; applyModeUI();
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
     }
     if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good')); if (evilWinsBtn) evilWinsBtn.addEventListener('click', () => declareWinner('evil'));
@@ -176,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const shouldShow = selectionComplete && !selectionRevealed; revealSelectedBtn.style.display = shouldShow ? '' : 'none'; revealSelectedBtn.disabled = false;
         revealSelectedBtn.title = '';
       }
-      if (endGameBtn) endGameBtn.style.display = grimoireState.winner ? 'none' : ''; const modeStorytellerRadio = byId('mode-storyteller');
+      applyEndGameControlState({ grimoireState }); const modeStorytellerRadio = byId('mode-storyteller');
       const modePlayerRadio = byId('mode-player'); if (modeStorytellerRadio) modeStorytellerRadio.disabled = false; if (modePlayerRadio) modePlayerRadio.disabled = false;
     }
     updateButtonStates();
@@ -280,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     applyModeUI(); applyGrimoireHiddenUI(); updateGrimoireControlButtons(); updateSnapshotToggleUI();
     try {
-      const endBtn = byId('end-game'); if (endBtn) endBtn.style.display = grimoireState.winner ? 'none' : '';
+      applyEndGameControlState({ grimoireState });
       try { restoreSelectionSession({ grimoireState }); } catch (_) { }
     } catch (_) { }
     initInAppTour(); initStorytellerMessages({ grimoireState }); setupModalCloseHandlers({ grimoireState }); initThemeSelector();

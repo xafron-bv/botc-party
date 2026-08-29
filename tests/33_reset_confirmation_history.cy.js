@@ -19,7 +19,7 @@ describe('Reset confirmation after loading ended game from history', () => {
   it('does not ask for confirmation when resetting after loading an ended game from history', () => {
     // Create and end a game to generate a history item
     startGameWithPlayers(5);
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
@@ -43,7 +43,7 @@ describe('Reset confirmation after loading ended game from history', () => {
   it('asks for confirmation when loading a history item while an active (non-ended) game is in progress', () => {
     // Create ended game history entry
     startGameWithPlayers(5);
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
@@ -52,7 +52,7 @@ describe('Reset confirmation after loading ended game from history', () => {
 
     // Reset after winner to clear gating and mark an active game
     cy.get('#reset-grimoire').click();
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Stub confirm and click a history item (ended game) -> should prompt
@@ -66,7 +66,7 @@ describe('Reset confirmation after loading ended game from history', () => {
   it('hides End Game button after loading an ended game from history', () => {
     // Create ended game history entry
     startGameWithPlayers(5);
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
@@ -75,7 +75,7 @@ describe('Reset confirmation after loading ended game from history', () => {
 
     // Reset after winner, then mark a fresh active game so End Game button is visible
     cy.get('#reset-grimoire').click();
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.ensureSidebarOpen();
     cy.get('#end-game').scrollIntoView().should('be.visible');

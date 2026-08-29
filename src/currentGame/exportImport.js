@@ -5,6 +5,7 @@ import { updateBluffAttentionState } from '../bluffTokens.js';
 import { captureGameState, normalizeGameState } from '../gameState.js';
 import { downloadJson } from '../utils/jsonFiles.js';
 import { createStatusWriter } from '../utils/dom.js';
+import { applyEndGameControlState } from '../ui/endGameControls.js';
 const writeImportStatus = createStatusWriter('import-status', 5000);
 function setStatus({ message, isError = false }) {
   writeImportStatus(message, isError ? 'error' : 'status');
@@ -31,6 +32,7 @@ function applyModeUi({ grimoireState }) {
   const openPlayerSetupBtn = document.getElementById('open-player-setup'); if (openPlayerSetupBtn) openPlayerSetupBtn.style.display = isPlayer ? 'none' : '';
   if (openRulebookBtn) openRulebookBtn.style.display = isPlayer ? 'none' : ''; const openStBtn = document.getElementById('open-storyteller-message');
   if (openStBtn) openStBtn.style.display = isPlayer ? 'none' : '';
+  applyEndGameControlState({ grimoireState });
   if (isPlayer && grimoireState.dayNightTracking) { grimoireState.dayNightTracking.enabled = false; }
   if (revealToggleBtn) {
     const hidden = !!grimoireState.grimoireHidden; revealToggleBtn.style.display = isPlayer ? '' : 'none'; revealToggleBtn.textContent = hidden ? 'Show Grimoire' : 'Hide Grimoire';

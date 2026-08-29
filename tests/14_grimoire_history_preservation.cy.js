@@ -36,7 +36,7 @@ describe('Grimoire history preservation', () => {
     cy.get('#player-circle li').eq(1).find('.player-name').should('contain', 'Bob');
 
     // End a game with 5 players to create the first history entry
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
@@ -46,7 +46,7 @@ describe('Grimoire history preservation', () => {
     // Now change to 6 players (no snapshot since game not started)
     startGameWithPlayers(6);
     // Mark game active
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Rename the first player in the 6-player game
@@ -90,7 +90,7 @@ describe('Grimoire history preservation', () => {
     cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'Initial Player');
 
     // Create a first history snapshot by starting/ending the 5-player game
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');
@@ -100,7 +100,7 @@ describe('Grimoire history preservation', () => {
     // Start new session with 6 players (no snapshot yet)
     startGameWithPlayers(6);
     // Start this game so it becomes the current active state
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
 
     // Load the history item (5 players) - should create snapshot of 6-player game
@@ -129,7 +129,7 @@ describe('Grimoire history preservation', () => {
     cy.get('#player-circle li').eq(0).find('.player-name').should('contain', 'State A Player');
 
     // Create a first snapshot by ending the 5-player game
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.window().then((win) => { if (win.grimoireState) win.grimoireState.gameStarted = true; });
     cy.get('#end-game').click();
     cy.get('#end-game-modal').should('be.visible');

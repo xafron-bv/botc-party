@@ -3,6 +3,7 @@
 describe('Active game persistence', () => {
   beforeEach(() => {
     cy.visit('./index.html');
+    cy.ensureStorytellerMode();
   });
 
   it('restores active game UI after reload', () => {

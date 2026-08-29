@@ -54,7 +54,7 @@ describe('Player context menu - desktop right-click', () => {
     cy.get('#reset-grimoire').click();
     cy.get('#player-circle li').should('have.length', 6);
     // End a game so a snapshot is created
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     cy.ensureSidebarOpen();
     cy.get('#end-game').scrollIntoView().should('be.visible').click();
     cy.get('#end-game-modal').should('be.visible');

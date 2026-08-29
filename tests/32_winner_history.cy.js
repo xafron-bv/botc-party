@@ -5,8 +5,7 @@ describe('Winner state persisted in history', () => {
     cy.window().then((win) => { try { win.localStorage.clear(); } catch (_) { } });
     cy.get('#load-tb').click();
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
-    // Use player mode so Start Game is always clickable
-    cy.get('#mode-player').check({ force: true });
+    cy.ensureStorytellerMode();
     // 5 players baseline
     cy.get('#player-count').clear().type('5');
     cy.get('#reset-grimoire').click();
@@ -46,4 +45,3 @@ describe('Winner state persisted in history', () => {
     cy.get('@confirmStub').should('have.callCount', 0);
   });
 });
-

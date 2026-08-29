@@ -48,7 +48,11 @@ Cypress.Commands.add('setupGame', ({ players = 5, loadScript = true, mode = 'sto
   cy.get('#reset-grimoire').click({ force: true });
   cy.get('#player-circle li').should('have.length', players);
   cy.ensureSidebarOpen();
-  cy.get('#end-game').scrollIntoView().should('be.visible');
+  if (mode === 'storyteller') {
+    cy.get('#end-game').scrollIntoView().should('be.visible');
+  } else {
+    cy.get('#end-game').should('not.be.visible');
+  }
 });
 
 Cypress.Commands.add('ensureStorytellerMode', () => {
@@ -69,9 +73,15 @@ Cypress.Commands.add('ensurePlayerMode', () => {
   cy.get('#mode-player').should('be.checked');
 });
 
-// Simple command kept for compatibility; no Start Game gate exists anymore
+// Simple command kept for compatibility; no Start Game gate exists anymore.
 Cypress.Commands.add('startGame', () => {
-  cy.get('#end-game').should('be.visible');
+  cy.window().then((win) => {
+    if (win.grimoireState.mode === 'storyteller') {
+      cy.get('#end-game').scrollIntoView().should('be.visible');
+    } else {
+      cy.get('#end-game').should('not.be.visible');
+    }
+  });
 });
 
 Cypress.Commands.add('ensureSidebarOpen', () => {
