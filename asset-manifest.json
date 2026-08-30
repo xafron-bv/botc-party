@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T14:44:28.900Z",
+  "generatedAt": "2026-08-30T18:20:13.385Z",
   "core": [
     {
       "path": "./index.html",
@@ -51,7 +51,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "7894aceefab5"
+      "hash": "2b59df8b7143"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -59,7 +59,7 @@
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "fe47211afc9e"
+      "hash": "7e11acf60cf6"
     },
     {
       "path": "./src/history/index.js",
@@ -67,7 +67,7 @@
     },
     {
       "path": "./src/history/script.js",
-      "hash": "109a1c6bb49d"
+      "hash": "d6e28a6f470d"
     },
     {
       "path": "./src/modalCloseHandlers.js",
@@ -87,7 +87,7 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "966a4e7db642"
+      "hash": "f7ffc779f9d0"
     },
     {
       "path": "./src/roleData.js",
@@ -147,11 +147,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "9174a11eb76b"
+      "hash": "3e10582556b6"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "3c286fa2feb3"
+      "hash": "8db26bbfbd98"
     },
     {
       "path": "./src/ui/scriptControls.js",
@@ -171,7 +171,7 @@
     },
     {
       "path": "./src/ui/tokenGridItem.js",
-      "hash": "35c83df4a8c5"
+      "hash": "821192d2c4d5"
     },
     {
       "path": "./src/ui/tokenRendering.js",
@@ -179,7 +179,7 @@
     },
     {
       "path": "./src/ui/tooltip.js",
-      "hash": "75d4680680f2"
+      "hash": "9c554fb3c5f7"
     },
     {
       "path": "./src/ui/touchHelpers.js",
@@ -195,11 +195,11 @@
     },
     {
       "path": "./src/utils/eventHandlers.js",
-      "hash": "2db98dd2fc32"
+      "hash": "43711b165bd1"
     },
     {
       "path": "./src/utils/interaction.js",
-      "hash": "1909e0e712af"
+      "hash": "17ff33864746"
     },
     {
       "path": "./src/utils/jsonFiles.js",
@@ -225,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "9847d7cc002f"
+      "hash": "05cabf5ad974"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1117,7 +1117,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "7894aceefab5"
+      "hash": "2b59df8b7143"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -1125,7 +1125,7 @@
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "fe47211afc9e"
+      "hash": "7e11acf60cf6"
     },
     {
       "path": "./src/history/index.js",
@@ -1133,7 +1133,7 @@
     },
     {
       "path": "./src/history/script.js",
-      "hash": "109a1c6bb49d"
+      "hash": "d6e28a6f470d"
     },
     {
       "path": "./src/modalCloseHandlers.js",
@@ -1153,7 +1153,7 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "966a4e7db642"
+      "hash": "f7ffc779f9d0"
     },
     {
       "path": "./src/roleData.js",
@@ -1213,11 +1213,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "9174a11eb76b"
+      "hash": "3e10582556b6"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "3c286fa2feb3"
+      "hash": "8db26bbfbd98"
     },
     {
       "path": "./src/ui/scriptControls.js",
@@ -1237,7 +1237,7 @@
     },
     {
       "path": "./src/ui/tokenGridItem.js",
-      "hash": "35c83df4a8c5"
+      "hash": "821192d2c4d5"
     },
     {
       "path": "./src/ui/tokenRendering.js",
@@ -1245,7 +1245,7 @@
     },
     {
       "path": "./src/ui/tooltip.js",
-      "hash": "75d4680680f2"
+      "hash": "9c554fb3c5f7"
     },
     {
       "path": "./src/ui/touchHelpers.js",
@@ -1261,11 +1261,11 @@
     },
     {
       "path": "./src/utils/eventHandlers.js",
-      "hash": "2db98dd2fc32"
+      "hash": "43711b165bd1"
     },
     {
       "path": "./src/utils/interaction.js",
-      "hash": "1909e0e712af"
+      "hash": "17ff33864746"
     },
     {
       "path": "./src/utils/jsonFiles.js",
@@ -1301,11 +1301,11 @@
     },
     {
       "path": "./styles/circle-token.css",
-      "hash": "b8744daebe86"
+      "hash": "174f7346a323"
     },
     {
       "path": "./styles/common-ui.css",
-      "hash": "5145884c8ee9"
+      "hash": "f1c0eca97578"
     },
     {
       "path": "./styles/core.css",
@@ -1313,7 +1313,7 @@
     },
     {
       "path": "./styles/day-night-tracking.css",
-      "hash": "9fd3bac48ee0"
+      "hash": "d3f8e0f7f0d1"
     },
     {
       "path": "./styles/menus.css",
@@ -1341,7 +1341,7 @@
     },
     {
       "path": "./styles/sidebar.css",
-      "hash": "6da4478375c3"
+      "hash": "86aa358162f3"
     },
     {
       "path": "./styles/themes.css",
@@ -1353,7 +1353,7 @@
     },
     {
       "path": "./styles/touch.css",
-      "hash": "3f88336cacaa"
+      "hash": "3c526a80023a"
     },
     {
       "path": "./styles/tour.css",
