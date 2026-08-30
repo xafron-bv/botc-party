@@ -15,8 +15,13 @@ export function repositionPlayers({ grimoireState }) {
     const scale = grimoireState?.displaySettings?.tokenScale; return Number.isFinite(scale) && scale > 0 ? scale : 1;
   })(); const tokenDiameterBase = tokenDiameterActual / tokenScale; const tokenRadiusBase = tokenDiameterBase / 2; const chordNeeded = tokenDiameterBase * 1.25;
   const minScreenRadius = Math.min(window.innerWidth, window.innerHeight) / 4; const radiusBase = Math.max(minScreenRadius, chordNeeded / (2 * Math.sin(Math.PI / count)));
-  const parentRect = circle.parentElement ? circle.parentElement.getBoundingClientRect() : circle.getBoundingClientRect(); const margin = 24;
-  const maxSize = Math.max(160, Math.min(parentRect.width, parentRect.height) - margin); const requiredContainerSizeBase = Math.ceil(2 * (radiusBase + tokenRadiusBase + 12));
+  const layoutContainer = circle.closest('#center') || circle.parentElement; const parentRect = layoutContainer ? layoutContainer.getBoundingClientRect() : circle.getBoundingClientRect();
+  let availableWidth = parentRect.width; let availableHeight = parentRect.height; const margin = 24;
+  if (layoutContainer?.id === 'center') {
+    const styles = getComputedStyle(layoutContainer); availableWidth -= (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+    availableHeight -= (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+  }
+  const maxSize = Math.max(160, Math.min(availableWidth, availableHeight) - margin); const requiredContainerSizeBase = Math.ceil(2 * (radiusBase + tokenRadiusBase + 12));
   const containerSizeBase = Math.min(requiredContainerSizeBase, maxSize);
   const circleScale = (() => {
     const scale = grimoireState?.displaySettings?.circleScale; return Number.isFinite(scale) ? scale : 1;

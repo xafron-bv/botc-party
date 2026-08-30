@@ -234,20 +234,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (content && !content.contains(e.target)) { reminderTokenModal.style.display = 'none'; }
       });
     }
+    let playerLayoutResizeTimeout;
+    const schedulePlayerReposition = () => {
+      clearTimeout(playerLayoutResizeTimeout);
+      playerLayoutResizeTimeout = setTimeout(() => {
+        if (grimoireState.players.length > 0) repositionPlayers({ grimoireState });
+      }, 0);
+    };
+    window.addEventListener('resize', schedulePlayerReposition);
     let resizeObserver;
     if ('ResizeObserver' in window) {
-      resizeObserver = new ResizeObserver(() => {
-        if (grimoireState.players.length > 0) { console.log('Container resized, repositioning players...'); requestAnimationFrame(() => repositionPlayers({ grimoireState })); }
-      }); const playerCircle = byId('player-circle');
-      if (playerCircle) { resizeObserver.observe(playerCircle); }
-    } else {
-      let resizeTimeout;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          if (grimoireState.players.length > 0) { console.log('Window resized, repositioning players...'); requestAnimationFrame(() => repositionPlayers({ grimoireState })); }
-        }, 250);
-      });
+      resizeObserver = new ResizeObserver(schedulePlayerReposition); const grimoireCenter = byId('center');
+      if (grimoireCenter) { resizeObserver.observe(grimoireCenter); }
     }
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && grimoireState.players.length > 0) { requestAnimationFrame(() => repositionPlayers({ grimoireState })); }
