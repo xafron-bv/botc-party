@@ -12,7 +12,6 @@ function encodeScriptForShare(data) {
 }
 export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryList, grimoireState }) => {
   const li = e.target.closest('li'); if (!li) return; const id = li.dataset.id; const entry = history.scriptHistory.find(x => x.id === id); if (!entry) return;
-  const clickedLoad = e.target.closest('.history-load');
   const clickedDelete = e.target.closest('.icon-btn.delete'); const clickedRename = e.target.closest('.icon-btn.rename'); const clickedSave = e.target.closest('.icon-btn.save');
   const clickedDownload = e.target.closest('.icon-btn.download'); const clickedShare = e.target.closest('.icon-btn.share');
   const clickedInput = e.target.closest('.history-edit-input');
@@ -45,14 +44,12 @@ export const handleScriptHistoryClick = withStateSave(async ({ e, scriptHistoryL
   }
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
-  if (!clickedLoad) return;
   try {
     await processScriptData({ data: entry.data, addToHistory: false, grimoireState }); grimoireState.scriptMetaName = entry.name || grimoireState.scriptMetaName || '';
     await displayScript({ data: grimoireState.scriptData, grimoireState }); renderSetupInfo({ grimoireState });
   } catch (err) { console.error(err); }
 }); export function handleScriptHistoryOnDown({ e }) {
   const li = e.target.closest('li.history-item'); if (!li) return; if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
-  if (!e.target.closest('.history-load')) return;
   li.classList.add('pressed');
 }
 export function handleScriptHistoryOnClear() { document.querySelectorAll('#script-history-list li.pressed').forEach(el => el.classList.remove('pressed')); }

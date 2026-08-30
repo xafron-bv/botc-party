@@ -70,7 +70,6 @@ export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, g
 }
 export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState }) {
   const li = e.target.closest('li'); if (!li) return; const id = li.dataset.id; const entry = history.grimoireHistory.find(x => x.id === id); if (!entry) return;
-  const clickedLoad = e.target.closest('.history-load');
   const clickedDelete = e.target.closest('.icon-btn.delete'); const clickedRename = e.target.closest('.icon-btn.rename'); const clickedSave = e.target.closest('.icon-btn.save');
   const clickedInput = e.target.closest('.history-edit-input');
   if (clickedDelete) {
@@ -91,7 +90,6 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   }
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
-  if (!clickedLoad) return;
   const currentState = {
     players: grimoireState.players,
     scriptName: grimoireState.scriptMetaName || '',
@@ -123,7 +121,6 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
 }
 export function handleGrimoireHistoryOnDown(e) {
   const li = e.target.closest('li.history-item'); if (!li) return; if (e.target.closest('.icon-btn') || e.target.closest('.history-edit-input')) return;
-  if (!e.target.closest('.history-load')) return;
   li.classList.add('pressed');
 }
 export function handleGrimoireHistoryOnClear() { document.querySelectorAll('#grimoire-history-list li.pressed').forEach(el => el.classList.remove('pressed')); }

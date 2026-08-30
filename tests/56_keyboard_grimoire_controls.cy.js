@@ -34,6 +34,16 @@ const createPlayers = (count) => Array.from({ length: count }, (_, index) => ({
   nightKilledPhase: null
 }));
 
+const clickHistoryRowBackground = ($row) => {
+  const MouseEvent = $row[0].ownerDocument.defaultView.MouseEvent;
+  const eventOptions = { bubbles: true, cancelable: true };
+  $row[0].dispatchEvent(new MouseEvent('pointerdown', eventOptions));
+  expect($row).to.have.class('pressed');
+  $row[0].dispatchEvent(new MouseEvent('click', eventOptions));
+  $row[0].dispatchEvent(new MouseEvent('pointerup', eventOptions));
+  expect($row).not.to.have.class('pressed');
+};
+
 describe('Keyboard grimoire controls', () => {
   it('exposes native player controls and character picker buttons', () => {
     cy.resetApp({ mode: 'storyteller', loadScript: true });
@@ -194,6 +204,11 @@ describe('Keyboard grimoire controls', () => {
     });
     cy.get('#character-sheet .role').should('have.length', 2);
     cy.contains('#character-sheet .role .name', 'Chef').should('exist');
+
+    cy.get('#load-all-chars').click();
+    cy.get('#character-sheet .role').should('have.length.greaterThan', 10);
+    cy.get('@renamedRow').then(clickHistoryRowBackground);
+    cy.get('#character-sheet .role').should('have.length', 2);
   });
 
   it('restores grimoire history exactly once from a focused row', () => {
@@ -249,5 +264,20 @@ describe('Keyboard grimoire controls', () => {
 
     cy.get('#player-circle li').should('have.length', 6);
     cy.get('#player-circle li').first().find('.player-name').should('contain', 'History Player 1');
+
+    cy.window().then((win) => {
+      const backgroundEntry = {
+        ...entry,
+        id: 'pointer-grimoire',
+        name: 'Pointer Grimoire',
+        players: createPlayers(7)
+      };
+      win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([entry, backgroundEntry]));
+    });
+    cy.reload();
+    cy.contains('#grimoire-history-list .history-name', 'Pointer Grimoire')
+      .parents('li.history-item')
+      .then(clickHistoryRowBackground);
+    cy.get('#player-circle li').should('have.length', 7);
   });
 });
