@@ -105,7 +105,8 @@ body.resizing { cursor: col-resize; user-select: none; }
 #sidebar .history-list { list-style: none; padding: 0; margin: 8px 0 0 0; max-height: 240px; overflow-y: auto; }
 #sidebar .history-list li { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; user-select: none; }
 #sidebar .history-list .history-load {
-  flex: 1 1 auto; min-width: 0; padding: 4px 2px; border: 0; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left;
+  appearance: none; box-sizing: content-box; flex: 1 1 auto; min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent;
+  color: inherit; cursor: pointer; font: inherit; text-align: inherit;
 }
 #sidebar .history-list .history-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #sidebar .history-list .history-edit-input {

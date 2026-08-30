@@ -52,6 +52,37 @@ const expectEstablishedPlayerControlSizing = ($player) => {
   const reminderBorderWidth = parseFloat(reminderStyle.borderLeftWidth) + parseFloat(reminderStyle.borderRightWidth);
   expect(reminderPlaceholder.offsetWidth, 'reminder includes its ring outside the declared diameter')
     .to.be.closeTo(parseFloat(reminderStyle.width) + reminderBorderWidth, 1);
+  expect(nameStyle.color, 'player name keeps its established white text').to.equal('rgb(255, 255, 255)');
+  expect(reminderStyle.color, 'reminder keeps its established white text').to.equal('rgb(255, 255, 255)');
+};
+
+const expectEstablishedPickerTokenSizing = ($token) => {
+  const token = $token[0];
+  const style = token.ownerDocument.defaultView.getComputedStyle(token);
+  const horizontalBorder = parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+  const verticalBorder = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+
+  expect(style.boxSizing, 'picker token keeps its established content box').to.equal('content-box');
+  expect(token.offsetWidth, 'picker ring stays outside the declared width')
+    .to.be.closeTo(parseFloat(style.width) + horizontalBorder, 1);
+  expect(token.offsetHeight, 'picker ring stays outside the declared height')
+    .to.be.closeTo(parseFloat(style.height) + verticalBorder, 1);
+};
+
+const expectEstablishedHistoryRowSizing = ($row) => {
+  const row = $row[0];
+  const loadButton = row.querySelector('.history-load');
+  const name = row.querySelector('.history-name');
+  const actionButton = row.querySelector('.icon-btn');
+  const rowRect = row.getBoundingClientRect();
+  const loadRect = loadButton.getBoundingClientRect();
+  const nameRect = name.getBoundingClientRect();
+  const actionRect = actionButton.getBoundingClientRect();
+
+  expect(rowRect.height, 'history row keeps its established action-button height')
+    .to.be.closeTo(actionRect.height, 0.1);
+  expect(loadRect.x, 'history load target starts at the original name edge').to.be.closeTo(rowRect.x, 0.1);
+  expect(nameRect.x, 'history name is not indented').to.be.closeTo(rowRect.x, 0.1);
 };
 
 const clickHistoryRowBackground = ($row) => {
@@ -72,6 +103,43 @@ describe('Keyboard grimoire controls', () => {
 
     cy.viewport('iphone-6');
     cy.get('#player-circle li').first().should(expectEstablishedPlayerControlSizing);
+  });
+
+  it('preserves picker token geometry across viewports', () => {
+    cy.resetApp({ mode: 'storyteller', loadScript: true, viewport: [1280, 720] });
+
+    cy.get('#player-circle li').first().find('.player-token').focus().type('{enter}');
+    cy.get('#character-grid .token').first().should(expectEstablishedPickerTokenSizing).click();
+    cy.get('#player-circle li').first().find('.reminder-placeholder').focus().type('{enter}');
+    cy.get('#reminder-token-grid .token').first().should(expectEstablishedPickerTokenSizing);
+    cy.get('#close-reminder-token-modal-x').click();
+
+    cy.viewport('iphone-6');
+    cy.get('#player-circle li').first().find('.player-token').focus().type('{enter}');
+    cy.get('#character-grid .token').first().should(expectEstablishedPickerTokenSizing).click();
+    cy.get('#player-circle li').first().find('.reminder-placeholder').focus().type('{enter}');
+    cy.get('#reminder-token-grid .token').first().should(expectEstablishedPickerTokenSizing);
+  });
+
+  it('preserves history row spacing across viewports', () => {
+    const entry = {
+      id: 'history-layout',
+      name: 'History Layout',
+      data: [{ id: '_meta', name: 'History Layout', author: 'cypress' }, 'chef'],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    cy.visit('/', {
+      onBeforeLoad(win) {
+        win.localStorage.clear();
+        win.localStorage.setItem('botcScriptHistoryV1', JSON.stringify([entry]));
+      }
+    });
+
+    cy.get('#script-history-list .history-item').should(expectEstablishedHistoryRowSizing);
+    cy.viewport('iphone-6');
+    cy.get('#sidebar-toggle').click({ force: true });
+    cy.get('#script-history-list .history-item').should(expectEstablishedHistoryRowSizing);
   });
 
   it('exposes native player controls and character picker buttons', () => {
