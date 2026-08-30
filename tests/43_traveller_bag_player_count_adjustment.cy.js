@@ -173,4 +173,67 @@ describe('Player Setup - Traveller Bag Player Count Adjustment', () => {
       .and('contain', '6 characters')
       .and('contain', 'excluding 2 travellers');
   });
+
+  it('preserves an assigned traveller when token selection starts', () => {
+    cy.setupGame({ players: 6, loadScript: false });
+
+    cy.get('#player-circle li .player-token').eq(0).click({ force: true });
+    cy.get('#character-modal').should('be.visible');
+    cy.get('#include-travellers-in-modal').check({ force: true });
+    cy.get('#character-search').clear().type('Gunslinger');
+    cy.get('#character-grid .token[title="Gunslinger"]').click();
+    cy.get('#setup-info').should('contain', '3/0/1/1/1');
+
+    cy.get('#open-player-setup').click({ force: true });
+    cy.get('#player-setup-panel').should('be.visible');
+    cy.fillBag();
+    cy.get('#bag-count-warning').should('not.be.visible');
+    cy.window().then((win) => {
+      expect(win.grimoireState.playerSetup.bag).to.have.length(5);
+    });
+
+    cy.get('#player-setup-panel .start-selection').click({ force: true });
+
+    cy.window().then((win) => {
+      expect(win.grimoireState.players[0].character).to.equal('gunslinger');
+    });
+    cy.get('#setup-info').should('contain', '3/0/1/1/1');
+    cy.get('#player-circle li').eq(0).find('.number-overlay')
+      .should('have.class', 'traveller-assigned')
+      .and('contain', 'T');
+    cy.get('#selection-picker-title').should('contain', 'Player 2');
+
+    for (let playerIndex = 1; playerIndex < 6; playerIndex += 1) {
+      cy.get('#number-picker-overlay').should('be.visible');
+      cy.get('#selection-picker-title').should('contain', `Player ${playerIndex + 1}`);
+      cy.get('#selection-reveal-btn').click();
+      cy.get('#player-reveal-modal').should('be.visible');
+      cy.get('#confirm-player-reveal').click();
+    }
+
+    cy.ensureSidebarOpen();
+    cy.get('#reveal-selected-characters').scrollIntoView().should('be.visible').click();
+    cy.window().then((win) => {
+      const { bag, assignments } = win.grimoireState.playerSetup;
+      const assignedRoles = win.grimoireState.players.slice(1).map((player) => player.character);
+
+      expect(win.grimoireState.players[0].character).to.equal('gunslinger');
+      expect(assignments[0]).to.equal(null);
+      expect(assignedRoles).to.have.length(5);
+      expect(new Set(assignedRoles).size).to.equal(5);
+      expect(new Set(assignedRoles)).to.deep.equal(new Set(bag));
+      assignedRoles.forEach((roleId) => {
+        expect(win.grimoireState.allRoles[roleId].team).not.to.equal('traveller');
+      });
+    });
+    cy.get('#setup-info').should('contain', '3/0/1/1/1');
+
+    cy.window().then((win) => {
+      cy.stub(win, 'confirm').returns(true);
+    });
+    cy.get('#reset-grimoire').click({ force: true });
+    cy.window().then((win) => {
+      expect(win.grimoireState.players[0].character).to.equal(null);
+    });
+  });
 });
