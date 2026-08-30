@@ -34,6 +34,26 @@ const createPlayers = (count) => Array.from({ length: count }, (_, index) => ({
   nightKilledPhase: null
 }));
 
+const expectEstablishedPlayerControlSizing = ($player) => {
+  const playerName = $player.find('.player-name')[0];
+  const reminderPlaceholder = $player.find('.reminder-placeholder')[0];
+  const win = playerName.ownerDocument.defaultView;
+  const rootStyle = win.getComputedStyle(playerName.ownerDocument.documentElement);
+  const nameStyle = win.getComputedStyle(playerName);
+  const reminderStyle = win.getComputedStyle(reminderPlaceholder);
+  const playerNameScale = parseFloat(rootStyle.getPropertyValue('--player-name-scale'));
+  const viewportUnit = Math.min(win.innerWidth, win.innerHeight) / 100;
+
+  expect(parseFloat(nameStyle.paddingTop), 'player name vertical padding')
+    .to.be.closeTo(0.8 * viewportUnit * playerNameScale, 0.1);
+  expect(parseFloat(nameStyle.paddingLeft), 'player name horizontal padding')
+    .to.be.closeTo(2 * viewportUnit * playerNameScale, 0.1);
+  expect(reminderStyle.boxSizing, 'reminder keeps its established content box').to.equal('content-box');
+  const reminderBorderWidth = parseFloat(reminderStyle.borderLeftWidth) + parseFloat(reminderStyle.borderRightWidth);
+  expect(reminderPlaceholder.offsetWidth, 'reminder includes its ring outside the declared diameter')
+    .to.be.closeTo(parseFloat(reminderStyle.width) + reminderBorderWidth, 1);
+};
+
 const clickHistoryRowBackground = ($row) => {
   const MouseEvent = $row[0].ownerDocument.defaultView.MouseEvent;
   const eventOptions = { bubbles: true, cancelable: true };
@@ -45,6 +65,15 @@ const clickHistoryRowBackground = ($row) => {
 };
 
 describe('Keyboard grimoire controls', () => {
+  it('preserves the established player control sizing across viewports', () => {
+    cy.resetApp({ mode: 'storyteller', loadScript: true, viewport: [1280, 720] });
+    cy.setupGame({ players: 5, loadScript: true, mode: 'storyteller' });
+    cy.get('#player-circle li').first().should(expectEstablishedPlayerControlSizing);
+
+    cy.viewport('iphone-6');
+    cy.get('#player-circle li').first().should(expectEstablishedPlayerControlSizing);
+  });
+
   it('exposes native player controls and character picker buttons', () => {
     cy.resetApp({ mode: 'storyteller', loadScript: true });
 

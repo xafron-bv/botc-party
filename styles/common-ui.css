@@ -44,7 +44,13 @@ select { cursor: pointer; }
 .player-name,
 .reminder-placeholder,
 .token {
-  appearance: none; padding: 0; color: inherit; font-family: inherit;
+  appearance: none; color: inherit; font-family: inherit;
+}
+.player-token,
+.reminder-placeholder,
+.token { padding: 0; }
+.reminder-placeholder {
+  box-sizing: content-box;
 }
 .player-token:focus,
 .player-name:focus,
