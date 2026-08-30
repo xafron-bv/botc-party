@@ -40,7 +40,7 @@ export function positionTokenReminders() {
   const circle = document.getElementById('player-circle'); if (!circle) return; const tokens = circle.querySelectorAll('.player-token');
   tokens.forEach((token) => {
     const li = token.parentElement; if (!li) return; const angle = parseFloat(li.dataset.angle || '0'); const tokenRadius = token.offsetWidth ? token.offsetWidth / 2 : 50;
-    const reminders = Array.from(token.querySelectorAll('.token-reminder')); if (!reminders.length) return;
+    const reminders = Array.from(li.querySelectorAll(':scope > .token-reminder')); if (!reminders.length) return;
     reminders.sort((a, b) => { const idxA = parseFloat(a.dataset.reminderIndex || '0'); const idxB = parseFloat(b.dataset.reminderIndex || '0'); return idxA - idxB; });
     reminders.forEach((reminder, order) => {
       const radiusFactor = parseFloat(reminder.dataset.reminderRadius || '1.3'); const angleOffset = parseFloat(reminder.dataset.reminderAngleOffset || '0');

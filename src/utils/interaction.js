@@ -3,6 +3,31 @@
  */
 const elementHandlers = new WeakMap();
 export function isActivationKey(event) { return event.key === 'Enter' || event.key === ' '; }
+export function setupKeyboardActivation({ element, onActivate }) {
+  let suppressNextClick = false; let clearSuppressionTimer = null;
+  const clearSuppression = () => {
+    clearTimeout(clearSuppressionTimer);
+    clearSuppressionTimer = setTimeout(() => { suppressNextClick = false; }, 0);
+  };
+  const keydownHandler = (event) => {
+    if (!isActivationKey(event)) return;
+    event.preventDefault(); if (event.repeat) return; suppressNextClick = true;
+    if (onActivate) onActivate(event, element); else {
+      suppressNextClick = false; element.click(); suppressNextClick = true;
+    }
+  };
+  const clickHandler = (event) => {
+    if (!suppressNextClick) return;
+    suppressNextClick = false; event.preventDefault(); event.stopImmediatePropagation(); event.stopPropagation();
+  };
+  const keyupHandler = (event) => { if (isActivationKey(event)) clearSuppression(); };
+  element.addEventListener('keydown', keydownHandler); element.addEventListener('keyup', keyupHandler);
+  element.addEventListener('click', clickHandler, true); element.addEventListener('blur', clearSuppression);
+  return () => {
+    clearTimeout(clearSuppressionTimer); element.removeEventListener('keydown', keydownHandler); element.removeEventListener('keyup', keyupHandler);
+    element.removeEventListener('click', clickHandler, true); element.removeEventListener('blur', clearSuppression);
+  };
+}
 export function setupInteractiveElement({
   element,
   onTap,

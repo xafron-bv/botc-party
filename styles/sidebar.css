@@ -104,13 +104,17 @@ body.resizing { cursor: col-resize; user-select: none; }
 #sidebar .data-transfer__import { width: 100%; }
 #sidebar .history-list { list-style: none; padding: 0; margin: 8px 0 0 0; max-height: 240px; overflow-y: auto; }
 #sidebar .history-list li { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; user-select: none; }
-#sidebar .history-list .history-name { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+#sidebar .history-list .history-load {
+  appearance: none; box-sizing: content-box; flex: 1 1 auto; min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent;
+  color: inherit; cursor: pointer; font: inherit; text-align: inherit;
+}
+#sidebar .history-list .history-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #sidebar .history-list .history-edit-input {
   flex: 1 1 auto; min-width: 0; padding: 6px 8px; border-radius: 4px; border: 1px solid #555; background: #2a2a2a; color: #fff;
 }
 #sidebar .history-list .icon-btn { background: transparent; border: none; color: #ddd; cursor: pointer; padding: 4px 6px; border-radius: 4px; }
 #sidebar .history-list li.pressed { background: rgba(255, 255, 255, 0.06); border-radius: 6px; }
-#sidebar .history-list li.editing .history-name { display: none !important; }
+#sidebar .history-list li.editing .history-load { display: none !important; }
 #sidebar .history-list li.editing .history-edit-input { display: inline-block !important; }
 #sidebar .history-list li.editing .icon-btn.rename { display: none !important; }
 #sidebar .history-list li.editing .icon-btn.save { display: inline-block !important; }

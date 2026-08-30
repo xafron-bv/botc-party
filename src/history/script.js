@@ -4,6 +4,7 @@ import { renderSetupInfo } from '../utils/setup.js';
 import { withStateSave } from '../app.js';
 import { displayScript, processScriptData } from '../script.js';
 import { downloadJson } from '../utils/jsonFiles.js';
+import { setupKeyboardActivation } from '../utils/interaction.js';
 function encodeScriptForShare(data) {
   try { const json = JSON.stringify(data); return btoa(unescape(encodeURIComponent(json))); } catch (_) {
     return '';
@@ -69,16 +70,23 @@ export function addScriptHistoryListListeners({ scriptHistoryList, grimoireState
 export function renderScriptHistory({ scriptHistoryList }) {
   if (!scriptHistoryList) return; scriptHistoryList.innerHTML = '';
   history.scriptHistory.forEach(entry => {
-    const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item'; const nameSpan = document.createElement('span');
-    nameSpan.className = 'history-name'; nameSpan.textContent = entry.name || '(unnamed script)'; const nameInput = document.createElement('input'); nameInput.type = 'text';
+    const entryName = entry.name || '(unnamed script)'; const li = document.createElement('li'); li.dataset.id = entry.id; li.className = 'history-item';
+    const loadBtn = document.createElement('button'); loadBtn.type = 'button'; loadBtn.className = 'history-load';
+    loadBtn.setAttribute('aria-label', `Load script ${entryName}`); const nameSpan = document.createElement('span'); nameSpan.className = 'history-name';
+    nameSpan.textContent = entryName; loadBtn.appendChild(nameSpan); const nameInput = document.createElement('input'); nameInput.type = 'text';
     nameInput.className = 'history-edit-input'; nameInput.value = entry.name || ''; nameInput.style.display = 'none'; const renameBtn = document.createElement('button');
-    renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
-    saveBtn.className = 'icon-btn save'; saveBtn.title = 'Save'; saveBtn.style.display = 'none'; saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-    const downloadBtn = document.createElement('button'); downloadBtn.className = 'icon-btn download'; downloadBtn.title = 'Download JSON';
-    downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i>'; const shareBtn = document.createElement('button'); shareBtn.className = 'icon-btn share';
-    shareBtn.title = 'Copy share link'; shareBtn.innerHTML = '<i class="fa-solid fa-link"></i>'; const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'icon-btn delete'; deleteBtn.title = 'Delete'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>'; li.appendChild(nameSpan);
+    renameBtn.type = 'button'; renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.setAttribute('aria-label', `Rename script ${entryName}`);
+    renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
+    saveBtn.type = 'button'; saveBtn.className = 'icon-btn save'; saveBtn.title = 'Save'; saveBtn.setAttribute('aria-label', `Save script ${entryName}`);
+    saveBtn.style.display = 'none'; saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    const downloadBtn = document.createElement('button'); downloadBtn.type = 'button'; downloadBtn.className = 'icon-btn download'; downloadBtn.title = 'Download JSON';
+    downloadBtn.setAttribute('aria-label', `Download script ${entryName}`); downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    const shareBtn = document.createElement('button'); shareBtn.className = 'icon-btn share'; shareBtn.type = 'button'; shareBtn.title = 'Copy share link';
+    shareBtn.setAttribute('aria-label', `Copy share link for script ${entryName}`); shareBtn.innerHTML = '<i class="fa-solid fa-link"></i>'; const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button'; deleteBtn.className = 'icon-btn delete'; deleteBtn.title = 'Delete'; deleteBtn.setAttribute('aria-label', `Delete script ${entryName}`);
+    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>'; li.appendChild(loadBtn);
     li.appendChild(nameInput); li.appendChild(renameBtn); li.appendChild(saveBtn); li.appendChild(downloadBtn); li.appendChild(shareBtn); li.appendChild(deleteBtn);
+    [loadBtn, renameBtn, saveBtn, downloadBtn, shareBtn, deleteBtn].forEach(element => setupKeyboardActivation({ element }));
     scriptHistoryList.appendChild(li);
   });
 }

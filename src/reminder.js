@@ -240,7 +240,7 @@ export function createReminderElement({
       showPressFeedback: true
     }); element.setAttribute('role', 'button'); element.setAttribute('tabindex', '0');
     element.addEventListener('keydown', (e) => {
-      if (isActivationKey(e)) { e.preventDefault(); if (onClick) onClick(e); }
+      if (isActivationKey(e)) { e.preventDefault(); if (!e.repeat && onClick) onClick(e); }
     });
   } else {
     if (type === 'token') { element.setAttribute('aria-hidden', 'true'); }

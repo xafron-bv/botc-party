@@ -29,5 +29,5 @@ export function createTouchHandler(handler, { preventDefault = true, stopPropaga
 }
 export function attachTouchHandler(element, handler, options) {
   const handlers = createTouchHandler(handler, options); element.addEventListener('touchstart', handlers.touchstart); element.addEventListener('touchmove', handlers.touchmove);
-  element.addEventListener('touchend', handlers.touchend); element.addEventListener('click', handlers.click); return handlers;
+  element.addEventListener('touchend', handlers.touchend); if (options?.includeClick !== false) element.addEventListener('click', handlers.click); return handlers;
 }
