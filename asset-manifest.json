@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-28T18:15:07.957Z",
+  "generatedAt": "2026-08-30T14:44:28.900Z",
   "core": [
     {
       "path": "./index.html",
@@ -79,7 +79,7 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "391b13a98011"
+      "hash": "d24546a802b2"
     },
     {
       "path": "./src/playerSetupState.js",
@@ -225,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "159847700a61"
+      "hash": "9847d7cc002f"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1145,7 +1145,7 @@
     },
     {
       "path": "./src/playerSetup.js",
-      "hash": "391b13a98011"
+      "hash": "d24546a802b2"
     },
     {
       "path": "./src/playerSetupState.js",
