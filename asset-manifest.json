@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T18:20:13.385Z",
+  "generatedAt": "2026-08-30T19:31:51.989Z",
   "core": [
     {
       "path": "./index.html",
@@ -135,7 +135,7 @@
     },
     {
       "path": "./src/ui/layout.js",
-      "hash": "76abc11eab8a"
+      "hash": "df0286238232"
     },
     {
       "path": "./src/ui/menuFactory.js",
@@ -225,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "05cabf5ad974"
+      "hash": "0c5ca225cb47"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1073,7 +1073,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "b6dba946ed01"
+      "hash": "e31f7cf2ac4f"
     },
     {
       "path": "./service-worker.js",
@@ -1201,7 +1201,7 @@
     },
     {
       "path": "./src/ui/layout.js",
-      "hash": "76abc11eab8a"
+      "hash": "df0286238232"
     },
     {
       "path": "./src/ui/menuFactory.js",
