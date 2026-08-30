@@ -16,9 +16,12 @@ export function renderGrimoireHistory({ grimoireHistoryList }) {
     nameSpan.className = 'history-name'; nameSpan.textContent = entryName; loadBtn.appendChild(nameSpan);
     const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.className = 'history-edit-input';
     nameInput.value = entry.name || formatDateName(new Date(entry.createdAt || Date.now())); nameInput.style.display = 'none'; const renameBtn = document.createElement('button');
-    renameBtn.type = 'button'; renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
-    saveBtn.type = 'button'; saveBtn.className = 'icon-btn save'; saveBtn.title = 'Save'; saveBtn.style.display = 'none'; saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    renameBtn.type = 'button'; renameBtn.className = 'icon-btn rename'; renameBtn.title = 'Rename'; renameBtn.setAttribute('aria-label', `Rename grimoire ${entryName}`);
+    renameBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'; const saveBtn = document.createElement('button');
+    saveBtn.type = 'button'; saveBtn.className = 'icon-btn save'; saveBtn.title = 'Save'; saveBtn.setAttribute('aria-label', `Save grimoire ${entryName}`);
+    saveBtn.style.display = 'none'; saveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
     const deleteBtn = document.createElement('button'); deleteBtn.type = 'button'; deleteBtn.className = 'icon-btn delete'; deleteBtn.title = 'Delete';
+    deleteBtn.setAttribute('aria-label', `Delete grimoire ${entryName}`);
     deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>'; li.appendChild(loadBtn); li.appendChild(nameInput); li.appendChild(renameBtn); li.appendChild(saveBtn);
     li.appendChild(deleteBtn); [loadBtn, renameBtn, saveBtn, deleteBtn].forEach(element => setupKeyboardActivation({ element })); grimoireHistoryList.appendChild(li);
   });

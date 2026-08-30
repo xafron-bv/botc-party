@@ -255,8 +255,25 @@ describe('Keyboard grimoire controls', () => {
 
     cy.get('@row').find('.icon-btn.rename')
       .should('match', 'button')
+      .and('have.attr', 'aria-label', 'Rename script Keyboard Script')
+      .and('be.visible');
+    cy.get('@row').find('.icon-btn.save')
+      .should('have.attr', 'aria-label', 'Save script Keyboard Script')
+      .and('not.be.visible');
+    cy.get('@row').find('.icon-btn.download')
+      .should('have.attr', 'aria-label', 'Download script Keyboard Script');
+    cy.get('@row').find('.icon-btn.share')
+      .should('have.attr', 'aria-label', 'Copy share link for script Keyboard Script');
+    cy.get('@row').find('.icon-btn.delete')
+      .should('have.attr', 'aria-label', 'Delete script Keyboard Script');
+
+    cy.get('@row').find('.icon-btn.rename')
       .focus()
       .type('{enter}');
+    cy.get('@row').find('.icon-btn.rename').should('not.be.visible');
+    cy.get('@row').find('.icon-btn.save')
+      .should('be.visible')
+      .and('have.attr', 'aria-label', 'Save script Keyboard Script');
     cy.get('@row').find('.history-edit-input')
       .should('be.visible')
       .clear()
@@ -270,13 +287,19 @@ describe('Keyboard grimoire controls', () => {
     cy.get('#character-sheet .role').should('have.length.greaterThan', 10);
 
     cy.contains('#script-history-list .history-name', 'Renamed Keyboard Script').parents('li.history-item').as('renamedRow');
-    cy.get('@renamedRow').find('.icon-btn.download').focus().type('{enter}');
+    cy.get('@renamedRow').find('.icon-btn.download')
+      .should('have.attr', 'aria-label', 'Download script Renamed Keyboard Script')
+      .focus()
+      .type('{enter}');
     cy.get('#character-sheet .role').should('have.length.greaterThan', 10);
     cy.window().then((win) => {
       if (win.navigator.clipboard?.writeText) cy.stub(win.navigator.clipboard, 'writeText').resolves();
       else cy.stub(win, 'prompt');
     });
-    cy.get('@renamedRow').find('.icon-btn.share').focus().type(' ');
+    cy.get('@renamedRow').find('.icon-btn.share')
+      .should('have.attr', 'aria-label', 'Copy share link for script Renamed Keyboard Script')
+      .focus()
+      .type(' ');
     cy.get('#character-sheet .role').should('have.length.greaterThan', 10);
     cy.window().then((win) => {
       cy.stub(win, 'confirm').returns(true);
@@ -284,6 +307,7 @@ describe('Keyboard grimoire controls', () => {
     cy.contains('#script-history-list .history-name', 'Delete Without Loading')
       .parents('li.history-item')
       .find('.icon-btn.delete')
+      .should('have.attr', 'aria-label', 'Delete script Delete Without Loading')
       .focus()
       .type(' ');
     cy.contains('#script-history-list .history-name', 'Delete Without Loading').should('not.exist');
@@ -337,7 +361,20 @@ describe('Keyboard grimoire controls', () => {
       .should('match', 'button[type="button"]')
       .and('have.attr', 'aria-label', 'Load grimoire Keyboard Grimoire')
       .then(focusWithVisibleIndicator);
+    cy.get('@row').find('.icon-btn.rename')
+      .should('have.attr', 'aria-label', 'Rename grimoire Keyboard Grimoire')
+      .and('be.visible');
+    cy.get('@row').find('.icon-btn.save')
+      .should('have.attr', 'aria-label', 'Save grimoire Keyboard Grimoire')
+      .and('not.be.visible');
+    cy.get('@row').find('.icon-btn.delete')
+      .should('have.attr', 'aria-label', 'Delete grimoire Keyboard Grimoire');
+
     cy.get('@row').find('.icon-btn.rename').focus().type('{enter}');
+    cy.get('@row').find('.icon-btn.rename').should('not.be.visible');
+    cy.get('@row').find('.icon-btn.save')
+      .should('be.visible')
+      .and('have.attr', 'aria-label', 'Save grimoire Keyboard Grimoire');
     cy.get('@row').find('.history-edit-input')
       .should('be.visible')
       .clear()
@@ -345,6 +382,11 @@ describe('Keyboard grimoire controls', () => {
     cy.get('#player-circle li').should('have.length', 5);
     cy.get('@row').find('.icon-btn.save').focus().type(' ');
     cy.get('#player-circle li').should('have.length', 5);
+
+    cy.contains('#grimoire-history-list .history-name', 'Renamed Keyboard Grimoire')
+      .parents('li.history-item')
+      .find('.icon-btn.delete')
+      .should('have.attr', 'aria-label', 'Delete grimoire Renamed Keyboard Grimoire');
 
     cy.contains('#grimoire-history-list .history-name', 'Renamed Keyboard Grimoire')
       .parents('.history-load')
