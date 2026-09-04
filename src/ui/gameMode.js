@@ -113,7 +113,7 @@ export function initGameMode({
       const nextMode = event.target.value === 'player' ? 'player' : 'storyteller';
       if (nextMode === grimoireState.mode) return;
       if (
-        grimoireState.gameStarted &&
+        !grimoireState.historyEdit && grimoireState.gameStarted &&
         !window.confirm(
           'A game is in progress. Switching mode will reset the grimoire and end the current game. Continue?'
         )

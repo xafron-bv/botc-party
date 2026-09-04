@@ -1,3 +1,4 @@
+import { snapshotCurrentGrimoire } from '../history/grimoire.js';
 import { loadAppState } from '../app.js';
 import { INCLUDE_TRAVELLERS_KEY, MODE_STORAGE_KEY } from '../constants.js';
 import { applyGrimoireHiddenState, applyGrimoireSnapshotState } from '../grimoire.js';
@@ -86,6 +87,7 @@ export async function importCurrentGame({ data, grimoireState, grimoireHistoryLi
     winner: normalized.winner,
     tempSnapshot: normalized.tempSnapshot
   };
+  if (grimoireState.historyEdit) snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
   try { localStorage.setItem('botcAppStateV1', JSON.stringify(saved)); } catch (_) { }
   try { localStorage.setItem(INCLUDE_TRAVELLERS_KEY, saved.includeTravellers ? '1' : '0'); } catch (_) { }
   try { localStorage.setItem(MODE_STORAGE_KEY, saved.mode); } catch (_) { }

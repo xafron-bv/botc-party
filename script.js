@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     loadPlayerSetupTable({ grimoireState });
     if (resetGrimoireBtn) resetGrimoireBtn.addEventListener('click', () => {
-      if (grimoireState.gameStarted && !grimoireState.winner) {
+      if (!grimoireState.historyEdit && grimoireState.gameStarted && !grimoireState.winner) {
         const ok = window.confirm('A game is in progress. Resetting will end the current game and save it to history. Continue?'); if (!ok) return;
       }
       resetGrimoire({ grimoireState, grimoireHistoryList, playerCountInput });
@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function declareWinner(team) {
       if (!team) return;
       grimoireState.winner = team; // 'good' or 'evil'
+      grimoireState.gameStarted = false;
       try { saveAppState({ grimoireState }); } catch (_) { }
       try { updateGrimoire({ grimoireState }); } catch (_) { }
       updateButtonStates();
@@ -151,18 +152,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (_) { }
       try {
-        snapshotCurrentGrimoire({
-          players: grimoireState.players,
-          scriptMetaName: grimoireState.scriptMetaName,
-          scriptData: grimoireState.scriptData,
-          grimoireHistoryList,
-          dayNightTracking: grimoireState.dayNightTracking,
-          winner: team,
-          gameStarted: false
-        });
+        snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
       } catch (_) { }
       if (endGameModal) endGameModal.style.display = 'none'; if (endGameBtn) endGameBtn.style.display = 'none'; grimoireState.gameStarted = false; applyModeUI();
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }
+      saveAppState({ grimoireState });
     }
     if (goodWinsBtn) goodWinsBtn.addEventListener('click', () => declareWinner('good')); if (evilWinsBtn) evilWinsBtn.addEventListener('click', () => declareWinner('evil'));
     function updateButtonStates() {

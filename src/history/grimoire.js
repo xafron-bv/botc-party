@@ -2,9 +2,10 @@ import { cloneJsonValue, generateId, formatDateName } from '../../utils.js';
 import { saveHistories, history } from './index.js';
 import { updateGrimoire, setupGrimoire } from '../grimoire.js';
 import { renderSetupInfo } from '../utils/setup.js';
-import { withStateSave } from '../app.js';
+import { saveAppState } from '../app.js';
 import { repositionPlayers } from '../ui/layout.js';
-import { initDayNightTracking } from '../dayNightTracking.js';
+import { showDayNightSlider, hideDayNightSlider, updateDayNightUI } from '../dayNightTracking.js';
+import { createDayNightTrackingState, createPlayerSetupState } from '../gameState.js';
 import { processScriptData } from '../script.js';
 import { setupKeyboardActivation } from '../utils/interaction.js';
 export function renderGrimoireHistory({ grimoireHistoryList }) {
@@ -39,37 +40,35 @@ function isGrimoireStateEqual(state1, state2) {
   if (state1.scriptName !== state2.scriptName) return false; if (JSON.stringify(state1.scriptData) !== JSON.stringify(state2.scriptData)) return false;
   if ((state1.winner || null) !== (state2.winner || null)) return false; return true;
 }
-export function snapshotCurrentGrimoire({ players, scriptMetaName, scriptData, grimoireHistoryList, dayNightTracking, winner, gameStarted = true }) {
-  try {
-    if (!Array.isArray(players) || players.length === 0) return;
-    const currentState = {
-      players,
-      scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData,
-      winner: winner || null
-    };
-    for (const historyEntry of history.grimoireHistory) {
-      const historyState = {
-        players: historyEntry.players,
-        scriptName: historyEntry.scriptName,
-        scriptData: historyEntry.scriptData,
-        winner: historyEntry.winner || null
-      };
-      if (isGrimoireStateEqual(currentState, historyState)) { return; }
-    }
-    const snapPlayers = cloneJsonValue(players); const name = formatDateName(new Date());
-    const entry = {
-      id: generateId('grimoire'),
-      name,
-      createdAt: Date.now(),
-      players: snapPlayers,
-      scriptName: scriptMetaName || (Array.isArray(scriptData) && (scriptData.find(x => x && typeof x === 'object' && x.id === '_meta')?.name || '')) || '',
-      scriptData: Array.isArray(scriptData) ? cloneJsonValue(scriptData) : null,
-      dayNightTracking: dayNightTracking ? cloneJsonValue(dayNightTracking) : null,
-      winner: winner || null,
-      gameStarted: !!gameStarted
-    }; history.grimoireHistory.unshift(entry); saveHistories(); renderGrimoireHistory({ grimoireHistoryList });
-  } catch (_) { }
+function captureGrimoireHistoryState(grimoireState) {
+  return cloneJsonValue({
+    players: grimoireState.players,
+    scriptName: grimoireState.scriptMetaName || '',
+    scriptData: grimoireState.scriptData,
+    dayNightTracking: grimoireState.dayNightTracking,
+    bluffs: grimoireState.bluffs || [null, null, null],
+    winner: grimoireState.winner || null,
+    gameStarted: !!grimoireState.gameStarted
+  });
+}
+export function snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList }) {
+  if (grimoireState.isRestoringState || !grimoireState.players?.length) return;
+  const currentState = captureGrimoireHistoryState(grimoireState);
+  const editing = grimoireState.historyEdit;
+  if (editing) {
+    const entry = history.grimoireHistory.find(item => item.id === editing.id);
+    if (!entry || JSON.stringify(currentState) === JSON.stringify(editing.baseline)) return;
+    if (!window.confirm(`Save changes to history item "${entry.name}"? OK updates this saved grimoire. Cancel discards these changes and continues.`)) return;
+    Object.assign(entry, currentState, { updatedAt: Date.now() });
+    editing.baseline = cloneJsonValue(currentState);
+  } else {
+    if (history.grimoireHistory.some(entry => isGrimoireStateEqual(currentState, entry))) return;
+    history.grimoireHistory.unshift({
+      id: generateId('grimoire'), name: formatDateName(new Date()), createdAt: Date.now(), ...currentState
+    });
+  }
+  saveHistories();
+  renderGrimoireHistory({ grimoireHistoryList });
 }
 export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimoireState }) {
   const li = e.target.closest('li'); if (!li) return; const id = li.dataset.id; const entry = history.grimoireHistory.find(x => x.id === id); if (!entry) return;
@@ -93,32 +92,11 @@ export async function handleGrimoireHistoryClick({ e, grimoireHistoryList, grimo
   }
   if (clickedInput) return; // don't load when clicking into input
   if (li.classList.contains('editing')) return; // avoid loading while editing
-  const currentState = {
-    players: grimoireState.players,
-    scriptName: grimoireState.scriptMetaName || '',
-    scriptData: grimoireState.scriptData
-  };
-  const entryState = {
-    players: entry.players,
-    scriptName: entry.scriptName || '',
-    scriptData: entry.scriptData
-  };
-  if (grimoireState.gameStarted && !grimoireState.winner) {
+  if (!grimoireState.historyEdit && grimoireState.gameStarted && !grimoireState.winner) {
     const ok = window.confirm('A game is in progress. Loading history will reset the current game. Continue?'); if (!ok) return;
   }
-  if (!isGrimoireStateEqual(currentState, entryState) && (window.grimoireState && window.grimoireState.gameStarted)) {
-    try {
-      if (!grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-        snapshotCurrentGrimoire({
-          players: grimoireState.players,
-          scriptMetaName: grimoireState.scriptMetaName,
-          scriptData: grimoireState.scriptData,
-          grimoireHistoryList,
-          dayNightTracking: grimoireState.dayNightTracking,
-          winner: grimoireState.winner
-        });
-      }
-    } catch (_) { }
+  if (grimoireState.historyEdit || grimoireState.gameStarted) {
+    snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
   }
   await restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList });
 }
@@ -135,7 +113,7 @@ export function handleGrimoireHistoryOnKeyDown({ e, grimoireHistoryList }) {
     if (newName) { entry.name = newName; entry.updatedAt = Date.now(); saveHistories(); renderGrimoireHistory({ grimoireHistoryList }); }
   }
 }
-export const restoreGrimoireFromEntry = withStateSave(async ({ entry, grimoireState, grimoireHistoryList }) => {
+export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireHistoryList }) {
   if (!entry) return;
   try {
     grimoireState.isRestoringState = true;
@@ -144,7 +122,12 @@ export const restoreGrimoireFromEntry = withStateSave(async ({ entry, grimoireSt
     }
     setupGrimoire({ grimoireState, grimoireHistoryList, count: (entry.players || []).length || 0 }); grimoireState.players = cloneJsonValue(entry.players || []);
     grimoireState.winner = entry.winner || null; grimoireState.gameStarted = !!entry.gameStarted;
-    if (entry.dayNightTracking) { grimoireState.dayNightTracking = cloneJsonValue(entry.dayNightTracking); initDayNightTracking(grimoireState); }
+    grimoireState.bluffs = cloneJsonValue(entry.bluffs || [null, null, null]);
+    grimoireState.playerSetup = createPlayerSetupState();
+    grimoireState.dayNightTracking = cloneJsonValue(entry.dayNightTracking || createDayNightTrackingState({ includeSnapshots: true }));
+    if (grimoireState.dayNightTracking.enabled) showDayNightSlider(); else hideDayNightSlider();
+    updateDayNightUI(grimoireState);
+    grimoireState.historyEdit = { id: entry.id, baseline: captureGrimoireHistoryState(grimoireState) };
     updateGrimoire({ grimoireState }); repositionPlayers({ grimoireState }); renderSetupInfo({ grimoireState });
     try {
       const endBtn = document.getElementById('end-game'); const openSetupBtn = document.getElementById('open-player-setup');
@@ -158,7 +141,8 @@ export const restoreGrimoireFromEntry = withStateSave(async ({ entry, grimoireSt
   } catch (e) {
     console.error('Failed to restore grimoire from history:', e);
   } finally { grimoireState.isRestoringState = false; }
-});
+  saveAppState({ grimoireState });
+}
 export function addGrimoireHistoryListListeners({ grimoireHistoryList, grimoireState }) {
   grimoireHistoryList.addEventListener('pointerdown', handleGrimoireHistoryOnDown); grimoireHistoryList.addEventListener('pointerup', handleGrimoireHistoryOnClear);
   grimoireHistoryList.addEventListener('pointercancel', handleGrimoireHistoryOnClear); grimoireHistoryList.addEventListener('pointerleave', handleGrimoireHistoryOnClear);

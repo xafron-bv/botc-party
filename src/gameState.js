@@ -59,6 +59,7 @@ export function captureStoredGameState(grimoireState) {
     playerSetup: state.playerSetup,
     gameStarted: state.gameStarted,
     winner: state.winner,
-    tempSnapshot: state.tempSnapshot
+    tempSnapshot: state.tempSnapshot,
+    historyEdit: grimoireState.historyEdit || null
   };
 }

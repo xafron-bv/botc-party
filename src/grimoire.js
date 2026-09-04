@@ -75,10 +75,11 @@ function mountBluffTokensContainer({ grimoireState }) {
 export const setupGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, count }) => {
   const playerCircle = document.getElementById('player-circle'); const playerCountInput = document.getElementById('player-count');
   try {
-    if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
+    if ((grimoireState.historyEdit || grimoireState.gameStarted) && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
     }
   } catch (_) { }
+  if (!grimoireState.isRestoringState) grimoireState.historyEdit = null;
   console.log('Setting up grimoire with', count, 'players'); playerCircle.innerHTML = '';
   grimoireState.players = Array.from({ length: count }, (_, i) => createEmptyPlayer(`Player ${i + 1}`));
   if (playerCountInput) {
@@ -129,10 +130,11 @@ export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList
   const playerCount = playerCountInput ? parseInt(playerCountInput.value, 10) : (grimoireState.players || []).length;
   if (!(playerCount >= 5 && playerCount <= 20)) { alert('Player count must be an integer from 5 to 20.'); return; }
   try {
-    if (grimoireState.gameStarted && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
-      snapshotCurrentGrimoire({ players: grimoireState.players, scriptMetaName: grimoireState.scriptMetaName, scriptData: grimoireState.scriptData, grimoireHistoryList, dayNightTracking: grimoireState.dayNightTracking, winner: grimoireState.winner });
+    if ((grimoireState.historyEdit || grimoireState.gameStarted) && !grimoireState.isRestoringState && Array.isArray(grimoireState.players) && grimoireState.players.length > 0) {
+      snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
     }
   } catch (_) { }
+  grimoireState.historyEdit = null;
   try { grimoireState.grimoireHidden = false; } catch (_) { }
   try { grimoireState.winner = null; } catch (_) { }
   try { grimoireState.gameStarted = false; } catch (_) { }
