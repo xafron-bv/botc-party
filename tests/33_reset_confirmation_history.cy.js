@@ -63,7 +63,7 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.get('#player-circle li').should('have.length', 5);
   });
 
-  it('hides End Game button after loading an ended game from history', () => {
+  it('offers Change Winner after loading an ended game from history', () => {
     // Create ended game history entry
     startGameWithPlayers(5);
     cy.get('#mode-player').check({ force: true });
@@ -84,6 +84,6 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
     cy.get('#grimoire-history-list .history-item').first().click();
 
-    cy.get('#end-game').should('not.be.visible');
+    cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner');
   });
 });

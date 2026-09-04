@@ -8,6 +8,7 @@ import { showDayNightSlider, hideDayNightSlider, updateDayNightUI } from '../day
 import { createDayNightTrackingState, createPlayerSetupState } from '../gameState.js';
 import { processScriptData } from '../script.js';
 import { setupKeyboardActivation } from '../utils/interaction.js';
+import { updateEndGameButton } from '../ui/gameMode.js';
 export function renderGrimoireHistory({ grimoireHistoryList }) {
   if (!grimoireHistoryList) return; grimoireHistoryList.innerHTML = '';
   history.grimoireHistory.forEach(entry => {
@@ -134,8 +135,9 @@ export async function restoreGrimoireFromEntry({ entry, grimoireState, grimoireH
     grimoireState.historyEdit = { id: entry.id, baseline: captureGrimoireHistoryState(grimoireState) };
     updateGrimoire({ grimoireState }); repositionPlayers({ grimoireState }); renderSetupInfo({ grimoireState });
     try {
-      const endBtn = document.getElementById('end-game'); const openSetupBtn = document.getElementById('open-player-setup');
-      const revealSelectedBtn = document.getElementById('reveal-selected-characters'); if (endBtn) endBtn.style.display = grimoireState.winner ? 'none' : '';
+      updateEndGameButton({ grimoireState });
+      const openSetupBtn = document.getElementById('open-player-setup');
+      const revealSelectedBtn = document.getElementById('reveal-selected-characters');
       if (openSetupBtn) openSetupBtn.style.display = (grimoireState.mode === 'player') ? 'none' : '';
       if (revealSelectedBtn) {
         const sel = grimoireState.playerSetup || {}; const shouldShow = sel.selectionComplete && !sel.revealed && !grimoireState.winner;

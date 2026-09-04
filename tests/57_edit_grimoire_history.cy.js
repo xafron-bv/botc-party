@@ -139,6 +139,47 @@ describe('Editing a saved grimoire', () => {
     });
   });
 
+  [true, false].forEach(save => {
+    it(`${save ? 'saves' : 'discards'} a corrected winner on an older ended game`, () => {
+      loadHistory('b');
+      cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner').click();
+      cy.get('#end-game-modal').should('be.visible');
+      cy.get('@saveConfirmation').then(stub => stub.returns(save));
+      cy.get('#evil-wins-btn').click();
+      cy.get('@saveConfirmation').should('have.been.calledOnce');
+      cy.get('#winner-message').should('contain', save ? 'Evil has won' : 'Good has won');
+      readHistory().then(entries => {
+        expect(entries).to.have.length(2);
+        expect(entries[0]).to.deep.equal(makeEntry('a', 'First game'));
+        expect(entries[1]).to.include({ id: 'b', name: 'Second game', winner: save ? 'evil' : 'good', gameStarted: false });
+      });
+      cy.reload();
+      cy.get('#winner-message').should('contain', save ? 'Evil has won' : 'Good has won');
+      cy.ensureSidebarOpen();
+      cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner');
+      cy.window().then(win => cy.stub(win, 'confirm').returns(true).as('afterReloadConfirm'));
+      loadHistory('a');
+      cy.get('@afterReloadConfirm').should('not.have.been.called');
+      loadHistory('b');
+      cy.get('#end-game').click();
+      cy.get('#good-wins-btn').click();
+      cy.get('#winner-message').should('contain', 'Good has won');
+      readHistory().then(entries => expect(entries[1].winner).to.equal('good'));
+      cy.get('@afterReloadConfirm').should('have.callCount', save ? 1 : 0);
+      cy.get('#reset-grimoire').click();
+      cy.get('#end-game').should('be.visible').and('have.text', 'End Game');
+    });
+  });
+
+  it('leaves the result unchanged when closing the winner dialog', () => {
+    cy.get('#end-game').should('have.text', 'Change Winner').click();
+    cy.get('#close-end-game-modal').click();
+    cy.get('#end-game-modal').should('not.be.visible');
+    cy.get('#winner-message').should('contain', 'Good has won');
+    cy.get('@saveConfirmation').should('not.have.been.called');
+    readHistory().should('deep.equal', [makeEntry('a', 'First game'), makeEntry('b', 'Second game')]);
+  });
+
   it('detects a death-vote correction without any other edits', () => {
     cy.get('#player-circle li').eq(1).find('.death-ribbon').click({ force: true });
     loadHistory('b');

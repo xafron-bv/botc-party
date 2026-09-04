@@ -13,6 +13,13 @@ import {
 } from '../grimoire.js';
 import { byId } from '../utils/dom.js';
 
+export function updateEndGameButton({ grimoireState }) {
+  const button = byId('end-game'); if (!button) return;
+  const canChangeWinner = !!grimoireState.winner && !!grimoireState.historyEdit;
+  button.style.display = grimoireState.winner && !canChangeWinner ? 'none' : '';
+  button.textContent = canChangeWinner ? 'Change Winner' : 'End Game';
+}
+
 export function initGameMode({
   grimoireState,
   grimoireHistoryList,
