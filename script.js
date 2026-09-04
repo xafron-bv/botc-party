@@ -5,7 +5,7 @@ import { isTouchDevice } from './src/constants.js';
 import { addReminderTimestamp, generateReminderId, initDayNightTracking, updateDayNightUI } from './src/dayNightTracking.js';
 import { resetGrimoire, showGrimoire, updateGrimoire } from './src/grimoire.js';
 import { initExportImport } from './src/history/exportImport.js';
-import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire } from './src/history/grimoire.js';
+import { addGrimoireHistoryListListeners, renderGrimoireHistory, snapshotCurrentGrimoire, restoreGrimoireFromEntry } from './src/history/grimoire.js';
 import { loadHistories } from './src/history/index.js';
 import { addScriptHistoryListListeners, renderScriptHistory } from './src/history/script.js';
 import { initPlayerSetup } from './src/playerSetup.js';
@@ -134,11 +134,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       try { saveAppState({ grimoireState }); } catch (_) { }
     };
     if (revealSelectedBtn) { revealSelectedBtn.addEventListener('click', handleRevealSelectedFromSidebar); }
-    function declareWinner(team) {
+    async function declareWinner(team) {
       if (!team) return;
       grimoireState.winner = team; // 'good' or 'evil'
       grimoireState.gameStarted = false;
-      try { saveAppState({ grimoireState }); } catch (_) { }
+      if (snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList }) === false) {
+        const { id, baseline } = grimoireState.historyEdit;
+        await restoreGrimoireFromEntry({ entry: { id, ...baseline }, grimoireState, grimoireHistoryList });
+        applyModeUI();
+        saveAppState({ grimoireState });
+        if (endGameModal) endGameModal.style.display = 'none';
+        return;
+      }
       try { updateGrimoire({ grimoireState }); } catch (_) { }
       updateButtonStates();
       try {
@@ -150,9 +157,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           msgEl.style.color = team === 'good' ? '#6bff8a' : '#ff6b6b'; msgEl.textContent = `${team === 'good' ? 'Good' : 'Evil'} has won`;
         }
-      } catch (_) { }
-      try {
-        snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList });
       } catch (_) { }
       if (endGameModal) endGameModal.style.display = 'none'; if (endGameBtn) endGameBtn.style.display = 'none'; grimoireState.gameStarted = false; applyModeUI();
       try { updateBluffAttentionState({ grimoireState }); } catch (_) { }

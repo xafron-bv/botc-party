@@ -57,8 +57,12 @@ export function snapshotCurrentGrimoire({ grimoireState, grimoireHistoryList }) 
   const editing = grimoireState.historyEdit;
   if (editing) {
     const entry = history.grimoireHistory.find(item => item.id === editing.id);
+    // Player mode disables tracking for display, not as an edit to the saved game.
+    if (grimoireState.mode === 'player' && currentState.dayNightTracking && editing.baseline.dayNightTracking) {
+      currentState.dayNightTracking.enabled = editing.baseline.dayNightTracking.enabled;
+    }
     if (!entry || JSON.stringify(currentState) === JSON.stringify(editing.baseline)) return;
-    if (!window.confirm(`Save changes to history item "${entry.name}"? OK updates this saved grimoire. Cancel discards these changes and continues.`)) return;
+    if (!window.confirm(`Save changes to history item "${entry.name}"? OK updates this saved grimoire. Cancel discards these changes and continues.`)) return false;
     Object.assign(entry, currentState, { updatedAt: Date.now() });
     editing.baseline = cloneJsonValue(currentState);
   } else {

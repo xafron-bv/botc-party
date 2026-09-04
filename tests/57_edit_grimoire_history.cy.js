@@ -154,3 +154,79 @@ describe('Editing a saved grimoire', () => {
     readHistory().should('deep.equal', [makeEntry('a', 'First game'), makeEntry('b', 'Second game')]);
   });
 });
+
+const trackedEntry = {
+  ...makeEntry('older', 'Older tracked game'),
+  winner: null,
+  gameStarted: true,
+  dayNightTracking: {
+    enabled: true, phases: ['N1', 'D1'], currentPhaseIndex: 1,
+    reminderTimestamps: {}, phaseSnapshots: {}
+  }
+};
+
+describe('History review regressions', () => {
+  beforeEach(() => {
+    cy.visit('/', { onBeforeLoad(win) {
+      win.localStorage.clear();
+      win.localStorage.setItem('botcGrimoireHistoryV1', JSON.stringify([makeEntry('newer', 'Newer game'), trackedEntry]));
+    } });
+    cy.ensurePlayerMode();
+    loadHistory('older');
+    cy.get('#player-circle li').first().should('contain', 'Older tracked game 1');
+  });
+
+  ['reset', 'load'].forEach(action => {
+    it(`does not treat player-mode normalization as an edit on ${action} after reload`, () => {
+      cy.reload();
+      cy.window().then(win => cy.stub(win, 'confirm').returns(true).as('confirm'));
+      cy.ensureSidebarOpen();
+      if (action === 'reset') cy.get('#reset-grimoire').click(); else loadHistory('newer');
+      cy.get('@confirm').should('not.have.been.called');
+      readHistory().then(entries => expect(entries[1]).to.deep.equal(trackedEntry));
+    });
+  });
+
+  it('preserves the saved tracking setting when saving an actual player-mode edit', () => {
+    cy.reload();
+    renamePlayer();
+    cy.window().then(win => cy.stub(win, 'confirm').returns(true).as('confirm'));
+    loadHistory('newer');
+    cy.get('@confirm').should('have.been.calledOnce');
+    readHistory().then(entries => {
+      expect(entries[1].players[0].name).to.equal('Corrected name');
+      expect(entries[1].dayNightTracking).to.deep.equal(trackedEntry.dayNightTracking);
+    });
+  });
+
+  [true, false].forEach(save => {
+    it(`${save ? 'saves' : 'discards'} the winner and edits when ending a restored game`, () => {
+      cy.reload();
+      renamePlayer();
+      cy.window().then(win => cy.stub(win, 'confirm').returns(save).as('confirm'));
+      cy.ensureSidebarOpen();
+      cy.get('#end-game').click();
+      cy.get('#good-wins-btn').click();
+      cy.get('#end-game-modal').should('not.be.visible');
+      cy.get('@confirm').should('have.been.calledOnce');
+      cy.get('#player-circle li').first().should('contain', save ? 'Corrected name' : 'Older tracked game 1');
+      if (save) cy.get('#winner-message').should('contain', 'Good has won'); else cy.get('#winner-message').should('not.exist');
+      cy.get('#day-night-slider').should('not.be.visible');
+      cy.window().its('grimoireState.dayNightTracking.enabled').should('equal', false);
+      readHistory().then(entries => {
+        expect(entries).to.have.length(2);
+        expect(entries[0]).to.deep.equal(makeEntry('newer', 'Newer game'));
+        if (save) {
+          expect(entries[1]).to.include({ winner: 'good', gameStarted: false });
+          expect(entries[1].players[0].name).to.equal('Corrected name');
+        } else expect(entries[1]).to.deep.equal(trackedEntry);
+      });
+      cy.reload();
+      cy.get('#player-circle li').first().should('contain', save ? 'Corrected name' : 'Older tracked game 1');
+      if (save) cy.get('#winner-message').should('contain', 'Good has won'); else cy.get('#winner-message').should('not.exist');
+      cy.window().then(win => cy.stub(win, 'confirm').returns(true).as('afterReloadConfirm'));
+      loadHistory('newer');
+      cy.get('@afterReloadConfirm').should('not.have.been.called');
+    });
+  });
+});
