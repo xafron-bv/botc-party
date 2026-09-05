@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30T19:31:51.989Z",
+  "generatedAt": "2026-09-05T06:01:03.567Z",
   "core": [
     {
       "path": "./index.html",
@@ -15,7 +15,7 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "935e07feb437"
+      "hash": "f285508ab8ab"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -35,7 +35,7 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "f806cbfccdab"
+      "hash": "65a65875c054"
     },
     {
       "path": "./src/dayNightTracking.js",
@@ -47,11 +47,11 @@
     },
     {
       "path": "./src/gameState.js",
-      "hash": "1209e9a60022"
+      "hash": "2bc9b526fe22"
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "2b59df8b7143"
+      "hash": "6244b13420eb"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -59,7 +59,7 @@
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "7e11acf60cf6"
+      "hash": "49ef29d6bab4"
     },
     {
       "path": "./src/history/index.js",
@@ -131,7 +131,7 @@
     },
     {
       "path": "./src/ui/gameMode.js",
-      "hash": "ebed5e953141"
+      "hash": "0b96fb474c98"
     },
     {
       "path": "./src/ui/layout.js",
@@ -225,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "0c5ca225cb47"
+      "hash": "5fb744e350a4"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1073,7 +1073,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "e31f7cf2ac4f"
+      "hash": "9ae1832a37c7"
     },
     {
       "path": "./service-worker.js",
@@ -1081,7 +1081,7 @@
     },
     {
       "path": "./src/app.js",
-      "hash": "935e07feb437"
+      "hash": "f285508ab8ab"
     },
     {
       "path": "./src/bluffTokens.js",
@@ -1101,7 +1101,7 @@
     },
     {
       "path": "./src/currentGame/exportImport.js",
-      "hash": "f806cbfccdab"
+      "hash": "65a65875c054"
     },
     {
       "path": "./src/dayNightTracking.js",
@@ -1113,11 +1113,11 @@
     },
     {
       "path": "./src/gameState.js",
-      "hash": "1209e9a60022"
+      "hash": "2bc9b526fe22"
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "2b59df8b7143"
+      "hash": "6244b13420eb"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -1125,7 +1125,7 @@
     },
     {
       "path": "./src/history/grimoire.js",
-      "hash": "7e11acf60cf6"
+      "hash": "49ef29d6bab4"
     },
     {
       "path": "./src/history/index.js",
@@ -1197,7 +1197,7 @@
     },
     {
       "path": "./src/ui/gameMode.js",
-      "hash": "ebed5e953141"
+      "hash": "0b96fb474c98"
     },
     {
       "path": "./src/ui/layout.js",
