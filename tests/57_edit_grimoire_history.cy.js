@@ -141,8 +141,9 @@ describe('Editing a saved grimoire', () => {
 
   [true, false].forEach(save => {
     it(`${save ? 'saves' : 'discards'} a corrected winner on an older ended game`, () => {
+      cy.viewport(1280, 720);
       loadHistory('b');
-      cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner').click();
+      cy.get('#end-game').scrollIntoView().should('be.visible').and('have.text', 'Change Winner').click();
       cy.get('#end-game-modal').should('be.visible');
       cy.get('@saveConfirmation').then(stub => stub.returns(save));
       cy.get('#evil-wins-btn').click();
@@ -156,7 +157,7 @@ describe('Editing a saved grimoire', () => {
       cy.reload();
       cy.get('#winner-message').should('contain', save ? 'Evil has won' : 'Good has won');
       cy.ensureSidebarOpen();
-      cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner');
+      cy.get('#end-game').scrollIntoView().should('be.visible').and('have.text', 'Change Winner');
       cy.window().then(win => cy.stub(win, 'confirm').returns(true).as('afterReloadConfirm'));
       loadHistory('a');
       cy.get('@afterReloadConfirm').should('not.have.been.called');
@@ -167,7 +168,7 @@ describe('Editing a saved grimoire', () => {
       readHistory().then(entries => expect(entries[1].winner).to.equal('good'));
       cy.get('@afterReloadConfirm').should('have.callCount', save ? 1 : 0);
       cy.get('#reset-grimoire').click();
-      cy.get('#end-game').should('be.visible').and('have.text', 'End Game');
+      cy.get('#end-game').scrollIntoView().should('be.visible').and('have.text', 'End Game');
     });
   });
 

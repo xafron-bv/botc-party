@@ -84,6 +84,6 @@ describe('Reset confirmation after loading ended game from history', () => {
     cy.window().then((win) => { cy.stub(win, 'confirm').returns(true); });
     cy.get('#grimoire-history-list .history-item').first().click();
 
-    cy.get('#end-game').should('be.visible').and('have.text', 'Change Winner');
+    cy.get('#end-game').scrollIntoView().should('be.visible').and('have.text', 'Change Winner');
   });
 });
