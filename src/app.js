@@ -52,7 +52,8 @@ export async function loadAppState({ grimoireState, grimoireHistoryList }) {
     if (saved && typeof saved.gameStarted === 'boolean') { grimoireState.gameStarted = !!saved.gameStarted; } else {
       grimoireState.gameStarted = false;
     }
-    if (saved && saved.winner) { grimoireState.winner = saved.winner; }
+    grimoireState.winner = saved.winner || null;
+    grimoireState.historyEdit = saved.historyEdit || null;
     if (saved && Object.prototype.hasOwnProperty.call(saved, 'tempSnapshot')) { grimoireState.tempSnapshot = saved.tempSnapshot || null; } else {
       grimoireState.tempSnapshot = null;
     }

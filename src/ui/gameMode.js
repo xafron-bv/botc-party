@@ -13,6 +13,13 @@ import {
 } from '../grimoire.js';
 import { byId } from '../utils/dom.js';
 
+export function updateEndGameButton({ grimoireState }) {
+  const button = byId('end-game'); if (!button) return;
+  const canChangeWinner = !!grimoireState.winner && !!grimoireState.historyEdit;
+  button.style.display = grimoireState.winner && !canChangeWinner ? 'none' : '';
+  button.textContent = canChangeWinner ? 'Change Winner' : 'End Game';
+}
+
 export function initGameMode({
   grimoireState,
   grimoireHistoryList,
@@ -113,7 +120,7 @@ export function initGameMode({
       const nextMode = event.target.value === 'player' ? 'player' : 'storyteller';
       if (nextMode === grimoireState.mode) return;
       if (
-        grimoireState.gameStarted &&
+        !grimoireState.historyEdit && grimoireState.gameStarted &&
         !window.confirm(
           'A game is in progress. Switching mode will reset the grimoire and end the current game. Continue?'
         )
