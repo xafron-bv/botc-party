@@ -1,4 +1,13 @@
 describe('Custom Reminder Single-Click Edit', () => {
+  // Stacks stay open while they fit; two extra tokens make the first player's stack too long to stay open.
+  const addFillerReminders = (count = 2) => {
+    for (let i = 0; i < count; i += 1) {
+      cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ force: true });
+      cy.get('#reminder-token-modal').should('be.visible');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('not.be.visible');
+    }
+  };
   beforeEach(() => {
     cy.visit('/');
     cy.window().then((win) => {
@@ -8,33 +17,39 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.setupGame({ players: 5, loadScript: false });
   });
 
-  it('should expand custom reminder on first tap', () => {
+  it('should expand a collapsed custom reminder stack on first tap', () => {
+    addFillerReminders();
     // Add a custom reminder to player 0 via Alt-click
     cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
     cy.get('#text-reminder-modal').should('be.visible');
     cy.get('#reminder-text-input').type('Test Custom');
     cy.get('#save-reminder-btn').click();
 
-    // Wait for reminder to appear
+    // Wait for reminder to appear; three reminders do not fit open, so the stack is collapsed
     cy.get('#player-circle li').eq(0).find('.text-reminder').should('exist');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // First tap should expand
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
 
     // Should NOT open edit modal on first tap (just expands)
     cy.get('#custom-reminder-edit-modal').should('not.be.visible');
+
+    // Second tap opens the edit modal immediately (no double-tap delay needed)
+    cy.get('#player-circle li').eq(0).find('.text-reminder').click({ force: true });
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input').should('contain', 'Test Custom');
   });
 
-  it('should open edit modal on click when already expanded', () => {
+  it('should open edit modal on a single click when the stack is already open', () => {
     // Add a custom reminder to player 0
     cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ altKey: true, force: true });
     cy.get('#reminder-text-input').type('Original Text');
     cy.get('#save-reminder-btn').click();
 
-    // First tap to expand
-    cy.get('#player-circle li').eq(0).find('.text-reminder').click();
-
-    // Second tap should open edit modal immediately (no double-tap delay needed)
+    // A single reminder fits, so the stack is open and the first tap edits right away
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-edit-modal').should('be.visible');
     cy.get('#custom-reminder-text-input')
@@ -43,6 +58,7 @@ describe('Custom Reminder Single-Click Edit', () => {
   });
 
   it('should open edit modal for custom note token when clicked after expand', () => {
+    addFillerReminders();
     // Add a custom note via reminder token modal
     cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
@@ -53,17 +69,20 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#custom-reminder-text-input').clear().type('Token Custom Note');
     cy.get('#save-custom-reminder-btn').click();
 
-    // Ensure reminder is present
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').should('have.length.at.least', 1);
+    // Ensure reminder is present in a stack too long to stay open
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').should('have.length', 3);
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // First click expands reminder stack
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().click({ force: true });
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').last().click({ force: true });
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    cy.get('#custom-reminder-edit-modal').should('not.be.visible');
     cy.wait(300);
 
     // Emulate environments that label compatibility click events as touch
     cy.get('#player-circle li').eq(0)
       .find('.icon-reminder')
-      .first()
+      .last()
       .trigger('click', { force: true, pointerType: 'touch' });
 
     cy.get('#custom-reminder-edit-modal').should('be.visible');
@@ -76,8 +95,7 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#reminder-text-input').type('First Version');
     cy.get('#save-reminder-btn').click();
 
-    // Expand then double-tap to edit
-    cy.get('#player-circle li').eq(0).find('.text-reminder').click();
+    // The stack is open, so a single tap edits
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
 
     // Edit text
@@ -99,7 +117,6 @@ describe('Custom Reminder Single-Click Edit', () => {
 
     // Open edit modal
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
-    cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-edit-modal').should('be.visible');
 
     // Close with X
@@ -114,7 +131,6 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#save-reminder-btn').click();
 
     // Edit it
-    cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-text-input').clear().type('Modified Text');
     cy.get('#save-custom-reminder-btn').click();
@@ -136,8 +152,10 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#reminder-text-input').type('Second Note');
     cy.get('#save-reminder-btn').click();
 
-    // Expand stack
+    // Two reminders would reach the info box in the middle, so the stack is collapsed: expand it first
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
     cy.get('#player-circle li').eq(0).find('.text-reminder').first().click({ force: true });
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
     cy.wait(100);
 
     // Edit first reminder
@@ -146,9 +164,11 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#custom-reminder-text-input').clear().type('First Modified');
     cy.get('#save-custom-reminder-btn').click();
 
-    // Edit second reminder
-    cy.wait(100);
+    // Edit second reminder (saving closed the stack again, so expand it first)
+    cy.get('#custom-reminder-edit-modal').should('not.be.visible');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
     cy.get('#player-circle li').eq(0).find('.text-reminder').eq(1).click({ force: true });
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
     cy.wait(100);
     cy.get('#player-circle li').eq(0).find('.text-reminder').eq(1).click({ force: true });
     cy.get('#custom-reminder-text-input').should('contain', 'Second Note');
@@ -177,7 +197,6 @@ describe('Custom Reminder Single-Click Edit', () => {
     cy.get('#save-reminder-btn').click();
 
     // Edit to long text
-    cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#player-circle li').eq(0).find('.text-reminder').click();
     cy.get('#custom-reminder-text-input').clear().type(longText);
     cy.get('#save-custom-reminder-btn').click();

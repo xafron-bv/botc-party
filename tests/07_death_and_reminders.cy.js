@@ -72,8 +72,7 @@ describe('Death & Reminders', () => {
     cy.get('#reminder-token-modal').should('not.be.visible');
     cy.get('#player-circle li').first().find('.icon-reminder').should('have.length.greaterThan', 0);
 
-    // Expand stack via click (no hover dependency)
-    cy.get('#player-circle li').first().find('.reminders').click({ force: true });
+    // A single reminder fits, so the stack is already open
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '1');
 
     // Edit the icon reminder label to a very short string 'hi'
@@ -98,8 +97,8 @@ describe('Death & Reminders', () => {
   });
 
   it('reminder token modal opens/closes via backdrop and search filters tokens', () => {
-    // Ensure no other stacks are expanded, then open modal
-    cy.get('#player-circle li').should('have.attr', 'data-expanded', '0');
+    // Ensure no stack has been opened over the others, then open modal
+    cy.get('#player-circle li[data-user-expanded="1"]').should('not.exist');
     cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
     cy.get('#reminder-token-modal').should('be.visible');
 
@@ -189,13 +188,15 @@ describe('Death & Reminders', () => {
     cy.get('#load-tb').click({ force: true });
     cy.get('#character-sheet .role').should('have.length.greaterThan', 5);
     cy.setupGame({ players: 5, loadScript: false });
-    // Add one reminder to first player so there is a collapsed stack
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
-    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Add more reminders than fit open so the first player has a collapsed stack
+    for (let i = 0; i < 3; i += 1) {
+      cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('be.visible');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
+      cy.get('#reminder-token-modal').should('not.be.visible');
+    }
+    cy.get('#player-circle li').first().find('.icon-reminder').should('have.length', 3);
     // Ensure stack is collapsed
-    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
     // Tap death ribbon (simulate touch)
     cy.get('#player-circle li').first().find('.death-ribbon')
@@ -239,13 +240,15 @@ describe('Death & Reminders', () => {
 
   it('desktop: hovering over character circle does not expand collapsed reminders', () => {
     // Desktop default visit already done in beforeEach
-    // Add one reminder to first player
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
-    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Add more reminders than fit open to the first player
+    for (let i = 0; i < 3; i += 1) {
+      cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('be.visible');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click();
+      cy.get('#reminder-token-modal').should('not.be.visible');
+    }
+    cy.get('#player-circle li').first().find('.icon-reminder').should('have.length', 3);
     // Ensure collapsed
-    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
     // Hover over token
     cy.get('#player-circle li').first().find('.player-token').trigger('mouseenter');

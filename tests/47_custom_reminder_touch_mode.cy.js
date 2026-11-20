@@ -11,6 +11,15 @@ describe('Custom Reminder Touch Mode', () => {
     cy.get('#save-custom-reminder-btn').click();
     cy.get('#custom-reminder-edit-modal').should('not.be.visible');
   };
+  // Stacks stay open while they fit; two extra tokens make the first player's stack too long to stay open.
+  const addFillerReminders = (count = 2) => {
+    for (let i = 0; i < count; i += 1) {
+      cy.get('#player-circle li').eq(0).find('.reminder-placeholder').click({ force: true });
+      cy.get('#reminder-token-modal').should('be.visible');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('not.be.visible');
+    }
+  };
   beforeEach(() => {
     cy.visit('/', {
       onBeforeLoad(win) {
@@ -45,12 +54,14 @@ describe('Custom Reminder Touch Mode', () => {
     cy.setupGame({ players: 5, loadScript: false });
   });
 
-  it('should expand on first tap in touch mode', () => {
+  it('should expand a collapsed stack on first tap in touch mode', () => {
+    addFillerReminders();
     addCustomReminderViaToken('Test Custom Touch');
 
-    // Wait for reminder to appear
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').should('exist');
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().as('customReminder');
+    // Wait for reminder to appear; three reminders do not fit open, so the stack is collapsed
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').should('have.length', 3);
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').last().as('customReminder');
 
     // Simulate touch interaction
     cy.get('@customReminder').trigger('touchstart', { touches: [{ clientX: 100, clientY: 100 }] }, { force: true });
@@ -67,14 +78,18 @@ describe('Custom Reminder Touch Mode', () => {
   });
 
   it('should open edit modal on second tap in touch mode', () => {
+    addFillerReminders();
     addCustomReminderViaToken('Touch Mode Text');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // First tap to expand (touch)
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().as('customReminder');
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').last().as('customReminder');
     cy.get('@customReminder').trigger('touchstart', { touches: [{ clientX: 100, clientY: 100 }] }, { force: true });
     cy.wait(50);
     cy.get('@customReminder').trigger('touchend', { changedTouches: [{ clientX: 100, clientY: 100 }] }, { force: true });
 
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    cy.get('#custom-reminder-edit-modal').should('not.be.visible');
     cy.wait(300); // Wait for suppress window to clear
 
     // Second tap should now open edit modal in touch mode
@@ -87,10 +102,12 @@ describe('Custom Reminder Touch Mode', () => {
   });
 
   it('should show reminder context menu via long press in touch mode', () => {
+    addFillerReminders();
     addCustomReminderViaToken('Long Press Test');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // Expand first
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().as('customReminder');
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').last().as('customReminder');
     cy.get('@customReminder').trigger('touchstart', { touches: [{ clientX: 100, clientY: 100 }] });
     cy.wait(50);
     cy.get('@customReminder').trigger('touchend', { changedTouches: [{ clientX: 100, clientY: 100 }] });
@@ -116,11 +133,15 @@ describe('Custom Reminder Touch Mode', () => {
   });
 
   it('should allow desktop click to open modal when expanded', () => {
+    addFillerReminders();
     addCustomReminderViaToken('Desktop Click');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
 
     // First click to expand (desktop mode - no touch events)
-    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().as('customReminder');
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').last().as('customReminder');
     cy.get('@customReminder').click({ force: true });
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    cy.get('#custom-reminder-edit-modal').should('not.be.visible');
 
     cy.wait(300); // Wait for suppress window
 
@@ -130,5 +151,18 @@ describe('Custom Reminder Touch Mode', () => {
     // Modal should open
     cy.get('#custom-reminder-edit-modal').should('be.visible');
     cy.get('#custom-reminder-text-input').should('contain', 'Desktop Click');
+  });
+
+  it('should open edit modal on the first tap when the stack is already open', () => {
+    addCustomReminderViaToken('Open Stack Tap');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+
+    cy.get('#player-circle li').eq(0).find('.icon-reminder').first().as('customReminder');
+    cy.get('@customReminder').trigger('touchstart', { touches: [{ clientX: 100, clientY: 100 }] }, { force: true });
+    cy.wait(50);
+    cy.get('@customReminder').trigger('touchend', { changedTouches: [{ clientX: 100, clientY: 100 }] }, { force: true });
+
+    cy.get('#custom-reminder-edit-modal').should('be.visible');
+    cy.get('#custom-reminder-text-input').should('contain', 'Open Stack Tap');
   });
 });

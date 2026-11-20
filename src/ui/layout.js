@@ -61,72 +61,139 @@ export function repositionPlayers({ grimoireState }) {
         playerNameEl.style.setProperty('--name-rotate', '0deg'); playerNameEl.classList.remove('curved-quadrant'); playerNameEl.style.left = ''; playerNameEl.style.top = '';
       }
     }
-    let visibleCount = 0;
-    if (players[i] && players[i].reminders) {
-      players[i].reminders.forEach(reminder => {
-        if (!grimoireState.dayNightTracking || !grimoireState.dayNightTracking.enabled ||
-          isReminderVisible(grimoireState, reminder.reminderId)) {
-          visibleCount++;
-        }
-      });
-    }
-    positionRadialStack(listItem, visibleCount);
-  }); positionInfoIcons(); positionTokenReminders(); settleAnimations(circle, 320, true);
+  }); layoutReminderStacks({ grimoireState }); positionInfoIcons(); positionTokenReminders(); settleAnimations(circle, 320, true);
+}
+const REMINDER_SELECTOR = '.reminders .icon-reminder, .reminders .text-reminder';
+const STACK_OVERLAP_TOLERANCE_PX = 1;
+function countVisibleReminders(grimoireState, playerIndex) {
+  const player = grimoireState.players[playerIndex]; if (!player || !Array.isArray(player.reminders)) return 0;
+  const tracking = grimoireState.dayNightTracking;
+  return player.reminders.filter((reminder) => !tracking || !tracking.enabled || isReminderVisible(grimoireState, reminder.reminderId)).length;
+}
+function measureStack(li, containerRect) {
+  const tokenEl = li.querySelector('.player-token') || li; const tokenRadiusPx = tokenEl.offsetWidth / 2;
+  const container = li.parentElement; const cRect = containerRect || (container ? container.getBoundingClientRect() : null); const liRect = li.getBoundingClientRect();
+  const tRect = tokenEl.getBoundingClientRect(); const centerX = cRect ? cRect.left + cRect.width / 2 : tRect.left + tRect.width / 2;
+  const centerY = cRect ? cRect.top + cRect.height / 2 : tRect.top + tRect.height / 2; const tokenCenterX = tRect.left + tRect.width / 2;
+  const tokenCenterY = tRect.top + tRect.height / 2; const vx = centerX - tokenCenterX; const vy = centerY - tokenCenterY; const angle = Math.atan2(vy, vx);
+  const runtimeRadius = Math.hypot(vx, vy); const reminderDiameter = Math.max(minReminderSize, tokenEl.offsetWidth * 0.4); const reminderRadius = reminderDiameter / 2;
+  const plusRadius = (tokenEl.offsetWidth * 0.3) / 2; const edgeGap = Math.max(8, tokenRadiusPx * 0.08); const spacing = reminderDiameter + edgeGap;
+  const reminderEls = Array.from(li.querySelectorAll(REMINDER_SELECTOR)); const plus = li.querySelector('.reminder-placeholder');
+  return {
+    li, tokenRadiusPx, tokenCenterX, tokenCenterY, angle, runtimeRadius, reminderDiameter, reminderRadius, plusRadius, edgeGap, spacing, reminderEls, plus,
+    centerOpts: { centerX: tokenCenterX - liRect.left, centerY: tokenCenterY - liRect.top, angle },
+    renderedReminderRadii: reminderEls.map((el) => el.offsetWidth / 2), renderedPlusRadius: plus && plus.offsetWidth > 0 ? plus.offsetWidth / 2 : plusRadius
+  };
+}
+// Distances from the token centre, along the line towards the middle of the circle.
+function getStackOffsets(stack, count, expanded) {
+  const { tokenRadiusPx, edgeGap, reminderRadius, plusRadius, spacing } = stack; const firstReminder = tokenRadiusPx + edgeGap + reminderRadius;
+  const step = expanded ? spacing : reminderRadius * 0.3; const smallGap = Math.max(expanded ? 4 : 2, edgeGap * 0.25);
+  const plus = count > 0 ? firstReminder + (count - 1) * step + reminderRadius + smallGap + plusRadius : tokenRadiusPx + edgeGap + plusRadius;
+  return { firstReminder, step, plus, reminderScale: expanded ? 1 : 0.8, plusScale: expanded ? 1 : 0.9 };
+}
+// The circles a stack occupies on screen, using the rendered sizes rather than the spacing constants.
+function getStackFootprint(stack, count, expanded) {
+  const offsets = getStackOffsets(stack, count, expanded); const circles = [];
+  for (let idx = 0; idx < count; idx += 1) {
+    const rendered = stack.renderedReminderRadii[idx]; const radius = (rendered > 0 ? rendered : stack.reminderRadius) * offsets.reminderScale;
+    circles.push({ offset: offsets.firstReminder + idx * offsets.step, radius });
+  }
+  circles.push({ offset: offsets.plus, radius: stack.renderedPlusRadius * offsets.plusScale, isPlus: true });
+  return circles.map((circle) => ({
+    ...circle, x: stack.tokenCenterX + Math.cos(stack.angle) * circle.offset, y: stack.tokenCenterY + Math.sin(stack.angle) * circle.offset
+  }));
+}
+function footprintsOverlap(a, b) {
+  return a.some((ca) => b.some((cb) => Math.hypot(ca.x - cb.x, ca.y - cb.y) < ca.radius + cb.radius - STACK_OVERLAP_TOLERANCE_PX));
+}
+function footprintOverlapsRect(footprint, rect) {
+  return footprint.some((circle) => {
+    const dx = Math.max(rect.left - circle.x, 0, circle.x - rect.right); const dy = Math.max(rect.top - circle.y, 0, circle.y - rect.bottom);
+    return Math.hypot(dx, dy) < circle.radius - STACK_OVERLAP_TOLERANCE_PX;
+  });
+}
+// The script name and player counts shown in the middle of the circle.
+function getCentreInfoRect() {
+  const info = document.getElementById('setup-info'); if (!info) return null; const rect = info.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 ? rect : null;
+}
+// Decide which stacks can stay open. A stack stays open when its reminders remain on its own half of the circle and its
+// open layout touches neither the info box in the middle nor another player's reminders or plus button. When stacks
+// compete for the same space the one hiding the most reminders opens first (seat order breaks ties).
+function resolveStackFit(entries, centreInfoRect) {
+  const currentFootprint = (entry) => (entry.open ? entry.openFootprint : entry.closedFootprint);
+  const staysOnOwnHalf = (entry) => entry.openFootprint.every((circle) => (
+    circle.isPlus || circle.offset + circle.radius <= entry.stack.runtimeRadius + STACK_OVERLAP_TOLERANCE_PX
+  ));
+  const clearsCentreInfo = (entry) => !centreInfoRect || !footprintOverlapsRect(entry.openFootprint, centreInfoRect);
+  const fitsOpen = (entry) => entries.every((other) => other === entry || !footprintsOverlap(entry.openFootprint, currentFootprint(other)));
+  const candidates = entries.filter((entry) => staysOnOwnHalf(entry) && clearsCentreInfo(entry)).sort((a, b) => b.count - a.count);
+  const openNext = () => {
+    const next = candidates.find((entry) => !entry.open && fitsOpen(entry)); if (next) next.open = true; return !!next;
+  };
+  while (openNext()) { /* keep opening stacks until no further one fits */ }
+}
+function syncExpandedState(li) { li.dataset.expanded = (li.dataset.autoExpanded === '1' || li.dataset.userExpanded === '1') ? '1' : '0'; }
+export function isStackExpanded(li) { return !!li && li.dataset.expanded === '1'; }
+// Opens (or closes) a stack that does not fit on its own, on the user's request.
+export function setStackUserExpanded(li, userExpanded) {
+  if (userExpanded) li.dataset.userExpanded = '1'; else delete li.dataset.userExpanded;
+  syncExpandedState(li); positionRadialStack(li);
+}
+export function collapseUserExpandedStacks({ except = null } = {}) {
+  let collapsedAny = false;
+  document.querySelectorAll('#player-circle li[data-user-expanded="1"]').forEach((li) => {
+    if (li === except) return;
+    collapsedAny = true; setStackUserExpanded(li, false);
+  });
+  return collapsedAny;
+}
+export function layoutReminderStacks({ grimoireState }) {
+  const circle = document.getElementById('player-circle'); if (!circle) return; const listItems = Array.from(circle.querySelectorAll('li')); if (!listItems.length) return;
+  const containerRect = circle.getBoundingClientRect();
+  const entries = listItems.map((li, playerIndex) => {
+    const stack = measureStack(li, containerRect); const count = countVisibleReminders(grimoireState, playerIndex);
+    return { stack, count, openFootprint: getStackFootprint(stack, count, true), closedFootprint: getStackFootprint(stack, count, false), open: false };
+  });
+  const measurable = entries.every((entry) => entry.stack.tokenRadiusPx > 0 && entry.stack.runtimeRadius > 0);
+  if (measurable) {
+    resolveStackFit(entries, getCentreInfoRect());
+    entries.forEach(({ stack, open }) => {
+      stack.li.dataset.autoExpanded = open ? '1' : '0'; if (open) delete stack.li.dataset.userExpanded; syncExpandedState(stack.li);
+    });
+  }
+  entries.forEach(({ stack, count }) => applyStackLayout(stack, count));
 }
 export function positionRadialStack(li, count) {
-  const tokenEl = li.querySelector('.player-token') || li; const tokenRadiusPx = tokenEl.offsetWidth / 2; const isExpanded = li.dataset.expanded === '1';
+  const stack = measureStack(li); applyStackLayout(stack, Number.isFinite(count) ? count : stack.reminderEls.length);
+}
+function applyStackLayout(stack, count) {
+  const { li, tokenRadiusPx, angle, runtimeRadius, reminderDiameter, edgeGap, reminderEls, centerOpts } = stack; const isExpanded = isStackExpanded(li);
   const remindersContainer = li.querySelector('.reminders');
   if (remindersContainer) {
     const touchUntil = parseInt(li.dataset.touchSuppressUntil || '0', 10); const actionUntil = parseInt(li.dataset.actionSuppressUntil || '0', 10);
     const suppressUntil = Math.max(touchUntil, actionUntil); const inSuppressWindow = Date.now() < suppressUntil;
     remindersContainer.style.pointerEvents = isExpanded && inSuppressWindow ? 'none' : 'auto';
   }
-  const container = li.parentElement; const cRect = container ? container.getBoundingClientRect() : null; const liRect = li.getBoundingClientRect();
-  const tRect = tokenEl.getBoundingClientRect(); const centerX = cRect ? cRect.left + cRect.width / 2 : tRect.left + tRect.width / 2;
-  const centerY = cRect ? cRect.top + cRect.height / 2 : tRect.top + tRect.height / 2; const tokenCenterX = tRect.left + tRect.width / 2;
-  const tokenCenterY = tRect.top + tRect.height / 2; const vx = centerX - tokenCenterX; const vy = centerY - tokenCenterY; const angle = Math.atan2(vy, vx);
-  const runtimeRadius = Math.hypot(vx, vy); const reminderDiameter = Math.max(minReminderSize, tokenEl.offsetWidth * 0.4); const reminderRadius = reminderDiameter / 2;
-  const plusRadius = (tokenEl.offsetWidth * 0.3) / 2; const edgeGap = Math.max(8, tokenRadiusPx * 0.08); const spacing = reminderDiameter + edgeGap;
-  const reminderEls = li.querySelectorAll('.reminders .icon-reminder, .reminders .text-reminder'); let hoverZone = li.querySelector('.reminder-hover-zone');
-  if (!hoverZone) { hoverZone = document.createElement('div'); hoverZone.className = 'reminder-hover-zone'; li.querySelector('.reminders').appendChild(hoverZone); }
-  const centerOpts = {
-    centerX: tokenCenterX - liRect.left,
-    centerY: tokenCenterY - liRect.top,
-    angle
-  };
-  if (isExpanded) {
-    const firstReminderOffsetFromToken = tokenRadiusPx + edgeGap + reminderRadius;
-    reminderEls.forEach((el, idx) => {
-      const offset = firstReminderOffsetFromToken + idx * spacing; const pos = calculateRadialPosition({ ...centerOpts, radius: offset }); el.style.left = pos.left;
-      el.style.top = pos.top; el.style.transform = 'translate(-50%, -50%)'; el.style.zIndex = '5';
-    });
-  } else {
-    const collapsedOffset = tokenRadiusPx + edgeGap + reminderRadius; const collapsedSpacing = reminderRadius * 0.3;
-    reminderEls.forEach((el, idx) => {
-      const offset = collapsedOffset + idx * collapsedSpacing; const pos = calculateRadialPosition({ ...centerOpts, radius: offset }); el.style.left = pos.left;
-      el.style.top = pos.top; el.style.transform = 'translate(-50%, -50%) scale(0.8)'; el.style.zIndex = '2';
-    });
+  let hoverZone = li.querySelector('.reminder-hover-zone');
+  if (!hoverZone && remindersContainer) { hoverZone = document.createElement('div'); hoverZone.className = 'reminder-hover-zone'; remindersContainer.appendChild(hoverZone); }
+  const offsets = getStackOffsets(stack, count, isExpanded);
+  reminderEls.forEach((el, idx) => {
+    const pos = calculateRadialPosition({ ...centerOpts, radius: offsets.firstReminder + idx * offsets.step }); el.style.left = pos.left; el.style.top = pos.top;
+    el.style.transform = isExpanded ? 'translate(-50%, -50%)' : `translate(-50%, -50%) scale(${offsets.reminderScale})`; el.style.zIndex = isExpanded ? '5' : '2';
+  });
+  if (hoverZone) {
+    const hoverZoneStart = tokenRadiusPx + edgeGap; const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10);
+    const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; const hoverZoneHeight = reminderDiameter;
+    const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2; const hoverPos = calculateRadialPosition({ ...centerOpts, radius: hoverZoneCenterOffset });
+    const rotationAngle = angle * (180 / Math.PI); hoverZone.style.left = hoverPos.left; hoverZone.style.top = hoverPos.top; hoverZone.style.width = `${hoverZoneWidth}px`;
+    hoverZone.style.height = `${hoverZoneHeight}px`; hoverZone.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
+    hoverZone.style.transformOrigin = 'center center';
   }
-  const hoverZoneStart = tokenRadiusPx + edgeGap; const maxHoverZoneEnd = Math.min(tokenRadiusPx + 200, runtimeRadius - 10);
-  const hoverZoneEnd = Math.max(hoverZoneStart + 20, maxHoverZoneEnd); const hoverZoneWidth = hoverZoneEnd - hoverZoneStart; const hoverZoneHeight = reminderDiameter;
-  const hoverZoneCenterOffset = (hoverZoneStart + hoverZoneEnd) / 2; const hoverPos = calculateRadialPosition({ ...centerOpts, radius: hoverZoneCenterOffset });
-  const rotationAngle = angle * (180 / Math.PI); hoverZone.style.left = hoverPos.left; hoverZone.style.top = hoverPos.top; hoverZone.style.width = `${hoverZoneWidth}px`;
-  hoverZone.style.height = `${hoverZoneHeight}px`; hoverZone.style.transform = `translate(-50%, -50%) rotate(${rotationAngle}deg)`;
-  hoverZone.style.transformOrigin = 'center center'; const plus = li.querySelector('.reminder-placeholder');
+  const plus = stack.plus;
   if (plus) {
-    if (isExpanded) {
-      const smallGap = Math.max(4, edgeGap * 0.25); let offsetFromEdge = tokenRadiusPx + edgeGap + plusRadius;
-      if (count > 0) { offsetFromEdge = tokenRadiusPx + edgeGap + reminderRadius + (count - 1) * spacing + reminderRadius + smallGap + plusRadius; }
-      const pos = calculateRadialPosition({ ...centerOpts, radius: offsetFromEdge }); plus.style.left = pos.left; plus.style.top = pos.top;
-      plus.style.transform = 'translate(-50%, -50%)'; plus.style.zIndex = '6';
-    } else {
-      const collapsedSpacing = reminderRadius * 0.3; const smallGap = Math.max(2, edgeGap * 0.25); let collapsedOffset = tokenRadiusPx + edgeGap + plusRadius;
-      if (count > 0) {
-        const firstCenter = tokenRadiusPx + edgeGap + reminderRadius; const lastCenter = firstCenter + (count - 1) * collapsedSpacing;
-        collapsedOffset = lastCenter + reminderRadius + smallGap + plusRadius;
-      }
-      const pos = calculateRadialPosition({ ...centerOpts, radius: collapsedOffset }); plus.style.left = pos.left; plus.style.top = pos.top;
-      plus.style.transform = 'translate(-50%, -50%) scale(0.9)'; plus.style.zIndex = '6';
-    }
+    const pos = calculateRadialPosition({ ...centerOpts, radius: offsets.plus }); plus.style.left = pos.left; plus.style.top = pos.top;
+    plus.style.transform = isExpanded ? 'translate(-50%, -50%)' : `translate(-50%, -50%) scale(${offsets.plusScale})`; plus.style.zIndex = '6';
   } settleAnimations(li, 320, true);
 }

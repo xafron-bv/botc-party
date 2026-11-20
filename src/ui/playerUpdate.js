@@ -5,7 +5,6 @@ import { setupInteractiveElement } from '../utils/interaction.js';
 import { handlePlayerElementTouch } from './touchHelpers.js';
 import { showPlayerContextMenu } from './contextMenu.js';
 import { renderRemindersForPlayer, createReminderElement } from '../reminder.js';
-import { positionRadialStack } from './layout.js';
 import { showStorytellerMessage } from '../storytellerMessages.js';
 import { withStateSave } from '../app.js';
 function getAlignmentOverrideFilter({ role, player }) {
@@ -232,5 +231,5 @@ export function updatePlayerElement({
       });
     }
   }
-  const visibleRemindersCount = renderRemindersForPlayer({ li, grimoireState, playerIndex }); positionRadialStack(li, visibleRemindersCount);
+  renderRemindersForPlayer({ li, grimoireState, playerIndex });
 }

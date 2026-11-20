@@ -75,9 +75,8 @@ body.mode-player .bluff-tokens-container { display: none; }
   .bluff-token .icon-reminder-text { font-size: 8px !important; }
 }
 .bluff-token .ability-info-icon {
+  --info-icon-size: max(12px, calc(var(--bluff-token-size) * 0.15));
   position: absolute; top: 0; right: 0; left: auto; z-index: 12; transform: translate(50%, -50%);
-  width: max(16px, calc(var(--bluff-token-size) * 0.2)); height: max(16px, calc(var(--bluff-token-size) * 0.2));
-  font-size: max(10px, calc(var(--bluff-token-size) * 0.12));
 }
 .bluff-token .ability-info-icon:active { transform: translate(50%, -50%) scale(0.95); }
 @media (max-width: 480px) {

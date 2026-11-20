@@ -244,6 +244,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ('ResizeObserver' in window) {
       resizeObserver = new ResizeObserver(schedulePlayerReposition); const grimoireCenter = byId('center');
       if (grimoireCenter) { resizeObserver.observe(grimoireCenter); }
+      // Reminder stacks keep clear of the info box in the middle, so they are laid out again when its size changes
+      const setupInfo = byId('setup-info'); if (setupInfo) { resizeObserver.observe(setupInfo); }
     }
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && grimoireState.players.length > 0) { requestAnimationFrame(() => repositionPlayers({ grimoireState })); }

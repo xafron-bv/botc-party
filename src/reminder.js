@@ -4,7 +4,7 @@ import { addReminderTimestamp, generateReminderId, isReminderVisible, saveCurren
 import { updateGrimoire } from './grimoire.js';
 import { createTokenGridItem } from './ui/tokenGridItem.js';
 import { CLICK_EXPAND_SUPPRESS_MS } from './constants.js';
-import { positionRadialStack } from './ui/layout.js';
+import { collapseUserExpandedStacks, isStackExpanded, setStackUserExpanded } from './ui/layout.js';
 import { showReminderContextMenu } from './ui/contextMenu.js';
 import { isActivationKey, setupInteractiveElement } from './utils/interaction.js';
 import { renderTokenElement } from './ui/tokenRendering.js';
@@ -169,11 +169,6 @@ export function openCustomReminderEditModal({ grimoireState, playerIndex, remind
     }
     customReminderEditModal.style.display = 'none'; grimoireState.editingCustomReminder = null; customReminderTextInput.removeEventListener('keydown', handleKeyDown);
   }));
-} export function getVisibleRemindersCount({ grimoireState, playerIndex }) {
-  const player = grimoireState.players[playerIndex]; if (!player || !player.reminders) return 0; let count = 0;
-  player.reminders.forEach(reminder => {
-    if (isReminderVisible(grimoireState, reminder.reminderId)) { count++; }
-  }); return count;
 }
 function applyFontSize(element, text) {
   const textLength = text.length;
@@ -256,11 +251,12 @@ export function renderRemindersForPlayer({ li, grimoireState, playerIndex }) {
     }
     visibleRemindersCount++; const isCustom = reminder.id === 'custom-note' || reminder.type === 'text';
     const onTap = (e, targetElement) => {
-      const parentLi = li; const isCollapsed = !!(parentLi && parentLi.dataset.expanded !== '1'); const element = targetElement || e.currentTarget;
+      const parentLi = li; const isCollapsed = !!(parentLi && !isStackExpanded(parentLi)); const element = targetElement || e.currentTarget;
       if (isCollapsed) {
         e.stopPropagation();
         try { e.preventDefault(); } catch (_) { }
-        parentLi.dataset.expanded = '1'; parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS); positionRadialStack(parentLi, visibleRemindersCount);
+        collapseUserExpandedStacks({ except: parentLi });
+        parentLi.dataset.actionSuppressUntil = String(Date.now() + CLICK_EXPAND_SUPPRESS_MS); setStackUserExpanded(parentLi, true);
         if (element && element.dataset) { element.dataset.ignoreNextSyntheticClick = 'true'; }
       } else if (isCustom) {
         e.stopPropagation();

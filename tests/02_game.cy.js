@@ -68,8 +68,8 @@ describe('Game', () => {
     cy.get('#character-grid .token[title="Librarian"]').first().click();
 
     // Add 2 reminder tokens to player 1 (generic tokens should always be present)
-    // Ensure no other stack is expanded
-    cy.get('#player-circle li').should('have.attr', 'data-expanded', '0');
+    // Ensure no stack has been opened over the others
+    cy.get('#player-circle li[data-user-expanded="1"]').should('not.exist');
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();
     cy.get('#reminder-token-modal').should('be.visible');
     cy.get('#reminder-token-grid .token[title="Townsfolk"]').first().click();
@@ -87,6 +87,8 @@ describe('Game', () => {
     cy.get('#reminder-token-modal').click('topLeft', { force: true });
     cy.get('#reminder-token-modal').should('not.be.visible');
 
+    // Two reminders would reach the info box in the middle, so the stack starts collapsed
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
     // Expand reminders stack via click (no hover dependency)
     cy.get('#player-circle li').eq(0).find('.reminders').click({ force: true });
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
@@ -102,9 +104,9 @@ describe('Game', () => {
       cy.get('@confirmStubGame').its('callCount').should('eq', before);
     });
 
-    // Collapse stack by clicking outside
+    // The single reminder that is left fits, so the stack stays open after clicking outside
     cy.get('body').click('topLeft');
-    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
+    cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1').and('not.have.attr', 'data-user-expanded');
 
     // Add custom text reminder via reminder token modal custom option
     cy.get('#player-circle li .reminder-placeholder').eq(0).click();

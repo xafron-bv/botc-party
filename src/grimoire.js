@@ -5,7 +5,7 @@ import { calculateNightOrder, shouldShowNightOrder, updateDayNightUI, getCurrent
 import { snapshotCurrentGrimoire } from './history/grimoire.js';
 import { openReminderTokenModal } from './reminder.js';
 import { closeMenusOnOutsideEvent, hidePlayerContextMenu, hideReminderContextMenu } from './ui/contextMenu.js';
-import { repositionPlayers } from './ui/layout.js';
+import { layoutReminderStacks, repositionPlayers } from './ui/layout.js';
 import { positionInfoIcons, positionTokenReminders } from './ui/tooltip.js';
 import { renderSetupInfo } from './utils/setup.js';
 import { handlePlayerElementTouch } from './ui/touchHelpers.js';
@@ -113,7 +113,7 @@ export function updateGrimoire({ grimoireState }) {
       showNightReminders,
       currentPhase
     });
-  }); positionInfoIcons(); positionTokenReminders(); updateAllBluffTokens({ grimoireState });
+  }); layoutReminderStacks({ grimoireState }); positionInfoIcons(); positionTokenReminders(); updateAllBluffTokens({ grimoireState });
 }
 export const resetGrimoire = withStateSave(({ grimoireState, grimoireHistoryList, playerCountInput, preserveBag = false }) => {
   const sel = grimoireState.playerSetup;

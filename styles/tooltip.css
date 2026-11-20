@@ -17,9 +17,18 @@
 .role.show-ability .ability { display: block; }
 .player-token { position: relative; overflow: visible; }
 .ability-info-icon {
-  position: absolute; width: calc(var(--player-token-size) * 0.2); height: calc(var(--player-token-size) * 0.2);
-  background: #D4AF37; color: #1a1a1a; border: none; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; z-index: 20; transition: all 0.2s ease; box-shadow: none; pointer-events: auto; box-sizing: border-box;
-  left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: calc(var(--player-token-size) * 0.12); font-weight: 700; text-transform: lowercase;
+  --info-icon-size: max(12px, calc(var(--player-token-size) * 0.15));
+  position: absolute; width: var(--info-icon-size); height: var(--info-icon-size);
+  /* See-through by default so a player name underneath stays readable */
+  background: rgba(212, 175, 55, 0.4); color: rgba(255, 246, 214, 0.95); border: 1px solid rgba(212, 175, 55, 0.75); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20;
+  transition: all 0.2s ease; box-shadow: none; pointer-events: auto; box-sizing: border-box;
+  left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: calc(var(--info-icon-size) * 0.62); line-height: 1; font-weight: 700; text-transform: lowercase;
+}
+/* Keep a comfortable tap target around the smaller icon */
+.ability-info-icon::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; }
+.ability-info-icon:focus-visible { background: rgba(212, 175, 55, 0.95); color: #1a1a1a; }
+@media (hover: hover) {
+  .ability-info-icon:hover { background: rgba(212, 175, 55, 0.95); color: #1a1a1a; }
 }
 .ability-info-icon:active { transform: translate(-50%, -50%) scale(0.95); }

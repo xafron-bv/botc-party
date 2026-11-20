@@ -83,11 +83,19 @@ describe('Ability UI - Touch', () => {
 
   it('plus button first expands when another stack is expanded; second tap opens modal', () => {
     cy.viewport('iphone-6');
-    // Start with two players
     // Players and started game already prepared in beforeEach
-    // Deterministically mark second player as expanded and first as collapsed
-    cy.get('#player-circle li').eq(1).invoke('attr', 'data-expanded', '1');
-    cy.get('#player-circle li').eq(0).invoke('attr', 'data-expanded', '0');
+    // Give the first two players more reminders than fit open on a phone, so both stacks are collapsed
+    [0, 1].forEach((playerIndex) => {
+      for (let i = 0; i < 2; i += 1) {
+        cy.get('#player-circle li .reminder-placeholder').eq(playerIndex).click({ force: true });
+        cy.get('#reminder-token-modal').should('be.visible');
+        cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+        cy.get('#reminder-token-modal').should('not.be.visible');
+      }
+      cy.get('#player-circle li').eq(playerIndex).should('have.attr', 'data-expanded', '0');
+    });
+    // Open the second player's stack by tapping it
+    cy.get('#player-circle li').eq(1).find('.icon-reminder').first().click({ force: true });
     cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '1');
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '0');
     // Now tap plus on first player: should expand first (and not open modal yet)
@@ -95,6 +103,7 @@ describe('Ability UI - Touch', () => {
     // Wait a beat for the expand to propagate
     cy.wait(50);
     cy.get('#player-circle li').eq(0).should('have.attr', 'data-expanded', '1');
+    cy.get('#player-circle li').eq(1).should('have.attr', 'data-expanded', '0');
     // Ensure modal is closed before continuing
     cy.get('body').then(($body) => {
       if ($body.find('#reminder-token-modal:visible').length) {
@@ -218,13 +227,14 @@ describe('Ability UI - Touch', () => {
   it('touch: tapping character circle does not expand collapsed reminders', () => {
     cy.viewport('iphone-6');
     // Game already started with 5 players
-    // Add a reminder so there is a stack to expand
-    cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('be.visible');
-    cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
-    cy.get('#reminder-token-modal').should('not.be.visible');
+    // Add more reminders than fit open on a phone so there is a collapsed stack to expand
+    for (let i = 0; i < 2; i += 1) {
+      cy.get('#player-circle li .reminder-placeholder').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('be.visible');
+      cy.get('#reminder-token-grid .token[title="Wrong"]').first().click({ force: true });
+      cy.get('#reminder-token-modal').should('not.be.visible');
+    }
     // Ensure collapsed
-    cy.get('#player-circle li').first().invoke('attr', 'data-expanded', '0');
     cy.get('#player-circle li').first().should('have.attr', 'data-expanded', '0');
     // Tap the character circle to open character modal
     cy.get('#player-circle li .player-token').first()

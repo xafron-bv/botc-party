@@ -1,3 +1,8 @@
+// The plus button glides to its new place; positions are only comparable once that transition has ended.
+const plusHasSettled = ($plus) => {
+  expect($plus[0].getAnimations(), 'running plus button transitions').to.have.length(0);
+};
+
 describe('Reminder Positioning with Day/Night Tracking', () => {
   beforeEach(() => {
     cy.visit('/?test=true');
@@ -215,8 +220,9 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
       // Go back to N1
       cy.get('[data-testid="day-night-slider"] input[type="range"]').invoke('val', 0).trigger('input');
 
-      // Get plus button position with tracking enabled
-      cy.get('li').first().find('.reminder-placeholder').then($plusEnabled => {
+      // Get plus button position with tracking enabled, once it has finished moving to its new place
+      cy.get('li').first().find('.text-reminder').should('have.length', 1);
+      cy.get('li').first().find('.reminder-placeholder').should(plusHasSettled).then($plusEnabled => {
         const enabledPosition = $plusEnabled[0].getBoundingClientRect();
 
         // Disable day/night tracking
@@ -226,7 +232,7 @@ describe('Reminder Positioning with Day/Night Tracking', () => {
         cy.get('li').first().find('.text-reminder').should('have.length', 1);
 
         // Get plus button position with tracking disabled
-        cy.get('li').first().find('.reminder-placeholder').then($plusDisabled => {
+        cy.get('li').first().find('.reminder-placeholder').should(plusHasSettled).then($plusDisabled => {
           const disabledPosition = $plusDisabled[0].getBoundingClientRect();
 
           // Plus button should be farther when all reminders are shown

@@ -1,6 +1,6 @@
 .reminders { display: block; position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 .reminder-hover-zone { position: absolute; background: transparent; pointer-events: auto; z-index: 1; }
-#player-circle li:not([data-expanded="1"]) .reminder-hover-zone { pointer-events: none; }
+#player-circle li:not([data-user-expanded="1"]) .reminder-hover-zone { pointer-events: none; }
 .text-reminder {
   background-image: url('/assets/img/token.png'); background-size: cover;
   border: var(--token-ring-width-xs) solid var(--token-ring-color); width: var(--reminder-token-size);
@@ -116,4 +116,4 @@
   font-weight: bold; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); border: 2px solid var(--color-primary); transition: all 0.3s ease; z-index: 6;
 }
 .reminder-placeholder:hover { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7); }
-#player-circle li[data-expanded="1"] { z-index: 100; }
+#player-circle li[data-user-expanded="1"] { z-index: 100; }
