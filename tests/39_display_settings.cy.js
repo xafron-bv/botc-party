@@ -3,6 +3,24 @@
 describe('Display Settings Controls', () => {
   const SETTINGS_STORAGE_KEY = 'botcDisplaySettingsV1';
 
+  // The token and name glide to their new size and place; measure them only once those transitions have ended.
+  const waitForPlayerToSettle = (alias) => cy.get(alias).should(($li) => {
+    const running = ['.player-token', '.player-name']
+      .flatMap((selector) => $li[0].querySelector(selector).getAnimations())
+      .filter((animation) => animation.playState === 'running');
+    expect(running, 'running token and name transitions').to.have.length(0);
+  });
+
+  const measureNameGap = ($li) => {
+    const tokenRect = $li.find('.player-token')[0].getBoundingClientRect();
+    const nameRect = $li.find('.player-name')[0].getBoundingClientRect();
+    const centerDist = Math.hypot(
+      (nameRect.left + nameRect.width / 2) - (tokenRect.left + tokenRect.width / 2),
+      (nameRect.top + nameRect.height / 2) - (tokenRect.top + tokenRect.height / 2)
+    );
+    return Math.abs(centerDist - tokenRect.width / 2);
+  };
+
   beforeEach(() => {
     cy.visit('/');
     cy.viewport(1280, 900);
@@ -34,17 +52,8 @@ describe('Display Settings Controls', () => {
       baseNameFontSize = parseFloat(getComputedStyle($name[0]).fontSize);
     });
 
-    cy.get('@stablePlayer').then(($li) => {
-      const tokenEl = $li.find('.player-token')[0];
-      const nameEl = $li.find('.player-name')[0];
-      const tokenRect = tokenEl.getBoundingClientRect();
-      const nameRect = nameEl.getBoundingClientRect();
-      const tokenCenterX = tokenRect.left + tokenRect.width / 2;
-      const tokenCenterY = tokenRect.top + tokenRect.height / 2;
-      const nameCenterX = nameRect.left + nameRect.width / 2;
-      const nameCenterY = nameRect.top + nameRect.height / 2;
-      const centerDist = Math.hypot(nameCenterX - tokenCenterX, nameCenterY - tokenCenterY);
-      baseNameGap = Math.abs(centerDist - tokenRect.width / 2);
+    waitForPlayerToSettle('@stablePlayer').then(($li) => {
+      baseNameGap = measureNameGap($li);
     });
 
     cy.get('#action-cluster-toggle').click({ force: true });
@@ -79,18 +88,8 @@ describe('Display Settings Controls', () => {
       expect(fontSize).to.be.greaterThan(baseNameFontSize * 1.15);
     });
 
-    cy.get('@stablePlayer').then(($li) => {
-      const tokenEl = $li.find('.player-token')[0];
-      const nameEl = $li.find('.player-name')[0];
-      const tokenRect = tokenEl.getBoundingClientRect();
-      const nameRect = nameEl.getBoundingClientRect();
-      const tokenCenterX = tokenRect.left + tokenRect.width / 2;
-      const tokenCenterY = tokenRect.top + tokenRect.height / 2;
-      const nameCenterX = nameRect.left + nameRect.width / 2;
-      const nameCenterY = nameRect.top + nameRect.height / 2;
-      const centerDist = Math.hypot(nameCenterX - tokenCenterX, nameCenterY - tokenCenterY);
-      const adjustedGap = Math.abs(centerDist - tokenRect.width / 2);
-      expect(adjustedGap).to.be.closeTo(baseNameGap, 4);
+    waitForPlayerToSettle('@stablePlayer').then(($li) => {
+      expect(measureNameGap($li), 'gap between token and name').to.be.closeTo(baseNameGap, 4);
     });
 
     cy.window().then((win) => {
