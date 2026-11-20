@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T06:01:03.567Z",
+  "generatedAt": "2026-11-20T08:27:41.602Z",
   "core": [
     {
       "path": "./index.html",
@@ -51,7 +51,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "6244b13420eb"
+      "hash": "c2a28ac69b87"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -87,7 +87,7 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "f7ffc779f9d0"
+      "hash": "1a2c884eeca2"
     },
     {
       "path": "./src/roleData.js",
@@ -135,7 +135,7 @@
     },
     {
       "path": "./src/ui/layout.js",
-      "hash": "df0286238232"
+      "hash": "69f671b75d11"
     },
     {
       "path": "./src/ui/menuFactory.js",
@@ -147,11 +147,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "3e10582556b6"
+      "hash": "c8b604f18336"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "8db26bbfbd98"
+      "hash": "c40e609c9554"
     },
     {
       "path": "./src/ui/scriptControls.js",
@@ -225,7 +225,7 @@
   "files": [
     {
       "path": "./asset-manifest.json",
-      "hash": "5fb744e350a4"
+      "hash": "2cb4705917b2"
     },
     {
       "path": "./assets/fontawesome/css/all.min.css",
@@ -1073,7 +1073,7 @@
     },
     {
       "path": "./script.js",
-      "hash": "9ae1832a37c7"
+      "hash": "2ffd1c490a02"
     },
     {
       "path": "./service-worker.js",
@@ -1117,7 +1117,7 @@
     },
     {
       "path": "./src/grimoire.js",
-      "hash": "6244b13420eb"
+      "hash": "c2a28ac69b87"
     },
     {
       "path": "./src/history/exportImport.js",
@@ -1153,7 +1153,7 @@
     },
     {
       "path": "./src/reminder.js",
-      "hash": "f7ffc779f9d0"
+      "hash": "1a2c884eeca2"
     },
     {
       "path": "./src/roleData.js",
@@ -1201,7 +1201,7 @@
     },
     {
       "path": "./src/ui/layout.js",
-      "hash": "df0286238232"
+      "hash": "69f671b75d11"
     },
     {
       "path": "./src/ui/menuFactory.js",
@@ -1213,11 +1213,11 @@
     },
     {
       "path": "./src/ui/playerCircle.js",
-      "hash": "3e10582556b6"
+      "hash": "c8b604f18336"
     },
     {
       "path": "./src/ui/playerUpdate.js",
-      "hash": "8db26bbfbd98"
+      "hash": "c40e609c9554"
     },
     {
       "path": "./src/ui/scriptControls.js",
@@ -1289,7 +1289,7 @@
     },
     {
       "path": "./styles/bluff-tokens.css",
-      "hash": "70373259e697"
+      "hash": "2321ffc18226"
     },
     {
       "path": "./styles/character-panel.css",
@@ -1333,7 +1333,7 @@
     },
     {
       "path": "./styles/reminders.css",
-      "hash": "3ed452fbe7ce"
+      "hash": "bd1a84333178"
     },
     {
       "path": "./styles/responsive.css",
@@ -1349,7 +1349,7 @@
     },
     {
       "path": "./styles/tooltip.css",
-      "hash": "b30dcd588893"
+      "hash": "5a1948739479"
     },
     {
       "path": "./styles/touch.css",
